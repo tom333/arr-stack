@@ -38,6 +38,10 @@ ignore = ["D203", "D213"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D"]
+# Sonarr/Radarr APIs use camelCase field names; pydantic models must match (D-21).
+"arrconf/resources/**" = ["N815"]
+# typer.Option(...) in argument defaults is the canonical typer CLI pattern.
+"arrconf/__main__.py" = ["B008"]
 
 [tool.mypy]
 python_version = "3.13"
