@@ -120,7 +120,10 @@ Tout reconciler doit être **sûr à ré-exécuter**. Concrètement :
 ### CLI
 
 ```
-python -m arrconf [--config PATH] [--apps APP1,APP2] [--dry-run] [--log-level LEVEL]
+python -m arrconf apply       [--config PATH] [--apps APP1,APP2] [--dry-run] [--log-level LEVEL]
+python -m arrconf dump        [--apps APP1,APP2] [--output PATH]
+python -m arrconf diff        [--config PATH] [--apps APP1,APP2]
+python -m arrconf schema-gen  [--output PATH]
 ```
 
 - `--dry-run` : log les actions sans appeler `POST/PUT/DELETE`. Comportement par défaut en CI/test.
@@ -341,7 +344,8 @@ Tout ce qui change dans le périmètre arr-stack se fait via PR sur **ce** repo.
 2. **Endpoint mapping** dans le client : URL, méthode HTTP, identifiant de matching.
 3. **Implémentation `differ`** : la méthode générique devrait suffire si le pattern est `GET list / POST / PUT by id / DELETE by id`. Sinon override.
 4. **Tests** : add/update/delete/no-op + prune ON/OFF.
-5. **Documenter dans le tableau frontière** ci-dessus.
+5. **Régénérer le JSON Schema** : `arrconf schema-gen --output schemas/arrconf-schema.json` puis commit. La CI bloque si oublié.
+6. **Documenter dans le tableau frontière** ci-dessus.
 
 ---
 

@@ -210,6 +210,7 @@ tools/arrconf/
 │   ├── logging.py                 # setup structlog
 │   ├── client_base.py             # ArrApiClient générique (auth, retry, pagination)
 │   ├── differ.py                  # logique GET → diff → POST/PUT/DELETE générique
+│   ├── schema_gen.py              # sérialise pydantic → JSON Schema (sous-commande schema-gen)
 │   ├── reconcilers/
 │   │   ├── __init__.py
 │   │   ├── sonarr.py
@@ -251,14 +252,16 @@ tools/arrconf/
 **CLI — sous-commandes** :
 
 ```
-arrconf apply  [--config PATH] [--apps LIST] [--dry-run] [--log-level LEVEL]   # default: reconcilie
-arrconf dump   [--apps LIST] [--output PATH]                                    # read-only, exporte YAML
-arrconf diff   [--config PATH] [--apps LIST]                                    # diff lisible local vs cluster
+arrconf apply       [--config PATH] [--apps LIST] [--dry-run] [--log-level LEVEL]   # default: reconcilie
+arrconf dump        [--apps LIST] [--output PATH]                                    # read-only, exporte YAML
+arrconf diff        [--config PATH] [--apps LIST]                                    # diff lisible local vs cluster
+arrconf schema-gen  [--output PATH]                                                  # exporte JSON Schema du config
 ```
 
 - `apply` (default si aucune sous-commande) : reconcilie le YAML désiré vers les APIs.
 - `dump` : **read-only**. Récupère l'état courant de chaque app via API et écrit un YAML conforme au schéma arrconf. Aucune écriture sur les APIs. Sert au seed initial et au diagnostic forensic.
 - `diff` : compare YAML local vs APIs et affiche les actions qui seraient prises, en format lisible (par opposition à `--dry-run` qui log).
+- `schema-gen` : **read-only, offline**. Sérialise les modèles pydantic du config en JSON Schema (Draft 2020-12). Output committé dans `schemas/arrconf-schema.json`. Permet l'autocomplétion + validation à la frappe dans VS Code / code-server via [yaml-language-server](https://github.com/redhat-developer/yaml-language-server). À régénérer après tout ajout de reconciler ou de resource type (CI peut vérifier l'idempotence).
 - Exit codes : `0` succès, `1` une app a échoué (les autres ont continué), `2` erreur de config (parse/validation), `3` (sur `diff`) drift détecté.
 
 ### 6.2 Umbrella Helm chart
@@ -477,7 +480,7 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Estimation** : 0.5 journée
 
-### Phase 1 — arrconf POC + snapshot YAML
+### Phase 1 — arrconf POC + snapshot YAML + JSON Schema
 
 **Livrables** :
 - Squelette `tools/arrconf/` (Python, Dockerfile, pyproject, tests)
@@ -485,6 +488,10 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 - Workflow `tests.yml` opérationnel
 - Sous-commandes `dump` et `diff` implémentées pour Sonarr (read-only, peuvent tourner immédiatement contre l'existant)
 - Sous-commande `apply` implémentée pour UN type de ressource sur Sonarr : **download clients**
+- Sous-commande `schema-gen` implémentée + `schemas/arrconf-schema.json` committé (JSON Schema des modèles pydantic du config)
+- Directive `# yaml-language-server: $schema=...` ajoutée en tête de `examples/baseline-sonarr.yml` et `charts/arr-stack/files/arrconf.yml` (créés en Phase 4) pour que VS Code / code-server activent l'autocomplétion automatiquement
+- `.vscode/settings.json` optionnel mappant `*arrconf*.yml` au schéma
+- Workflow CI `tests.yml` ajoute un check : `arrconf schema-gen` doit produire un fichier identique à `schemas/arrconf-schema.json` (sinon CI fail → force la régénération à chaque ajout de reconciler/resource)
 - Premier `arrconf dump --apps sonarr` exécuté → `examples/baseline-sonarr.yml` committé
 - README minimal
 
@@ -493,9 +500,10 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 - Image buildée et publique
 - `arrconf dump --apps sonarr` produit un YAML conforme au schéma arrconf, qui round-trip avec `arrconf diff --config examples/baseline-sonarr.yml --apps sonarr` → 0 diff (idempotence prouvée)
 - Test manuel : `arrconf apply --config examples/baseline-sonarr.yml --apps sonarr --dry-run` → log "no-op" puisque YAML = état actuel
+- **Autocomplétion VS Code fonctionnelle** : ouvrir `examples/baseline-sonarr.yml` dans code-server, taper sous `download_clients:` → propositions des champs valides (host, port, category, tags...) avec descriptions tirées des docstrings pydantic
 - Pas encore de chart, pas encore d'umbrella, pas encore de déploiement K8s
 
-**Estimation** : 1 journée
+**Estimation** : 1.5 journée (ajout schema-gen + intégration VS Code par rapport à 1 journée initial)
 
 ### Phase 2 — Validation cluster
 
@@ -525,11 +533,13 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 - Reconcilers : indexers, notifications, root folders, tags, host config
 - Apps : Radarr, Prowlarr (avec app sync vers Sonarr/Radarr)
 - Pour chaque app, `arrconf dump --apps <app>` exécuté **avant** d'écrire un reconciler, output committé dans `examples/baseline-<app>.yml` — le YAML désiré démarre depuis l'existant
+- Régénération de `schemas/arrconf-schema.json` après chaque ajout de resource type ou app (la CI bloque si oublié)
 - Tests pour chaque reconciler
 
 **Critères de fin** :
 - Pour chaque nouveau reconciler : round-trip `dump → apply --dry-run` → 0 action (idempotence)
 - Diff `snapshots/baseline-<date>/ vs snapshots/after-phase-3-<date>/` montre uniquement les changements intentionnels
+- VS Code propose les nouveaux champs (indexers, notifications, etc.) dès qu'on ouvre un YAML avec la directive `$schema`
 
 **Estimation** : 2 journées
 
@@ -882,6 +892,7 @@ Conservation dans `my-kluster` :
 - **Seerr** : `ghcr.io/seerr-team/seerr` (fork actif d'Overseerr/Jellyseerr) — API à valider Overseerr-compatible (Q1)
 - **FlareSolverr** : https://github.com/FlareSolverr/FlareSolverr (proxy Cloudflare pour Prowlarr)
 - **Jellyfin API** : https://api.jellyfin.org/ (OpenAPI complet)
+- **yaml-language-server** : https://github.com/redhat-developer/yaml-language-server (autocomplétion YAML via JSON Schema dans VS Code / code-server)
 
 ---
 
