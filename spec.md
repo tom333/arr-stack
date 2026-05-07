@@ -34,6 +34,7 @@ Objectif final : ne plus jamais ouvrir l'UI Sonarr/Radarr/qBit/Seerr pour config
   - `qbittorrent` (lscr.io/linuxserver, tag `latest` — à pinner) — download client, hostPath `/opt/media-stack/torrents` partagé avec Sonarr/Radarr
   - `seerr` v3.2.0 (`ghcr.io/seerr-team/seerr`) — request manager (fork actif d'Overseerr/Jellyseerr)
   - `flaresolverr` (`ghcr.io/flaresolverr/flaresolverr`, tag `latest`) — proxy Cloudflare pour Prowlarr, accès interne uniquement
+  - `jellyfin` 10.11.8 (`lscr.io/linuxserver/jellyfin`) — média serveur ; auth interne Jellyfin (PAS d'oauth2-proxy) ; PVC config 10Gi local + `media-nas-pvc` NFS partagé avec Sonarr/Radarr
 - Toutes les apps déployées via le chart `bjw-s app-template 4.6.2`, fichiers individuels dans `argocd/argocd-apps/<service>-app.yaml`
 - Renovate auto-merge minor/patch sur ces fichiers
 - ESO + Akeyless dispo dans le cluster mais pas encore branché sur l'arr-stack (secret `configarr-env` manuel)
@@ -160,6 +161,7 @@ github.com/tom333/my-kluster                  github.com/tom333/arr-stack
 | qBittorrent | `lscr.io/linuxserver/qbittorrent` | Helm umbrella + arrconf (catégories, save paths, settings) |
 | Seerr | `ghcr.io/seerr-team/seerr` v3.2.0 | Helm umbrella + arrconf (services Sonarr/Radarr connectés, users, requests config) |
 | FlareSolverr | `ghcr.io/flaresolverr/flaresolverr` | Helm umbrella **seulement** (config par env vars, pas d'API à gérer) |
+| Jellyfin | `lscr.io/linuxserver/jellyfin` 10.11.8 | Helm umbrella + arrconf (libraries, users, server config) — bootstrap admin via UI au 1er run (NG5) |
 | Cleanuparr | `ghcr.io/cleanuparr/cleanuparr` | Helm umbrella seulement (config UI hors scope arrconf pour l'instant) |
 | Configarr | `ghcr.io/raydak-labs/configarr` | Helm umbrella + sa propre config dans `files/configarr.yml` (scope quality profiles / custom formats) |
 | arrconf | `ghcr.io/tom333/arr-stack-arrconf` (nouveau) | Helm umbrella + sa propre config dans `files/arrconf.yml` |
@@ -214,7 +216,8 @@ tools/arrconf/
 │   │   ├── radarr.py
 │   │   ├── prowlarr.py
 │   │   ├── qbittorrent.py
-│   │   └── seerr.py
+│   │   ├── seerr.py
+│   │   └── jellyfin.py
 │   └── resources/                 # schémas pydantic par resource type
 │       ├── download_client.py
 │       ├── indexer.py
@@ -241,6 +244,7 @@ tools/arrconf/
 - `SONARR_API_KEY`, `RADARR_API_KEY`, `PROWLARR_API_KEY`
 - `QBT_USER`, `QBT_PASS`
 - `SEERR_API_KEY`
+- `JELLYFIN_API_KEY` (généré dans Dashboard → API Keys après création du compte admin)
 - `ARRCONF_LOG_LEVEL` (default INFO)
 - `ARRCONF_DRY_RUN` (default false)
 
@@ -305,6 +309,10 @@ Recommandation initiale : Option A (deps app-template). Voir §11 ADR-2.
 | Host config (UI port, auth, etc.) | ❌ | ✅ |
 | qBittorrent settings | ❌ | ✅ |
 | Seerr settings | ❌ | ✅ |
+| Jellyfin libraries | ❌ | ✅ |
+| Jellyfin users | ❌ | ✅ |
+| Jellyfin server config (transcoding, networking) | ❌ | ✅ |
+| Jellyfin plugins | ❌ | ✅ (best effort) |
 | App sync Prowlarr | ❌ | ✅ |
 
 ### 6.3 CI/CD (GitHub Actions)
@@ -456,13 +464,13 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Livrables** :
 - Repo `arr-stack` créé sur GitHub, public
-- `tools/snapshot/snapshot.sh` (Bash + curl + jq) qui dump TOUS les endpoints `GET` des 5 apps avec API REST (sonarr, radarr, prowlarr, qbittorrent, seerr) vers `snapshots/baseline-YYYY-MM-DD/<app>/<resource>.json`
+- `tools/snapshot/snapshot.sh` (Bash + curl + jq) qui dump TOUS les endpoints `GET` des 6 apps avec API REST (sonarr, radarr, prowlarr, qbittorrent, seerr, jellyfin) vers `snapshots/baseline-YYYY-MM-DD/<app>/<resource>.json`
 - Premier dump committé : `snapshots/baseline-2026-05-07/` (date du jour à l'exécution)
 - README expliquant comment relancer un snapshot avant tests risqués
 - `renovate.json` initial
 
 **Critères de fin** :
-- `tools/snapshot/snapshot.sh` exécuté localement → produit JSON pour les 5 apps
+- `tools/snapshot/snapshot.sh` exécuté localement → produit JSON pour les 6 apps (snapshot Jellyfin nécessite création préalable du compte admin + génération API key, voir NG5)
 - Tous les fichiers JSON committés dans `snapshots/baseline-<date>/`
 - Aucune écriture observée (vérifier logs Sonarr/Radarr : que des reads, aucun write)
 - Possibilité de comparer : `diff snapshots/baseline-<date>/sonarr/downloadclient.json $(arrconf dump apps=sonarr)` (à venir Phase 1)
@@ -529,17 +537,18 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Livrables** :
 - `charts/arr-stack/` umbrella avec deps app-template (alias par service)
-- Migration des **8 apps déjà déployées** de `my-kluster` dans l'umbrella : sonarr, radarr, prowlarr, cleanuparr, configarr, qbittorrent, seerr, flaresolverr
-- Suppression dans `my-kluster` : `argocd/argocd-apps/{sonarr,radarr,prowlarr,cleanuparr,configarr,qbittorrent,seerr,flaresolverr}-app.yaml` + `charts/configarr/`
+- Migration des **9 apps déjà déployées** de `my-kluster` dans l'umbrella : sonarr, radarr, prowlarr, cleanuparr, configarr, qbittorrent, seerr, flaresolverr, jellyfin
+- Suppression dans `my-kluster` : `argocd/argocd-apps/{sonarr,radarr,prowlarr,cleanuparr,configarr,qbittorrent,seerr,flaresolverr,jellyfin}-app.yaml` + `charts/configarr/`
 - Création de `argocd/argocd-apps/arr-stack-app.yaml` dans `my-kluster`
 - Renovate `customManagers` opérationnel et testé (un bump validé bout-en-bout)
 - Pinning des tags `:latest` (qbittorrent, flaresolverr, cleanuparr) sur des tags semver explicites
 
 **Critères de fin** :
-- ArgoCD sync de l'umbrella OK (8 apps déployées via 1 chart)
+- ArgoCD sync de l'umbrella OK (9 apps déployées via 1 chart)
 - Renovate propose un bump d'image et le merge en auto-merge
-- Aucune régression sur les 8 apps
-- Ingress publics et hostPath partagés (`/opt/media-stack/torrents` entre qBit, Sonarr, Radarr) restent fonctionnels
+- Aucune régression sur les 9 apps
+- Ingress publics, hostPath partagés (`/opt/media-stack/torrents` entre qBit, Sonarr, Radarr), et PVC NFS partagés (`media-nas-pvc` entre Sonarr, Radarr, Jellyfin) restent fonctionnels
+- Auth Jellyfin (interne, sans oauth2-proxy) reste fonctionnelle
 
 **Estimation** : 1 journée
 
@@ -567,7 +576,31 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Estimation** : 1 journée (si l'API est bien Overseerr-compatible)
 
-### Phase 7 — Migration ESO/Akeyless (optionnelle, alignée sur chantier global cluster)
+### Phase 7 — Reconciler arrconf Jellyfin
+
+**Note** : Jellyfin **déjà déployé** (`lscr.io/linuxserver/jellyfin` 10.11.8 dans `argocd/argocd-apps/jellyfin-app.yaml`). API REST différente des *arr (auth par `X-Emby-Token` ou `?api_key=`, pas `X-Api-Key`). Cette phase ne couvre que le reconciler arrconf.
+
+**Pré-requis** :
+- Compte admin Jellyfin créé via UI (bootstrap manuel — voir NG5)
+- API key générée dans Dashboard → API Keys
+- Snapshot raw Jellyfin + dump YAML AVANT toute écriture
+
+**Livrables** :
+- Reconciler `jellyfin.py` couvrant en priorité :
+  - **Libraries** (CRUD : Movies → `/media/movies`, TV Shows → `/media/series`, Music optionnel) — pointage sur les paths Sonarr/Radarr partagés via NFS
+  - **Users** (admin + utilisateurs additionnels avec quotas / restrictions)
+  - **Server config** (transcoding hardware, networking, schedules, scan automatique)
+- Optionnel best-effort : plugins (auto-install + activation depuis le YAML)
+- Tests + fixtures Jellyfin
+
+**Critères de fin** :
+- `arrconf dump --apps jellyfin` round-trip = 0 diff (idempotence prouvée)
+- Bibliothèques pointant correctement sur le NFS partagé `/media/{movies,series}`
+- Users gérés via YAML (au moins admin + 1 user de test)
+
+**Estimation** : 1.5 journée (API plus exotique que les *arr — temps de découverte + tests)
+
+### Phase 8 — Migration ESO/Akeyless (optionnelle, alignée sur chantier global cluster)
 
 **Livrables** :
 - ExternalSecret pour les API keys arr-stack pulled depuis Akeyless
@@ -581,7 +614,7 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 ## 8. Critères de succès (globaux)
 
-- **CS1** — Aucune intervention UI pour la config Sonarr/Radarr/Prowlarr/qBittorrent/Seerr après bootstrap initial.
+- **CS1** — Aucune intervention UI pour la config Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap initial (création compte admin Jellyfin exceptée — voir NG5).
 - **CS2** — Une PR sur `arr-stack` modifiant un champ de config se matérialise en cluster en moins de 1h (sync ArgoCD + run CronJob arrconf).
 - **CS3** — Un drift en UI est détecté et corrigé au run suivant (max 4h selon schedule).
 - **CS4** — Renovate propose en auto-merge les bumps d'image minor/patch sans intervention.
@@ -596,7 +629,7 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 ### 9.1 Avant migration
 
-État actuel — **8 ArgoCD Applications** dans `my-kluster/argocd/argocd-apps/` :
+État actuel — **9 ArgoCD Applications** dans `my-kluster/argocd/argocd-apps/` :
 - `sonarr-app.yaml`
 - `radarr-app.yaml`
 - `prowlarr-app.yaml`
@@ -605,6 +638,7 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 - `qbittorrent-app.yaml`
 - `seerr-app.yaml`
 - `flaresolverr-app.yaml`
+- `jellyfin-app.yaml`
 
 Plus le chart custom `charts/configarr/` dans `my-kluster`.
 
@@ -648,6 +682,7 @@ Suppression dans `my-kluster` :
 - `argocd/argocd-apps/qbittorrent-app.yaml`
 - `argocd/argocd-apps/seerr-app.yaml`
 - `argocd/argocd-apps/flaresolverr-app.yaml`
+- `argocd/argocd-apps/jellyfin-app.yaml`
 - `charts/configarr/` (déplacé dans `arr-stack/charts/arr-stack/files/configarr.yml` + templates)
 
 Conservation dans `my-kluster` :
@@ -671,6 +706,7 @@ Conservation dans `my-kluster` :
 - **Q6** — **Backup du state arrconf** : le script est idempotent et stateless, mais les ressources créées (notifications, indexers) ont des IDs internes. Faut-il un mécanisme de marquage (tag arrconf-managed) pour distinguer ce qui est piloté de ce qui est manuel ? Recommandation : **oui, ajouter un tag `arrconf-managed` sur les ressources créées par le script** (champ `tags:` standard *arr).
 - **Q7** — **Compatibilité multi-versions des APIs *arr** : Sonarr v4 vs v3 ont des breaking changes. Le script doit-il versionner ses appels ? Recommandation : tester sur Sonarr v4+ uniquement (déjà la version déployée), documenter comme prérequis.
 - **Q8** — **Stratégie `prune` par défaut** : si une ressource est en cluster mais pas dans le YAML, on supprime ou on log et on garde ? Recommandation : `prune: false` par défaut, opt-in par section.
+- **Q9** — **Jellyfin auth header** : l'API utilise `X-Emby-Token` (legacy) ou `Authorization: MediaBrowser Token=...`. À choisir selon ce qui marche en 10.11.8 — probablement `?api_key=<key>` query param suffit pour la plupart des endpoints. À valider en Phase 7 avant d'écrire le client. Conséquence : `client_base.py` doit pouvoir overrider la stratégie d'auth par app.
 
 ---
 
@@ -795,6 +831,7 @@ Conservation dans `my-kluster` :
 - **qBittorrent Web API** : https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)
 - **Seerr** : `ghcr.io/seerr-team/seerr` (fork actif d'Overseerr/Jellyseerr) — API à valider Overseerr-compatible (Q1)
 - **FlareSolverr** : https://github.com/FlareSolverr/FlareSolverr (proxy Cloudflare pour Prowlarr)
+- **Jellyfin API** : https://api.jellyfin.org/ (OpenAPI complet)
 
 ---
 
@@ -810,6 +847,7 @@ Configuration actuelle au 2026-05-07 :
 - `argocd/argocd-apps/qbittorrent-app.yaml` : qBittorrent (latest — à pinner), ingress oauth2-proxy, WEBUI_PORT 8080, hostPath `/opt/media-stack/torrents` partagé
 - `argocd/argocd-apps/seerr-app.yaml` : Seerr v3.2.0 (`ghcr.io/seerr-team/seerr`), ingress oauth2-proxy, port 5055
 - `argocd/argocd-apps/flaresolverr-app.yaml` : FlareSolverr (latest — à pinner), pas d'ingress (interne uniquement, port 8191)
+- `argocd/argocd-apps/jellyfin-app.yaml` : Jellyfin 10.11.8 (`lscr.io/linuxserver/jellyfin`), ingress sans oauth2-proxy (auth interne Jellyfin), `proxy-body-size: 0`, PVC config 10Gi local + `media-nas-pvc` NFS partagé avec Sonarr/Radarr
 - `charts/configarr/` : chart custom déployant configarr en CronJob 4h, ConfigMap depuis `files/config.yml` (TRaSH-Guides + customFormatDefinitions FR : VFF/VFI/VFQ/MULTi/VOSTFR/mHD/x265-HD), profil MULTi.VF complet HD-only, quality_definition resserré
 - `secrets/configarr-secret.yaml` : Secret manuel `configarr-env` avec `SONARR_API_KEY` et `RADARR_API_KEY`
 - Recyclarr désactivé (`recyclarr-app.yaml.disable`), à supprimer après validation Configarr
