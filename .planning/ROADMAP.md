@@ -67,8 +67,13 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   3. Premier run en `ARRCONF_DRY_RUN=true` réussi : logs montrent les actions qui seraient prises, AUCUNE écriture observée côté Sonarr (vérification par re-snapshot post-run)
   4. Après bascule en `ARRCONF_DRY_RUN=false` : Sonarr UI montre le download client géré par arrconf
   5. Drift detection prouvée : modification UI hors-Git → écrasée au run suivant (logs JSON visibles)
-**Plans**: TBD
-**Open questions to resolve**: Q3 (schedule arrconf — recommandation 6 h, à arbitrer ici), Q4 si pas tranchée en Phase 1
+**Plans**: 5 plans
+- [ ] 02-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (re-snapshot all 6 apps + evidence/ dir for Wave 3/4 logs)
+- [ ] 02-02-PLAN.md — Wave 1: v0.1.0 image release + GHCR public toggle (closes Phase 1 HUMAN-UAT #1; records image_tag_verified for 02-03)
+- [ ] 02-03-PLAN.md — Wave 2: my-kluster chart authoring (capture verified hostnames, 9 files in my-kluster working tree, helm lint, secret-leak audit, end-of-plan cross-repo working-tree checkpoint per B-01)
+- [ ] 02-04-PLAN.md — Wave 3: PR1 dry-run deployment (manual secret apply with W-05 tracking-id check, ArgoCD sync, B-02 volumeMount inspection, forced smoke job with W-06 verified event names, post-PR1 snapshot diff = 0)
+- [ ] 02-05-PLAN.md — Wave 4: PR2 apply mode (B-03 split into 5.1a/b/c) + drift detection runbook (W-04 dispositive value-equality, W-01 REQUIRED forensic snapshot, W-06 verified plan_action event)
+**Open questions to resolve**: Q3 (resolved D-23 — schedule `0 */4 * * *`), Q4 (resolved by Phase 1 D-01 — manual tag releases)
 
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.

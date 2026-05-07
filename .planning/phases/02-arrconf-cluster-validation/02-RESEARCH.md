@@ -780,42 +780,44 @@ kubectl delete job arrconf-smoke-<...> -n selfhost
 
 **Caveat:** Assumptions A1 (image tag format) and A4 (CLI args literal) MUST be confirmed during Phase 2 execution before PR1 merges. The plan should include explicit verification tasks for each.
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All 7 questions have operational resolutions encoded in plans 02-01..02-05 or accepted operationally per CONTEXT.md. See per-question RESOLVED markers below.
 
 1. **Should the arrconf CLI `--apps` flag default to all apps in the YAML, or be required?**
    - What we know: Phase 1 D-13 says "default: toutes celles déclarées dans le YAML" but Code Example 1 hardcodes `--apps sonarr` in the CronJob args.
    - What's unclear: If `--apps` is omitted, does arrconf process all apps in `arrconf.yml`? Phase 2 has only Sonarr in the YAML so the answer doesn't matter operationally, but Phase 3 does.
-   - Recommendation: Phase 2 plan keeps `--apps sonarr` explicit (defensive); Phase 3 plan revisits.
+   - RESOLVED: Phase 2 plan keeps `--apps sonarr` explicit (defensive); Phase 3 plan revisits.
 
 2. **Does `arrconf-image.yml` produce `:v0.1.0` or `:0.1.0`?**
    - What we know: metadata-action `{{version}}` strips the `v`; but we haven't actually pushed a tag yet so the empirical answer is unknown.
    - What's unclear: Empirical reality.
-   - Recommendation: First task of Phase 2 plan (in arr-stack) is `git tag v0.1.0 && git push --tags`, then a verification task `gh api .../packages/container/arr-stack-arrconf/versions | jq` to read the actual tag list. Plan branches: if `0.1.0` exists, use it. If `v0.1.0`, use it. Don't pre-commit to one in the chart values.
+   - RESOLVED: First task of Phase 2 plan (in arr-stack) is `git tag v0.1.0 && git push --tags`, then a verification task `gh api .../packages/container/arr-stack-arrconf/versions | jq` to read the actual tag list. Plan branches: if `0.1.0` exists, use it. If `v0.1.0`, use it. Don't pre-commit to one in the chart values.
 
 3. **Is the SONARR_API_KEY value in `configarr-secret.yaml` reusable for arrconf?**
    - What we know: Both arrconf and configarr target the same Sonarr instance, so the same API key works. configarr-secret.yaml has `SONARR_API_KEY: "7996acf930d34ab88a992f2981097081"` [VERIFIED, but note: this is committed plaintext — see Concerns below].
    - What's unclear: Should arrconf get its own API key (per-service principle of least privilege) or share?
-   - Recommendation: Phase 2 share the existing key (operational simplicity); Phase 8 ESO migration is the right time to per-service-segregate. The key has full Sonarr admin scope anyway.
+   - RESOLVED: Phase 2 share the existing key (operational simplicity); Phase 8 ESO migration is the right time to per-service-segregate. The key has full Sonarr admin scope anyway.
 
 4. **Can `arrconfDryRun` be set via `--dry-run` CLI flag instead of env?**
    - What we know: Phase 1 supports both `ARRCONF_DRY_RUN=true` env AND `--dry-run` CLI flag.
    - What's unclear: Which is more idiomatic for Helm-templated CronJob args?
-   - Recommendation: Env is more flexible (can be overridden per-Job via `kubectl create job --env ARRCONF_DRY_RUN=false`), and matches the configarr pattern of env injection. D-28 mandates env. Stick with env.
+   - RESOLVED: Env is more flexible (can be overridden per-Job via `kubectl create job --env ARRCONF_DRY_RUN=false`), and matches the configarr pattern of env injection. D-28 mandates env. Stick with env.
 
 5. **Should the chart include a Helm `values.schema.json`?**
    - What we know: D-30 deferred says "optionnel Phase 2; only 4-5 valeurs à valider, pas critique. Phase 4 (umbrella) en aura besoin."
    - What's unclear: Is `helm lint` enough for Phase 2?
-   - Recommendation: Skip values.schema.json for Phase 2 (matches configarr which has none). Helm's built-in YAML parser will catch type errors anyway.
+   - RESOLVED: Skip values.schema.json for Phase 2 (matches configarr which has none). Helm's built-in YAML parser will catch type errors anyway.
 
 6. **What happens if PR1 sits in `arrconfDryRun: true` for >1 cron cycle (multiple Jobs run with no writes)?**
    - What we know: Each scheduled Job is independent; multiple dry-run cycles produce identical logs.
    - What's unclear: Any cluster-side state accumulation? Job history limit is 1 success + 2 failures → only the most recent Job is kept.
-   - Recommendation: Operationally fine to leave PR1 deployed for hours/days before PR2. Plan task ordering: PR1 → ≥1 Job run observed → snapshot → PR2 (no fixed delay).
+   - RESOLVED: Operationally fine to leave PR1 deployed for hours/days before PR2. Plan task ordering: PR1 → ≥1 Job run observed → snapshot → PR2 (no fixed delay).
 
 7. **Concerns: `configarr-secret.yaml` is committed plaintext in `my-kluster/`.**
    - What we know: [VERIFIED] `my-kluster/secrets/configarr-secret.yaml` contains `RADARR_API_KEY: "9a39fe509a6f489183be7538cdfff498"` and `SONARR_API_KEY: "7996acf930d34ab88a992f2981097081"` — committed in plaintext.
    - What's unclear: Is the my-kluster repo public or private?
-   - Recommendation: NOT a Phase 2 problem (predates this work and is acknowledged in `my-kluster/CLAUDE.md` "Choses à faire / améliorations connues" — TODO SOPS encryption). Plan note: `arrconf-secret.yaml` should follow the SAME convention as `configarr-secret.yaml` (i.e., plaintext for now, SOPS later) for consistency. If the operator wants to start SOPS-encrypted secrets with arrconf, that's a Phase 8-aligned bonus, not Phase 2 scope.
+   - RESOLVED: NOT a Phase 2 problem (predates this work and is acknowledged in `my-kluster/CLAUDE.md` "Choses à faire / améliorations connues" — TODO SOPS encryption). Plan note: `arrconf-secret.yaml` should follow the SAME convention as `configarr-secret.yaml` (i.e., plaintext for now, SOPS later) for consistency. If the operator wants to start SOPS-encrypted secrets with arrconf, that's a Phase 8-aligned bonus, not Phase 2 scope.
 
 ## Environment Availability
 
