@@ -3,10 +3,12 @@ phase: 0
 slug: bootstrap-repo-snapshot-raw
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-07
 approved: 2026-05-07
 approved_by: gsd-plan-checker (Phase 0 plan review)
+wave_0_completed: 2026-05-07
+wave_0_commits: dea7703, e0e9e7e, b8c3345 (Plan 00-01) ; d3dd593, f1c4602, 10ff270 (Plan 00-02)
 ---
 
 # Phase 0 — Validation Strategy
