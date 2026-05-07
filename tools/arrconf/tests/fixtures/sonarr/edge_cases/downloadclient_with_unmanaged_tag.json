@@ -1,0 +1,15 @@
+[
+  {
+    "id": 99,
+    "name": "manual-qbit",
+    "enable": true,
+    "protocol": "torrent",
+    "priority": 1,
+    "implementation": "QBittorrent",
+    "configContract": "QBittorrentSettings",
+    "fields": [],
+    "tags": [5],
+    "removeCompletedDownloads": true,
+    "removeFailedDownloads": true
+  }
+]
