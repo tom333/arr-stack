@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Roadmap & state files générés, prêt pour `/gsd-plan-phase 0`
-last_updated: "2026-05-07T09:14:32.678Z"
+stopped_at: Phase 01 context gathered
+last_updated: "2026-05-07T09:32:39.575Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 9
@@ -95,6 +95,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-07 — gsd-import / new-project-from-ingest
-Stopped at: Roadmap & state files générés, prêt pour `/gsd-plan-phase 0`
-Resume file: None
+Last session: 2026-05-07T09:32:39.572Z
+Stopped at: Phase 01 context gathered
+Resume file: .planning/phases/01-arrconf-poc-json-schema/01-CONTEXT.md
