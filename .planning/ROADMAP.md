@@ -51,8 +51,11 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   4. `arrconf apply --config examples/baseline-sonarr.yml --apps sonarr --dry-run` log "no-op" puisque YAML = état actuel
   5. Autocomplétion VS Code / code-server fonctionnelle : ouvrir `examples/baseline-sonarr.yml`, taper sous `download_clients:` → propositions des champs valides avec descriptions docstrings pydantic
   6. CI `tests.yml` vérifie que `arrconf schema-gen` produit un fichier identique à `schemas/arrconf-schema.json` committé (force la régénération à chaque ajout)
-**Plans**: TBD
-**Open questions to resolve**: Q4 (mode de release — tags manuels suffisent en v1, à arbitrer ici ou Phase 2), Q6 (backup state via tag `arrconf-managed` — confirmer en code), Q7 (multi-version *arr — recommandation : v4+ only), Q8 (`prune: false` par défaut — recommandation à confirmer)
+**Plans**: 3 plans
+- [ ] 01-01-PLAN.md — Wave 1: Plumbing (pyproject + uv.lock + Dockerfile multi-stage USER 1000:1000 + 12 module skeletons + 4 frontière configarr stubs raising ScopeViolationError + GHCR build workflow + fixture seeds from Phase 0 baseline)
+- [ ] 01-02-PLAN.md — Wave 2: Sonarr reconciler + tests (differ.py full impl with 6-case Action enum + reconcilers/sonarr.py with managed-tag-first ordering + Pitfall 1 tag-IDs-not-names + 4 test modules covering 33+ tests, coverage >= 70 %)
+- [ ] 01-03-PLAN.md — Wave 3: E2E + JSON Schema + CLI cement (full apply/dump/diff/schema-gen + JSON Schema Draft 2020-12 committed + examples/baseline-sonarr.yml with modeline + tests.yml with schema-gen idempotence gate + README documenting GHCR public toggle + VS Code autocomplete demo)
+**Open questions to resolve**: Q4 (mode de release — tags manuels v1 confirme via D-01), Q6 (managed tag — confirme via D-02), Q7 (multi-version *arr — v4+ only confirme via D-03), Q8 (`prune: false` default — confirme via D-04)
 
 ### Phase 2: Validation cluster
 **Goal**: Déployer arrconf en CronJob dans le namespace `selfhost` du cluster `my-kluster` (mini-chart ad-hoc avant umbrella), prouver la drift detection, et basculer en mode apply après dry-run sécurisé.
