@@ -1,0 +1,14 @@
+{
+  "cleanuparr-unlinked": {
+    "name": "cleanuparr-unlinked",
+    "savePath": ""
+  },
+  "radarr": {
+    "name": "radarr",
+    "savePath": ""
+  },
+  "sonarr": {
+    "name": "sonarr",
+    "savePath": ""
+  }
+}

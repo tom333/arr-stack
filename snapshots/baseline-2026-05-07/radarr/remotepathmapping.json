@@ -1,0 +1,8 @@
+[
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 1,
+    "localPath": "/data/torrents/complete/",
+    "remotePath": "/data/complete/"
+  }
+]

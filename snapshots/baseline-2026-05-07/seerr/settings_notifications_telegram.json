@@ -1,0 +1,11 @@
+{
+  "embedPoster": true,
+  "enabled": false,
+  "options": {
+    "botAPI": "",
+    "chatId": "",
+    "messageThreadId": "",
+    "sendSilently": false
+  },
+  "types": 0
+}
