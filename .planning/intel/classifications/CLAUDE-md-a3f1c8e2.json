@@ -1,0 +1,37 @@
+{
+  "source_path": "/home/moi/projets/perso/arr-stack/CLAUDE.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "CLAUDE.md — arr-stack",
+  "summary": "Project runbook for AI assistants describing conventions, workflows, and pitfalls (the HOW), complementing spec.md (the WHAT/WHY).",
+  "scope": [
+    "arrconf",
+    "charts/arr-stack",
+    "Helm umbrella chart",
+    "Python conventions",
+    "ruff",
+    "pytest",
+    "Renovate annotations",
+    "app-template dependencies",
+    "snapshot workflow",
+    "arrconf/configarr boundary",
+    "GSD integration",
+    "my-kluster integration",
+    "bootstrap state"
+  ],
+  "cross_refs": [
+    "spec.md",
+    "./spec.md",
+    "/home/moi/projets/perso/my-kluster/CLAUDE.md",
+    "https://trash-guides.info/",
+    "https://configarr.de/docs/intro/",
+    "https://github.com/Flemmarr/Flemmarr",
+    "https://github.com/bjw-s-labs/helm-charts/tree/main/charts/other/app-template",
+    "https://docs.renovatebot.com/configuration-options/#custommanagers",
+    "https://github.com/gsd-build/get-shit-done"
+  ],
+  "locked": false,
+  "precedence": 4,
+  "notes": "MANIFEST_TYPE=DOC authoritative. Document explicitly defers WHAT/WHY to spec.md and embeds references to ADR-5, ADR-6, ADR-7 and spec sections (§6.5, §7, §10, §11, §12) which are owned by spec.md — no decisions or requirements are introduced here, only conventions, runbook procedures, and pointers."
+}
