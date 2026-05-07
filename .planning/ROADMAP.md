@@ -12,7 +12,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - Integer phases (0-8): Planned milestone work (preserved from spec.md §7)
 - Decimal phases (e.g., 2.1): Reserved for urgent insertions (none yet)
 
-- [ ] **Phase 0: Bootstrap repo + snapshot raw** - Capture lossless de l'existant (Bash) + scaffolding repo + Renovate initial
+- [x] **Phase 0: Bootstrap repo + snapshot raw** - Capture lossless de l'existant (Bash) + scaffolding repo + Renovate initial (completed 2026-05-07)
 - [ ] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code
 - [ ] **Phase 2: Validation cluster** - Premier déploiement arrconf en CronJob `selfhost` (`ARRCONF_DRY_RUN=true` au 1er run), bascule en apply après validation des logs, drift detection prouvée
 - [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr
@@ -35,9 +35,9 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   4. `renovate.json` initial committé (suivi GitHub Releases côté my-kluster `targetRevision`)
   5. README minimal présent expliquant comment relancer un snapshot avant un test risqué
 **Plans**: 3 plans
-- [ ] 00-01-PLAN.md — Scaffolding repo (README.md racine + renovate.json + .gitignore + tools/snapshot/.gitkeep)
-- [ ] 00-02-PLAN.md — Implémentation tools/snapshot/snapshot.sh + tools/snapshot/README.md (6 apps, 3 patterns auth)
-- [ ] 00-03-PLAN.md — Exécution baseline snapshot + audit anti-leak + commit (5 success criteria ROADMAP)
+- [x] 00-01-PLAN.md — Scaffolding repo (README.md racine + renovate.json + .gitignore + tools/snapshot/.gitkeep)
+- [x] 00-02-PLAN.md — Implémentation tools/snapshot/snapshot.sh + tools/snapshot/README.md (6 apps, 3 patterns auth)
+- [x] 00-03-PLAN.md — Exécution baseline snapshot + audit anti-leak + commit (5 success criteria ROADMAP)
 **Open questions to resolve**: (none for Phase 0 — Q5 déjà tranchée par ADR-5, autres questions hors scope)
 
 ### Phase 1: arrconf POC + JSON Schema
@@ -159,7 +159,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Bootstrap repo + snapshot raw | 0/3 | Not started | - |
+| 0. Bootstrap repo + snapshot raw | 3/3 | Complete    | 2026-05-07 |
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
 | 3. Étendre arrconf | 0/TBD | Not started | - |

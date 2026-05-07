@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to a roadmap phase. IDs preserved fr
 
 ### Snapshot & baseline
 
-- [ ] **REQ-baseline-snapshot**: Baseline lossless de la config actuelle capturée avant toute écriture. `tools/snapshot/snapshot.sh` (Bash + curl + jq, indépendant d'arrconf) dispo dès Phase 0. `arrconf dump` produit un YAML round-trip avec `arrconf diff` = 0 action en Phase 1+. Snapshots versionnés Git, re-snapshot avant chaque phase touchant un nouveau scope (Phases 2, 3, 5, 6, 7).
+- [x] **REQ-baseline-snapshot**: Baseline lossless de la config actuelle capturée avant toute écriture. `tools/snapshot/snapshot.sh` (Bash + curl + jq, indépendant d'arrconf) dispo dès Phase 0. `arrconf dump` produit un YAML round-trip avec `arrconf diff` = 0 action en Phase 1+. Snapshots versionnés Git, re-snapshot avant chaque phase touchant un nouveau scope (Phases 2, 3, 5, 6, 7).
 
 ### arrconf — script Python
 
@@ -45,7 +45,7 @@ Requirements for initial release. Each maps to a roadmap phase. IDs preserved fr
 ### Documentation & roadmap
 
 - [ ] **REQ-readme-onboarding**: README permet à un autre dev (ou toi-dans-3-mois) de comprendre et déployer en moins de 30 min. Vue d'ensemble + structure + commandes clés + bootstrap (API keys, secrets, 1er déploiement) + liens vers `spec.md` / `CLAUDE.md` / my-kluster.
-- [ ] **REQ-phase-roadmap**: Roadmap progressive de-risk en 9 phases (0 à 8), chaque phase livrable indépendamment. Méta-requirement validé quand la roadmap est instanciée et chaque phase respecte ses critères de fin (cf spec.md §7).
+- [x] **REQ-phase-roadmap**: Roadmap progressive de-risk en 9 phases (0 à 8), chaque phase livrable indépendamment. Méta-requirement validé quand la roadmap est instanciée et chaque phase respecte ses critères de fin (cf spec.md §7).
 
 ## v2 Requirements
 
@@ -90,8 +90,8 @@ Mapping `REQ-* → Phase`. Chaque requirement v1 mappé à exactement une phase 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REQ-baseline-snapshot | Phase 0 | Pending |
-| REQ-phase-roadmap | Phase 0 | Pending |
+| REQ-baseline-snapshot | Phase 0 | Complete |
+| REQ-phase-roadmap | Phase 0 | Complete |
 | REQ-cli-subcommands | Phase 1 | Pending |
 | REQ-yaml-autocomplete | Phase 1 | Pending |
 | REQ-idempotence | Phase 1 | Pending |
