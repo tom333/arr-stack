@@ -13,7 +13,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - Decimal phases (e.g., 2.1): Reserved for urgent insertions (none yet)
 
 - [x] **Phase 0: Bootstrap repo + snapshot raw** - Capture lossless de l'existant (Bash) + scaffolding repo + Renovate initial (completed 2026-05-07)
-- [ ] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code
+- [x] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code (completed 2026-05-08, 3 human-UAT items pending in 01-HUMAN-UAT.md)
 - [ ] **Phase 2: Validation cluster** - Premier déploiement arrconf en CronJob `selfhost` (`ARRCONF_DRY_RUN=true` au 1er run), bascule en apply après validation des logs, drift detection prouvée
 - [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
