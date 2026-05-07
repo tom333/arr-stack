@@ -1,10 +1,12 @@
 ---
 phase: 0
 slug: bootstrap-repo-snapshot-raw
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-07
+approved: 2026-05-07
+approved_by: gsd-plan-checker (Phase 0 plan review)
 ---
 
 # Phase 0 — Validation Strategy
@@ -82,6 +84,6 @@ created: 2026-05-07
 - [ ] Wave 0 covers all MISSING references (snapshot.sh, README, renovate.json, .gitignore)
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 180 s (full suite)
-- [ ] `nyquist_compliant: true` set in frontmatter (à passer à `true` après revue par planner + plan-checker)
+- [x] `nyquist_compliant: true` set in frontmatter (validé par gsd-plan-checker — couverture des success criteria confirmée par les 3 plans)
 
-**Approval:** pending
+**Approval:** approved 2026-05-07 — `wave_0_complete` reste `false` jusqu'à exécution effective des Wave 0 deliverables.

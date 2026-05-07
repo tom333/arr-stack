@@ -34,7 +34,10 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   3. Aucune écriture observée pendant le snapshot (vérification : logs Sonarr/Radarr ne montrent que des reads)
   4. `renovate.json` initial committé (suivi GitHub Releases côté my-kluster `targetRevision`)
   5. README minimal présent expliquant comment relancer un snapshot avant un test risqué
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 00-01-PLAN.md — Scaffolding repo (README.md racine + renovate.json + .gitignore + tools/snapshot/.gitkeep)
+- [ ] 00-02-PLAN.md — Implémentation tools/snapshot/snapshot.sh + tools/snapshot/README.md (6 apps, 3 patterns auth)
+- [ ] 00-03-PLAN.md — Exécution baseline snapshot + audit anti-leak + commit (5 success criteria ROADMAP)
 **Open questions to resolve**: (none for Phase 0 — Q5 déjà tranchée par ADR-5, autres questions hors scope)
 
 ### Phase 1: arrconf POC + JSON Schema
@@ -156,7 +159,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Bootstrap repo + snapshot raw | 0/TBD | Not started | - |
+| 0. Bootstrap repo + snapshot raw | 0/3 | Not started | - |
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
 | 3. Étendre arrconf | 0/TBD | Not started | - |
