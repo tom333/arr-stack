@@ -1291,27 +1291,35 @@ def test_prune_executed_when_tag_present():
 
 **No claim in this research is `[ASSUMED]`-tagged outside this table.** Verifications used: pypi.org direct (10 packages), GitHub Sonarr repo (OpenAPI spec, 290 KB), official docs (typer, pydantic, httpx, structlog, respx, tenacity, yaml-language-server, uv), local repo state (`ls`, `read snapshots/...`).
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Resolution recorded by gsd-plan-phase 2026-05-07. Each question carries a
+> `**RESOLVED:**` line capturing the choice the planner adopted and the plan/
+> task where the decision is materialised.
 
 1. **Is `pydantic-settings` worth the dep, or is `os.environ` + manual cast sufficient for Phase 1?**
    - What we know: D-22 mandates env-only secrets, and `SecretStr` from pydantic-settings is the standard way to avoid logging API keys. Adds 1 dep.
    - What's unclear: Whether the planner will deem this overkill for 4 secrets in Phase 1.
    - Recommendation: Use `pydantic-settings` (Standard Stack table) — unifies the config story (RootConfig pydantic for YAML, BaseSettings pydantic for env) and `SecretStr` is non-trivial to replicate manually.
+   - **RESOLVED:** pydantic-settings — adopted in Plan 01-01 Task 2 (`tools/arrconf/arrconf/settings.py`) which uses `BaseSettings` + `SecretStr` for `*_API_KEY` env vars. Matches D-22 (env-only secrets, masked in repr/structlog) and unifies pydantic for both YAML config (`RootConfig`) and env (`Settings`). Single dep cost is justified by T-01-01 (information-disclosure) mitigation strength.
 
 2. **Should the differ class-style or function-style?**
    - What we know: D-23 is "Claude's discretion" — both work.
    - What's unclear: Whether stateful tracking (e.g., metrics/counters) will be useful Phase 2+.
    - Recommendation: Function-style for Phase 1 (as in Pattern 4) ; refactor to a class only if Phase 2 needs to thread state.
+   - **RESOLVED:** function-style — adopted in Plan 01-02 Task 1 (`tools/arrconf/arrconf/differ.py` exposes module-level `diff_models()` and `reconcile()`). Matches D-23 discretion call. Refactor to a class is deferred to Phase 2/3 if/when reconcilers need to thread per-app state (metrics counters, dry-run aggregates) — no state requirement surfaced for Phase 1.
 
 3. **Fixture for `tag.json`** — baseline contains `[]` (no tags exist on cluster). For round-trip + tag tests, do we hand-craft a `tag_with_arrconf_managed.json` fixture, or seed it via cluster after creating the tag?
    - What we know: Baseline is empty (tag.json = `[]`).
    - What's unclear: If round-trip tests should run against an empty-tag baseline (which means `arrconf-managed` MUST be created on first apply, then re-dumped, then re-applied = NO_OP).
    - Recommendation: Hand-craft `tests/fixtures/sonarr/edge_cases/tag_with_arrconf_managed.json` containing `[{"id": 1, "label": "arrconf-managed"}]` — D-09 already explicitly mentions hand-crafted edge_cases fixtures.
+   - **RESOLVED:** hand-craft — adopted in Plan 01-01 Task 1 fixture seeds. The file `tools/arrconf/tests/fixtures/sonarr/edge_cases/tag_with_arrconf_managed.json` ships with `[{"id": 1, "label": "arrconf-managed"}]`. The empty baseline (`tests/fixtures/sonarr/tag.json = []`) is preserved as the "tag must be created on first apply" scenario. Both fixtures are exercised by `test_managed_tag.py` (Plan 01-02 Task 2) and `test_round_trip.py` (Plan 01-03 Task 2).
 
 4. **Single repo `arrconf/` package OR src layout `src/arrconf/`?**
    - What we know: spec.md and CLAUDE.md show `tools/arrconf/arrconf/` (flat).
    - What's unclear: Whether modern best practice (src layout) buys us anything.
    - Recommendation: Stick with the flat layout already documented (`tools/arrconf/arrconf/...`). Switching would diverge from spec without strong gain ; src layout's main benefit (preventing accidental import of the source instead of the installed package) is moot since uv installs editable.
+   - **RESOLVED:** flat layout — adopted in Plan 01-01 Task 1 / Task 2 (`tools/arrconf/arrconf/...`). Matches spec.md §"Structure cible" and CLAUDE.md §"Structure cible" — switching to src layout would diverge from the spec without compensating benefit (`uv` editable installs already prevent the accidental-import failure mode src layout is meant to catch).
 
 ## Environment Availability
 
