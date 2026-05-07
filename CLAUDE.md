@@ -64,7 +64,7 @@ arr-stack/
 ├── .github/workflows/
 │   ├── arrconf-image.yml            # build + push GHCR
 │   ├── chart-lint.yml               # helm lint + kubeconform
-│   └── tests.yml                    # ruff + pytest
+│   └── tests.yml                    # ruff + mypy + pytest
 │
 └── renovate.json                    # customManagers pour values.yaml
 ```
@@ -82,7 +82,7 @@ arr-stack/
 | Logging | `structlog` ou stdlib + JSON formatter | Logs parsables côté observability |
 | Tests | `pytest` + `respx` (mock httpx) | Standard Python |
 | Lint/format | `ruff` | Rapide, suffisant |
-| Type check | `mypy` (optionnel) | À voir selon la friction |
+| Type check | `mypy` | Strict sur signatures publiques ; CI bloque |
 | Helm | Helm 3 + chart `bjw-s/app-template` en deps | Pattern déjà en place dans my-kluster |
 | Image | `ghcr.io/tom333/arr-stack-arrconf` (public) | Cluster pull anonyme, Renovate suit |
 | CI | GitHub Actions | Build image + lint + tests |
@@ -97,6 +97,7 @@ arr-stack/
 ### Code style
 
 - **`ruff check` et `ruff format`** doivent passer avant commit. CI bloque sinon.
+- **`mypy`** doit passer sur les signatures publiques (mode strict configuré dans `pyproject.toml`). CI bloque sinon.
 - **Type hints partout** sur les signatures publiques. Variables locales : optionnelles.
 - **Docstrings** : sur `__main__`, classes publiques (clients, reconcilers), fonctions publiques. Pas sur les helpers privés évidents.
 - **Pas de commentaires-narratifs** ("# fetch the data") — les noms parlent. Commentaire utile = explique le POURQUOI non-évident.
@@ -196,6 +197,7 @@ Pour ce qui dépasse app-template (CronJobs arrconf et configarr, ConfigMaps ave
 cd tools/arrconf
 uv sync                                          # ou pip install -e .
 ruff check && ruff format --check
+mypy .
 pytest -v --cov=arrconf
 
 # Helm

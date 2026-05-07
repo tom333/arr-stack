@@ -85,7 +85,7 @@ Extracted from `spec.md` (§4 Contraintes, §6 Composants — schémas et contra
 
 - source: /home/moi/projets/perso/arr-stack/spec.md (§4.4 C10, §6.1, ADR-1)
 - type: nfr
-- content: Python 3.13 + httpx + pydantic v2 + ruyaml pour arrconf (cohérent avec les choix data lab de l'auteur). Logging via `structlog` ou stdlib + JSON formatter. Tests via `pytest` + `respx`. Lint/format via `ruff`. mypy optionnel.
+- content: Python 3.13 + httpx + pydantic v2 + ruyaml pour arrconf (cohérent avec les choix data lab de l'auteur). Logging via `structlog` ou stdlib + JSON formatter. Tests via `pytest` + `respx`. Lint/format via `ruff`. Type-check via `mypy` (strict sur signatures publiques, CI bloque).
 
 ---
 
@@ -207,7 +207,7 @@ Le wrapping K8s (`envFrom: secretRef`) injecte tout. Aucune lecture de fichier.
 - content: 3 workflows GitHub Actions obligatoires + 1 ultérieur :
   1. `arrconf-image.yml` — push sur main modifiant `tools/arrconf/**` ou tag `v*` → build + push GHCR
   2. `chart-lint.yml` — PR modifiant `charts/**` → helm lint + kubeconform + helm template + values schema check
-  3. `tests.yml` — PR modifiant `tools/arrconf/**` → ruff check + ruff format --check + (mypy optionnel) + pytest avec couverture ≥ 70 %
+  3. `tests.yml` — PR modifiant `tools/arrconf/**` → ruff check + ruff format --check + mypy + pytest avec couverture ≥ 70 %
   4. `release.yml` (ultérieurement) — release-please ou conventional commits → CHANGELOG, tag, GitHub Release
 
 ---
@@ -218,6 +218,7 @@ Le wrapping K8s (`envFrom: secretRef`) injecte tout. Aucune lecture de fichier.
 - type: protocol
 - content:
   - `ruff check` et `ruff format` doivent passer avant commit (CI bloque)
+  - `mypy` doit passer (strict sur signatures publiques, CI bloque)
   - Type hints partout sur signatures publiques. Locales : optionnelles.
   - Docstrings sur `__main__`, classes publiques (clients, reconcilers), fonctions publiques. Pas sur helpers privés évidents.
   - Pas de commentaires-narratifs ; commentaire utile = explique le POURQUOI non-évident.

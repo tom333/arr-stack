@@ -135,7 +135,7 @@ Extracted from `spec.md` §3 (Objectifs / Non-objectifs) and §8 (Critères de s
 - acceptance:
   - Coverage ≥ 70 % sur `differ.py` et `reconcilers/`
   - Toutes les fixtures sont des JSON capturés depuis vraies APIs (sanitisés des secrets) dans `tests/fixtures/`
-  - CI bloque si coverage < 70 % ou si `ruff check` / `ruff format --check` échoue
+  - CI bloque si coverage < 70 %, si `ruff check` / `ruff format --check` échoue, ou si `mypy` échoue
 - scope: tools/arrconf/tests/, .github/workflows/tests.yml
 
 ---

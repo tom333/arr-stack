@@ -101,7 +101,7 @@ Les Q1-Q10 sont **explicitement non décidées** dans la spec. Elles doivent êt
 | Logging | structlog ou stdlib + JSON formatter | Logs parsables côté observability |
 | Tests | pytest + respx (mock httpx) | Standard Python |
 | Lint/format | ruff | Rapide, suffisant |
-| Type check | mypy (optionnel) | À voir selon la friction |
+| Type check | mypy | Strict sur signatures publiques ; CI bloque |
 | Helm | Helm 3 + chart bjw-s/app-template en deps | Pattern déjà en place dans my-kluster |
 | Image | ghcr.io/tom333/arr-stack-arrconf (public) | Cluster pull anonyme, Renovate suit |
 | CI | GitHub Actions | Build image + lint + tests |

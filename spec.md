@@ -196,6 +196,7 @@ github.com/tom333/my-kluster                  github.com/tom333/arr-stack
 - `structlog` ou stdlib logging avec JSON formatter
 - `pytest` + `respx` (mock httpx) pour tests
 - `ruff` lint + format
+- `mypy` type-check (strict sur signatures publiques)
 
 **Structure** :
 
@@ -333,7 +334,7 @@ Recommandation initiale : Option A (deps app-template). Voir §11 ADR-2.
 
 3. **`tests.yml`** — Tests Python arrconf
    - Trigger : PR modifiant `tools/arrconf/**`
-   - Steps : ruff check → ruff format --check → mypy (optionnel) → pytest avec couverture
+   - Steps : ruff check → ruff format --check → mypy → pytest avec couverture
    - Cible coverage : 70 % minimum sur `differ.py` et `reconcilers/`
 
 4. **`release.yml`** (ultérieurement) — Release tagging

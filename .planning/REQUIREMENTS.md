@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to a roadmap phase. IDs preserved fr
 - [ ] **REQ-idempotence**: Ré-exécuter arrconf N fois ne change rien si le YAML n'a pas bougé. `GET` puis diff explicite avant `PUT`. Round-trip prouvé : `arrconf dump → apply --dry-run` produit 0 action. Tests unitaires : add/update/delete/no-op.
 - [ ] **REQ-prune-opt-in**: `prune: false` par défaut, opt-in explicite par section. Si une ressource cluster n'est pas dans le YAML : log sans supprimer (sauf `prune: true`). Seules les ressources taggées `arrconf-managed` peuvent être prune.
 - [ ] **REQ-managed-tag**: Toute ressource créée/modifiée par arrconf reçoit le tag `arrconf-managed` (champ `tags:` standard *arr). Le tag `arrconf-managed` lui-même est réconcilié (créer/garder, protégé du prune).
-- [ ] **REQ-test-coverage**: `pytest` couvre ≥ 70 % du code arrconf, focus sur `differ.py` et `reconcilers/`. Mock httpx via `respx` ; aucun test n'appelle les vraies APIs en CI. Fixtures sanitisées dans `tests/fixtures/<app>_<resource>.json`. CI bloque si coverage < 70 % ou ruff échoue.
+- [ ] **REQ-test-coverage**: `pytest` couvre ≥ 70 % du code arrconf, focus sur `differ.py` et `reconcilers/`. Mock httpx via `respx` ; aucun test n'appelle les vraies APIs en CI. Fixtures sanitisées dans `tests/fixtures/<app>_<resource>.json`. CI bloque si coverage < 70 %, si `ruff` échoue, ou si `mypy` échoue.
 
 ### Drift & reconciliation cluster
 
