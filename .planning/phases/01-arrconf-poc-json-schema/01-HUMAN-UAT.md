@@ -1,0 +1,36 @@
+---
+status: partial
+phase: 01-arrconf-poc-json-schema
+source: [01-VERIFICATION.md]
+started: 2026-05-07T12:04:09Z
+updated: 2026-05-07T12:04:09Z
+---
+
+## Current Test
+
+[awaiting human testing]
+
+## Tests
+
+### 1. GHCR public visibility toggle — confirm image `ghcr.io/tom333/arr-stack-arrconf` is publicly pullable
+expected: After the first push to `main` triggers `arrconf-image.yml`, the image package on GHCR is accessible via `docker pull ghcr.io/tom333/arr-stack-arrconf:sha-<short>` from a logged-out client. Pitfall 7: by default new GHCR packages are private until manually toggled in the package settings UI.
+result: [pending]
+
+### 2. VS Code autocomplete demo against `examples/baseline-sonarr.yml`
+expected: Open `examples/baseline-sonarr.yml` in VS Code (or code-server) with the YAML language-server extension. The modeline on line 1 (`# yaml-language-server: $schema=../schemas/arrconf-schema.json`) resolves the schema. Typing under `download_clients:` shows autocomplete suggestions for valid `DownloadClient` fields, with hover-tooltips populated from the pydantic field descriptions.
+result: [pending]
+
+### 3. Live round-trip against a real Sonarr instance
+expected: Against a running Sonarr v4+ instance (e.g. via `kubectl port-forward svc/sonarr 8989:8989`), `arrconf dump --apps sonarr > /tmp/live.yml` followed by `arrconf diff --config /tmp/live.yml --apps sonarr` reports zero drift (exit 0). Engine-level round-trip is already locked by the respx-mocked `test_round_trip_dump_apply_dry_run_is_noop`; this human check confirms it survives a live API. Belongs to Phase 2 (cluster validation) but listed here for traceability.
+result: [pending]
+
+## Summary
+
+total: 3
+passed: 0
+issues: 0
+pending: 3
+skipped: 0
+blocked: 0
+
+## Gaps
