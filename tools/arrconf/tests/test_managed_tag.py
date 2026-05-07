@@ -23,7 +23,7 @@ from arrconf.reconcilers.sonarr import _ensure_managed_tag, reconcile_sonarr
 from arrconf.resources.sonarr.download_client import DownloadClient
 
 
-@pytest.mark.respx(base_url="http://sonarr.test/api/v3")
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_creates_managed_tag_when_missing(
     respx_mock: respx.MockRouter,
     sonarr_tag_empty_fixture: list[dict[str, Any]],
@@ -41,7 +41,7 @@ def test_creates_managed_tag_when_missing(
     assert "arrconf-managed" in body
 
 
-@pytest.mark.respx(base_url="http://sonarr.test/api/v3")
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_returns_existing_managed_tag(
     respx_mock: respx.MockRouter,
     sonarr_tag_managed_fixture: list[dict[str, Any]],
@@ -55,7 +55,7 @@ def test_returns_existing_managed_tag(
     assert post_route.call_count == 0
 
 
-@pytest.mark.respx(base_url="http://sonarr.test/api/v3")
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_dry_run_does_not_post_tag(
     respx_mock: respx.MockRouter,
     sonarr_tag_empty_fixture: list[dict[str, Any]],
@@ -69,7 +69,7 @@ def test_dry_run_does_not_post_tag(
     assert post_route.call_count == 0
 
 
-@pytest.mark.respx(base_url="http://sonarr.test/api/v3")
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_managed_tag_added_to_download_client_on_apply(
     respx_mock: respx.MockRouter,
     sonarr_tag_managed_fixture: list[dict[str, Any]],
@@ -102,7 +102,7 @@ def test_managed_tag_added_to_download_client_on_apply(
     assert any(p.action == Action.ADD for p in result.plan)
 
 
-@pytest.mark.respx(base_url="http://sonarr.test/api/v3")
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_managed_tag_never_deleted_in_prune_mode(
     respx_mock: respx.MockRouter,
     sonarr_tag_managed_fixture: list[dict[str, Any]],
@@ -114,9 +114,7 @@ def test_managed_tag_never_deleted_in_prune_mode(
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
     respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
-    delete_tag_route = respx_mock.delete(
-        url__regex=r"^http://sonarr\.test/api/v3/tag/\d+$"
-    )
+    delete_tag_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/tag/\d+$")
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",

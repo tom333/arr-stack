@@ -45,7 +45,7 @@ class ArrApiClient:
         self._client = httpx.Client(
             base_url=f"{self.base_url}{self.api_path}",
             headers=self.auth_headers(),
-            timeout=timeout or httpx.Timeout(connect=5.0, read=30.0),
+            timeout=timeout or httpx.Timeout(connect=5.0, read=30.0, write=10.0, pool=5.0),
         )
 
     def auth_headers(self) -> dict[str, str]:
