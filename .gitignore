@@ -1,0 +1,33 @@
+# Secrets / credentials (never commit)
+.env
+.env.*
+!.env.example                    # template committé (sans valeurs) — voir .env.example racine
+*.cookies
+*.cookie-jar
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Python build artifacts (anticipation Phase 1+ — sécurité défense en profondeur)
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+
+# Helm artifacts (anticipation Phase 4)
+charts/*/charts/
+charts/*/Chart.lock
+
+# CRITIQUE : NE PAS ignorer snapshots/ — versionnés Git par ADR-6
+# (pas de pattern snapshots/ ici — c'est volontaire, voir CLAUDE.md "ne pas faire")
