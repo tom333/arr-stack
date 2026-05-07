@@ -4,8 +4,8 @@ milestone: v3.2.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 01 context gathered
-last_updated: "2026-05-07T10:40:41.038Z"
-last_activity: 2026-05-07 -- Phase 01 planning complete
+last_updated: "2026-05-07T10:57:25.436Z"
+last_activity: 2026-05-07 -- Phase 01 execution started
 progress:
   total_phases: 9
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase null
+**Current focus:** Phase 01 — arrconf-poc-json-schema
 
 ## Current Position
 
-Phase: 1
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-07 -- Phase 01 planning complete
+Phase: 01 (arrconf-poc-json-schema) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 01
+Last activity: 2026-05-07 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
