@@ -1,16 +1,18 @@
-"""Pydantic models for arrconf YAML config (RootConfig).
+"""Pydantic models + YAML loader for arrconf config.
 
 Top-level schema used by ``schema_gen.write_schema`` to produce the JSON
-Schema consumed by yaml-language-server (D-16). YAML loading itself is a
-Wave 3 concern — only the model shape ships in Wave 1.
+Schema consumed by yaml-language-server (D-16). ``load_config`` is the
+Wave 3 entrypoint that the typer CLI calls before reconciliation.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from ruyaml import YAML
 
+from arrconf.exceptions import ConfigError
 from arrconf.resources.sonarr.download_client import DownloadClient
 
 
@@ -55,8 +57,20 @@ class RootConfig(BaseModel):
 
 
 def load_config(path: Path) -> RootConfig:
-    """Load and validate YAML config.
+    """Load and validate a YAML config file.
 
-    Raises ConfigError on parse/validation failure (W3 fills body).
+    Raises ``ConfigError`` (mapped to CLI exit code 2) for missing file,
+    YAML parse failure, or pydantic validation failure (D-13 / D-22).
     """
-    raise NotImplementedError("Wave 3 — load YAML via ruyaml + RootConfig.model_validate")
+    if not path.exists():
+        raise ConfigError(f"Config file not found: {path}")
+    yaml = YAML(typ="safe")
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            raw = yaml.load(f) or {}
+    except Exception as e:
+        raise ConfigError(f"YAML parse error in {path}: {e}") from e
+    try:
+        return RootConfig.model_validate(raw)
+    except ValidationError as e:
+        raise ConfigError(f"Config validation error in {path}: {e}") from e
