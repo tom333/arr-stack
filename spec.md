@@ -552,17 +552,37 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Estimation** : 1 journée
 
-### Phase 5 — Reconciler arrconf qBittorrent
+### Phase 5 — Reconciler qBittorrent + split tv/anime/family
 
-**Note** : qBittorrent **déjà déployé** dans `my-kluster` (`argocd/argocd-apps/qbittorrent-app.yaml`). Cette phase ne couvre que le reconciler arrconf — pas de redéploiement.
+**Note** : qBittorrent **déjà déployé**. Cette phase couvre le reconciler arrconf qBittorrent **ET** la mise en place du split tv/anime/family selon le pattern single-instance + tags (voir ADR-7). C'est le moment naturel parce que les catégories qBit sont au cœur du routing.
 
-**Pré-requis** : snapshot raw qBittorrent (`tools/snapshot/snapshot.sh --apps qbittorrent`) + dump YAML (`arrconf dump --apps qbittorrent > examples/baseline-qbittorrent.yml`) AVANT toute écriture.
+**Pré-requis** : snapshot raw qBittorrent + Sonarr + Radarr (`tools/snapshot/snapshot.sh --apps qbittorrent,sonarr,radarr`) + dump YAML AVANT toute écriture.
 
-**Livrables** :
-- Reconciler `qbittorrent.py` : catégories (`tv-sonarr`, `movie-radarr`), save paths, settings clés (max connections, alternative speed limits, behavior)
-- Connectiques download clients dans Sonarr/Radarr pointant vers `qbittorrent.selfhost.svc.cluster.local:8080` (déclarées via arrconf côté Sonarr/Radarr)
+**Livrables côté qBittorrent** :
+- Reconciler `qbittorrent.py` : settings clés (max connections, alternative speed limits, behavior)
+- 6 catégories déclarées avec save_paths distincts :
+  - `sonarr-tv` → `/data/series`
+  - `sonarr-anime` → `/data/anime`
+  - `sonarr-family` → `/data/family`
+  - `radarr-movies` → `/data/movies`
+  - `radarr-anime` → `/data/movies-anime`
+  - `radarr-family` → `/data/movies-family`
 
-**Estimation** : 1 journée
+**Livrables côté Sonarr (instance unique `main`)** :
+- Tags : `tv`, `anime`, `family`
+- Root folders : `/media/series`, `/media/anime`, `/media/family`
+- 3 download clients qBittorrent déclarés, chacun avec son `tags:` ciblant un seul tag
+- Cohabitation avec configarr : 3 quality profiles (MULTi.VF, Anime, Family) déclarés côté configarr, scores adaptés (ex: VOSTFR positif sur Anime)
+
+**Livrables côté Radarr (instance unique `main`)** :
+- Mêmes 3 tags + 3 root folders + 3 download clients par tag
+
+**Critères de fin** :
+- Création test : ajouter manuellement une série taggée `anime` dans Sonarr UI → vérifier que le download arrive dans `/data/anime` côté qBit puis hardlink dans `/media/anime`
+- `arrconf diff` après le test = 0 action (idempotence sur tags/root folders/download clients)
+- Configarr met à jour les 3 profils sans casser les existants
+
+**Estimation** : 1.5 journée (ajout du split en plus du reconciler qBit)
 
 ### Phase 6 — Reconciler arrconf Seerr
 
@@ -572,7 +592,8 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Livrables** :
 - Vérification compatibilité API Seerr vs Overseerr/Jellyseerr (Seerr est un fork actif → API probablement compatible). Voir §10 Q1.
-- Reconciler `seerr.py` : services Sonarr/Radarr connectés (radarr_default, sonarr_default), users (au minimum admin), requests config (auto-approve, request limits)
+- **Vérification de la stratégie de routing tags depuis Seerr vers Sonarr** (§10 Q10) : Seerr expose-t-il un champ tag à la requête ? Si oui : router auto par genre. Si non : fallback "tag par défaut + ré-tag manuel dans Sonarr UI" pour les cas anime/family.
+- Reconciler `seerr.py` : services Sonarr/Radarr connectés (single Sonarr `main`, single Radarr `main`), users (au minimum admin), requests config (auto-approve, request limits), default tags par type de contenu si supporté
 
 **Estimation** : 1 journée (si l'API est bien Overseerr-compatible)
 
@@ -707,6 +728,7 @@ Conservation dans `my-kluster` :
 - **Q7** — **Compatibilité multi-versions des APIs *arr** : Sonarr v4 vs v3 ont des breaking changes. Le script doit-il versionner ses appels ? Recommandation : tester sur Sonarr v4+ uniquement (déjà la version déployée), documenter comme prérequis.
 - **Q8** — **Stratégie `prune` par défaut** : si une ressource est en cluster mais pas dans le YAML, on supprime ou on log et on garde ? Recommandation : `prune: false` par défaut, opt-in par section.
 - **Q9** — **Jellyfin auth header** : l'API utilise `X-Emby-Token` (legacy) ou `Authorization: MediaBrowser Token=...`. À choisir selon ce qui marche en 10.11.8 — probablement `?api_key=<key>` query param suffit pour la plupart des endpoints. À valider en Phase 7 avant d'écrire le client. Conséquence : `client_base.py` doit pouvoir overrider la stratégie d'auth par app.
+- **Q10** — **Routing tags Seerr → Sonarr/Radarr** : avec single instance + tags (ADR-7), Seerr doit pouvoir indiquer le tag (`tv`/`anime`/`family`) à la requête pour que Sonarr ajoute la série dans le bon root folder + bonne catégorie qBit. Question : Seerr expose-t-il ce mécanisme via `defaultTags` par service connecté ou par utilisateur ? À valider en Phase 6 avec un test pratique (créer un user "anime", configurer son default tag, requêter une série). Fallback si non supporté : tag par défaut côté Sonarr (`tv`) + ré-tag manuel post-import pour les minoritaires (anime, family).
 
 ---
 
@@ -801,7 +823,7 @@ Conservation dans `my-kluster` :
 1. **Phase 0** est dédiée à un script Bash standalone (`tools/snapshot/snapshot.sh`) qui fait un dump raw JSON de toutes les APIs avant tout autre travail.
 2. **Phase 1** ajoute `arrconf dump` qui exporte le même état au format YAML arrconf, seedé dans `examples/baseline-<app>.yml`.
 3. **Phase 2** déploie arrconf en cluster avec `ARRCONF_DRY_RUN=true` au premier run, bascule en apply seulement après validation des logs.
-4. **Phases 3-6** : chaque phase touchant une nouvelle app commence par un re-snapshot (`snapshots/before-phase-N-<date>/`).
+4. **Phases 3-7** : chaque phase touchant une nouvelle app commence par un re-snapshot (`snapshots/before-phase-N-<date>/`).
 5. Tous les snapshots restent dans Git (lossless, pas de secret, ~quelques MB).
 
 **Raisons** :
@@ -814,6 +836,34 @@ Conservation dans `my-kluster` :
 - Phase 0 dédiée à du Bash standalone (peu de Python) — décalage de 0.5 journée du POC arrconf
 - Discipline à tenir : re-snapshot AVANT chaque phase de scope nouveau
 - Repo grossit légèrement (snapshots committés) mais c'est négligeable
+
+### ADR-7 — Single instance Sonarr/Radarr + tags (pas multi-instance)
+
+**Contexte** : pour différencier les contenus (tv, anime, family) il faut une stratégie de routing — chaque type ayant son root folder, sa catégorie qBit, ses préférences qualité. Deux options : multi-instance (TRaSH-Guides standard) ou single-instance + tags.
+
+**Décision** : **single-instance par app** (1 sonarr, 1 radarr), différenciation via :
+- 3 tags Sonarr/Radarr : `tv`, `anime`, `family`
+- 3 root folders par instance (`/media/series`, `/media/anime`, `/media/family` côté Sonarr ; équivalents côté Radarr)
+- 3 download clients qBittorrent par instance, chacun lié à un tag — Sonarr/Radarr router le download vers le bon client en fonction du tag de la série/film
+- 6 catégories qBit avec save_path distincts
+- 3 quality profiles par instance côté configarr (MULTi.VF / Anime / Family) avec scoring adapté par profil
+
+**Raisons** :
+- Volumétrie homelab modérée → la BDD SQLite Sonarr unique tient sans problème
+- 1 pod / 1 PVC / 1 ingress / 1 API key par app vs 3-6 pods en multi-instance — coût ressource minimal
+- Configarr et arrconf YAML restent simples (un seul bloc `sonarr.main` et `radarr.main`)
+- Renovate suit 1 image par app au lieu de 3
+- Si l'usage évolue, re-tagger sans recréer d'instance
+- Le routing par tag est un mécanisme natif Sonarr/Radarr (champ `tags:` sur les download clients) — pas un workaround
+
+**Conséquences / limitations acceptées** :
+- Single point of failure : si la BDD Sonarr corrompt, tout le contenu (tv + anime + family) est touché. Atténué par les snapshots arrconf et les backups Sonarr natifs
+- Routing Seerr → tag : à valider (Q10). Si Seerr ne supporte pas de tag par défaut par user/type, l'utilisateur Seerr ajoute toujours en `tv`, ré-tag manuel pour anime/family minoritaires
+- Settings globaux de l'instance (release profiles, host config) partagés entre tous les types — acceptable car similaires
+- Indexers Prowlarr poussés à l'instance unique, le ciblage anime-only se fait via tags côté Prowlarr (à vérifier en Phase 3)
+
+**Alternatives rejetées** :
+- **Multi-instance** (sonarr-tv, sonarr-anime, sonarr-family + radarr-movies, radarr-anime, radarr-family) : coût ressource × 3 et complexité GitOps significative pour un bénéfice d'isolation marginal en homelab. À reconsidérer uniquement si la BDD unique sature ou si Q10 conclut que Seerr ne peut pas router par tag.
 
 ---
 

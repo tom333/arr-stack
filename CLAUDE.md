@@ -291,6 +291,29 @@ Côté `my-kluster` : Renovate ouvre une PR sur `argocd/argocd-apps/arr-stack-ap
 
 ---
 
+## Pattern single-instance + tags (architecture Sonarr/Radarr)
+
+Décision spec ADR-7 : **1 seule instance Sonarr et 1 seule Radarr**, différenciation TV / Anime / Family via tags.
+
+**Implications pour arrconf** :
+- Un seul bloc `sonarr.main` et `radarr.main` dans le YAML
+- `download_clients` est une **liste** où chaque entrée a un champ `tags: [tv]` / `tags: [anime]` / `tags: [family]` — ce mécanisme est natif Sonarr/Radarr (le download client ne s'utilise que pour les séries taggées correspondamment)
+- `root_folders` est aussi une liste (3 root folders par instance)
+- `tags` est une liste à reconcilier comme les autres ressources (créer/garder les 3, supprimer les autres si `prune: true`)
+
+**Implications pour configarr** :
+- Plusieurs `quality_profiles` dans le même bloc d'instance (MULTi.VF, Anime, Family)
+- `assign_scores_to` peut cibler plusieurs profils avec scores différents (ex: VOSTFR à -10000 sur MULTi.VF mais +50 sur Anime)
+
+**Implications pour qBittorrent** :
+- 6 catégories : `sonarr-{tv,anime,family}` + `radarr-{movies,anime,family}`
+- Chaque catégorie a son `save_path` dans `/data/<type>` (relatif au mount qBit)
+- Le hardlink final vers `/media/<type>` est géré par Sonarr/Radarr lors de l'import
+
+**Implications pour Seerr** : Q10 ouverte (routing par tag à valider en Phase 6).
+
+---
+
 ## Intégration avec my-kluster
 
 - **Une seule** ArgoCD Application (`my-kluster/argocd/argocd-apps/arr-stack-app.yaml`) pointe vers ce repo, path `charts/arr-stack/`, valueFile `examples/values-prod.yaml`.
