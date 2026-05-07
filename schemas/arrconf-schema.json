@@ -1,0 +1,360 @@
+{
+  "$defs": {
+    "AppsConfig": {
+      "additionalProperties": false,
+      "description": "Top-level apps config \u2014 one block per *arr family member.",
+      "properties": {
+        "sonarr": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SonarrConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "AppsConfig",
+      "type": "object"
+    },
+    "DownloadClient": {
+      "additionalProperties": true,
+      "description": "A Sonarr download client (qBittorrent, Transmission, ...).\n\nMatched by ``name`` (D-20). Read-only fields excluded from diff (D-21).\nUses ``extra=\"allow\"`` for forward-compat with future Sonarr versions\n(Phase 1 simplification \u2014 Pitfall 4 trade-off documented in RESEARCH.md).",
+      "properties": {
+        "configContract": {
+          "description": "Sonarr config contract (e.g., 'QBittorrentSettings'). Must match implementation.",
+          "title": "Configcontract",
+          "type": "string"
+        },
+        "enable": {
+          "default": true,
+          "description": "Enable this download client.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "fields": {
+          "description": "Implementation-specific settings (host, port, category, ...).",
+          "items": {
+            "$ref": "#/$defs/FieldKV"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "implementation": {
+          "description": "Sonarr implementation class (e.g., 'QBittorrent', 'Transmission').",
+          "title": "Implementation",
+          "type": "string"
+        },
+        "implementationName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementationname"
+        },
+        "infoLink": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Infolink"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        },
+        "name": {
+          "description": "Display name (matching key, must be unique).",
+          "title": "Name",
+          "type": "string"
+        },
+        "presets": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Presets"
+        },
+        "priority": {
+          "default": 1,
+          "description": "Lower = preferred when multiple clients match.",
+          "title": "Priority",
+          "type": "integer"
+        },
+        "protocol": {
+          "description": "Download protocol \u2014 must match implementation.",
+          "enum": [
+            "torrent",
+            "usenet"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "removeCompletedDownloads": {
+          "default": true,
+          "title": "Removecompleteddownloads",
+          "type": "boolean"
+        },
+        "removeFailedDownloads": {
+          "default": true,
+          "title": "Removefaileddownloads",
+          "type": "boolean"
+        },
+        "tags": {
+          "description": "Tag IDs (resolved from `tags:` names by reconciler).",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "protocol",
+        "implementation",
+        "configContract"
+      ],
+      "title": "DownloadClient",
+      "type": "object"
+    },
+    "DownloadClientsSection": {
+      "additionalProperties": false,
+      "description": "A list of download_clients with opt-in prune (D-04).",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/DownloadClient"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in deletion of unmanaged resources (D-04).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "DownloadClientsSection",
+      "type": "object"
+    },
+    "FieldKV": {
+      "additionalProperties": true,
+      "description": "Generic key-value used in Sonarr's ``fields[]`` array (qBit-specific settings).\n\nSource: Sonarr OpenAPI #/components/schemas/Field. Sonarr ad-hoc adds\nUI-metadata keys (``label``, ``helpText``, ``selectOptions``...) so we\naccept ``extra=\"allow\"`` and exclude these from diffs (Pitfall 2).",
+      "properties": {
+        "advanced": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Advanced"
+        },
+        "helpText": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Helptext"
+        },
+        "isFloat": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Isfloat"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "name": {
+          "description": "Field name (e.g., 'host', 'port', 'tvCategory').",
+          "title": "Name",
+          "type": "string"
+        },
+        "order": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Order"
+        },
+        "privacy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Privacy"
+        },
+        "selectOptions": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selectoptions"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "value": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Field value \u2014 type depends on field name.",
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "FieldKV",
+      "type": "object"
+    },
+    "SonarrConfig": {
+      "additionalProperties": false,
+      "description": "Sonarr config block (single instance per ADR-7).",
+      "properties": {
+        "main": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SonarrInstance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "SonarrConfig",
+      "type": "object"
+    },
+    "SonarrInstance": {
+      "additionalProperties": false,
+      "description": "A single Sonarr instance (Phase 1 supports only ``main`` per ADR-7).",
+      "properties": {
+        "base_url": {
+          "description": "Sonarr base URL e.g. http://sonarr.svc:8989",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "download_clients": {
+          "$ref": "#/$defs/DownloadClientsSection"
+        }
+      },
+      "required": [
+        "base_url"
+      ],
+      "title": "SonarrInstance",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).",
+  "properties": {
+    "apps": {
+      "$ref": "#/$defs/AppsConfig"
+    }
+  },
+  "title": "RootConfig",
+  "type": "object"
+}
