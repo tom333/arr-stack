@@ -24,6 +24,9 @@ __pycache__/
 dist/
 build/
 .venv/
+.coverage
+.coverage.*
+htmlcov/
 
 # Helm artifacts (anticipation Phase 4)
 charts/*/charts/

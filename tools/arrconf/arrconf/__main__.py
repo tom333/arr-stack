@@ -1,4 +1,11 @@
-"""arrconf CLI entrypoint — 4 subcommands per D-06 + REQ-cli-subcommands."""
+"""arrconf CLI entrypoint — 4 subcommands per D-01..D-04 + REQ-cli-subcommands.
+
+Exit code contract (CLAUDE.md CLI section):
+    0 — success
+    1 — application failure (e.g. upstream API error)
+    2 — config error (parse / validation / missing API key)
+    3 — drift detected by ``diff`` (only emitted by ``diff``)
+"""
 
 from __future__ import annotations
 
@@ -7,7 +14,20 @@ from pathlib import Path
 import structlog
 import typer
 
+from arrconf.client_base import SonarrClient
+from arrconf.config import load_config
+from arrconf.diff_cmd import diff_sonarr
+from arrconf.dump import dump_sonarr
+from arrconf.exceptions import (
+    ApiClientError,
+    ConfigError,
+    ReconcileError,
+    ScopeViolationError,
+)
 from arrconf.logging import configure_logging
+from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.schema_gen import write_schema
+from arrconf.settings import Settings
 
 app = typer.Typer(
     name="arrconf",
@@ -15,6 +35,11 @@ app = typer.Typer(
     no_args_is_help=True,
     pretty_exceptions_show_locals=False,  # T-01-01: avoid leaking secrets in tracebacks
 )
+
+
+def _selected_apps(apps: str | None) -> set[str]:
+    """Return the set of apps targeted by ``--apps``; default ``{"sonarr"}``."""
+    return {a.strip() for a in apps.split(",")} if apps else {"sonarr"}
 
 
 @app.callback()
@@ -44,22 +69,84 @@ def apply(
     apps: str | None = typer.Option(None, help="Comma-separated apps"),
     dry_run: bool = typer.Option(False, "--dry-run", envvar="ARRCONF_DRY_RUN"),
 ) -> None:
-    """Reconcile YAML → cluster APIs."""
+    """Reconcile YAML → cluster APIs. Exit 0=ok, 1=app failure, 2=config error."""
     log = structlog.get_logger()
-    log.info("apply_invoked", config=str(ctx.obj["config_path"]), apps=apps, dry_run=dry_run)
-    raise typer.Exit(code=0)  # W3: replace with actual reconcile dispatch
+    try:
+        root = load_config(ctx.obj["config_path"])
+    except ConfigError as e:
+        log.error("config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+    except ScopeViolationError as e:
+        log.error("scope_violation", error=str(e))
+        raise typer.Exit(code=2) from e
+
+    targets = _selected_apps(apps)
+    settings = Settings()
+    failures: list[str] = []
+
+    if "sonarr" in targets and root.apps.sonarr is not None and root.apps.sonarr.main is not None:
+        instance = root.apps.sonarr.main
+        # Fast-fail when SONARR_API_KEY missing — no silent fallback to "" (CLAUDE.md
+        # "no silent failures"). Symptom of the old fallback: 401 from upstream with
+        # no clear hint that env was missing.
+        if not settings.sonarr_api_key:
+            log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
+            raise typer.Exit(code=2)
+        api_key = settings.sonarr_api_key.get_secret_value()
+        try:
+            client = SonarrClient(base_url=instance.base_url, api_key=api_key)
+            result = reconcile_sonarr(client, instance, dry_run=dry_run or settings.arrconf_dry_run)
+            if all(
+                a == "no-op" or a.startswith("prune-")
+                for a in (p.action.value for p in result.plan)
+            ):
+                log.info("no-op", app="sonarr", count=len(result.plan))
+            else:
+                log.info("apply_complete", app="sonarr", actions=result.actions_taken)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="sonarr", error=str(e))
+            failures.append("sonarr")
+
+    if failures:
+        raise typer.Exit(code=1)
+    raise typer.Exit(code=0)
 
 
 @app.command()
 def dump(
     ctx: typer.Context,
     apps: str | None = typer.Option(None, help="Comma-separated apps"),
-    output: Path = typer.Option(Path("examples/dump.yml"), "--output", "-o"),
+    output: Path = typer.Option(
+        Path("examples/baseline-sonarr.yml"),
+        "--output",
+        "-o",
+        help="Output YAML path (relative to repo root)",
+    ),
 ) -> None:
-    """Read-only export of cluster state to YAML."""
+    """Read-only export of cluster state to YAML. Exit 0=ok, 1=app failure."""
     log = structlog.get_logger()
-    log.info("dump_invoked", apps=apps, output=str(output))
-    raise typer.Exit(code=0)  # W3: replace
+    targets = _selected_apps(apps)
+    settings = Settings()
+    try:
+        root = load_config(ctx.obj["config_path"])
+    except ConfigError as e:
+        log.error("config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+    if "sonarr" in targets and root.apps.sonarr is not None and root.apps.sonarr.main is not None:
+        instance = root.apps.sonarr.main
+        # Fast-fail when SONARR_API_KEY missing — mirrors the apply branch.
+        if not settings.sonarr_api_key:
+            log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
+            raise typer.Exit(code=2)
+        api_key = settings.sonarr_api_key.get_secret_value()
+        try:
+            client = SonarrClient(base_url=instance.base_url, api_key=api_key)
+            dump_sonarr(client, output)
+            log.info("dump_written", path=str(output))
+        except ApiClientError as e:
+            log.error("app_failed", app="sonarr", error=str(e))
+            raise typer.Exit(code=1) from e
+    raise typer.Exit(code=0)
 
 
 @app.command()
@@ -67,20 +154,48 @@ def diff(
     ctx: typer.Context,
     apps: str | None = typer.Option(None, help="Comma-separated apps"),
 ) -> None:
-    """Compare YAML config vs cluster state. Exit 3 if drift."""
+    """Compare YAML vs cluster. Exit 0=no drift, 1=app failure, 2=config error, 3=drift."""
     log = structlog.get_logger()
-    log.info("diff_invoked", config=str(ctx.obj["config_path"]), apps=apps)
-    raise typer.Exit(code=0)  # W3: replace
+    try:
+        root = load_config(ctx.obj["config_path"])
+    except ConfigError as e:
+        log.error("config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+    targets = _selected_apps(apps)
+    settings = Settings()
+    max_code = 0
+    if "sonarr" in targets and root.apps.sonarr is not None and root.apps.sonarr.main is not None:
+        instance = root.apps.sonarr.main
+        # Fast-fail when SONARR_API_KEY missing — mirrors apply/dump branches.
+        if not settings.sonarr_api_key:
+            log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
+            raise typer.Exit(code=2)
+        api_key = settings.sonarr_api_key.get_secret_value()
+        try:
+            client = SonarrClient(base_url=instance.base_url, api_key=api_key)
+            code = diff_sonarr(client, root)
+            max_code = max(max_code, code)
+        except ApiClientError as e:
+            log.error("app_failed", app="sonarr", error=str(e))
+            raise typer.Exit(code=1) from e
+    raise typer.Exit(code=max_code)
 
 
 @app.command(name="schema-gen")
 def schema_gen_cmd(
-    output: Path = typer.Option(Path("schemas/arrconf-schema.json"), "--output", "-o"),
+    output: Path = typer.Option(
+        Path("schemas/arrconf-schema.json"),
+        "--output",
+        "-o",
+        help="Output JSON Schema path (D-15)",
+    ),
 ) -> None:
     """Export JSON Schema (Draft 2020-12) from RootConfig (D-15)."""
     log = structlog.get_logger()
-    log.info("schema_gen_invoked", output=str(output))
-    raise typer.Exit(code=0)  # W3: replace with schema_gen.write_schema(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    write_schema(output)
+    log.info("schema_written", path=str(output))
+    raise typer.Exit(code=0)
 
 
 if __name__ == "__main__":
