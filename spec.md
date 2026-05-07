@@ -31,6 +31,9 @@ Objectif final : ne plus jamais ouvrir l'UI Sonarr/Radarr/qBit/Seerr pour config
   - `prowlarr` 2.3.5
   - `cleanuparr`
   - `configarr` 1.16.0 (chart custom `charts/configarr/` — quality profiles + custom formats)
+  - `qbittorrent` (lscr.io/linuxserver, tag `latest` — à pinner) — download client, hostPath `/opt/media-stack/torrents` partagé avec Sonarr/Radarr
+  - `seerr` v3.2.0 (`ghcr.io/seerr-team/seerr`) — request manager (fork actif d'Overseerr/Jellyseerr)
+  - `flaresolverr` (`ghcr.io/flaresolverr/flaresolverr`, tag `latest`) — proxy Cloudflare pour Prowlarr, accès interne uniquement
 - Toutes les apps déployées via le chart `bjw-s app-template 4.6.2`, fichiers individuels dans `argocd/argocd-apps/<service>-app.yaml`
 - Renovate auto-merge minor/patch sur ces fichiers
 - ESO + Akeyless dispo dans le cluster mais pas encore branché sur l'arr-stack (secret `configarr-env` manuel)
@@ -70,15 +73,18 @@ Objectif final : ne plus jamais ouvrir l'UI Sonarr/Radarr/qBit/Seerr pour config
 - **O5** — Le déploiement de la stack se fait via une seule ArgoCD Application dans `my-kluster` pointant vers le chart umbrella du repo arr-stack.
 - **O6** — Renovate suit automatiquement les versions d'image (Sonarr, Radarr, ..., arrconf) déclarées dans `values.yaml` et propose les bumps.
 - **O7** — La config configarr (quality profiles + custom formats + naming + quality definitions) est versionnée dans le repo arr-stack et continue de fonctionner exactement comme aujourd'hui.
+- **O8** — Une **baseline lossless** de la config actuelle des apps est capturée AVANT toute écriture de test, et conservée dans le repo. Permet rollback forensic et seed du premier `files/arrconf.yml`.
 
 ### 3.2 Non-objectifs (explicitement OUT)
 
-- **NG1** — Migrer le reste du cluster `my-kluster` (data lab, infra, perso) vers ce repo. arr-stack reste focalisé sur la stack média.
+- **NG1** — Migrer le reste du cluster `my-kluster` vers ce repo. **arr-stack se limite à la stack média**. Restent dans `my-kluster` et n'ont pas vocation à venir ici :
+  - Data lab : mlflow, jupyter, dagster, qdrant, postgresql
+  - Infra : cert-manager, oauth2-proxy, kubetail, external-secrets, config (raw manifests)
+  - Perso : cv, code-server, freshrss, komga
 - **NG2** — Construire un outil générique multi-tenant. arr-stack est dimensionné pour 1 cluster, 1 utilisateur (homelab).
 - **NG3** — Couvrir 100 % de toutes les options de chaque API. On couvre ce que l'auteur utilise réellement.
 - **NG4** — Refaire ce que configarr fait bien (quality profiles, custom formats, naming, quality definitions). arrconf et configarr ont des scopes complémentaires.
 - **NG5** — Bootstrap automatique des API keys initiales. La 1ère obtention d'API key se fait toujours via UI ; arrconf prend le relais ensuite.
-- **NG6** — Migration vers ESO/Akeyless dans la première itération. Les secrets restent en `secrets/` manuel comme aujourd'hui (cohérent avec `my-kluster`). À traiter dans le chantier ESO global du cluster.
 
 ---
 
@@ -144,16 +150,22 @@ github.com/tom333/my-kluster                  github.com/tom333/arr-stack
 
 ### 5.3 Apps couvertes (cible)
 
-Phase initiale :
-- Sonarr, Radarr, Prowlarr (déjà déployés)
-- configarr (déjà déployé, intégré dans l'umbrella)
-- cleanuparr (déjà déployé)
-- arrconf (nouveau)
-- qBittorrent (à déployer)
+**Toutes déjà déployées dans `my-kluster`** (sauf arrconf, à créer) :
 
-Phase ultérieure (dans arr-stack également) :
-- Seerr (remplaçant de Jellyseerr — site officiel à confirmer)
-- Bazarr
+| App | Image | Géré par |
+|---|---|---|
+| Sonarr | `lscr.io/linuxserver/sonarr` | Helm umbrella + arrconf (download clients, indexers, notifications, root folders, tags, host config) |
+| Radarr | `lscr.io/linuxserver/radarr` | Idem Sonarr |
+| Prowlarr | `lscr.io/linuxserver/prowlarr` | Helm umbrella + arrconf (indexers, app sync vers Sonarr/Radarr, FlareSolverr proxy config) |
+| qBittorrent | `lscr.io/linuxserver/qbittorrent` | Helm umbrella + arrconf (catégories, save paths, settings) |
+| Seerr | `ghcr.io/seerr-team/seerr` v3.2.0 | Helm umbrella + arrconf (services Sonarr/Radarr connectés, users, requests config) |
+| FlareSolverr | `ghcr.io/flaresolverr/flaresolverr` | Helm umbrella **seulement** (config par env vars, pas d'API à gérer) |
+| Cleanuparr | `ghcr.io/cleanuparr/cleanuparr` | Helm umbrella seulement (config UI hors scope arrconf pour l'instant) |
+| Configarr | `ghcr.io/raydak-labs/configarr` | Helm umbrella + sa propre config dans `files/configarr.yml` (scope quality profiles / custom formats) |
+| arrconf | `ghcr.io/tom333/arr-stack-arrconf` (nouveau) | Helm umbrella + sa propre config dans `files/arrconf.yml` |
+
+**Apps potentielles ultérieures** (hors scope MVP, ajoutables plus tard sans repenser l'architecture) :
+- Bazarr (sous-titres)
 - Lidarr / Whisparr / Readarr selon besoin
 
 ---
@@ -191,7 +203,7 @@ tools/arrconf/
 ├── Dockerfile                     # python:3.13-slim, USER non-root
 ├── arrconf/
 │   ├── __init__.py
-│   ├── __main__.py                # entrypoint CLI (argparse: --config, --dry-run, --apps)
+│   ├── __main__.py                # entrypoint CLI (sous-commandes: apply, dump, diff)
 │   ├── config.py                  # parsing + validation pydantic du YAML
 │   ├── logging.py                 # setup structlog
 │   ├── client_base.py             # ArrApiClient générique (auth, retry, pagination)
@@ -231,6 +243,19 @@ tools/arrconf/
 - `SEERR_API_KEY`
 - `ARRCONF_LOG_LEVEL` (default INFO)
 - `ARRCONF_DRY_RUN` (default false)
+
+**CLI — sous-commandes** :
+
+```
+arrconf apply  [--config PATH] [--apps LIST] [--dry-run] [--log-level LEVEL]   # default: reconcilie
+arrconf dump   [--apps LIST] [--output PATH]                                    # read-only, exporte YAML
+arrconf diff   [--config PATH] [--apps LIST]                                    # diff lisible local vs cluster
+```
+
+- `apply` (default si aucune sous-commande) : reconcilie le YAML désiré vers les APIs.
+- `dump` : **read-only**. Récupère l'état courant de chaque app via API et écrit un YAML conforme au schéma arrconf. Aucune écriture sur les APIs. Sert au seed initial et au diagnostic forensic.
+- `diff` : compare YAML local vs APIs et affiche les actions qui seraient prises, en format lisible (par opposition à `--dry-run` qui log).
+- Exit codes : `0` succès, `1` une app a échoué (les autres ont continué), `2` erreur de config (parse/validation), `3` (sur `diff`) drift détecté.
 
 ### 6.2 Umbrella Helm chart
 
@@ -355,92 +380,194 @@ sonarr:
 
 Côté `my-kluster`, Renovate suit `targetRevision: vX.Y.Z` dans `arr-stack-app.yaml`.
 
+### 6.5 Snapshot tooling (capture forensic de l'existant)
+
+**Rôle** : capturer la config actuelle de toutes les apps **AVANT** la moindre écriture de test, pour permettre rollback et diagnostic.
+
+**Deux niveaux complémentaires** :
+
+#### Niveau 1 — Snapshot raw API (Bash, standalone, indépendant d'arrconf)
+
+```
+tools/snapshot/
+├── snapshot.sh                   # script Bash: curl + jq, GET /api/v3/<resource> par app
+├── README.md
+└── (pas de dépendance Python — utilisable AVANT que arrconf existe)
+```
+
+Outputs vers `snapshots/baseline-YYYY-MM-DD/<app>/<resource>.json` :
+```
+snapshots/baseline-2026-05-07/
+├── sonarr/
+│   ├── downloadclient.json
+│   ├── indexer.json
+│   ├── notification.json
+│   ├── rootfolder.json
+│   ├── tag.json
+│   ├── qualityprofile.json
+│   ├── customformat.json
+│   └── ...
+├── radarr/
+│   └── ...
+├── prowlarr/
+│   └── ...
+├── qbittorrent/
+│   ├── preferences.json
+│   ├── categories.json
+│   └── ...
+└── seerr/
+    └── ...
+```
+
+**Propriétés** :
+- 100 % read-only (que des `GET`)
+- Lossless : capture tous les champs renvoyés par l'API, sans transformation
+- Versionné dans Git (les snapshots ne contiennent pas de secret — uniquement la config)
+- Datable : un dump par baseline + dumps ad-hoc avant chaque test risqué (`snapshots/before-phase-X/`)
+
+#### Niveau 2 — `arrconf dump` (mode export YAML structuré)
+
+Une fois arrconf bootstrappé en Phase 0, sa sous-commande `dump` produit un YAML au schéma arrconf — directement réutilisable comme seed pour `files/arrconf.yml`.
+
+```bash
+arrconf dump --apps sonarr,radarr > examples/baseline.yml
+```
+
+**Différence vs Niveau 1** :
+- Format YAML structuré (pas JSON brut)
+- Suit le schéma arrconf (champs read-only et metadata exclus)
+- Utilisable comme input direct par `arrconf apply` (round-trip)
+- Permet la traduction d'une config existante en config-as-code
+
+**Discipline** :
+- Re-snapshot raw avant chaque phase qui touche une app : `tools/snapshot/snapshot.sh > snapshots/before-phase-N/`
+- Conserver tous les snapshots dans Git — ils sont petits (~quelques MB) et inestimables en cas de pépin
+- Comparer avec `diff -r snapshots/baseline/ snapshots/after-phase-N/` pour vérifier que rien n'a bougé hors des intentions
+
 ---
 
 ## 7. Phases & roadmap
 
 Approche progressive pour de-risker. Chaque phase est livrable indépendamment (peut s'arrêter sans casse).
 
-### Phase 0 — Bootstrap repo + arrconf POC
+### Phase 0 — Bootstrap repo + script snapshot raw
+
+**Note** : avant tout code arrconf, on **capture l'existant**. Indépendant, standalone, n'écrit rien.
 
 **Livrables** :
 - Repo `arr-stack` créé sur GitHub, public
+- `tools/snapshot/snapshot.sh` (Bash + curl + jq) qui dump TOUS les endpoints `GET` des 5 apps avec API REST (sonarr, radarr, prowlarr, qbittorrent, seerr) vers `snapshots/baseline-YYYY-MM-DD/<app>/<resource>.json`
+- Premier dump committé : `snapshots/baseline-2026-05-07/` (date du jour à l'exécution)
+- README expliquant comment relancer un snapshot avant tests risqués
+- `renovate.json` initial
+
+**Critères de fin** :
+- `tools/snapshot/snapshot.sh` exécuté localement → produit JSON pour les 5 apps
+- Tous les fichiers JSON committés dans `snapshots/baseline-<date>/`
+- Aucune écriture observée (vérifier logs Sonarr/Radarr : que des reads, aucun write)
+- Possibilité de comparer : `diff snapshots/baseline-<date>/sonarr/downloadclient.json $(arrconf dump apps=sonarr)` (à venir Phase 1)
+
+**Estimation** : 0.5 journée
+
+### Phase 1 — arrconf POC + snapshot YAML
+
+**Livrables** :
 - Squelette `tools/arrconf/` (Python, Dockerfile, pyproject, tests)
 - Workflow GitHub Actions `arrconf-image.yml` opérationnel → image `ghcr.io/tom333/arr-stack-arrconf:sha-<short>` poussée
 - Workflow `tests.yml` opérationnel
-- Capacité à reconcilier UN type de ressource sur UNE app : **download clients sur Sonarr**
+- Sous-commandes `dump` et `diff` implémentées pour Sonarr (read-only, peuvent tourner immédiatement contre l'existant)
+- Sous-commande `apply` implémentée pour UN type de ressource sur Sonarr : **download clients**
+- Premier `arrconf dump --apps sonarr` exécuté → `examples/baseline-sonarr.yml` committé
 - README minimal
-- `renovate.json` initial
 
 **Critères de fin** :
 - `pytest` vert
 - Image buildée et publique
-- Test manuel : exécuter localement contre sonarr.tgu.ovh, vérifier qu'il ajoute/met à jour un download client de test
+- `arrconf dump --apps sonarr` produit un YAML conforme au schéma arrconf, qui round-trip avec `arrconf diff --config examples/baseline-sonarr.yml --apps sonarr` → 0 diff (idempotence prouvée)
+- Test manuel : `arrconf apply --config examples/baseline-sonarr.yml --apps sonarr --dry-run` → log "no-op" puisque YAML = état actuel
 - Pas encore de chart, pas encore d'umbrella, pas encore de déploiement K8s
 
 **Estimation** : 1 journée
 
-### Phase 1 — Validation cluster
+### Phase 2 — Validation cluster
+
+**Pré-requis** : nouveau snapshot raw juste avant déploiement (`tools/snapshot/snapshot.sh > snapshots/before-phase-2-<date>/`) — capturer l'état exact avant que le CronJob ne tourne pour la première fois en mode `apply`.
 
 **Livrables** :
 - Mini chart `charts/arrconf-only/` (juste arrconf, pas l'umbrella) ou intégration ad-hoc dans `my-kluster`
-- ArgoCD Application qui déploie arrconf en CronJob dans `selfhost`
+- ArgoCD Application qui déploie arrconf en CronJob dans `selfhost`, avec **`ARRCONF_DRY_RUN=true` au premier déploiement**
 - Secret manuel `arrconf-secret.yaml` dans `my-kluster/secrets/`
-- Premier run réel en cluster réussi (download client Sonarr matérialisé via API)
+- Premier run réel en cluster en `--dry-run` réussi (logs only, aucune écriture)
+- Bascule en mode apply (`ARRCONF_DRY_RUN=false`) après validation des logs
 
 **Critères de fin** :
 - CronJob arrconf existe dans `selfhost`
 - Job manuel `kubectl create job --from=cronjob/arrconf` → exit 0
-- Sonarr UI montre le download client géré par arrconf
+- Premier run en `--dry-run` : logs montrent les actions qui seraient prises, AUCUN écriture observée côté Sonarr (vérifier via re-snapshot après ce run)
+- Après bascule en apply : Sonarr UI montre le download client géré par arrconf
 - Drift detection validée : modification UI → écrasée au run suivant
 
 **Estimation** : 0.5 journée
 
-### Phase 2 — Étendre arrconf
+### Phase 3 — Étendre arrconf
+
+**Pré-requis** : nouveau snapshot raw avant de commencer (`tools/snapshot/snapshot.sh > snapshots/before-phase-3-<date>/`).
 
 **Livrables** :
 - Reconcilers : indexers, notifications, root folders, tags, host config
 - Apps : Radarr, Prowlarr (avec app sync vers Sonarr/Radarr)
+- Pour chaque app, `arrconf dump --apps <app>` exécuté **avant** d'écrire un reconciler, output committé dans `examples/baseline-<app>.yml` — le YAML désiré démarre depuis l'existant
 - Tests pour chaque reconciler
+
+**Critères de fin** :
+- Pour chaque nouveau reconciler : round-trip `dump → apply --dry-run` → 0 action (idempotence)
+- Diff `snapshots/baseline-<date>/ vs snapshots/after-phase-3-<date>/` montre uniquement les changements intentionnels
 
 **Estimation** : 2 journées
 
-### Phase 3 — Umbrella chart
+### Phase 4 — Umbrella chart
 
 **Livrables** :
-- `charts/arr-stack/` umbrella avec deps app-template
-- Migration des 5 apps de `my-kluster` (sonarr, radarr, prowlarr, cleanuparr, configarr) dans l'umbrella
-- Suppression de `argocd/argocd-apps/sonarr-app.yaml`, `radarr-app.yaml`, `prowlarr-app.yaml`, `cleanuparr-app.yaml`, `configarr-app.yaml` dans `my-kluster`
+- `charts/arr-stack/` umbrella avec deps app-template (alias par service)
+- Migration des **8 apps déjà déployées** de `my-kluster` dans l'umbrella : sonarr, radarr, prowlarr, cleanuparr, configarr, qbittorrent, seerr, flaresolverr
+- Suppression dans `my-kluster` : `argocd/argocd-apps/{sonarr,radarr,prowlarr,cleanuparr,configarr,qbittorrent,seerr,flaresolverr}-app.yaml` + `charts/configarr/`
 - Création de `argocd/argocd-apps/arr-stack-app.yaml` dans `my-kluster`
 - Renovate `customManagers` opérationnel et testé (un bump validé bout-en-bout)
+- Pinning des tags `:latest` (qbittorrent, flaresolverr, cleanuparr) sur des tags semver explicites
 
 **Critères de fin** :
-- ArgoCD sync de l'umbrella OK (5 apps déployées via 1 chart)
+- ArgoCD sync de l'umbrella OK (8 apps déployées via 1 chart)
 - Renovate propose un bump d'image et le merge en auto-merge
-- Aucune régression sur Sonarr/Radarr/Prowlarr/cleanuparr/configarr
+- Aucune régression sur les 8 apps
+- Ingress publics et hostPath partagés (`/opt/media-stack/torrents` entre qBit, Sonarr, Radarr) restent fonctionnels
 
 **Estimation** : 1 journée
 
-### Phase 4 — qBittorrent
+### Phase 5 — Reconciler arrconf qBittorrent
+
+**Note** : qBittorrent **déjà déployé** dans `my-kluster` (`argocd/argocd-apps/qbittorrent-app.yaml`). Cette phase ne couvre que le reconciler arrconf — pas de redéploiement.
+
+**Pré-requis** : snapshot raw qBittorrent (`tools/snapshot/snapshot.sh --apps qbittorrent`) + dump YAML (`arrconf dump --apps qbittorrent > examples/baseline-qbittorrent.yml`) AVANT toute écriture.
 
 **Livrables** :
-- App qBittorrent dans l'umbrella (déploiement)
-- Reconciler arrconf qBittorrent (catégories, save paths, settings clés)
-- Connectiques download clients dans Sonarr/Radarr pointant vers qBit
+- Reconciler `qbittorrent.py` : catégories (`tv-sonarr`, `movie-radarr`), save paths, settings clés (max connections, alternative speed limits, behavior)
+- Connectiques download clients dans Sonarr/Radarr pointant vers `qbittorrent.selfhost.svc.cluster.local:8080` (déclarées via arrconf côté Sonarr/Radarr)
 
 **Estimation** : 1 journée
 
-### Phase 5 — Seerr
+### Phase 6 — Reconciler arrconf Seerr
+
+**Note** : Seerr **déjà déployé** (`ghcr.io/seerr-team/seerr` v3.2.0 dans `argocd/argocd-apps/seerr-app.yaml`). Cette phase ne couvre que le reconciler arrconf.
+
+**Pré-requis** : snapshot raw Seerr + dump YAML AVANT toute écriture.
 
 **Livrables** :
-- App Seerr dans l'umbrella
-- Reconciler arrconf Seerr (services Sonarr/Radarr connectés, users, requests config)
+- Vérification compatibilité API Seerr vs Overseerr/Jellyseerr (Seerr est un fork actif → API probablement compatible). Voir §10 Q1.
+- Reconciler `seerr.py` : services Sonarr/Radarr connectés (radarr_default, sonarr_default), users (au minimum admin), requests config (auto-approve, request limits)
 
-**Note** : "Seerr" doit être identifié précisément (URL repo, état du fork) avant cette phase. Voir §10 Q1.
+**Estimation** : 1 journée (si l'API est bien Overseerr-compatible)
 
-**Estimation** : 1 journée (si Seerr est documenté)
-
-### Phase 6 — Migration ESO/Akeyless (optionnelle, alignée sur chantier global cluster)
+### Phase 7 — Migration ESO/Akeyless (optionnelle, alignée sur chantier global cluster)
 
 **Livrables** :
 - ExternalSecret pour les API keys arr-stack pulled depuis Akeyless
@@ -469,16 +596,19 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 ### 9.1 Avant migration
 
-État actuel — 5 ArgoCD Applications dans `my-kluster/argocd/argocd-apps/` :
+État actuel — **8 ArgoCD Applications** dans `my-kluster/argocd/argocd-apps/` :
 - `sonarr-app.yaml`
 - `radarr-app.yaml`
 - `prowlarr-app.yaml`
 - `cleanuparr-app.yaml`
 - `configarr-app.yaml`
+- `qbittorrent-app.yaml`
+- `seerr-app.yaml`
+- `flaresolverr-app.yaml`
 
 Plus le chart custom `charts/configarr/` dans `my-kluster`.
 
-### 9.2 Après migration (post-Phase 3)
+### 9.2 Après migration (post-Phase 4)
 
 État cible — 1 ArgoCD Application dans `my-kluster/argocd/argocd-apps/` :
 
@@ -515,6 +645,9 @@ Suppression dans `my-kluster` :
 - `argocd/argocd-apps/prowlarr-app.yaml`
 - `argocd/argocd-apps/cleanuparr-app.yaml`
 - `argocd/argocd-apps/configarr-app.yaml`
+- `argocd/argocd-apps/qbittorrent-app.yaml`
+- `argocd/argocd-apps/seerr-app.yaml`
+- `argocd/argocd-apps/flaresolverr-app.yaml`
 - `charts/configarr/` (déplacé dans `arr-stack/charts/arr-stack/files/configarr.yml` + templates)
 
 Conservation dans `my-kluster` :
@@ -523,17 +656,17 @@ Conservation dans `my-kluster` :
 
 ### 9.3 Compatibilité ascendante
 
-- Pendant la migration (Phase 3), prévoir une fenêtre de transition où l'umbrella ET les apps unitaires peuvent coexister (test sur un cluster de staging idéalement, sinon validation pas-à-pas en prod).
+- Pendant la migration (Phase 4), prévoir une fenêtre de transition où l'umbrella ET les apps unitaires peuvent coexister (test sur un cluster de staging idéalement, sinon validation pas-à-pas en prod).
 - Recyclarr a déjà été désactivé (`recyclarr-app.yaml.disable`). Cette suppression est définitive.
 
 ---
 
 ## 10. Questions ouvertes (ambiguïtés à résoudre en discuss-phase)
 
-- **Q1** — **Identification précise de "Seerr"** : URL du repo officiel, statut maintenance, compatibilité API avec Jellyseerr/Overseerr (héritage ?). Sans ça, impossible d'écrire le reconciler. À résoudre AVANT Phase 5.
-- **Q2** — **Option Helm dependencies vs sub-charts** (cf §6.2). À arbitrer avant Phase 3.
+- **Q1** — **Compatibilité API Seerr vs Overseerr/Jellyseerr** : Seerr est identifié (`ghcr.io/seerr-team/seerr` v3.2.0, fork actif déjà déployé). Reste à vérifier que l'API REST est restée Overseerr-compatible (a priori oui, mais à valider sur 2-3 endpoints critiques : `/api/v1/settings/services`, `/api/v1/user`, `/api/v1/request`) avant d'écrire le reconciler. À résoudre AVANT Phase 6.
+- **Q2** — **Option Helm dependencies vs sub-charts** (cf §6.2). À arbitrer avant Phase 4.
 - **Q3** — **Schedule arrconf** : 4h (comme configarr) ou plus fréquent ? Plus fréquent = drift corrigé plus vite, mais plus de charge API. Recommandation initiale : 6h.
-- **Q4** — **Mode de release** : tags manuels vs release-please vs semantic-release. À arbitrer en Phase 0/1.
+- **Q4** — **Mode de release** : tags manuels vs release-please vs semantic-release. À arbitrer en Phase 1/2.
 - **Q5** — **Cohabitation arrconf/configarr sur quality_profiles** : si arrconf veut un jour gérer aussi les profils, comment éviter la guerre ? Décision : **arrconf NE TOUCHE PAS aux quality_profiles ni custom_formats.** À documenter explicitement dans le code (refus côté reconciler).
 - **Q6** — **Backup du state arrconf** : le script est idempotent et stateless, mais les ressources créées (notifications, indexers) ont des IDs internes. Faut-il un mécanisme de marquage (tag arrconf-managed) pour distinguer ce qui est piloté de ce qui est manuel ? Recommandation : **oui, ajouter un tag `arrconf-managed` sur les ressources créées par le script** (champ `tags:` standard *arr).
 - **Q7** — **Compatibilité multi-versions des APIs *arr** : Sonarr v4 vs v3 ont des breaking changes. Le script doit-il versionner ses appels ? Recommandation : tester sur Sonarr v4+ uniquement (déjà la version déployée), documenter comme prérequis.
@@ -573,7 +706,7 @@ Conservation dans `my-kluster` :
 - Renovate suit naturellement la version d'app-template
 
 **Conséquences** :
-- Multiples alias du même chart — syntax à valider en Phase 3
+- Multiples alias du même chart — syntax à valider en Phase 4
 - Si bjw-s casse, impact transverse sur tous les services
 
 ### ADR-3 — Image arrconf hébergée sur GHCR public
@@ -624,6 +757,28 @@ Conservation dans `my-kluster` :
 - Deux outils à maintenir, mais scopes orthogonaux
 - Si configarr s'arrête un jour, l'auteur réabsorbera son scope dans arrconf
 
+### ADR-6 — Snapshot baseline avant toute écriture
+
+**Contexte** : la stack actuelle a accumulé de la config (manuel UI, Recyclarr passé, configarr actuel). Tester arrconf en cluster comporte un risque non-trivial de casser un état non-documenté.
+
+**Décision** :
+1. **Phase 0** est dédiée à un script Bash standalone (`tools/snapshot/snapshot.sh`) qui fait un dump raw JSON de toutes les APIs avant tout autre travail.
+2. **Phase 1** ajoute `arrconf dump` qui exporte le même état au format YAML arrconf, seedé dans `examples/baseline-<app>.yml`.
+3. **Phase 2** déploie arrconf en cluster avec `ARRCONF_DRY_RUN=true` au premier run, bascule en apply seulement après validation des logs.
+4. **Phases 3-6** : chaque phase touchant une nouvelle app commence par un re-snapshot (`snapshots/before-phase-N-<date>/`).
+5. Tous les snapshots restent dans Git (lossless, pas de secret, ~quelques MB).
+
+**Raisons** :
+- Insurance bon marché contre les casse silencieuses
+- Permet `diff` forensic à n'importe quel moment
+- Le `dump` arrconf de Phase 1 garantit que la config-as-code initiale = config réelle (pas de divergence cachée)
+- Le `--dry-run` au premier run cluster prouve qu'arrconf ferait les bonnes actions avant de les faire
+
+**Conséquences** :
+- Phase 0 dédiée à du Bash standalone (peu de Python) — décalage de 0.5 journée du POC arrconf
+- Discipline à tenir : re-snapshot AVANT chaque phase de scope nouveau
+- Repo grossit légèrement (snapshots committés) mais c'est négligeable
+
 ---
 
 ## 12. Références
@@ -638,7 +793,8 @@ Conservation dans `my-kluster` :
 - **Radarr API** : https://radarr.video/docs/api/
 - **Prowlarr API** : https://prowlarr.com/docs/api/
 - **qBittorrent Web API** : https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)
-- **Seerr** : à clarifier (Q1)
+- **Seerr** : `ghcr.io/seerr-team/seerr` (fork actif d'Overseerr/Jellyseerr) — API à valider Overseerr-compatible (Q1)
+- **FlareSolverr** : https://github.com/FlareSolverr/FlareSolverr (proxy Cloudflare pour Prowlarr)
 
 ---
 
@@ -646,11 +802,14 @@ Conservation dans `my-kluster` :
 
 Configuration actuelle au 2026-05-07 :
 
-- `argocd/argocd-apps/sonarr-app.yaml` : Sonarr 4.0.17 via app-template 4.6.2, ingress oauth2-proxy
-- `argocd/argocd-apps/radarr-app.yaml` : Radarr 6.1.1, idem
-- `argocd/argocd-apps/prowlarr-app.yaml` : Prowlarr 2.3.5, idem
+- `argocd/argocd-apps/sonarr-app.yaml` : Sonarr 4.0.17 via app-template 4.6.2, ingress oauth2-proxy, hostPath `/opt/media-stack/torrents`
+- `argocd/argocd-apps/radarr-app.yaml` : Radarr 6.1.1, idem (hostPath partagé avec Sonarr et qBittorrent)
+- `argocd/argocd-apps/prowlarr-app.yaml` : Prowlarr 2.3.5, ingress oauth2-proxy
 - `argocd/argocd-apps/cleanuparr-app.yaml` : cleanuparr (latest tag — à pinner), oauth2-proxy
 - `argocd/argocd-apps/configarr-app.yaml` : pointe sur `charts/configarr/` local
+- `argocd/argocd-apps/qbittorrent-app.yaml` : qBittorrent (latest — à pinner), ingress oauth2-proxy, WEBUI_PORT 8080, hostPath `/opt/media-stack/torrents` partagé
+- `argocd/argocd-apps/seerr-app.yaml` : Seerr v3.2.0 (`ghcr.io/seerr-team/seerr`), ingress oauth2-proxy, port 5055
+- `argocd/argocd-apps/flaresolverr-app.yaml` : FlareSolverr (latest — à pinner), pas d'ingress (interne uniquement, port 8191)
 - `charts/configarr/` : chart custom déployant configarr en CronJob 4h, ConfigMap depuis `files/config.yml` (TRaSH-Guides + customFormatDefinitions FR : VFF/VFI/VFQ/MULTi/VOSTFR/mHD/x265-HD), profil MULTi.VF complet HD-only, quality_definition resserré
 - `secrets/configarr-secret.yaml` : Secret manuel `configarr-env` avec `SONARR_API_KEY` et `RADARR_API_KEY`
 - Recyclarr désactivé (`recyclarr-app.yaml.disable`), à supprimer après validation Configarr

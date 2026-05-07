@@ -210,10 +210,42 @@ export SONARR_API_KEY=<from secrets/configarr-secret.yaml>
 kubectl -n selfhost port-forward svc/sonarr 8989:8989 &
 
 cd tools/arrconf
-python -m arrconf --config ../../examples/dev-config.yml --dry-run --log-level DEBUG
+arrconf apply --config ../../examples/dev-config.yml --dry-run --log-level DEBUG
 ```
 
 **Toujours `--dry-run` la première fois sur une nouvelle config**.
+
+### Workflow snapshot (CRITIQUE — à respecter avant tout test risqué)
+
+Le projet maintient des snapshots de l'état des APIs comme assurance. Voir spec §6.5 et ADR-6.
+
+**Snapshot raw (Bash, dispo dès Phase 0, pas de dépendance Python)** :
+
+```bash
+# Capture complète de toutes les apps → JSON brut
+tools/snapshot/snapshot.sh                              # output: snapshots/baseline-$(date +%F)/
+tools/snapshot/snapshot.sh --apps sonarr                # une seule app
+tools/snapshot/snapshot.sh --output snapshots/before-phase-N-$(date +%F)/
+```
+
+**Dump structuré (arrconf, dispo Phase 1+)** :
+
+```bash
+arrconf dump --apps sonarr > examples/baseline-sonarr.yml      # YAML format arrconf
+arrconf dump --apps sonarr,radarr,prowlarr -o examples/baseline.yml
+```
+
+**Diff** :
+
+```bash
+arrconf diff --config examples/baseline-sonarr.yml --apps sonarr        # diff lisible
+diff -r snapshots/baseline-2026-05-07/ snapshots/before-phase-3-2026-05-15/   # diff raw
+```
+
+**Discipline** :
+- AVANT toute Phase qui touche un nouveau scope (nouvel app ou nouveau resource type), **re-snapshot raw d'abord**
+- Tous les snapshots sont committés dans Git — ne pas les ignorer dans `.gitignore`
+- Au moindre doute après un test cluster : `tools/snapshot/snapshot.sh --output snapshots/forensic-$(date +%FT%H%M)/` puis `diff` avec la baseline
 
 ### CI (déclenchée auto)
 
@@ -304,6 +336,8 @@ Tout ce qui change dans le périmètre arr-stack se fait via PR sur **ce** repo.
 - ❌ **Ne pas merger une PR avec drift** : si Renovate propose un bump de Sonarr de 4.0 → 5.0 (major), valider le changelog upstream avant merge même si la CI passe.
 - ❌ **Ne pas supprimer l'annotation `# renovate: image=...`** dans `values.yaml`. Sans elle, Renovate ne suit plus.
 - ❌ **Ne pas activer `prune: true` par défaut** dans les reconcilers. Opt-in par section uniquement.
+- ❌ **Ne pas tester un nouveau reconciler en cluster sans avoir snapshot la baseline d'abord.** `tools/snapshot/snapshot.sh` est le filet de sécurité — toujours l'exécuter avant un test risqué et committer le résultat. Voir spec ADR-6.
+- ❌ **Ne pas ignorer `snapshots/` dans `.gitignore`.** Les snapshots sont versionnés volontairement (lossless, pas de secret, taille négligeable).
 
 ---
 
