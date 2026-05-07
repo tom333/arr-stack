@@ -1,0 +1,77 @@
+name: tests
+
+on:
+  pull_request:
+    paths:
+      - 'tools/arrconf/**'
+      - 'schemas/**'
+      - 'examples/**'
+      - '.github/workflows/tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/arrconf/**'
+      - 'schemas/**'
+      - 'examples/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/arrconf
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.11.x"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check .
+
+      - name: Type check (mypy strict)
+        run: uv run mypy arrconf
+
+      - name: Run tests with coverage
+        run: uv run pytest --cov --cov-report=term-missing --cov-fail-under=70
+
+      - name: Verify schema reproducibility (D-15)
+        working-directory: ${{ github.workspace }}
+        run: |
+          cd tools/arrconf
+          uv run arrconf schema-gen --output ../../schemas/arrconf-schema.json
+          cd ..
+          git diff --exit-code schemas/arrconf-schema.json \
+            || (echo "::error::schemas/arrconf-schema.json drift — run 'cd tools/arrconf && uv run arrconf schema-gen --output ../../schemas/arrconf-schema.json' and commit"; exit 1)
+
+      - name: Audit fixtures for non-redacted secrets (T-01-07)
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Look for plausible API keys / passwords / tokens in test fixtures.
+          # Allowed: ***REDACTED***, test-api-key-..., empty strings.
+          if grep -rEn '(api[_-]?key|password|token)["'\'']?\s*[:=]\s*["'\''][A-Za-z0-9]{20,}["'\'']' tools/arrconf/tests/fixtures/ 2>/dev/null \
+            | grep -vE '(REDACTED|test-api-key-|""'\'')' \
+            | head -20; then
+            echo "::error::Potential real secret found in tests/fixtures/. Sanitize before commit (D-22, T-01-07)."
+            exit 1
+          fi
+          echo "Fixture audit clean."
+
+      - name: Verify baseline YAML modeline (D-16, Pitfall 5)
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ -f examples/baseline-sonarr.yml ]; then
+            head -1 examples/baseline-sonarr.yml | grep -qF '# yaml-language-server: $schema=../schemas/arrconf-schema.json' \
+              || (echo "::error::examples/baseline-sonarr.yml missing yaml-language-server modeline (D-16, Pitfall 5)"; exit 1)
+          fi
