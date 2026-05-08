@@ -795,7 +795,7 @@ kubectl delete job arrconf-smoke-<...> -n selfhost
    - RESOLVED: First task of Phase 2 plan (in arr-stack) is `git tag v0.1.0 && git push --tags`, then a verification task `gh api .../packages/container/arr-stack-arrconf/versions | jq` to read the actual tag list. Plan branches: if `0.1.0` exists, use it. If `v0.1.0`, use it. Don't pre-commit to one in the chart values.
 
 3. **Is the SONARR_API_KEY value in `configarr-secret.yaml` reusable for arrconf?**
-   - What we know: Both arrconf and configarr target the same Sonarr instance, so the same API key works. configarr-secret.yaml has `SONARR_API_KEY: "7996acf930d34ab88a992f2981097081"` [VERIFIED, but note: this is committed plaintext — see Concerns below].
+   - What we know: Both arrconf and configarr target the same Sonarr instance, so the same API key works. configarr-secret.yaml has `SONARR_API_KEY: "<SONARR_API_KEY redacted — see my-kluster/secrets/configarr-secret.yaml>"` [VERIFIED, but note: this is committed plaintext — see Concerns below].
    - What's unclear: Should arrconf get its own API key (per-service principle of least privilege) or share?
    - RESOLVED: Phase 2 share the existing key (operational simplicity); Phase 8 ESO migration is the right time to per-service-segregate. The key has full Sonarr admin scope anyway.
 
@@ -815,7 +815,7 @@ kubectl delete job arrconf-smoke-<...> -n selfhost
    - RESOLVED: Operationally fine to leave PR1 deployed for hours/days before PR2. Plan task ordering: PR1 → ≥1 Job run observed → snapshot → PR2 (no fixed delay).
 
 7. **Concerns: `configarr-secret.yaml` is committed plaintext in `my-kluster/`.**
-   - What we know: [VERIFIED] `my-kluster/secrets/configarr-secret.yaml` contains `RADARR_API_KEY: "9a39fe509a6f489183be7538cdfff498"` and `SONARR_API_KEY: "7996acf930d34ab88a992f2981097081"` — committed in plaintext.
+   - What we know: [VERIFIED] `my-kluster/secrets/configarr-secret.yaml` contains `RADARR_API_KEY: "<RADARR_API_KEY redacted — see my-kluster/secrets/configarr-secret.yaml>"` and `SONARR_API_KEY: "<SONARR_API_KEY redacted — see my-kluster/secrets/configarr-secret.yaml>"` — committed in plaintext.
    - What's unclear: Is the my-kluster repo public or private?
    - RESOLVED: NOT a Phase 2 problem (predates this work and is acknowledged in `my-kluster/CLAUDE.md` "Choses à faire / améliorations connues" — TODO SOPS encryption). Plan note: `arrconf-secret.yaml` should follow the SAME convention as `configarr-secret.yaml` (i.e., plaintext for now, SOPS later) for consistency. If the operator wants to start SOPS-encrypted secrets with arrconf, that's a Phase 8-aligned bonus, not Phase 2 scope.
 

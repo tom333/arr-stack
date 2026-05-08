@@ -498,8 +498,8 @@ metadata:
   namespace: selfhost
 type: Opaque
 stringData:
-  RADARR_API_KEY: "9a39fe509a6f489183be7538cdfff498"
-  SONARR_API_KEY: "7996acf930d34ab88a992f2981097081"
+  RADARR_API_KEY: "<RADARR_API_KEY redacted — see my-kluster/secrets/configarr-secret.yaml>"
+  SONARR_API_KEY: "<SONARR_API_KEY redacted — see my-kluster/secrets/configarr-secret.yaml>"
 ```
 
 **Substitutions:**
@@ -508,7 +508,7 @@ stringData:
 |-------|--------|--------|
 | `metadata.name` | `configarr-env` | `arrconf-env` |
 | `stringData` | 2 keys (RADARR + SONARR) | **only** `SONARR_API_KEY` — D-29 (least privilege, Phase 2 scope) |
-| `SONARR_API_KEY` value | `"7996acf930d34ab88a992f2981097081"` (configarr's) | **same value** (RESEARCH.md Open Q3 — both reconcilers target the same Sonarr instance, sharing is operationally fine for Phase 2; per-service segregation deferred to Phase 8 ESO) |
+| `SONARR_API_KEY` value | `"<SONARR_API_KEY redacted — see my-kluster/secrets/configarr-secret.yaml>"` (configarr's) | **same value** (RESEARCH.md Open Q3 — both reconcilers target the same Sonarr instance, sharing is operationally fine for Phase 2; per-service segregation deferred to Phase 8 ESO) |
 
 **Final shape** (per CONTEXT.md D-29):
 ```yaml
