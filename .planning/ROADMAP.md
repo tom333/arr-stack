@@ -92,7 +92,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   9. Plan 02-05 Task 5.2 re-exécutée : drift demo runbook complet avec W-01 forensic snapshot et W-04 dispositive value-equality sur `priority` (closure success #5 de Phase 2 et HUMAN-UAT #3 de Phase 1)
 **Plans**: 4 plans
 - [x] 02.1-01-PLAN.md — Wave 1: Pre-fix snapshot (sonarr+qbittorrent baseline before code change, ADR-6)
-- [ ] 02.1-02-PLAN.md — Wave 2: Implement merge_fields_for_put + dump REDACTED filter + tests (D-31/D-32/D-33/D-35/D-36)
+- [x] 02.1-02-PLAN.md — Wave 2: Implement merge_fields_for_put + dump REDACTED filter + tests (D-31/D-32/D-33/D-35/D-36)
 - [ ] 02.1-03-PLAN.md — Wave 3: Release v0.1.3 + PR3 in my-kluster + post-deploy smoke job (D-36/D-37)
 - [ ] 02.1-04-PLAN.md — Wave 4: Re-execute Plan 02-05 Tasks 5.1c + 5.2 + close HUMAN-UAT #3 + STATE.md update (D-34)
 **Open questions to resolve**: (none — D-31..D-37 tranchés en discuss-phase 2026-05-08)
@@ -192,7 +192,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 0. Bootstrap repo + snapshot raw | 3/3 | Complete    | 2026-05-07 |
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
-| 2.1. Field-merge fix for sensitive YAML values | 1/4 | In Progress|  |
+| 2.1. Field-merge fix for sensitive YAML values | 2/4 | In Progress|  |
 | 3. Étendre arrconf | 0/TBD | Not started | - |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/TBD | Not started | - |
