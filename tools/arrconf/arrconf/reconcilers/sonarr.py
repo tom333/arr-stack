@@ -19,7 +19,7 @@ import structlog
 
 from arrconf.client_base import SonarrClient
 from arrconf.config import SonarrInstance
-from arrconf.differ import Action, PlannedAction, reconcile
+from arrconf.differ import Action, PlannedAction, merge_fields_for_put, reconcile
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.tag import Tag
 
@@ -94,8 +94,12 @@ def _execute(
             assert p.desired is not None
             assert p.current is not None
             assert p.current.id is not None
-            body = p.desired.model_dump(exclude_none=True, by_alias=False)
-            # API requires id in PUT body; merge it from the current cluster state.
+            # D-31/D-32: merge cluster's stored field values into the PUT body so empty
+            # YAML values (e.g. credentials handled by env-only secret discipline) do
+            # not overwrite cluster state. Asymmetric per D-32 — ADD has no cluster row.
+            body = merge_fields_for_put(p.current, p.desired)
+            # API requires id in PUT body; merge helper drops _READ_ONLY_FIELDS, so
+            # re-inject from current.
             body["id"] = p.current.id
             client.put(path, id=p.current.id, json=body)
             actions_taken.append(f"update:{p.name}")

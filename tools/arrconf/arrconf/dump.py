@@ -30,6 +30,20 @@ log = structlog.get_logger()
 # ``schemas/`` directory. See module docstring for the Phase 4 plan.
 SCHEMA_RELATIVE_PATH_FROM_EXAMPLES = "../schemas/arrconf-schema.json"
 
+# D-36: Sonarr's privacy stand-in for password / apiKey / userName fields. Dropping
+# these from dump output guarantees the round-trip property — committed YAML never
+# carries the placeholder, so reload→reconcile has no entry to mishandle, and the
+# apply-side merge helper has no work to do for these fields.
+REDACTED_VALUE = "***REDACTED***"
+
+
+def _drop_redacted_fields(dc_dump: dict[str, Any]) -> dict[str, Any]:
+    """Drop fields[] entries whose value is REDACTED so dump→apply round-trip stays clean (D-36)."""
+    if "fields" not in dc_dump:
+        return dc_dump
+    dc_dump["fields"] = [f for f in dc_dump["fields"] if f.get("value") != REDACTED_VALUE]
+    return dc_dump
+
 
 def dump_sonarr(client: SonarrClient, output_path: Path) -> None:
     """Fetch current Sonarr download_clients and emit a round-trippable YAML.
@@ -49,7 +63,7 @@ def dump_sonarr(client: SonarrClient, output_path: Path) -> None:
     """
     raw_dcs = client.get("/downloadclient")
     dcs = [DownloadClient.model_validate(x) for x in raw_dcs]
-    items_dumped = [dc.model_dump(exclude_none=True) for dc in dcs]
+    items_dumped = [_drop_redacted_fields(dc.model_dump(exclude_none=True)) for dc in dcs]
     config_dict: dict[str, Any] = {
         "apps": {
             "sonarr": {

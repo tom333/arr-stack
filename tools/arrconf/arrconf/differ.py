@@ -25,6 +25,12 @@ _READ_ONLY_FIELDS: set[str] = {
     "presets",
 }
 
+# D-36: Sonarr's privacy stand-in for password / apiKey / userName fields. Mirrored
+# in dump.py as the same constant. The dump emitter drops these entries so they never
+# reach committed YAML; this constant is kept here so that ``diff_models`` (and the
+# round-trip contract) can normalize cluster state in the same way before comparing.
+_REDACTED_VALUE = "***REDACTED***"
+
 
 class Action(Enum):
     """Reconciliation outcomes (D-04 / D-09 / D-11)."""
@@ -48,10 +54,29 @@ class PlannedAction[T: BaseModel]:
     diff_fields: list[str]
 
 
+def _strip_redacted_fields(dump: dict[str, Any]) -> dict[str, Any]:
+    """Drop fields[] entries whose value is REDACTED — mirror of dump.py filter (D-36).
+
+    Applied symmetrically on both sides of ``diff_models`` so the round-trip property
+    (D-31/D-35/D-36) holds: dump emits without REDACTED, reload→reconcile compares
+    cluster (post-strip) against desired (already post-strip from dump) → NO_OP.
+    """
+    if "fields" not in dump:
+        return dump
+    dump = dict(dump)
+    dump["fields"] = [f for f in dump["fields"] if f.get("value") != _REDACTED_VALUE]
+    return dump
+
+
 def diff_models(a: BaseModel, b: BaseModel) -> list[str]:
-    """Return sorted field names that differ (excluding D-21 read-only fields)."""
-    a_dump = a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
-    b_dump = b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
+    """Return sorted field names that differ (excluding D-21 read-only fields).
+
+    Both sides are normalized via ``_strip_redacted_fields`` (D-36) so cluster's
+    REDACTED ``fields[]`` entries — which the dump emitter omits — do not flag a
+    spurious UPDATE on round-trip.
+    """
+    a_dump = _strip_redacted_fields(a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
+    b_dump = _strip_redacted_fields(b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
     return sorted({k for k in (set(a_dump) | set(b_dump)) if a_dump.get(k) != b_dump.get(k)})
 
 
