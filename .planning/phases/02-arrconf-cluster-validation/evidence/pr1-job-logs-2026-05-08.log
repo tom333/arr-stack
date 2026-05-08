@@ -1,0 +1,4 @@
+{"event": "would_create_managed_tag", "level": "info", "timestamp": "2026-05-08T07:20:05.845607Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields", "tags"], "event": "plan_action", "level": "info", "timestamp": "2026-05-08T07:20:05.861321Z"}
+{"action": "update", "name": "qBittorrent", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-08T07:20:05.861386Z"}
+{"app": "sonarr", "actions": [], "event": "apply_complete", "level": "info", "timestamp": "2026-05-08T07:20:05.861426Z"}
