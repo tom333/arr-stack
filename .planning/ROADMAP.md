@@ -69,7 +69,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   5. Drift detection prouvée : modification UI hors-Git → écrasée au run suivant (logs JSON visibles)
 **Plans**: 5 plans
 - [ ] 02-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (re-snapshot all 6 apps + evidence/ dir for Wave 3/4 logs)
-- [ ] 02-02-PLAN.md — Wave 1: v0.1.0 image release + GHCR public toggle (closes Phase 1 HUMAN-UAT #1; records image_tag_verified for 02-03)
+- [ ] 02-02-PLAN.md — Wave 1: v0.1.1 image release + GHCR public toggle (v0.1.0 first-push race; closes Phase 1 HUMAN-UAT #1; records image_tag_verified for 02-03)
 - [ ] 02-03-PLAN.md — Wave 2: my-kluster chart authoring (capture verified hostnames, 9 files in my-kluster working tree, helm lint, secret-leak audit, end-of-plan cross-repo working-tree checkpoint per B-01)
 - [ ] 02-04-PLAN.md — Wave 3: PR1 dry-run deployment (manual secret apply with W-05 tracking-id check, ArgoCD sync, B-02 volumeMount inspection, forced smoke job with W-06 verified event names, post-PR1 snapshot diff = 0)
 - [ ] 02-05-PLAN.md — Wave 4: PR2 apply mode (B-03 split into 5.1a/b/c) + drift detection runbook (W-04 dispositive value-equality, W-01 REQUIRED forensic snapshot, W-06 verified plan_action event)
