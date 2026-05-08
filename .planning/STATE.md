@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02 Wave 1 complete (plans 02-01 + 02-02 done; v0.1.2 image released)
-last_updated: "2026-05-08T01:50:00Z"
-last_activity: 2026-05-08 -- Phase 02 Wave 1 complete; paused before Wave 2 (02-03 chart authoring)
+stopped_at: Phase 02 Wave 2 complete (plans 02-01/02/03 done; my-kluster chart authored uncommitted)
+last_updated: "2026-05-08T16:30:00Z"
+last_activity: 2026-05-08 -- Plan 02-03 SUMMARY landed (commit 13f0de0); paused before Wave 3 (02-04 PR1 dry-run deployment)
 progress:
   total_phases: 9
   completed_phases: 2
-  total_plans: 13
-  completed_plans: 8
-  percent: 62
+  total_plans: 14
+  completed_plans: 9
+  percent: 64
 ---
 
 # Project State
@@ -25,25 +25,56 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 02 (arrconf-cluster-validation) — IN PROGRESS (Wave 1 complete)
-Plan: 2 of 5 complete
-Status: Paused before Wave 2 plan 02-03 (my-kluster chart authoring)
-Last activity: 2026-05-08 -- Plan 02-02 SUMMARY landed (commit c6585dd)
+Phase: 02 (arrconf-cluster-validation) — IN PROGRESS (Waves 1 + 2 complete)
+Plan: 3 of 5 complete
+Status: Paused before Wave 3 plan 02-04 (PR1 dry-run deployment)
+Last activity: 2026-05-08 -- Plan 02-03 SUMMARY landed (commit 13f0de0)
 
-Progress: [████░░░░░░] 40% (2/5 plans)
+Progress: [██████░░░░] 60% (3/5 plans)
 
-### Wave 1 deliverables (committed)
-- 02-01: snapshots/before-phase-2-2026-05-08/ + evidence/.gitkeep (commit 38fa3ce + 6a1795e SUMMARY)
-- 02-02: ghcr.io/tom333/arr-stack-arrconf:0.1.2 published, anon-pullable; HUMAN-UAT #1 passed (commits 76e2c97 retarget, db0f163 Dockerfile fix, c6585dd SUMMARY)
+### Wave 1 deliverables (committed in arr-stack)
+- 02-01: snapshots/before-phase-2-2026-05-08/ + evidence/.gitkeep (38fa3ce + 6a1795e SUMMARY)
+- 02-02: ghcr.io/tom333/arr-stack-arrconf:0.1.2 published, anon-pullable; HUMAN-UAT #1 passed (76e2c97 retarget, db0f163 Dockerfile fix, c6585dd SUMMARY)
+
+### Wave 2 deliverables
+- 02-03 (arr-stack committed):
+  - .cluster-services capture file (f674f86)
+  - 02-PATTERNS.md + 02-RESEARCH.md credential redactions (cf1a808 — 5 occurrences of API key literals)
+  - 02-03-SUMMARY.md (13f0de0)
+- 02-03 (my-kluster working tree, **uncommitted** — Plan 02-04 PR1 will commit 8 of these 9):
+  - charts/arrconf/Chart.yaml, values.yaml, files/arrconf.yml, templates/_helpers.tpl, templates/cronjob.yaml, templates/configmap.yaml, README.md
+  - argocd/argocd-apps/arrconf-app.yaml
+  - secrets/arrconf-secret.yaml — gitignored, exists on disk only (158 bytes, kubectl apply target — see Plan 02-04 manual step before ArgoCD sync)
+
+### Pre-existing my-kluster state — STASHED
+2 stashes pushed before Wave 2 to keep B-01/W-NEW-01 honest:
+- `stash@{0}: pre-arrconf-Phase2-tracked-2026-05-08` (README.md, beszel/beszel.yml)
+- `stash@{1}: pre-arrconf-Phase2-2026-05-08` (CLAUDE.md, TODO.md, config/sc-nfs.yaml, config/test-volume.yaml, openmetadata/, scripts/)
+
+POP REMINDER: After Phase 2 closes (Plan 02-05 done), run twice in my-kluster:
+```bash
+git stash pop   # first pop -> stash@{0} restored
+git stash pop   # second pop -> the other stash restored
+```
 
 ### Resume entry point
-Run `/gsd-execute-phase 2 --interactive` (or `--wave 2`) to continue. Plan 02-03 reads `image_tag_verified: 0.1.2` from `.planning/phases/02-arrconf-cluster-validation/02-02-SUMMARY.md` machine-readable block. Plan 02-03 authors 9 files in `/home/moi/projets/perso/my-kluster/` working tree (uncommitted) — see 02-03-PLAN.md task 3.2 for the substitution map and B-01 cross-repo working-tree checkpoint at task 3.4.
+Run `/gsd-execute-phase 2 --interactive` (or `--wave 3`) to continue. Plan 02-04 will:
+1. Stage exactly 8 paths in my-kluster (NOT secrets/arrconf-secret.yaml — gitignored per 02-03-SUMMARY §Deviation 1):
+   - charts/arrconf/Chart.yaml, values.yaml, files/arrconf.yml, templates/_helpers.tpl, templates/cronjob.yaml, templates/configmap.yaml, README.md
+   - argocd/argocd-apps/arrconf-app.yaml
+2. Commit + push my-kluster main, open PR1 (cross-repo).
+3. **OPERATOR**: `kubectl apply -f my-kluster/secrets/arrconf-secret.yaml` BEFORE ArgoCD syncs.
+4. Wait for ArgoCD sync of `arrconf` Application.
+5. B-02: `kubectl get cronjob arrconf -n selfhost` exact volumeMounts==1 (config), no ArgoCD tracking-id annotation on the secret.
+6. Force smoke job: `kubectl create job --from=cronjob/arrconf arrconf-smoke-pr1` → JSON logs to `evidence/pr1-job-logs-2026-05-08.log`.
+7. W-06 verify event names: `managed_tag_found`/`would_create_managed_tag` ≥1, `plan_action` ≥1, `managed_tag_created` ==0 (dry-run).
+8. Post-PR1 snapshot Sonarr → diff -rq vs baseline = 0 (success criterion #3).
 
 ### Carry-forward / open items
 - v0.1.0 + v0.1.1 tags exist on origin but did NOT produce GHCR images (bootstrap artifacts only — see 02-02-SUMMARY.md deviations).
 - Phase 1 HUMAN-UAT items #2 (VS Code autocomplete demo) + #3 (live round-trip) still pending (see 01-HUMAN-UAT.md). #3 is targeted for Phase 2 closure.
 - `gh` CLI account `tguyader` token lacks `read:packages` scope — workaround documented in 02-02-SUMMARY.md (substitute `gh api` package query with anonymous registry endpoint).
-- Snapshot tools/snapshot/README.md says `svc/seerr` but Plan 02-01 task 1.1 says `svc/jellyseerr` — confirmed they're the same service in cluster (snapshot succeeded with `seerr/` directory populated).
+- Plan 02-03 <interfaces> block line 146 has the un-quoted `description: arrconf — ... (Phase 2 scope: ...)` that fails helm lint — already fixed in actual Chart.yaml; if 02-03 is re-executed the executor must quote it. Documented in 02-03-SUMMARY.md §Deviation 2.
 
 ## Performance Metrics
 
