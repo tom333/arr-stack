@@ -1,0 +1,158 @@
+{"id": 1, "event": "managed_tag_created", "level": "info", "timestamp": "2026-05-08T08:00:28.574644Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields", "tags"], "event": "plan_action", "level": "info", "timestamp": "2026-05-08T08:00:28.593184Z"}
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /app/arrconf/__main__.py:98 in apply                                         │
+│                                                                              │
+│    95 │   │   api_key = settings.sonarr_api_key.get_secret_value()           │
+│    96 │   │   try:                                                           │
+│    97 │   │   │   client = SonarrClient(base_url=instance.base_url,          │
+│       api_key=api_key)                                                       │
+│ ❱  98 │   │   │   result = reconcile_sonarr(client, instance,                │
+│       dry_run=dry_run or settings.arrconf_dry_run)                           │
+│    99 │   │   │   if all(                                                    │
+│   100 │   │   │   │   a == "no-op" or a.startswith("prune-")                 │
+│   101 │   │   │   │   for a in (p.action.value for p in result.plan)         │
+│                                                                              │
+│ /app/arrconf/reconcilers/sonarr.py:140 in reconcile_sonarr                   │
+│                                                                              │
+│   137 │   │   managed_tag_id=managed_tag.id,                                 │
+│   138 │   )                                                                  │
+│   139 │                                                                      │
+│ ❱ 140 │   actions_taken = _execute(client, DOWNLOAD_CLIENT_PATH, plan,       │
+│       dry_run)                                                               │
+│   141 │                                                                      │
+│   142 │   return SonarrResult(                                               │
+│   143 │   │   plan=plan,                                                     │
+│                                                                              │
+│ /app/arrconf/reconcilers/sonarr.py:100 in _execute                           │
+│                                                                              │
+│    97 │   │   │   body = p.desired.model_dump(exclude_none=True,             │
+│       by_alias=False)                                                        │
+│    98 │   │   │   # API requires id in PUT body; merge it from the current   │
+│       cluster state.                                                         │
+│    99 │   │   │   body["id"] = p.current.id                                  │
+│ ❱ 100 │   │   │   client.put(path, id=p.current.id, json=body)               │
+│   101 │   │   │   actions_taken.append(f"update:{p.name}")                   │
+│   102 │   │   elif p.action == Action.DELETE:                                │
+│   103 │   │   │   assert p.current is not None                               │
+│                                                                              │
+│ /app/arrconf/client_base.py:94 in put                                        │
+│                                                                              │
+│    91 │                                                                      │
+│    92 │   def put(self, path: str, id: int, json: Any, **kwargs: Any) ->     │
+│       Any:                                                                   │
+│    93 │   │   """HTTP PUT /{path}/{id} — returns parsed JSON of updated      │
+│       resource."""                                                           │
+│ ❱  94 │   │   return self._request("PUT", f"{path}/{id}", json=json,         │
+│       **kwargs).json()                                                       │
+│    95 │                                                                      │
+│    96 │   def delete(self, path: str, id: int, **kwargs: Any) -> None:       │
+│    97 │   │   """HTTP DELETE /{path}/{id}."""                                │
+│                                                                              │
+│ /app/.venv/lib/python3.13/site-packages/tenacity/__init__.py:331 in          │
+│ wrapped_f                                                                    │
+│                                                                              │
+│   328 │   │   │   # calling the same wrapped functions multiple times in the │
+│       same stack                                                             │
+│   329 │   │   │   copy = self.copy()                                         │
+│   330 │   │   │   wrapped_f.statistics = copy.statistics  # type:            │
+│       ignore[attr-defined]                                                   │
+│ ❱ 331 │   │   │   return copy(f, *args, **kw)                                │
+│   332 │   │                                                                  │
+│   333 │   │   def retry_with(*args: t.Any, **kwargs: t.Any) -> WrappedFn:    │
+│   334 │   │   │   return self.copy(*args, **kwargs).wraps(f)                 │
+│                                                                              │
+│ /app/.venv/lib/python3.13/site-packages/tenacity/__init__.py:470 in __call__ │
+│                                                                              │
+│   467 │   │                                                                  │
+│   468 │   │   retry_state = RetryCallState(retry_object=self, fn=fn,         │
+│       args=args, kwargs=kwargs)                                              │
+│   469 │   │   while True:                                                    │
+│ ❱ 470 │   │   │   do = self.iter(retry_state=retry_state)                    │
+│   471 │   │   │   if isinstance(do, DoAttempt):                              │
+│   472 │   │   │   │   try:                                                   │
+│   473 │   │   │   │   │   result = fn(*args, **kwargs)                       │
+│                                                                              │
+│ /app/.venv/lib/python3.13/site-packages/tenacity/__init__.py:371 in iter     │
+│                                                                              │
+│   368 │   │   self._begin_iter(retry_state)                                  │
+│   369 │   │   result = None                                                  │
+│   370 │   │   for action in self.iter_state.actions:                         │
+│ ❱ 371 │   │   │   result = action(retry_state)                               │
+│   372 │   │   return result                                                  │
+│   373 │                                                                      │
+│   374 │   def _begin_iter(self, retry_state: "RetryCallState") -> None:  #   │
+│       noqa                                                                   │
+│                                                                              │
+│ /app/.venv/lib/python3.13/site-packages/tenacity/__init__.py:393 in <lambda> │
+│                                                                              │
+│   390 │                                                                      │
+│   391 │   def _post_retry_check_actions(self, retry_state: "RetryCallState") │
+│       -> None:                                                               │
+│   392 │   │   if not (self.iter_state.is_explicit_retry or                   │
+│       self.iter_state.retry_run_result):                                     │
+│ ❱ 393 │   │   │   self._add_action_func(lambda rs: rs.outcome.result())      │
+│   394 │   │   │   return                                                     │
+│   395 │   │                                                                  │
+│   396 │   │   if self.after is not None:                                     │
+│                                                                              │
+│ /usr/local/lib/python3.13/concurrent/futures/_base.py:449 in result          │
+│                                                                              │
+│   446 │   │   │   │   if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]: │
+│   447 │   │   │   │   │   raise CancelledError()                             │
+│   448 │   │   │   │   elif self._state == FINISHED:                          │
+│ ❱ 449 │   │   │   │   │   return self.__get_result()                         │
+│   450 │   │   │   │                                                          │
+│   451 │   │   │   │   self._condition.wait(timeout)                          │
+│   452                                                                        │
+│                                                                              │
+│ /usr/local/lib/python3.13/concurrent/futures/_base.py:401 in __get_result    │
+│                                                                              │
+│   398 │   def __get_result(self):                                            │
+│   399 │   │   if self._exception is not None:                                │
+│   400 │   │   │   try:                                                       │
+│ ❱ 401 │   │   │   │   raise self._exception                                  │
+│   402 │   │   │   finally:                                                   │
+│   403 │   │   │   │   # Break a reference cycle with the exception in        │
+│       self._exception                                                        │
+│   404 │   │   │   │   self = None                                            │
+│                                                                              │
+│ /app/.venv/lib/python3.13/site-packages/tenacity/__init__.py:473 in __call__ │
+│                                                                              │
+│   470 │   │   │   do = self.iter(retry_state=retry_state)                    │
+│   471 │   │   │   if isinstance(do, DoAttempt):                              │
+│   472 │   │   │   │   try:                                                   │
+│ ❱ 473 │   │   │   │   │   result = fn(*args, **kwargs)                       │
+│   474 │   │   │   │   except BaseException:  # noqa: B902                    │
+│   475 │   │   │   │   │   retry_state.set_exception(sys.exc_info())  # type: │
+│       ignore[arg-type]                                                       │
+│   476 │   │   │   │   else:                                                  │
+│                                                                              │
+│ /app/arrconf/client_base.py:81 in _request                                   │
+│                                                                              │
+│    78 │   │   │   raise NotFoundError(f"{self.name}: 404 — {method} {path}") │
+│    79 │   │   if 500 <= response.status_code < 600:                          │
+│    80 │   │   │   raise ServerError(f"{self.name}: {response.status_code} —  │
+│       {response.text[:200]}")                                                │
+│ ❱  81 │   │   response.raise_for_status()                                    │
+│    82 │   │   return response                                                │
+│    83 │                                                                      │
+│    84 │   def get(self, path: str, **kwargs: Any) -> Any:                    │
+│                                                                              │
+│ /app/.venv/lib/python3.13/site-packages/httpx/_models.py:829 in              │
+│ raise_for_status                                                             │
+│                                                                              │
+│    826 │   │   }                                                             │
+│    827 │   │   error_type = error_types.get(status_class, "Invalid status    │
+│        code")                                                                │
+│    828 │   │   message = message.format(self, error_type=error_type)         │
+│ ❱  829 │   │   raise HTTPStatusError(message, request=request,               │
+│        response=self)                                                        │
+│    830 │                                                                     │
+│    831 │   def json(self, **kwargs: typing.Any) -> typing.Any:               │
+│    832 │   │   return jsonlib.loads(self.content, **kwargs)                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+HTTPStatusError: Client error '400 Bad Request' for url 
+'http://sonarr.selfhost.svc.cluster.local:8989/api/v3/downloadclient/1'
+For more information check: 
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
