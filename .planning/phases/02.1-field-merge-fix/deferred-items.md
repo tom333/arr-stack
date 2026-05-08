@@ -71,3 +71,31 @@ Could be generalized via a JSON path config (e.g. `redact_paths.json` with `["co
 3. Once present, snapshot.sh works without bypass.
 
 **Severity:** high (this is the actual Phase 2.1 root cause — empty username/password in arrconf YAML overwrites Sonarr's qBit credentials → Sonarr can't validate → PUT 400 from Phase 2 PARTIAL)
+
+---
+
+## D-02.1-05 — `merge_fields_for_put` does not backfill cluster fields missing from `desired`
+
+**Discovered during:** Plan 02.1-03 Task 3.3 — post-PR3 smoke validation (2026-05-09)
+
+**Issue:** `differ.py:merge_fields_for_put` iterates only `desired.fields[]`. For each entry with `value in ('', None)`, it substitutes the cluster's stored value (D-31/D-32/D-33). But entries that are **missing entirely** from `desired.fields[]` are simply omitted from the PUT body. Sonarr's `PUT /api/v3/downloadclient/{id}` accepts the partial body; whether stored values for missing fields are preserved or cleared is implementation-defined.
+
+PR3 (D-36) removed the `username: ''` / `password: ''` placeholder entries from `arrconf.yml` under the assumption that the helper made them redundant. The post-PR3 smoke produced 0 `merge_field_preserved` events (helper had nothing to substitute against), so the plan's dispositive proof gate was unsatisfiable. Operator UI verification confirmed Sonarr's stored credentials were intact (the `null` reported by Sonarr's GET API was cosmetic, not a real clear), but the proof-via-log path was blocked.
+
+**Workaround applied in Plan 02.1-03 (PR4 hotfix #1370):** Re-added the `username: ''` / `password: ''` placeholders to `arrconf.yml`. The post-PR4 smoke captured the dispositive `merge_field_preserved` events for both fields. Future arrconf YAML for credential-bearing fields should keep the placeholder entries.
+
+**Recommended fix (target: Phase 3 — Radarr / Prowlarr will face the same shape):**
+Enhance `merge_fields_for_put` with a backfill pass:
+
+```python
+# After the existing for-loop on desired.fields[], add:
+existing_names = {f["name"] for f in merged_fields}
+for cur_f in cur_dump.get("fields", []):
+    if cur_f["name"] not in existing_names:
+        merged_fields.append(cur_f)
+        log.info("merge_field_backfilled", name=cur_f["name"])
+```
+
+Add a corresponding test scenario (`test_merge_backfills_missing_fields_from_cluster`) and document the new event name. Then re-evaluate whether to drop placeholder entries again at the YAML level.
+
+**Severity:** medium (correctness contract gap; mitigated by retaining placeholders, but the existing helper is fragile to YAML-side simplification)
