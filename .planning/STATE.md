@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02 Wave 2 complete (plans 02-01/02/03 done; my-kluster chart authored uncommitted)
-last_updated: "2026-05-08T16:30:00Z"
-last_activity: 2026-05-08 -- Plan 02-03 SUMMARY landed (commit 13f0de0); paused before Wave 3 (02-04 PR1 dry-run deployment)
+stopped_at: Phase 02 Wave 3 complete (plans 02-01/02/03/04 done; PR1 dry-run deployed and verified)
+last_updated: "2026-05-08T18:35:00Z"
+last_activity: 2026-05-08 -- Plan 02-04 SUMMARY landed (commit 7a928a9); paused before Wave 4 (02-05 PR2 apply mode + drift demo)
 progress:
   total_phases: 9
   completed_phases: 2
-  total_plans: 14
-  completed_plans: 9
-  percent: 64
+  total_plans: 15
+  completed_plans: 10
+  percent: 67
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 02 (arrconf-cluster-validation) — IN PROGRESS (Waves 1 + 2 complete)
-Plan: 3 of 5 complete
-Status: Paused before Wave 3 plan 02-04 (PR1 dry-run deployment)
-Last activity: 2026-05-08 -- Plan 02-03 SUMMARY landed (commit 13f0de0)
+Phase: 02 (arrconf-cluster-validation) — IN PROGRESS (Waves 1 + 2 + 3 complete)
+Plan: 4 of 5 complete
+Status: Paused before Wave 4 plan 02-05 (PR2 apply mode + drift demo)
+Last activity: 2026-05-08 -- Plan 02-04 SUMMARY landed (commit 7a928a9); arrconf running in cluster in dry-run mode
 
-Progress: [██████░░░░] 60% (3/5 plans)
+Progress: [████████░░] 80% (4/5 plans)
 
 ### Wave 1 deliverables (committed in arr-stack)
 - 02-01: snapshots/before-phase-2-2026-05-08/ + evidence/.gitkeep (38fa3ce + 6a1795e SUMMARY)
@@ -41,10 +41,29 @@ Progress: [██████░░░░] 60% (3/5 plans)
   - .cluster-services capture file (f674f86)
   - 02-PATTERNS.md + 02-RESEARCH.md credential redactions (cf1a808 — 5 occurrences of API key literals)
   - 02-03-SUMMARY.md (13f0de0)
-- 02-03 (my-kluster working tree, **uncommitted** — Plan 02-04 PR1 will commit 8 of these 9):
-  - charts/arrconf/Chart.yaml, values.yaml, files/arrconf.yml, templates/_helpers.tpl, templates/cronjob.yaml, templates/configmap.yaml, README.md
-  - argocd/argocd-apps/arrconf-app.yaml
-  - secrets/arrconf-secret.yaml — gitignored, exists on disk only (158 bytes, kubectl apply target — see Plan 02-04 manual step before ArgoCD sync)
+- 02-03 (my-kluster — committed via PR1 #1366, see Wave 3 below):
+  - 8 chart files + ArgoCD App
+  - secrets/arrconf-secret.yaml — gitignored, on disk only, manually `kubectl apply`'d in Wave 3
+
+### Wave 3 deliverables
+- 02-04 (arr-stack committed):
+  - evidence/pr1-job-logs-2026-05-08.log (4e18965)
+  - snapshots/post-phase2-pr1-2026-05-08/ (b9f72f0)
+  - 02-04-SUMMARY.md (7a928a9)
+- 02-04 (my-kluster committed via 2 PRs):
+  - PR1 #1366 (merged 06:56:19Z): chart + ArgoCD App
+  - PR-fix #1367 (merged): cronjob args reorder — `--config` BEFORE `apply` subcommand
+- Cluster state (dry-run mode, ARRCONF_DRY_RUN=true):
+  - Secret/arrconf-env in selfhost (manually applied — no ArgoCD tracking-id)
+  - ConfigMap/arrconf in selfhost (rendered from files/arrconf.yml)
+  - CronJob/arrconf in selfhost (schedule "0 */4 * * *", concurrencyPolicy Forbid, volumeMounts==1 named config)
+  - Application/arrconf in argocd (Synced + Healthy)
+- Smoke job arrconf-pr1-smoke-1778224797 completed in 12s; W-06 events verified:
+  - would_create_managed_tag (1)
+  - plan_action action=update diff_fields=[fields, tags] (1)
+  - dry_run_skip (1)
+  - managed_tag_created (0 — dispositive dry-run proof)
+- Snapshot diff: only 2 noise files (rootfolder.json freeSpace, system_status.json startTime); critical files (downloadclient.json, tag.json) IDENTICAL to baseline.
 
 ### Pre-existing my-kluster state — STASHED
 2 stashes pushed before Wave 2 to keep B-01/W-NEW-01 honest:
@@ -58,17 +77,22 @@ git stash pop   # second pop -> the other stash restored
 ```
 
 ### Resume entry point
-Run `/gsd-execute-phase 2 --interactive` (or `--wave 3`) to continue. Plan 02-04 will:
-1. Stage exactly 8 paths in my-kluster (NOT secrets/arrconf-secret.yaml — gitignored per 02-03-SUMMARY §Deviation 1):
-   - charts/arrconf/Chart.yaml, values.yaml, files/arrconf.yml, templates/_helpers.tpl, templates/cronjob.yaml, templates/configmap.yaml, README.md
-   - argocd/argocd-apps/arrconf-app.yaml
-2. Commit + push my-kluster main, open PR1 (cross-repo).
-3. **OPERATOR**: `kubectl apply -f my-kluster/secrets/arrconf-secret.yaml` BEFORE ArgoCD syncs.
-4. Wait for ArgoCD sync of `arrconf` Application.
-5. B-02: `kubectl get cronjob arrconf -n selfhost` exact volumeMounts==1 (config), no ArgoCD tracking-id annotation on the secret.
-6. Force smoke job: `kubectl create job --from=cronjob/arrconf arrconf-smoke-pr1` → JSON logs to `evidence/pr1-job-logs-2026-05-08.log`.
-7. W-06 verify event names: `managed_tag_found`/`would_create_managed_tag` ≥1, `plan_action` ≥1, `managed_tag_created` ==0 (dry-run).
-8. Post-PR1 snapshot Sonarr → diff -rq vs baseline = 0 (success criterion #3).
+Run `/gsd-execute-phase 2 --interactive` (or `--wave 4`) to continue. Plan 02-05 will:
+1. Author one-line PR2 in my-kluster: `charts/arrconf/values.yaml` `arrconfDryRun: true` → `false`. Push branch + open PR.
+2. **OPERATOR**: review and merge PR2.
+3. After ArgoCD sync (may need `kubectl annotate application arrconf -n argocd argocd.argoproj.io/refresh=hard --overwrite` based on Wave 3 experience), force smoke job: `kubectl create job --from=cronjob/arrconf arrconf-pr2-smoke -n selfhost`.
+4. Verify W-06 apply-mode events: `managed_tag_created` ≥1, `would_create_managed_tag` ==0, `dry_run_skip` ==0. Persist logs to `evidence/pr2-job-logs-<date>.log`.
+5. Post-PR2 snapshot Sonarr (port-forwards needed). `sonarr/tag.json` MUST gain `arrconf-managed` entry (success criterion #4).
+6. Drift demo runbook (REQ-drift-detection):
+   - W-01 forensic snapshot BEFORE: `tools/snapshot/snapshot.sh --apps sonarr --output snapshots/drift-test-<date>/`
+   - Mutate qBittorrent download_client name in Sonarr UI (or via API curl) to `qBittorrent-DRIFT`
+   - Force smoke job: `kubectl create job --from=cronjob/arrconf arrconf-drift-demo -n selfhost`
+   - Capture logs to `evidence/drift-demo-<date>.log`
+   - W-04 dispositive value-equality: log contains `plan_action action=update` AND post-snapshot `downloadclient.json` name field == "qBittorrent" (reverted to YAML value)
+7. Close 01-HUMAN-UAT items #2 (VS Code autocomplete) + #3 (live round-trip — naturally satisfied by Phase 2 closure).
+8. Plan 02-05 SUMMARY documenting all of the above.
+
+After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP success criteria check) + ROADMAP marking phase 02 complete + STATE.md update.
 
 ### Carry-forward / open items
 - v0.1.0 + v0.1.1 tags exist on origin but did NOT produce GHCR images (bootstrap artifacts only — see 02-02-SUMMARY.md deviations).
