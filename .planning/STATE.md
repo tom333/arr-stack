@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-05-07T22:55:26.652Z"
-last_activity: 2026-05-07 -- Phase 2 planning complete
+stopped_at: Phase 02 Wave 1 complete (plans 02-01 + 02-02 done; v0.1.2 image released)
+last_updated: "2026-05-08T01:50:00Z"
+last_activity: 2026-05-08 -- Phase 02 Wave 1 complete; paused before Wave 2 (02-03 chart authoring)
 progress:
   total_phases: 9
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 6
-  percent: 55
+  total_plans: 13
+  completed_plans: 8
+  percent: 62
 ---
 
 # Project State
@@ -21,16 +21,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 01 — arrconf-poc-json-schema
+**Current focus:** Phase 02 — arrconf-cluster-validation
 
 ## Current Position
 
-Phase: 01 — COMPLETE
-Plan: 1 of 3
-Status: Ready to execute
-Last activity: 2026-05-07 -- Phase 2 planning complete
+Phase: 02 (arrconf-cluster-validation) — IN PROGRESS (Wave 1 complete)
+Plan: 2 of 5 complete
+Status: Paused before Wave 2 plan 02-03 (my-kluster chart authoring)
+Last activity: 2026-05-08 -- Plan 02-02 SUMMARY landed (commit c6585dd)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████░░░░░░] 40% (2/5 plans)
+
+### Wave 1 deliverables (committed)
+- 02-01: snapshots/before-phase-2-2026-05-08/ + evidence/.gitkeep (commit 38fa3ce + 6a1795e SUMMARY)
+- 02-02: ghcr.io/tom333/arr-stack-arrconf:0.1.2 published, anon-pullable; HUMAN-UAT #1 passed (commits 76e2c97 retarget, db0f163 Dockerfile fix, c6585dd SUMMARY)
+
+### Resume entry point
+Run `/gsd-execute-phase 2 --interactive` (or `--wave 2`) to continue. Plan 02-03 reads `image_tag_verified: 0.1.2` from `.planning/phases/02-arrconf-cluster-validation/02-02-SUMMARY.md` machine-readable block. Plan 02-03 authors 9 files in `/home/moi/projets/perso/my-kluster/` working tree (uncommitted) — see 02-03-PLAN.md task 3.2 for the substitution map and B-01 cross-repo working-tree checkpoint at task 3.4.
+
+### Carry-forward / open items
+- v0.1.0 + v0.1.1 tags exist on origin but did NOT produce GHCR images (bootstrap artifacts only — see 02-02-SUMMARY.md deviations).
+- Phase 1 HUMAN-UAT items #2 (VS Code autocomplete demo) + #3 (live round-trip) still pending (see 01-HUMAN-UAT.md). #3 is targeted for Phase 2 closure.
+- `gh` CLI account `tguyader` token lacks `read:packages` scope — workaround documented in 02-02-SUMMARY.md (substitute `gh api` package query with anonymous registry endpoint).
+- Snapshot tools/snapshot/README.md says `svc/seerr` but Plan 02-01 task 1.1 says `svc/jellyseerr` — confirmed they're the same service in cluster (snapshot succeeded with `seerr/` directory populated).
 
 ## Performance Metrics
 
