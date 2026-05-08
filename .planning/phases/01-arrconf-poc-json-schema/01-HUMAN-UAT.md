@@ -14,7 +14,7 @@ updated: 2026-05-07T12:04:09Z
 
 ### 1. GHCR public visibility toggle — confirm image `ghcr.io/tom333/arr-stack-arrconf` is publicly pullable
 expected: After the first push to `main` triggers `arrconf-image.yml`, the image package on GHCR is accessible via `docker pull ghcr.io/tom333/arr-stack-arrconf:sha-<short>` from a logged-out client. Pitfall 7: by default new GHCR packages are private until manually toggled in the package settings UI.
-result: [pending]
+result: [passed: 2026-05-08 — verified by Phase 2 Plan 02-02 anonymous pull test. Tag delivered: `0.1.2` (v0.1.0 first-push race + v0.1.1 latent uv:0.11 Dockerfile bug — see 02-02 deviation_note + db0f163 fix). Digest: sha256:c1e94fb9b07f1350d9414aabfeb2f3c5784b789ef4a7ee12d516b85039890b7e. `docker pull ghcr.io/tom333/arr-stack-arrconf:0.1.2` succeeded from logged-out daemon — package was already public-accessible (likely inherited from public repo, no manual UI toggle needed). Pitfall 7 prediction did NOT manifest in this case.]
 
 ### 2. VS Code autocomplete demo against `examples/baseline-sonarr.yml`
 expected: Open `examples/baseline-sonarr.yml` in VS Code (or code-server) with the YAML language-server extension. The modeline on line 1 (`# yaml-language-server: $schema=../schemas/arrconf-schema.json`) resolves the schema. Typing under `download_clients:` shows autocomplete suggestions for valid `DownloadClient` fields, with hover-tooltips populated from the pydantic field descriptions.
@@ -27,9 +27,9 @@ result: [pending]
 ## Summary
 
 total: 3
-passed: 0
+passed: 1
 issues: 0
-pending: 3
+pending: 2
 skipped: 0
 blocked: 0
 
