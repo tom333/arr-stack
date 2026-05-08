@@ -1,0 +1,79 @@
+{
+  "CacheFolder": {
+    "DeviceId": "/config/cache",
+    "FreeSpace": 256889143296,
+    "Path": "/config/cache",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  },
+  "ImageCacheFolder": {
+    "DeviceId": "/config/cache/images",
+    "FreeSpace": 256889143296,
+    "Path": "/config/cache/images",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  },
+  "InternalMetadataFolder": {
+    "DeviceId": "/config/data/metadata",
+    "FreeSpace": 256889143296,
+    "Path": "/config/data/metadata",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  },
+  "Libraries": [
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 457214001152,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2598389678080
+        }
+      ],
+      "Id": "d565273fd114d77bdf349a2896867069",
+      "Name": "Séries"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films",
+          "FreeSpace": 457214001152,
+          "Path": "/media/films",
+          "StorageType": "Network",
+          "UsedSpace": 2598389678080
+        }
+      ],
+      "Id": "db4c1708cbb5dd1676284a40f2950aba",
+      "Name": "Films"
+    }
+  ],
+  "LogFolder": {
+    "DeviceId": "/config/log",
+    "FreeSpace": 256889143296,
+    "Path": "/config/log",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  },
+  "ProgramDataFolder": {
+    "DeviceId": "/config/data",
+    "FreeSpace": 256889143296,
+    "Path": "/config/data",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  },
+  "TranscodingTempFolder": {
+    "DeviceId": "/config/cache/transcodes",
+    "FreeSpace": 256889143296,
+    "Path": "/config/cache/transcodes",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  },
+  "WebFolder": {
+    "DeviceId": "/usr/share/jellyfin/web",
+    "FreeSpace": 256889143296,
+    "Path": "/usr/share/jellyfin/web",
+    "StorageType": "Fixed",
+    "UsedSpace": 725350883328
+  }
+}
