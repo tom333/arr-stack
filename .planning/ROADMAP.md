@@ -15,7 +15,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] **Phase 0: Bootstrap repo + snapshot raw** - Capture lossless de l'existant (Bash) + scaffolding repo + Renovate initial (completed 2026-05-07)
 - [x] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code (completed 2026-05-08, 3 human-UAT items pending in 01-HUMAN-UAT.md)
 - [x] **Phase 2: Validation cluster** - Premier déploiement arrconf en CronJob `selfhost` (`ARRCONF_DRY_RUN=true` au 1er run), bascule en apply après validation des logs, drift detection prouvée — completed 2026-05-08 with **partial success criteria** (success #1-#3 ✅; #4 PARTIAL — arrconf-managed tag created in Sonarr but PUT downloadclient blocked by Phase 1 design issue: empty username/password in YAML overwrites real qBit credentials, Sonarr 400; #5 UNTESTED — drift demo deferred). CronJob currently suspended in cluster pending Phase 2.1/3 fix. See `.planning/phases/02-arrconf-cluster-validation/02-05-SUMMARY.md`.
-- [ ] **Phase 2.1 (insertion): Field-merge fix for sensitive YAML values** - Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so PUT body preserves cluster-stored field values when YAML value is `""` or for well-known sensitive field names. Re-run Plan 02-05 Tasks 5.1c + 5.2 (drift demo) for closure. Closes Phase 1 HUMAN-UAT #3.
+- [ ] **Phase 2.1: Field-merge fix for sensitive YAML values** - Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so PUT body preserves cluster-stored field values when YAML value is `""` or for well-known sensitive field names. Re-run Plan 02-05 Tasks 5.1c + 5.2 (drift demo) for closure. Closes Phase 1 HUMAN-UAT #3.
 - [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 fix)
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
 - [ ] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants
@@ -75,6 +75,23 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [ ] 02-04-PLAN.md — Wave 3: PR1 dry-run deployment (manual secret apply with W-05 tracking-id check, ArgoCD sync, B-02 volumeMount inspection, forced smoke job with W-06 verified event names, post-PR1 snapshot diff = 0)
 - [ ] 02-05-PLAN.md — Wave 4: PR2 apply mode (B-03 split into 5.1a/b/c) + drift detection runbook (W-04 dispositive value-equality, W-01 REQUIRED forensic snapshot, W-06 verified plan_action event)
 **Open questions to resolve**: Q3 (resolved D-23 — schedule `0 */4 * * *`), Q4 (resolved by Phase 1 D-01 — manual tag releases)
+
+### Phase 2.1: Field-merge fix for sensitive YAML values
+**Goal**: Implémenter dans arrconf un merge cluster→PUT pour les `fields[]` dont la valeur YAML est vide (`''`/`null`), releaser l'image `v0.1.3`, déployer via PR3 dans my-kluster (bump tag + nettoyage `username/password` du YAML), puis re-exécuter Plan 02-05 Tasks 5.1c (post-PR2 snapshot + Sonarr API tag verification) + 5.2 (drift demo runbook avec W-01 forensic snapshot + W-04 dispositive value-equality) pour clore les success criteria #4 et #5 de Phase 2 et l'item HUMAN-UAT #3 de Phase 1.
+**Depends on**: Phase 2 (PARTIAL — success #1-#3 OK ; #4 PARTIAL ; #5 UNTESTED)
+**Requirements**: REQ-drift-detection (closure via re-run drift demo), REQ-secret-management (formalisation du contrat "valeur vide en YAML = preserve cluster"), REQ-idempotence (round-trip `dump → apply --dry-run` = 0 action préservé après le merge)
+**Success Criteria** (what must be TRUE):
+  1. Helper de merge partagé livré (D-33) — `differ.py` ou `arrconf/merge.py` — généralisable aux reconcilers Phase 3 (Radarr/Prowlarr)
+  2. Sémantique D-31/D-32 implémentée et testée : pour chaque entrée de `fields[]`, si `value` YAML est `''` ou `None`, le PUT body porte la valeur du cluster ; sinon, la valeur YAML l'emporte. Règle exclusivement value-based (pas d'allowlist par nom de champ)
+  3. Tests respx unitaires couvrant les scénarios merge (vide préservé, non-vide override, mixte, edges) + un test round-trip `dump → merge → PUT body` qui asserte la préservation des credentials cluster face à un YAML aux champs vides (D-35)
+  4. `arrconf dump` n'émet plus les entrées `fields[]` dont la valeur côté Sonarr est REDACTED (D-36) — round-trip `dump → diff` reste à 0 action
+  5. Tag `v0.1.3` poussé, image GHCR `ghcr.io/tom333/arr-stack-arrconf:0.1.3` publique et anonymously pullable (D-37)
+  6. PR3 dans my-kluster mergée : `image.tag: 0.1.2 → 0.1.3` ET suppression des entrées `username: ''`/`password: ''` dans `charts/arrconf/files/arrconf.yml` (D-36) ; ArgoCD sync OK et CronJob non-suspendu après sync
+  7. Smoke job forcé après deploy : log JSON montre `managed_tag_found` (id=1, déjà créé par le run partiel Phase 2) + `plan_action action=update` sur le download client + `PUT 200` (plus de 400 « must have valid Username and Password »)
+  8. Plan 02-05 Task 5.1c re-exécutée : post-PR2 snapshot capturé sous `evidence/`, vérification Sonarr API confirme le tag `arrconf-managed` attaché au download client (closure success #4 de Phase 2)
+  9. Plan 02-05 Task 5.2 re-exécutée : drift demo runbook complet avec W-01 forensic snapshot et W-04 dispositive value-equality sur `priority` (closure success #5 de Phase 2 et HUMAN-UAT #3 de Phase 1)
+**Plans**: TBD
+**Open questions to resolve**: (none — D-31..D-37 tranchés en discuss-phase 2026-05-08)
 
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.
@@ -171,6 +188,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 0. Bootstrap repo + snapshot raw | 3/3 | Complete    | 2026-05-07 |
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
+| 2.1. Field-merge fix for sensitive YAML values | 0/TBD | Not started | - |
 | 3. Étendre arrconf | 0/TBD | Not started | - |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/TBD | Not started | - |
