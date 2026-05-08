@@ -1,0 +1,13 @@
+# Captured 2026-05-08 from my-kluster ArgoCD app yamls (W-03 fix).
+# Source: argocd/argocd-apps/{sonarr,qbittorrent}-app.yaml metadata.name + service.main.ports.http.port.
+# These literal values MUST be substituted into files/arrconf.yml in Task 3.2.
+
+SONARR_HOST=sonarr.selfhost.svc.cluster.local
+SONARR_PORT=8989
+SONARR_BASE_URL=http://sonarr.selfhost.svc.cluster.local:8989
+
+QBT_HOST=qbittorrent.selfhost.svc.cluster.local
+QBT_PORT=8080
+
+# From 02-02-SUMMARY.md image_tag_verified field, fenced block (Pitfall 2; B-NEW-01 contract):
+IMAGE_TAG_VERIFIED=0.1.2
