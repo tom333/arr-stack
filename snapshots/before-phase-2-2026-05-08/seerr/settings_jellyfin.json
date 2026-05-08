@@ -1,0 +1,25 @@
+{
+  "apiKey": "***REDACTED***",
+  "externalHostname": "",
+  "ip": "jellyfin.selfhost.svc.cluster.local",
+  "jellyfinForgotPasswordUrl": "",
+  "libraries": [
+    {
+      "enabled": true,
+      "id": "db4c1708cbb5dd1676284a40f2950aba",
+      "name": "Films",
+      "type": "movie"
+    },
+    {
+      "enabled": true,
+      "id": "d565273fd114d77bdf349a2896867069",
+      "name": "Séries",
+      "type": "show"
+    }
+  ],
+  "name": "jellyfin",
+  "port": 8096,
+  "serverId": "62f7bf7af7e14f81949f858c18c2882f",
+  "urlBase": "",
+  "useSsl": false
+}

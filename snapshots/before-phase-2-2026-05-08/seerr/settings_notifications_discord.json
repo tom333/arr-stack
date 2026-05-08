@@ -1,0 +1,10 @@
+{
+  "embedPoster": true,
+  "enabled": false,
+  "options": {
+    "enableMentions": true,
+    "webhookRoleId": "",
+    "webhookUrl": "***REDACTED***"
+  },
+  "types": 0
+}

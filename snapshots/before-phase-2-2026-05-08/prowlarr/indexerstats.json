@@ -1,0 +1,331 @@
+{
+  "hosts": [
+    {
+      "host": "10-1-28-134",
+      "numberOfGrabs": 1,
+      "numberOfQueries": 563
+    },
+    {
+      "host": "10-1-28-138",
+      "numberOfGrabs": 71,
+      "numberOfQueries": 1750
+    },
+    {
+      "host": "router",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 9
+    },
+    {
+      "host": "10-1-28-174",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 385
+    },
+    {
+      "host": "10-1-28-172",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 194
+    },
+    {
+      "host": "10-1-28-32",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 25
+    },
+    {
+      "host": "10-1-28-53",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 44
+    },
+    {
+      "host": "10-1-28-113",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 63
+    },
+    {
+      "host": "10-1-28-117",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 105
+    },
+    {
+      "host": "10-1-28-187",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 45
+    },
+    {
+      "host": "10-1-28-228",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 74
+    },
+    {
+      "host": "10-1-28-47",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 50
+    },
+    {
+      "host": "10-1-28-6",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 100
+    },
+    {
+      "host": "10-1-28-102",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 80
+    },
+    {
+      "host": "10-1-28-124",
+      "numberOfGrabs": 2,
+      "numberOfQueries": 263
+    },
+    {
+      "host": "10-1-28-163",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 10
+    },
+    {
+      "host": "10-1-28-5",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 45
+    },
+    {
+      "host": "10-1-28-4",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 24
+    },
+    {
+      "host": "10-1-28-39",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 784
+    },
+    {
+      "host": "10-1-28-33",
+      "numberOfGrabs": 1,
+      "numberOfQueries": 1574
+    },
+    {
+      "host": "10-1-28-219",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 115
+    },
+    {
+      "host": "10-1-28-239",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 220
+    },
+    {
+      "host": "10-1-28-8",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 460
+    },
+    {
+      "host": "10-1-28-93",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 234
+    },
+    {
+      "host": "10-1-28-125",
+      "numberOfGrabs": 2,
+      "numberOfQueries": 369
+    },
+    {
+      "host": "10-1-28-43",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 88
+    },
+    {
+      "host": "10-1-28-7",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 361
+    },
+    {
+      "host": "10-1-28-95",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 357
+    },
+    {
+      "host": "10-1-28-110",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 201
+    },
+    {
+      "host": "10-1-28-144",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 249
+    },
+    {
+      "host": "10-1-28-154",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 126
+    },
+    {
+      "host": "10-1-28-186",
+      "numberOfGrabs": 1,
+      "numberOfQueries": 372
+    },
+    {
+      "host": "10-1-28-201",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 192
+    },
+    {
+      "host": "10-1-28-16",
+      "numberOfGrabs": 1,
+      "numberOfQueries": 808
+    },
+    {
+      "host": "10-1-28-243",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 187
+    },
+    {
+      "host": "10-1-28-157",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 8
+    },
+    {
+      "host": "10-1-28-140",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 4
+    },
+    {
+      "host": "10-1-28-175",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 16
+    },
+    {
+      "host": "10-1-28-34",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 99
+    },
+    {
+      "host": "10-1-28-29",
+      "numberOfGrabs": 2,
+      "numberOfQueries": 69
+    },
+    {
+      "host": "10-1-28-3",
+      "numberOfGrabs": 0,
+      "numberOfQueries": 376
+    },
+    {
+      "host": "10-1-28-25",
+      "numberOfGrabs": 1,
+      "numberOfQueries": 180
+    }
+  ],
+  "indexers": [
+    {
+      "averageGrabResponseTime": 580,
+      "averageResponseTime": 721,
+      "indexerId": 2,
+      "indexerName": "C411",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 0,
+      "numberOfFailedRssQueries": 7,
+      "numberOfGrabs": 39,
+      "numberOfQueries": 136,
+      "numberOfRssQueries": 2385
+    },
+    {
+      "averageGrabResponseTime": 80,
+      "averageResponseTime": 448,
+      "indexerId": 1,
+      "indexerName": "NorTorrent",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 0,
+      "numberOfFailedRssQueries": 1,
+      "numberOfGrabs": 3,
+      "numberOfQueries": 357,
+      "numberOfRssQueries": 2420
+    },
+    {
+      "averageGrabResponseTime": 0,
+      "averageResponseTime": 451,
+      "indexerId": 3,
+      "indexerName": "ZkTorrent",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 1,
+      "numberOfFailedRssQueries": 18,
+      "numberOfGrabs": 0,
+      "numberOfQueries": 308,
+      "numberOfRssQueries": 1468
+    },
+    {
+      "averageGrabResponseTime": 2019,
+      "averageResponseTime": 1513,
+      "indexerId": 4,
+      "indexerName": "Darki World",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 0,
+      "numberOfFailedRssQueries": 0,
+      "numberOfGrabs": 39,
+      "numberOfQueries": 46,
+      "numberOfRssQueries": 191
+    },
+    {
+      "averageGrabResponseTime": 0,
+      "averageResponseTime": 1045,
+      "indexerId": 5,
+      "indexerName": "Torrent9",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 0,
+      "numberOfFailedRssQueries": 7,
+      "numberOfGrabs": 1,
+      "numberOfQueries": 52,
+      "numberOfRssQueries": 1848
+    },
+    {
+      "averageGrabResponseTime": 0,
+      "averageResponseTime": 520,
+      "indexerId": 6,
+      "indexerName": "World-torrent",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 0,
+      "numberOfFailedRssQueries": 8,
+      "numberOfGrabs": 0,
+      "numberOfQueries": 44,
+      "numberOfRssQueries": 1892
+    },
+    {
+      "averageGrabResponseTime": 0,
+      "averageResponseTime": 2533,
+      "indexerId": 7,
+      "indexerName": "Torr9",
+      "numberOfAuthQueries": 0,
+      "numberOfFailedAuthQueries": 0,
+      "numberOfFailedGrabs": 0,
+      "numberOfFailedQueries": 0,
+      "numberOfFailedRssQueries": 0,
+      "numberOfGrabs": 0,
+      "numberOfQueries": 2,
+      "numberOfRssQueries": 129
+    }
+  ],
+  "userAgents": [
+    {
+      "numberOfGrabs": 6,
+      "numberOfQueries": 3602,
+      "userAgent": "Radarr"
+    },
+    {
+      "numberOfGrabs": 76,
+      "numberOfQueries": 7667,
+      "userAgent": "Sonarr"
+    },
+    {
+      "numberOfGrabs": 0,
+      "numberOfQueries": 9,
+      "userAgent": "Prowlarr"
+    }
+  ]
+}
