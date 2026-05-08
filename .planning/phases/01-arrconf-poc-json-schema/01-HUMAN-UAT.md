@@ -22,14 +22,14 @@ result: [pending]
 
 ### 3. Live round-trip against a real Sonarr instance
 expected: Against a running Sonarr v4+ instance (e.g. via `kubectl port-forward svc/sonarr 8989:8989`), `arrconf dump --apps sonarr > /tmp/live.yml` followed by `arrconf diff --config /tmp/live.yml --apps sonarr` reports zero drift (exit 0). Engine-level round-trip is already locked by the respx-mocked `test_round_trip_dump_apply_dry_run_is_noop`; this human check confirms it survives a live API. Belongs to Phase 2 (cluster validation) but listed here for traceability.
-result: [pending]
+result: [partial: Phase 2 Plan 02-05 ran apply against real Sonarr; `managed_tag_created` event emitted + arrconf-managed tag (id=1) created in Sonarr ✅. PUT downloadclient/1 then failed with HTTP 400 because YAML overwrites qBit credentials with `''` and Sonarr's pre-save validation can't authenticate to qBit. Phase 1 design issue: secrets cannot be safely represented in YAML. Tag stays orphan in Sonarr. Deferred to Phase 3 (or Phase 2.1 interrupt) — fix is to merge cluster's stored field values for sensitive/empty fields before PUT. See arr-stack/.planning/phases/02-arrconf-cluster-validation/02-05-SUMMARY.md §Root cause.]
 
 ## Summary
 
 total: 3
 passed: 1
-issues: 0
-pending: 2
+issues: 1
+pending: 1
 skipped: 0
 blocked: 0
 
