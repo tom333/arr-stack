@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02 Wave 3 complete (plans 02-01/02/03/04 done; PR1 dry-run deployed and verified)
-last_updated: "2026-05-08T18:35:00Z"
-last_activity: 2026-05-08 -- Plan 02-04 SUMMARY landed (commit 7a928a9); paused before Wave 4 (02-05 PR2 apply mode + drift demo)
+stopped_at: Phase 02 closed with PARTIAL success (success criteria #1-#3 met; #4 partial; #5 deferred to Phase 2.1)
+last_updated: "2026-05-08T19:15:00Z"
+last_activity: 2026-05-08 -- Phase 02 closed; CronJob suspended pending Phase 2.1 field-merge fix
 progress:
-  total_phases: 9
-  completed_phases: 2
-  total_plans: 15
-  completed_plans: 10
-  percent: 67
+  total_phases: 10
+  completed_phases: 3
+  total_plans: 16
+  completed_plans: 11
+  percent: 69
 ---
 
 # Project State
@@ -25,12 +25,25 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 02 (arrconf-cluster-validation) — IN PROGRESS (Waves 1 + 2 + 3 complete)
-Plan: 4 of 5 complete
-Status: Paused before Wave 4 plan 02-05 (PR2 apply mode + drift demo)
-Last activity: 2026-05-08 -- Plan 02-04 SUMMARY landed (commit 7a928a9); arrconf running in cluster in dry-run mode
+Phase: 02 (arrconf-cluster-validation) — CLOSED (PARTIAL — see Carry-forward)
+Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3
+Last activity: 2026-05-08 -- Phase 2 closed; ROADMAP updated; CronJob suspended in cluster pending fix
 
-Progress: [████████░░] 80% (4/5 plans)
+Progress: [██████████] 100% (5/5 plans executed; 1 plan partial — 02-05)
+
+### Phase 2 final state
+- Plan 02-01 ✅ Snapshot baseline
+- Plan 02-02 ✅ v0.1.2 image released, GHCR public
+- Plan 02-03 ✅ my-kluster chart authored
+- Plan 02-04 ✅ PR1 dry-run, success criterion #3 satisfied (zero writes)
+- Plan 02-05 ⚠️ PR2 apply PARTIAL — tag created in Sonarr but PUT downloadclient failed; drift demo deferred
+
+### ROADMAP success criteria status
+- #1 baseline snapshot ✅
+- #2 CronJob exists with envFrom secret ✅
+- #3 dry-run = zero writes ✅
+- #4 download_client managed by arrconf ⚠️ PARTIAL (tag created, not attached)
+- #5 drift detection ⏭️ UNTESTED (deferred to Phase 2.1)
 
 ### Wave 1 deliverables (committed in arr-stack)
 - 02-01: snapshots/before-phase-2-2026-05-08/ + evidence/.gitkeep (38fa3ce + 6a1795e SUMMARY)
@@ -76,8 +89,22 @@ git stash pop   # first pop -> stash@{0} restored
 git stash pop   # second pop -> the other stash restored
 ```
 
-### Resume entry point
-Run `/gsd-execute-phase 2 --interactive` (or `--wave 4`) to continue. Plan 02-05 will:
+### Resume entry point — Phase 2.1 (interrupt)
+Run `/gsd-discuss-phase 2.1` then `/gsd-plan-phase 2.1` then `/gsd-execute-phase 2.1`. Single-plan phase with one objective:
+
+**Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so the PUT body for `downloadclient` preserves cluster-stored field values for any field whose YAML value is empty `""` OR matches a well-known-sensitive field name (`username`, `password`, `apiKey`, `token`, `passkey`, etc.).**
+
+Test plan (closes Phase 2 success criteria #4 and #5):
+1. Modify reconciler + add unit tests for the merge logic
+2. Bump to v0.1.3 (CI builds image)
+3. Open PR3 in my-kluster bumping image.tag 0.1.2 → 0.1.3
+4. Unsuspend CronJob (or merge a small revert PR if ArgoCD already auto-unsuspended)
+5. Force smoke job → verify W-06 events + PUT 200
+6. Re-snapshot Sonarr — `downloadclient.json[0].tags | length > 0` ✅
+7. Run drift demo runbook (Plan 02-05 Task 5.2 steps 1-10) — capture evidence + W-01 forensic snapshot + W-04 dispositive
+8. Close Phase 1 HUMAN-UAT #3
+
+### What was Plan 02-05 Wave 4 (now superseded by Phase 2.1) — kept for reference
 1. Author one-line PR2 in my-kluster: `charts/arrconf/values.yaml` `arrconfDryRun: true` → `false`. Push branch + open PR.
 2. **OPERATOR**: review and merge PR2.
 3. After ArgoCD sync (may need `kubectl annotate application arrconf -n argocd argocd.argoproj.io/refresh=hard --overwrite` based on Wave 3 experience), force smoke job: `kubectl create job --from=cronjob/arrconf arrconf-pr2-smoke -n selfhost`.
