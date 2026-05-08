@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02 closed with PARTIAL success (success criteria #1-#3 met; #4 partial; #5 deferred to Phase 2.1)
-last_updated: "2026-05-08T19:15:00Z"
-last_activity: 2026-05-08 -- Phase 02 closed; CronJob suspended pending Phase 2.1 field-merge fix
+stopped_at: Phase 02.1 context gathered
+last_updated: "2026-05-08T08:45:29.834Z"
+last_activity: 2026-05-08 -- Phase 2 closed; ROADMAP updated; CronJob suspended in cluster pending fix
 progress:
-  total_phases: 10
+  total_phases: 9
   completed_phases: 3
-  total_plans: 16
+  total_plans: 11
   completed_plans: 11
-  percent: 69
+  percent: 100
 ---
 
 # Project State
@@ -32,6 +32,7 @@ Last activity: 2026-05-08 -- Phase 2 closed; ROADMAP updated; CronJob suspended 
 Progress: [██████████] 100% (5/5 plans executed; 1 plan partial — 02-05)
 
 ### Phase 2 final state
+
 - Plan 02-01 ✅ Snapshot baseline
 - Plan 02-02 ✅ v0.1.2 image released, GHCR public
 - Plan 02-03 ✅ my-kluster chart authored
@@ -39,6 +40,7 @@ Progress: [██████████] 100% (5/5 plans executed; 1 plan part
 - Plan 02-05 ⚠️ PR2 apply PARTIAL — tag created in Sonarr but PUT downloadclient failed; drift demo deferred
 
 ### ROADMAP success criteria status
+
 - #1 baseline snapshot ✅
 - #2 CronJob exists with envFrom secret ✅
 - #3 dry-run = zero writes ✅
@@ -46,10 +48,12 @@ Progress: [██████████] 100% (5/5 plans executed; 1 plan part
 - #5 drift detection ⏭️ UNTESTED (deferred to Phase 2.1)
 
 ### Wave 1 deliverables (committed in arr-stack)
+
 - 02-01: snapshots/before-phase-2-2026-05-08/ + evidence/.gitkeep (38fa3ce + 6a1795e SUMMARY)
 - 02-02: ghcr.io/tom333/arr-stack-arrconf:0.1.2 published, anon-pullable; HUMAN-UAT #1 passed (76e2c97 retarget, db0f163 Dockerfile fix, c6585dd SUMMARY)
 
 ### Wave 2 deliverables
+
 - 02-03 (arr-stack committed):
   - .cluster-services capture file (f674f86)
   - 02-PATTERNS.md + 02-RESEARCH.md credential redactions (cf1a808 — 5 occurrences of API key literals)
@@ -59,6 +63,7 @@ Progress: [██████████] 100% (5/5 plans executed; 1 plan part
   - secrets/arrconf-secret.yaml — gitignored, on disk only, manually `kubectl apply`'d in Wave 3
 
 ### Wave 3 deliverables
+
 - 02-04 (arr-stack committed):
   - evidence/pr1-job-logs-2026-05-08.log (4e18965)
   - snapshots/post-phase2-pr1-2026-05-08/ (b9f72f0)
@@ -79,22 +84,27 @@ Progress: [██████████] 100% (5/5 plans executed; 1 plan part
 - Snapshot diff: only 2 noise files (rootfolder.json freeSpace, system_status.json startTime); critical files (downloadclient.json, tag.json) IDENTICAL to baseline.
 
 ### Pre-existing my-kluster state — STASHED
+
 2 stashes pushed before Wave 2 to keep B-01/W-NEW-01 honest:
+
 - `stash@{0}: pre-arrconf-Phase2-tracked-2026-05-08` (README.md, beszel/beszel.yml)
 - `stash@{1}: pre-arrconf-Phase2-2026-05-08` (CLAUDE.md, TODO.md, config/sc-nfs.yaml, config/test-volume.yaml, openmetadata/, scripts/)
 
 POP REMINDER: After Phase 2 closes (Plan 02-05 done), run twice in my-kluster:
+
 ```bash
 git stash pop   # first pop -> stash@{0} restored
 git stash pop   # second pop -> the other stash restored
 ```
 
 ### Resume entry point — Phase 2.1 (interrupt)
+
 Run `/gsd-discuss-phase 2.1` then `/gsd-plan-phase 2.1` then `/gsd-execute-phase 2.1`. Single-plan phase with one objective:
 
 **Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so the PUT body for `downloadclient` preserves cluster-stored field values for any field whose YAML value is empty `""` OR matches a well-known-sensitive field name (`username`, `password`, `apiKey`, `token`, `passkey`, etc.).**
 
 Test plan (closes Phase 2 success criteria #4 and #5):
+
 1. Modify reconciler + add unit tests for the merge logic
 2. Bump to v0.1.3 (CI builds image)
 3. Open PR3 in my-kluster bumping image.tag 0.1.2 → 0.1.3
@@ -105,6 +115,7 @@ Test plan (closes Phase 2 success criteria #4 and #5):
 8. Close Phase 1 HUMAN-UAT #3
 
 ### What was Plan 02-05 Wave 4 (now superseded by Phase 2.1) — kept for reference
+
 1. Author one-line PR2 in my-kluster: `charts/arrconf/values.yaml` `arrconfDryRun: true` → `false`. Push branch + open PR.
 2. **OPERATOR**: review and merge PR2.
 3. After ArgoCD sync (may need `kubectl annotate application arrconf -n argocd argocd.argoproj.io/refresh=hard --overwrite` based on Wave 3 experience), force smoke job: `kubectl create job --from=cronjob/arrconf arrconf-pr2-smoke -n selfhost`.
@@ -122,6 +133,7 @@ Test plan (closes Phase 2 success criteria #4 and #5):
 After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP success criteria check) + ROADMAP marking phase 02 complete + STATE.md update.
 
 ### Carry-forward / open items
+
 - v0.1.0 + v0.1.1 tags exist on origin but did NOT produce GHCR images (bootstrap artifacts only — see 02-02-SUMMARY.md deviations).
 - Phase 1 HUMAN-UAT items #2 (VS Code autocomplete demo) + #3 (live round-trip) still pending (see 01-HUMAN-UAT.md). #3 is targeted for Phase 2 closure.
 - `gh` CLI account `tguyader` token lacks `read:packages` scope — workaround documented in 02-02-SUMMARY.md (substitute `gh api` package query with anonymous registry endpoint).
@@ -190,6 +202,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-07T21:22:31.073Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-arrconf-cluster-validation/02-CONTEXT.md
+Last session: 2026-05-08T08:45:29.823Z
+Stopped at: Phase 02.1 context gathered
+Resume file: .planning/phases/02.1-field-merge-fix/02.1-CONTEXT.md
