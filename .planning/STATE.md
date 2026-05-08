@@ -4,8 +4,8 @@ milestone: v3.2.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 02.1 context gathered
-last_updated: "2026-05-08T09:20:23.770Z"
-last_activity: 2026-05-08 -- Phase 02.1 planning complete
+last_updated: "2026-05-08T09:23:58.180Z"
+last_activity: 2026-05-08 -- Phase 2.1 execution started
 progress:
   total_phases: 10
   completed_phases: 3
@@ -21,13 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 02 — arrconf-cluster-validation
+**Current focus:** Phase 2.1 — field-merge-fix
 
 ## Current Position
 
-Phase: 02 (arrconf-cluster-validation) — CLOSED (PARTIAL — see Carry-forward)
+Phase: 2.1 (field-merge-fix) — EXECUTING
+Plan: 1 of 4
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3
-Last activity: 2026-05-08 -- Phase 02.1 planning complete
+Last activity: 2026-05-08 -- Phase 2.1 execution started
 
 Progress: [██████████] 100% (5/5 plans executed; 1 plan partial — 02-05)
 
