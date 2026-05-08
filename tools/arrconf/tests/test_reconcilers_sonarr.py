@@ -122,6 +122,70 @@ def test_update_existing_download_client(
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_update_preserves_redacted_credentials_in_put_body(
+    respx_mock: respx.MockRouter,
+    sonarr_downloadclient_fixture: list[dict[str, Any]],
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """Regression — replays Phase 2 PR2 PUT 400 (D-31).
+
+    Cluster fixture has username='admin' and password='***REDACTED***'.
+    Desired YAML has empty values for both (mirrors my-kluster pre-D-36 shape).
+    Reconciler runs dry_run=False — PUT body MUST carry cluster's credentials,
+    NOT the empty values from YAML.
+    """
+    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
+    respx_mock.get("/downloadclient").mock(
+        return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
+    )
+    put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$").mock(
+        return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"})
+    )
+
+    # Build desired YAML where username and password are EMPTY (mirrors my-kluster pre-D-36)
+    desired_payload = dict(sonarr_downloadclient_fixture[0])
+    desired_payload["fields"] = [
+        {"name": "host", "value": "qbittorrent.selfhost.svc.cluster.local"},
+        {"name": "port", "value": 8080},
+        {"name": "useSsl", "value": False},
+        {"name": "urlBase", "value": ""},
+        {"name": "username", "value": ""},
+        {"name": "password", "value": ""},
+        {"name": "tvCategory", "value": "sonarr"},
+        {"name": "tvImportedCategory", "value": ""},
+        {"name": "recentTvPriority", "value": 0},
+        {"name": "olderTvPriority", "value": 0},
+        {"name": "initialState", "value": 0},
+        {"name": "sequentialOrder", "value": False},
+        {"name": "firstAndLast", "value": False},
+        {"name": "contentLayout", "value": 0},
+    ]
+    desired_payload["tags"] = [1]
+    desired = [DownloadClient.model_validate(desired_payload)]
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        download_clients=DownloadClientsSection(prune=False, items=desired),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert put_route.call_count == 1
+    body = put_route.calls.last.request.content.decode()
+    # Cluster's username "admin" + password "***REDACTED***" MUST survive into PUT body:
+    assert '"value":"admin"' in body or '"value": "admin"' in body, (
+        "username value 'admin' must be preserved from cluster (D-31)"
+    )
+    assert '"value":"***REDACTED***"' in body or '"value": "***REDACTED***"' in body, (
+        "password value '***REDACTED***' must be preserved from cluster (D-31)"
+    )
+    # Empty values from YAML for username/password MUST NOT have leaked through:
+    assert '"name":"username","value":""' not in body
+    assert '"name": "username", "value": ""' not in body
+    assert '"name":"password","value":""' not in body
+    assert '"name": "password", "value": ""' not in body
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_prune_skip_default(
     respx_mock: respx.MockRouter,
     sonarr_downloadclient_fixture: list[dict[str, Any]],

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 import structlog
 from pydantic import BaseModel
@@ -23,6 +24,12 @@ _READ_ONLY_FIELDS: set[str] = {
     "message",
     "presets",
 }
+
+# D-36: Sonarr's privacy stand-in for password / apiKey / userName fields. Mirrored
+# in dump.py as the same constant. The dump emitter drops these entries so they never
+# reach committed YAML; this constant is kept here so that ``diff_models`` (and the
+# round-trip contract) can normalize cluster state in the same way before comparing.
+_REDACTED_VALUE = "***REDACTED***"
 
 
 class Action(Enum):
@@ -47,11 +54,64 @@ class PlannedAction[T: BaseModel]:
     diff_fields: list[str]
 
 
+def _strip_redacted_fields(dump: dict[str, Any]) -> dict[str, Any]:
+    """Drop fields[] entries whose value is REDACTED — mirror of dump.py filter (D-36).
+
+    Applied symmetrically on both sides of ``diff_models`` so the round-trip property
+    (D-31/D-35/D-36) holds: dump emits without REDACTED, reload→reconcile compares
+    cluster (post-strip) against desired (already post-strip from dump) → NO_OP.
+    """
+    if "fields" not in dump:
+        return dump
+    dump = dict(dump)
+    dump["fields"] = [f for f in dump["fields"] if f.get("value") != _REDACTED_VALUE]
+    return dump
+
+
 def diff_models(a: BaseModel, b: BaseModel) -> list[str]:
-    """Return sorted field names that differ (excluding D-21 read-only fields)."""
-    a_dump = a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
-    b_dump = b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
+    """Return sorted field names that differ (excluding D-21 read-only fields).
+
+    Both sides are normalized via ``_strip_redacted_fields`` (D-36) so cluster's
+    REDACTED ``fields[]`` entries — which the dump emitter omits — do not flag a
+    spurious UPDATE on round-trip.
+    """
+    a_dump = _strip_redacted_fields(a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
+    b_dump = _strip_redacted_fields(b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
     return sorted({k for k in (set(a_dump) | set(b_dump)) if a_dump.get(k) != b_dump.get(k)})
+
+
+def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]:
+    """Merge cluster's stored field values into desired body for PUT (D-31/D-32/D-33).
+
+    For each entry in ``desired.fields[]`` (matched by ``name``), if the YAML value is
+    ``''`` or ``None``, take the corresponding cluster value. Otherwise keep desired's
+    value. The rule is purely value-based (D-32): field NAMES are NOT consulted — there
+    is no name-based allowlist of which fields qualify for the empty-preserve rule.
+
+    ``tags`` is intentionally NOT merged (T-02.1-06): desired's tags list legitimately
+    overrides cluster's because the reconciler appends ``managed_tag_id`` (D-02).
+
+    Generic over ``T: BaseModel`` so Phase 3 Radarr/Prowlarr reconcilers can reuse it
+    unchanged (D-33). Returns a dict ready for ``client.put(path, id=..., json=body)``;
+    read-only fields (D-21) are excluded from the body, so callers must re-inject ``id``.
+    """
+    cur_dump = current.model_dump(exclude_none=True)
+    des_dump = desired.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
+    cur_by_name = {f["name"]: f for f in cur_dump.get("fields", [])}
+    merged_fields: list[dict[str, Any]] = []
+    for des_f in des_dump.get("fields", []):
+        v = des_f.get("value")
+        if v == "" or v is None:
+            cur_f = cur_by_name.get(des_f["name"])
+            if cur_f is not None and cur_f.get("value") not in ("", None):
+                merged = dict(des_f)
+                merged["value"] = cur_f["value"]
+                log.info("merge_field_preserved", name=des_f["name"])
+                merged_fields.append(merged)
+                continue
+        merged_fields.append(des_f)
+    des_dump["fields"] = merged_fields
+    return des_dump
 
 
 def reconcile[T: BaseModel](

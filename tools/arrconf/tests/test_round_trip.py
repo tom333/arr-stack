@@ -89,6 +89,56 @@ def test_round_trip_dump_apply_dry_run_is_noop(
     )
 
 
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_round_trip_with_redacted_credentials_is_noop(
+    respx_mock,  # noqa: ANN001
+    sonarr_downloadclient_fixture: list[dict],
+    sonarr_tag_managed_fixture: list[dict],
+    tmp_path: Path,
+) -> None:
+    """D-31/D-35/D-36 contract — dump filter + merge helper together preserve round-trip.
+
+    Cluster has password=***REDACTED***. Dump filter (D-36) omits that entry from YAML.
+    Reload → desired's fields[] has no password entry. Reconcile against same cluster
+    state → diff sees no change on fields → ALL NO_OP. Without the dump filter or
+    without the merge helper, this property fails (canary).
+    """
+    cluster_payload: list[dict] = [{**dc, "tags": [1]} for dc in sonarr_downloadclient_fixture]
+    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
+    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=cluster_payload))
+    post_route = respx_mock.post("/downloadclient")
+    put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient(/\d+)?$")
+    delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
+    post_tag_route = respx_mock.post("/tag")
+
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    out = tmp_path / "round-trip-redacted.yml"
+    dump_sonarr(client, out)
+
+    # Dump filter MUST have removed the password entry (D-36 emit-side)
+    dumped_text = out.read_text()
+    assert "***REDACTED***" not in dumped_text, "Dump filter (D-36) failed: REDACTED still in YAML"
+
+    root = load_config(out)
+    assert root.apps.sonarr is not None
+    assert root.apps.sonarr.main is not None
+    instance = root.apps.sonarr.main
+
+    client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    result = reconcile_sonarr(client2, instance, dry_run=True)
+
+    non_noop = [p for p in result.plan if p.action != Action.NO_OP]
+    assert non_noop == [], (
+        f"Round-trip with REDACTED credentials violated: "
+        f"{[(p.action.value, p.name, p.diff_fields) for p in non_noop]}"
+    )
+    assert result.actions_taken == []
+    assert post_route.call_count == 0
+    assert put_route.call_count == 0
+    assert delete_route.call_count == 0
+    assert post_tag_route.call_count == 0
+
+
 def test_committed_baseline_yaml_loads() -> None:
     """examples/baseline-sonarr.yml must be a valid arrconf config (D-11 round-trip artifact)."""
     baseline = Path(__file__).parent.parent.parent.parent / "examples/baseline-sonarr.yml"
