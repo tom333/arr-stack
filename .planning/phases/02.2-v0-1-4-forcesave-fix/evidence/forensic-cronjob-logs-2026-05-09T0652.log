@@ -1,0 +1,69 @@
+=== Forensic CronJob Log Aggregation — Phase 02.2 Auth Regression ===
+Compiled: 2026-05-09T065229Z
+Context: Sonarr 'Test' button on qBit downloadclient returns 401/403 after v0.1.4 deploy (Task 6.4 visual gate FAILED)
+
+Live cron pod logs from CronJob's last successful run are GONE — Plan 06 deleted the smoke + drift-demo Jobs as part of cleanup steps. The job-pod logs survive ONLY as evidence files captured at the time.
+
+CronJob status at recovery time:
+spec.suspend=true
+status.lastScheduleTime=2026-05-09T01:00:00Z
+status.lastSuccessfulTime=2026-05-09T06:02:44Z
+
+==========================================================================
+=== EVIDENCE 1: post-deploy-smoke-2026-05-09.log (Plan 06 Task 6.1)
+=== Capture time: 2026-05-09T05:55:17Z (the FIRST v0.1.4 forced smoke)
+==========================================================================
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-09T05:55:17.708249Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-09T05:55:17.711632Z"}
+{"name": "username", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T05:55:17.711729Z"}
+{"name": "password", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T05:55:17.711756Z"}
+{"path": "/downloadclient", "id": 1, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-09T05:55:17.711789Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-09T05:55:17.751154Z"}
+
+==========================================================================
+=== EVIDENCE 2: drift-demo-2026-05-09.log (Plan 06 Task 6.3)
+=== Capture time: 2026-05-09T06:02:39Z (the FULLY-AUTOMATED drift demo)
+==========================================================================
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-09T06:02:39.837954Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields", "priority"], "event": "plan_action", "level": "info", "timestamp": "2026-05-09T06:02:39.840836Z"}
+{"name": "username", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T06:02:39.840947Z"}
+{"name": "password", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T06:02:39.840977Z"}
+{"path": "/downloadclient", "id": 1, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-09T06:02:39.841007Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-09T06:02:39.978972Z"}
+
+# === DRIFT-DEMO DISPOSITIVE COMPARISON (Phase 02.2 — FULLY AUTOMATED) ===
+# original_priority: 1
+# drifted_priority:  5
+# restored_priority: 1
+# match (restored == original): YES
+# manual_nudge_used: NO (vs Phase 2.1 which used a manual ?forceSave=true curl)
+# put_force_save_used events fired: 1
+# plan_action update events: 1
+# HTTP 400 events: 0
+
+==========================================================================
+=== FORENSIC ANALYSIS
+==========================================================================
+
+Both v0.1.4 PUT events (05:55Z smoke + 06:02Z drift-demo) emitted:
+  - merge_field_preserved for BOTH username AND password (Phase 2.1 helper engaged correctly)
+  - put_force_save_used (the v0.1.4 trusted-controller bypass)
+  - apply_complete (HTTP 200 — Sonarr accepted the body)
+
+What this means in concert with the operator UAT failure:
+  1. Phase 2.1 helper preserved the API-mask '********' in the PUT body for the password field.
+  2. v0.1.4's _ArrV3Client.put() injected ?forceSave=true, instructing Sonarr to BYPASS pre-save validation.
+  3. Sonarr accepted the body, storing the password value as the literal '********' in its encrypted store.
+  4. Sonarr's GET-side serialization THEN returned '********' — but now this value is BOTH the API mask AND the stored value (indistinguishable from a 'normal' masked GET response).
+  5. When the operator clicked 'Test' in the UI, Sonarr decrypted the stored password ('********') and POSTed it as the literal credential to qBittorrent → qBit returned 401/403.
+
+This is the architectural risk explicitly accepted by ADR-8 — the trusted-controller bypass relies on the merge helper sending a CORRECT body. Phase 2.1's helper protects empty-string values by substituting cluster's stored value, but cluster's stored value IS the API mask — so the protection is circular for masked credential fields.
+
+The Plan 06 'snapshot diff is empty' check was load-bearing on Sonarr's GET, which returned the same '********' literal in both the BEFORE and AFTER snapshots. The GET serialization made the regression invisible to the snapshot diff.
+
+=== Cross-references ===
+  - ADR-8 (spec.md §11) — accepted bypass risk
+  - D-02.1-06 (Phase 2.1 deferred-items) — original architectural finding
+  - D-02.1-05 (Phase 2.1 deferred-items) — helper does not backfill cluster-only fields
+  - Phase 2.1 Lessons §'Sonarr's API masks privacy=password fields' + §'Sonarr GET serialization can return null'
+  - REQ-drift-detection — correction half is NOT cleanly closed; the v0.1.4 fix introduced a credential-overwrite regression
