@@ -23,7 +23,7 @@ Requirements for initial release. Each maps to a roadmap phase. IDs preserved fr
 ### Drift & reconciliation cluster
 
 - [ ] **REQ-config-as-code**: Toute la config visée par arrconf est exprimable dans `charts/arr-stack/files/arrconf.yml`. Aucune intervention UI après bootstrap (sauf bootstrap admin Jellyfin — REQ-bootstrap-exception). YAML validé contre `schemas/arrconf-schema.json` (CI bloque sinon).
-- [ ] **REQ-drift-detection**: Modification UI hors-Git détectée et corrigée au run suivant. Délai max = schedule du CronJob arrconf (Q3, recommandation initiale 6 h). Logs de drift visibles dans la sortie structurée JSON.
+- [x] **REQ-drift-detection**: Modification UI hors-Git détectée et corrigée au run suivant. Délai max = schedule du CronJob arrconf (Q3, recommandation initiale 6 h). Logs de drift visibles dans la sortie structurée JSON.
 - [ ] **REQ-bootstrap-exception**: 1ère obtention d'API key toujours via UI (Sonarr / Radarr / Prowlarr / Seerr / Jellyfin). Compte admin Jellyfin créé manuellement avant Phase 7. Variables d'env attendues : `SONARR_API_KEY`, `RADARR_API_KEY`, `PROWLARR_API_KEY`, `QBT_USER`, `QBT_PASS`, `SEERR_API_KEY`, `JELLYFIN_API_KEY`. Aucune lecture de fichier de secrets (uniquement env, injection K8s `envFrom: secretRef`).
 - [ ] **REQ-secret-management**: Tous les bootstrap secrets restent maîtrisés dans `my-kluster/secrets/` jusqu'à migration ESO globale. Aucun secret committé dans arr-stack. Migration ESO/Akeyless = Phase 8 (post-MVP, optionnelle).
 
@@ -98,7 +98,7 @@ Mapping `REQ-* → Phase`. Chaque requirement v1 mappé à exactement une phase 
 | REQ-prune-opt-in | Phase 1 | Pending |
 | REQ-managed-tag | Phase 1 | Pending |
 | REQ-test-coverage | Phase 1 | Pending |
-| REQ-drift-detection | Phase 2 | Pending |
+| REQ-drift-detection | Phase 2 | Complete |
 | REQ-bootstrap-exception | Phase 2 | Pending |
 | REQ-secret-management | Phase 2 | Pending |
 | REQ-configarr-coexistence | Phase 3 | Pending |

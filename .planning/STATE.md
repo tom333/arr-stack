@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: forceSave fix
 status: executing
-stopped_at: Phase 02.2 context gathered
-last_updated: "2026-05-09T03:07:25.697Z"
+stopped_at: "Plan 02.2-02 complete: TDD forceSave injection (_ArrV3Client mixin, RED 190ae47 + GREEN 4a24c5f)"
+last_updated: "2026-05-09T03:15:14.117Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 11
   completed_phases: 4
   total_plans: 21
-  completed_plans: 16
-  percent: 76
+  completed_plans: 17
+  percent: 81
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 02.2 (v0-1-4-forcesave-fix) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
 Last activity: 2026-05-09
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 81%
 
 ### Phase 2 final state
 
@@ -161,6 +161,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 
 *Updated after each plan completion*
 | Phase 02.2 P01 | 6 | 1 tasks | 26 files |
+| Phase 02.2 P02 | 4 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,9 @@ Quick reference:
 - **ADR-6** Snapshot baseline avant toute écriture
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
 - [Phase ?]: Phase 2.1 qBit auth workaround replayed cleanly for Phase 02.2
+- [Phase ?]: Option (b) _ArrV3Client mixin chosen over class flag (a) and direct override (c) — explicit type hierarchy surfaces *arr v3 scope at the type level, qBit/Jellyfin inherit from ArrApiClient directly (D-02.2-02 implementation choice)
+- [Phase ?]: URL-params assertion idiom (request.url.params[key]) introduced in test_reconcilers_sonarr.py — first in-tree usage; Phase 3 RadarrClient/ProwlarrClient regression contract follows this shape
+- [Phase ?]: PUT URL respx regex must permit optional query string (regex \d+(?:\?.*)?\$) — Phase 02.2 GREEN required relaxing 2 existing UPDATE-test regexes; documented as future-proof pattern for any *arr v3 PUT route
 
 ### Pending Todos
 
@@ -209,8 +213,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-09T03:07:10.799Z
-Stopped at: Phase 02.2 context gathered
+Last session: 2026-05-09T03:15:14.107Z
+Stopped at: Plan 02.2-02 complete: TDD forceSave injection (_ArrV3Client mixin, RED 190ae47 + GREEN 4a24c5f)
 Resume file: None
 
 ### Phase 2.1 plan summary
