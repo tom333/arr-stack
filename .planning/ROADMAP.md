@@ -100,13 +100,21 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 ### Phase 02.2: v0.1.4 forceSave fix (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Ship `v0.1.4` of arrconf adding `?forceSave=true` to every UPDATE PUT for *arr v3 clients (Sonarr/Radarr/Prowlarr) via a new `_ArrV3Client(ArrApiClient)` intermediate class in `tools/arrconf/arrconf/client_base.py`. Closes the architectural finding D-02.1-06 from Phase 2.1: Sonarr's `merge_fields_for_put` faithfully preserves the API mask `********` for `privacy=password` fields; without `forceSave=true`, Sonarr's pre-save validation re-authenticates against the literal `********` and rejects the PUT with HTTP 400 on any real-change PUT. Add ADR-8 to `spec.md` §11 documenting the trusted-controller stance. Cut `v0.1.4` annotated tag → CI builds GHCR image → atomic single-line PR in my-kluster bumping `image.tag: 0.1.3 → 0.1.4`. Re-execute Phase 2.1's drift demo runbook FULLY AUTOMATED (no operator manual `?forceSave=true` curl nudge) — the differential against Phase 2.1's closure is the dispositive proof that v0.1.4 closes the correction half of REQ-drift-detection cleanly. Required prerequisite before Phase 3 (Radarr/Prowlarr automated drift correction would face the identical 400 failure mode).
+
+**Requirements**: REQ-drift-detection (correction half — closes cleanly here via fully-automated reconcile, replacing Phase 2.1's manual-nudge closure)
+
 **Depends on:** Phase 2.1
-**Plans:** 0 plans
+
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 02.2 to break down)
+- [ ] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
+- [ ] 02.2-02-PLAN.md — Wave 2: TDD RED+GREEN — _ArrV3Client mixin + put_force_save_used event + 3 tests (UPDATE positive + ADD/DELETE defensive negative)
+- [ ] 02.2-03-PLAN.md — Wave 2: ADR-8 in spec.md §11 — trusted-controller stance documenting forceSave bypass (parallel to Plan 02)
+- [ ] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
+- [ ] 02.2-05-PLAN.md — Wave 4: my-kluster PR — image.tag bump 0.1.3 → 0.1.4 (suspend CronJob during merge window; placeholders STAY per Phase 2.1 PR4)
+- [ ] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED (W-01 forensic snapshot + W-04 dispositive RESTORED == ORIGINAL value-equality, NO operator nudge — closes REQ-drift-detection correction half cleanly)
 
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.
@@ -204,7 +212,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
 | 2.1. Field-merge fix for sensitive YAML values | 4/4 | Complete   | 2026-05-09 |
-| 2.2. v0.1.4 forceSave fix (INSERTED) | 0/TBD | Not started | - |
+| 2.2. v0.1.4 forceSave fix (INSERTED) | 0/6 | Not started | - |
 | 3. Étendre arrconf | 0/TBD | Not started | - |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/TBD | Not started | - |
