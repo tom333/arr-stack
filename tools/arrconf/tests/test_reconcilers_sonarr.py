@@ -5,6 +5,7 @@ All HTTP mocked via respx (D-20). Coverage gate ≥ 70 % on the module.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import httpx
@@ -122,17 +123,28 @@ def test_update_existing_download_client(
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
-def test_update_preserves_redacted_credentials_in_put_body(
+def test_update_omits_privacy_credential_fields_from_put_body(
     respx_mock: respx.MockRouter,
     sonarr_downloadclient_fixture: list[dict[str, Any]],
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
-    """Regression — replays Phase 2 PR2 PUT 400 (D-31).
+    """Integration regression — v0.1.5 / D-02.2-AUTH-REGRESSION / ADR-8.1.
 
-    Cluster fixture has username='admin' and password='***REDACTED***'.
-    Desired YAML has empty values for both (mirrors my-kluster pre-D-36 shape).
-    Reconciler runs dry_run=False — PUT body MUST carry cluster's credentials,
-    NOT the empty values from YAML.
+    Inverts the v0.1.3 contract (which asserted username/password VALUES
+    survive into the PUT body via Phase 2.1's merge_fields_for_put substitution).
+    v0.1.5 (Plan 08 GREEN) instead OMITS entries whose cluster-side privacy
+    metadata is `password` or `userName`. Sonarr preserves stored values
+    when fields are absent from the PUT body — safer than substituting the
+    API mask `"********"` which v0.1.4's `?forceSave=true` would accept
+    verbatim and overwrite the real credential.
+
+    This test asserts the unit-level contract (Plan 07 / Plan 08
+    test_differ.py) holds at the reconciler-integration level: the PUT body
+    actually sent over respx has no credential entries.
+
+    Plan 02 forceSave URL-param tests verify `?forceSave=true` is still set
+    on this same UPDATE — the merge-layer omission and the HTTP-layer bypass
+    are independent layered defenses.
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
     respx_mock.get("/downloadclient").mock(
@@ -171,18 +183,33 @@ def test_update_preserves_redacted_credentials_in_put_body(
 
     assert put_route.call_count == 1
     body = put_route.calls.last.request.content.decode()
-    # Cluster's username "admin" + password "***REDACTED***" MUST survive into PUT body:
-    assert '"value":"admin"' in body or '"value": "admin"' in body, (
-        "username value 'admin' must be preserved from cluster (D-31)"
+    body_json = json.loads(body)
+    field_names = {f["name"] for f in body_json.get("fields", [])}
+
+    # v0.1.5 / D-02.2-AUTH-REGRESSION contract: privacy=password|userName fields
+    # are OMITTED from the PUT body. Sonarr preserves stored values via absence.
+    assert "password" not in field_names, (
+        "v0.1.5: privacy=password field must be OMITTED from PUT body, "
+        "NOT substituted with cluster mask (D-02.2-AUTH-REGRESSION / ADR-8.1)"
     )
-    assert '"value":"***REDACTED***"' in body or '"value": "***REDACTED***"' in body, (
-        "password value '***REDACTED***' must be preserved from cluster (D-31)"
+    assert "username" not in field_names, (
+        "v0.1.5: privacy=userName field must be OMITTED from PUT body, "
+        "NOT substituted with cluster value (uniform omit-by-metadata strategy)"
     )
-    # Empty values from YAML for username/password MUST NOT have leaked through:
-    assert '"name":"username","value":""' not in body
-    assert '"name": "username", "value": ""' not in body
-    assert '"name":"password","value":""' not in body
-    assert '"name": "password", "value": ""' not in body
+
+    # Non-credential fields ARE present (host, port, tvCategory carry through normally):
+    assert "host" in field_names, "non-credential field 'host' must remain in PUT body"
+    assert "port" in field_names, "non-credential field 'port' must remain in PUT body"
+    assert "tvCategory" in field_names, "non-credential field 'tvCategory' must remain in PUT body"
+
+    # The API mask token must NOT appear ANYWHERE in the body (defensive against
+    # any future leak path):
+    assert "********" not in body, (
+        "API mask must not appear in PUT body — credentials must be omitted, not masked"
+    )
+    assert "***REDACTED***" not in body, (
+        "in-tree redaction token must not appear in PUT body — credentials omitted"
+    )
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
