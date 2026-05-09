@@ -4,14 +4,14 @@ milestone: v3.2.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 02.1 complete (Plan 04 closure), ready for Phase 3
-last_updated: "2026-05-09T00:35:00.000Z"
-last_activity: 2026-05-09 -- Phase 2.1 closed; Phase 2 success #4 SATISFIED + #5 detection-only (D-02.1-06 deferred); HUMAN-UAT #3 passed
+last_updated: "2026-05-09T01:18:46.321Z"
+last_activity: 2026-05-09 -- Phase 2.1 learnings extracted (6 decisions, 7 lessons, 6 patterns, 6 surprises)
 progress:
   total_phases: 10
   completed_phases: 4
-  total_plans: 19
+  total_plans: 15
   completed_plans: 15
-  percent: 79
+  percent: 100
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 2.1 (field-merge-fix) — COMPLETE
 Plan: 4 of 4 (closure)
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-09 -- Phase 2.1 closed; Phase 2 success #4 SATISFIED; HUMAN-UAT #3 passed
+Last activity: 2026-05-09 -- Phase 2.1 learnings extracted (6 decisions, 7 lessons, 6 patterns, 6 surprises)
 
 Progress: [██████████] 100% (Phase 2.1: 4/4 plans executed; total 15/19 plans)
 
