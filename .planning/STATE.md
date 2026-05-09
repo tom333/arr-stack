@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02.1 complete (Plan 04 closure), ready for Phase 3
-last_updated: "2026-05-09T01:18:46.321Z"
-last_activity: 2026-05-09 -- Phase 2.1 learnings extracted (6 decisions, 7 lessons, 6 patterns, 6 surprises)
+stopped_at: Phase 02.2 inserted (v0.1.4 forceSave fix — D-02.1-06 closure), awaiting /gsd-discuss-phase 02.2
+last_updated: "2026-05-09T02:55:00.000Z"
+last_activity: 2026-05-09 -- Phase 02.2 inserted after Phase 2.1 (URGENT)
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 4
   total_plans: 15
   completed_plans: 15
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 2.1 (field-merge-fix) — COMPLETE
-Plan: 4 of 4 (closure)
+Plan: 4 of 3 (closure)
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
 Last activity: 2026-05-09 -- Phase 2.1 learnings extracted (6 decisions, 7 lessons, 6 patterns, 6 surprises)
 
@@ -162,6 +162,10 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 *Updated after each plan completion*
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 02.2 inserted after Phase 2.1: v0.1.4 forceSave fix — D-02.1-06 closure (URGENT)
 
 ### Decisions
 

@@ -16,7 +16,8 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code (completed 2026-05-08, 3 human-UAT items pending in 01-HUMAN-UAT.md)
 - [x] **Phase 2: Validation cluster** - Premier déploiement arrconf en CronJob `selfhost` (`ARRCONF_DRY_RUN=true` au 1er run), bascule en apply après validation des logs, drift detection prouvée — completed 2026-05-08 with **partial success criteria** (success #1-#3 ✅; #4 PARTIAL — arrconf-managed tag created in Sonarr but PUT downloadclient blocked by Phase 1 design issue: empty username/password in YAML overwrites real qBit credentials, Sonarr 400; #5 UNTESTED — drift demo deferred). CronJob currently suspended in cluster pending Phase 2.1/3 fix. See `.planning/phases/02-arrconf-cluster-validation/02-05-SUMMARY.md`.
 - [x] **Phase 2.1: Field-merge fix for sensitive YAML values** - Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so PUT body preserves cluster-stored field values when YAML value is `""` or for well-known sensitive field names. Re-run Plan 02-05 Tasks 5.1c + 5.2 (drift demo) for closure. Closes Phase 1 HUMAN-UAT #3. (completed 2026-05-09)
-- [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 fix)
+- [ ] **Phase 2.2: v0.1.4 forceSave fix (INSERTED)** - Add `?forceSave=true` query param to arrconf's UPDATE-branch PUT in `client_base.py` / `reconcilers/sonarr.py` so Sonarr does not re-validate the API-mask `"********"` against qBit on every real field change. Closes D-02.1-06 architectural finding from Phase 2.1 — required prerequisite before Phase 3 (Radarr/Prowlarr) automated drift correction.
+- [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 + 2.2 fix)
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
 - [ ] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants
 - [ ] **Phase 6: Reconciler Seerr** - Validation Q1 (compat API Seerr vs Overseerr/Jellyseerr) + Q10 (routing tags), reconciler `seerr.py` (services connectés, users, requests config)
@@ -96,6 +97,16 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] 02.1-03-PLAN.md — Wave 3: Release v0.1.3 + PR3 in my-kluster + post-deploy smoke job (D-36/D-37)
 - [x] 02.1-04-PLAN.md — Wave 4: Re-execute Plan 02-05 Tasks 5.1c + 5.2 + close HUMAN-UAT #3 + STATE.md update (D-34)
 **Open questions to resolve**: (none — D-31..D-37 tranchés en discuss-phase 2026-05-08)
+
+### Phase 02.2: v0.1.4 forceSave fix (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 2.1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 02.2 to break down)
 
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.
@@ -193,6 +204,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
 | 2.1. Field-merge fix for sensitive YAML values | 4/4 | Complete   | 2026-05-09 |
+| 2.2. v0.1.4 forceSave fix (INSERTED) | 0/TBD | Not started | - |
 | 3. Étendre arrconf | 0/TBD | Not started | - |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/TBD | Not started | - |
