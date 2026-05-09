@@ -106,13 +106,13 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [x] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
 - [x] 02.2-02-PLAN.md — Wave 2: TDD RED+GREEN — _ArrV3Client mixin + put_force_save_used event + 3 tests (UPDATE positive + ADD/DELETE defensive negative)
 - [x] 02.2-03-PLAN.md — Wave 2: ADR-8 in spec.md §11 — trusted-controller stance documenting forceSave bypass (parallel to Plan 02)
-- [ ] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
+- [x] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
 - [ ] 02.2-05-PLAN.md — Wave 4: my-kluster PR — image.tag bump 0.1.3 → 0.1.4 (suspend CronJob during merge window; placeholders STAY per Phase 2.1 PR4)
 - [ ] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED (W-01 forensic snapshot + W-04 dispositive RESTORED == ORIGINAL value-equality, NO operator nudge — closes REQ-drift-detection correction half cleanly)
 

@@ -4,14 +4,14 @@ milestone: v3.2.0
 milestone_name: forceSave fix
 status: executing
 stopped_at: "Plan 02.2-03 complete: ADR-8 trusted-controller appended to spec.md §11 (commit 571d9a1)"
-last_updated: "2026-05-09T03:30:00.000Z"
+last_updated: "2026-05-09T03:28:39.247Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 11
   completed_phases: 4
   total_plans: 21
-  completed_plans: 18
-  percent: 86
+  completed_plans: 19
+  percent: 90
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 02.2 (v0-1-4-forcesave-fix) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
 Last activity: 2026-05-09
 
-Progress: [████████▌░] 86%
+Progress: [█████████░] 90%
 
 ### Phase 2 final state
 
@@ -163,6 +163,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 | Phase 02.2 P01 | 6 | 1 tasks | 26 files |
 | Phase 02.2 P02 | 4 | 2 tasks | 2 files |
 | Phase 02.2 P03 | 1 | 1 tasks | 1 files |
+| Phase 02.2 P04 | 5 | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,8 @@ Quick reference:
 - [Phase ?]: URL-params assertion idiom (request.url.params[key]) introduced in test_reconcilers_sonarr.py — first in-tree usage; Phase 3 RadarrClient/ProwlarrClient regression contract follows this shape
 - [Phase ?]: PUT URL respx regex must permit optional query string (regex \d+(?:\?.*)?\$) — Phase 02.2 GREEN required relaxing 2 existing UPDATE-test regexes; documented as future-proof pattern for any *arr v3 PUT route
 - [Phase 02.2 P03]: ADR-8 added to spec.md §11 — "arrconf is a trusted controller — bypasses *arr UI-grade pre-save validation via ?forceSave=true on UPDATE PUTs" (D-02.2-04 closed); Conséquences explicitly scopes qBittorrent (Phase 5) + Jellyfin (Phase 7) OUT of forceSave; bidirectional traceability ADR ↔ `_ArrV3Client.put()` ↔ D-02.1-06 ↔ commit 4a24c5f (Plan 02 GREEN); ADRs 1-7 not renumbered (append-only convention)
+- [Phase ?]: Plan 02.2-04: v0.1.4 annotated tag (object 7abc581 → commit 7e5770d) cut + pushed; CI run 25590328939 succeeded in 31s; ghcr.io/tom333/arr-stack-arrconf:0.1.4 (digest sha256:1e7e60c4...d6054a, ~146 MiB, USER 1000:1000) verified anonymously pullable; D-37 atomic-tag pattern observed; Plan 05 my-kluster chart bump unblocked
+- [Phase ?]: Plan 02.2-04: GHCR anonymous manifest probe must include OCI index Accept type (application/vnd.oci.image.index.v1+json) — single-platform builds wrap in 1-entry index; legacy Docker manifest.v2-only Accept returns 404. Pattern updated for Phase 3 release verification.
 
 ### Pending Todos
 
@@ -215,7 +218,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-09T03:30:00.000Z
+Last session: 2026-05-09T03:28:29.914Z
 Stopped at: Plan 02.2-03 complete: ADR-8 trusted-controller appended to spec.md §11 (commit 571d9a1)
 Resume file: None
 
