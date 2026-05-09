@@ -876,6 +876,32 @@ Conservation dans `my-kluster` :
 **Alternatives rejetées** :
 - **Multi-instance** (sonarr-tv, sonarr-anime, sonarr-family + radarr-movies, radarr-anime, radarr-family) : coût ressource × 3 et complexité GitOps significative pour un bénéfice d'isolation marginal en homelab. À reconsidérer uniquement si la BDD unique sature ou si Q10 conclut que Seerr ne peut pas router par tag.
 
+### ADR-8 — arrconf is a trusted controller — bypasses *arr UI-grade pre-save validation
+
+**Contexte** : Sonarr (et par extension Radarr/Prowlarr en *arr v3+) effectue une pré-validation côté serveur sur tout PUT modifiant une ressource avec credentials (download_client.password, indexer.apiKey, etc.). Cette pré-validation est conçue pour rattraper les misconfigs UI : elle re-authentifie contre le service externe (qBittorrent, indexer) en utilisant la valeur littérale du champ. Côté arrconf, le helper `merge_fields_for_put` (Phase 2.1, D-31) préserve le mask `********` pour les champs `privacy=password` parce que arrconf YAML ne porte jamais de vrai secret (CLAUDE.md "Variables d'environnement"). Résultat : le PUT atomique d'arrconf échoue en 400 dès qu'un champ top-level change vraiment, parce que Sonarr essaie d'auth qBit avec `********` comme mot de passe.
+
+**Décision** : tout client *arr v3 d'arrconf (Sonarr, Radarr, Prowlarr) envoie systématiquement `?forceSave=true` sur les PUT UPDATE. Cela demande à Sonarr de skipper la pré-validation et d'écrire la ressource telle quelle. arrconf est un **trusted controller** — le scénario que la pré-validation protège (humain qui se trompe via UI) ne s'applique pas. L'implémentation vit au layer HTTP client (`_ArrV3Client.put()` dans `tools/arrconf/arrconf/client_base.py`) — Phase 3's `RadarrClient` et `ProwlarrClient` héritent par construction.
+
+**Raisons** :
+- arrconf a déjà décidé qu'un changement réel est nécessaire via son propre `diff` (idempotence golden rule, CLAUDE.md)
+- Le body PUT est construit pour préserver les credentials du cluster par design (D-31/D-32 — value-based merge contract de Phase 2.1)
+- Le pre-save validation Sonarr est une pré-validation UX pour utilisateurs humains ; arrconf n'est pas un humain
+- Sans `forceSave=true`, la moitié correction de REQ-drift-detection est inatteignable sans intervention opérateur manuelle (constaté Phase 2.1 W-04 dispositive — D-02.1-06)
+- Centraliser au layer HTTP client (D-02.2-02) plutôt qu'au layer reconciler évite le mode d'échec "j'ai oublié le kwarg" pour Phase 3+
+
+**Conséquences** :
+- Un nouveau log event `put_force_save_used` (event=info, payload `{path, id}`) est émis à chaque UPDATE PUT — auditable côté cluster JSON logs aux côtés de `merge_field_preserved` et `plan_action`
+- Phase 3 Radarr/Prowlarr héritent par construction du comportement (intermediate class `_ArrV3Client`) — pas de discipline contributeur
+- qBittorrent (Phase 5) et Jellyfin (Phase 7) ont des sémantiques PUT différentes ; ils restent **OUT OF SCOPE** de `forceSave` (leur classe parent reste `ArrApiClient` directement, pas `_ArrV3Client`)
+- Si Sonarr introduit un jour un check pre-save vraiment utile, arrconf le skippera. Trade-off acceptable : les checks utiles seraient une régression upstream, pas une feature ; on les détectera par la perte d'idempotence (qui resterait visible dans les logs `plan_action`)
+- Le trigger est l'action (UPDATE), pas le contenu du body — ADD (POST) et DELETE ne portent pas `forceSave`
+
+**Alternatives rejetées** :
+- **Trigger conditionnel sur mask dans body** (Option B de D-02.1-06) : ajoute un body scan + maintenance d'un alphabet de mask Sonarr (`********`, `***REDACTED***`, autres ?) — coût de maintenance inutile pour un gain de sécurité négligeable (la pré-validation étant inutile dans le contexte arrconf de toute façon)
+- **Trigger conditionnel sur événements `merge_field_preserved` émis** : couple le layer HTTP au layer merge — inversion de responsabilité
+- **Override au layer reconciler `_execute`** : crée une discipline par-reconciler ("n'oublie pas `params={"forceSave": "true"}`") — exactement le mode d'échec qu'on veut éviter pour Phase 3
+- **Class flag `force_save_on_put: bool`** sur `ArrApiClient` (Option a) : plus court mais inverse le défaut — qBit/Jellyfin doivent se rappeler de remettre `False`. Le sous-typage explicite (`_ArrV3Client`) est plus auto-documenté pour Phase 5/7 contributeurs
+
 ---
 
 ## 12. Références
