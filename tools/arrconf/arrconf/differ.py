@@ -94,15 +94,54 @@ def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]
     Generic over ``T: BaseModel`` so Phase 3 Radarr/Prowlarr reconcilers can reuse it
     unchanged (D-33). Returns a dict ready for ``client.put(path, id=..., json=body)``;
     read-only fields (D-21) are excluded from the body, so callers must re-inject ``id``.
+
+    v0.1.5 / D-02.2-AUTH-REGRESSION (ADR-8.1 refinement): if the cluster-side
+    field metadata indicates a credential field (``privacy == "password"`` or
+    ``"userName"``), the entry is OMITTED from the merged body entirely instead
+    of being substituted with cluster's stored value. Sonarr's GET serializes
+    credential fields with the API mask ``"********"``; substituting that mask
+    into the PUT body (which v0.1.4's ``?forceSave=true`` then accepts verbatim)
+    would overwrite the real stored credential with the literal mask token —
+    the regression that triggered Plan 02.2 v0.1.5 hotfix. Sonarr preserves
+    stored values when fields are absent, so omission is safer than passthrough.
+    Emits ``merge_field_omitted_credential`` for cluster audit trails.
+
+    Ordering invariant (T-02.2-08-02): the omit-credential branch MUST execute
+    BEFORE the empty-value preserve-cluster branch in the per-field loop. The
+    BEHAVIORAL test test_merge_fields_omits_privacy_password_when_value_is_in_tree_redacted_mask
+    exercises a non-empty cluster value (``"***REDACTED***"``) that would
+    otherwise hit the substitute branch first if the ordering broke.
     """
     cur_dump = current.model_dump(exclude_none=True)
     des_dump = desired.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
     cur_by_name = {f["name"]: f for f in cur_dump.get("fields", [])}
+    # v0.1.5 / D-02.2-AUTH-REGRESSION: build a parallel privacy lookup directly from
+    # the pydantic model instances. ``FieldKV.privacy`` is declared with ``exclude=True``
+    # (it is UI metadata not meant to round-trip into PUT bodies), so it does NOT appear
+    # in ``cur_dump`` — but it IS stored on the model and is the load-bearing signal for
+    # the omit-by-metadata strategy below. Reading it from ``current.fields`` keeps the
+    # fix minimal-surface and avoids changing the FieldKV exclude policy.
+    cur_privacy_by_name: dict[str, str | None] = {
+        f.name: f.privacy for f in getattr(current, "fields", [])
+    }
     merged_fields: list[dict[str, Any]] = []
     for des_f in des_dump.get("fields", []):
+        cur_f = cur_by_name.get(des_f["name"])
+        cur_privacy = cur_privacy_by_name.get(des_f["name"])
+        # v0.1.5 / D-02.2-AUTH-REGRESSION: omit credential fields entirely (Option A).
+        # Sonarr preserves stored values when a field is absent from the PUT body —
+        # safer than substituting the API mask "********" via the merge_field_preserved
+        # branch below. Audit event payload is metadata-only ({name, privacy}); the
+        # field VALUE is never logged (T-02.2-08-01).
+        if cur_privacy in ("password", "userName"):
+            log.info(
+                "merge_field_omitted_credential",
+                name=des_f["name"],
+                privacy=cur_privacy,
+            )
+            continue
         v = des_f.get("value")
         if v == "" or v is None:
-            cur_f = cur_by_name.get(des_f["name"])
             if cur_f is not None and cur_f.get("value") not in ("", None):
                 merged = dict(des_f)
                 merged["value"] = cur_f["value"]

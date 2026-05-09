@@ -333,3 +333,52 @@ def test_merge_fields_preserves_non_credential_empty_yaml_passthrough() -> None:
     assert merged_by_name["host"]["value"] == "qb.local"
     assert "tvCategory" in merged_by_name
     assert merged_by_name["tvCategory"]["value"] == "sonarr"
+
+
+def test_merge_field_omitted_credential_event_payload_excludes_value(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """T-02.2-08-01: event payload is metadata-only ({name, privacy}). The
+    credential VALUE must NEVER appear in the structlog output — even though
+    the value is the API mask ``"********"`` (no real credential is exposed),
+    the discipline is "no credential values in logs, ever."
+
+    structlog is configured (``arrconf/logging.py``) to write to stdout via
+    PrintLogger (JSON when non-TTY, ConsoleRenderer when TTY). pytest's
+    ``capsys`` is the right primitive for this guard — ``caplog`` only sees
+    stdlib ``logging`` records, which structlog does not emit by default.
+    """
+    in_tree = json.loads((_FIXTURE_ROOT_V0_1_5 / "sonarr/downloadclient.json").read_text())
+    current = DownloadClient.model_validate(in_tree[0])
+
+    desired_payload = dict(in_tree[0])
+    desired_payload["fields"] = [
+        {"name": "host", "value": "qb.local"},
+        {"name": "username", "value": ""},
+        {"name": "password", "value": ""},
+    ]
+    desired_payload["tags"] = [1]
+    desired = DownloadClient.model_validate(desired_payload)
+
+    merge_fields_for_put(current, desired)
+
+    captured = capsys.readouterr()
+    combined = captured.out + captured.err
+
+    # At least 2 events emitted (one for username, one for password).
+    omit_count = combined.count("merge_field_omitted_credential")
+    assert omit_count >= 2, (
+        f"Expected >=2 merge_field_omitted_credential events in log output, "
+        f"got {omit_count}. Captured:\n{combined}"
+    )
+
+    # No credential value, mask token, or redaction sentinel must appear in logs.
+    assert "********" not in combined, f"API mask leaked into log output: {combined}"
+    assert "***REDACTED***" not in combined, f"Redacted token leaked into log output: {combined}"
+    # Defensive: the literal cluster username "admin" must not flow either.
+    # Match it as a token to avoid false positives on substrings like 'administrator'.
+    for line in combined.splitlines():
+        if "merge_field_omitted_credential" in line:
+            assert "value=admin" not in line, f"username value leaked: {line}"
+            assert '"value": "admin"' not in line, f"username value leaked: {line}"
+            assert '"value":"admin"' not in line, f"username value leaked: {line}"
