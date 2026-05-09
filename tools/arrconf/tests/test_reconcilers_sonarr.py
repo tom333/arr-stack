@@ -99,9 +99,9 @@ def test_update_existing_download_client(
     respx_mock.get("/downloadclient").mock(
         return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
     )
-    put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$").mock(
-        return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"})
-    )
+    put_route = respx_mock.put(
+        url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
+    ).mock(return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"}))
 
     # Build desired identical to current but with priority=99
     desired_payload = dict(sonarr_downloadclient_fixture[0])
@@ -138,9 +138,9 @@ def test_update_preserves_redacted_credentials_in_put_body(
     respx_mock.get("/downloadclient").mock(
         return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
     )
-    put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$").mock(
-        return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"})
-    )
+    put_route = respx_mock.put(
+        url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
+    ).mock(return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"}))
 
     # Build desired YAML where username and password are EMPTY (mirrors my-kluster pre-D-36)
     desired_payload = dict(sonarr_downloadclient_fixture[0])
@@ -311,7 +311,7 @@ def test_dry_run_logs_no_writes(
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
-def test_update_passes_forceSave_query_param(
+def test_update_passes_forceSave_query_param(  # noqa: N802 — `forceSave` matches Sonarr API param literal (locked by D-02.2 plan)
     respx_mock: respx.MockRouter,
     sonarr_downloadclient_fixture: list[dict[str, Any]],
     sonarr_tag_managed_fixture: list[dict[str, Any]],
@@ -327,9 +327,9 @@ def test_update_passes_forceSave_query_param(
     respx_mock.get("/downloadclient").mock(
         return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
     )
-    put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$").mock(
-        return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"})
-    )
+    put_route = respx_mock.put(
+        url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
+    ).mock(return_value=httpx.Response(200, json={"id": 1, "name": "qBittorrent"}))
 
     # Trigger UPDATE by changing one field (priority is the canonical safe drift field per A6).
     desired_payload = dict(sonarr_downloadclient_fixture[0])
@@ -349,7 +349,7 @@ def test_update_passes_forceSave_query_param(
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
-def test_add_does_not_pass_forceSave_query_param(
+def test_add_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSave` matches Sonarr API param literal (locked by D-02.2 plan)
     respx_mock: respx.MockRouter,
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
@@ -373,7 +373,7 @@ def test_add_does_not_pass_forceSave_query_param(
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
-def test_delete_does_not_pass_forceSave_query_param(
+def test_delete_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSave` matches Sonarr API param literal (locked by D-02.2 plan)
     respx_mock: respx.MockRouter,
     sonarr_downloadclient_fixture: list[dict[str, Any]],
     sonarr_tag_managed_fixture: list[dict[str, Any]],

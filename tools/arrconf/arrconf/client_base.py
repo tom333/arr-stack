@@ -98,7 +98,33 @@ class ArrApiClient:
         self._request("DELETE", f"{path}/{id}", **kwargs)
 
 
-class SonarrClient(ArrApiClient):
+class _ArrV3Client(ArrApiClient):
+    """Common base for *arr v3 REST clients (Sonarr/Radarr/Prowlarr).
+
+    Always sends ``forceSave=true`` on UPDATE PUTs (D-02.2-01 / ADR-8).
+    arrconf is the trusted controller — Sonarr's UI-grade pre-save validation
+    (which re-authenticates against masked passwords) is a tax with no signal
+    value in our context.
+
+    Phase 3's RadarrClient and ProwlarrClient inherit from this class and
+    receive the forceSave behavior by construction (zero per-reconciler
+    discipline burden — D-02.2-02).
+    """
+
+    def put(self, path: str, id: int, json: Any, **kwargs: Any) -> Any:
+        """HTTP PUT /{path}/{id} with ``forceSave=true`` always set.
+
+        Caller-supplied ``params=`` wins on conflicts (uses ``setdefault``).
+        Emits ``put_force_save_used`` log event for cluster audit trails.
+        """
+        params = dict(kwargs.pop("params", None) or {})
+        params.setdefault("forceSave", "true")
+        kwargs["params"] = params
+        log.info("put_force_save_used", path=path, id=id)
+        return self._request("PUT", f"{path}/{id}", json=json, **kwargs).json()
+
+
+class SonarrClient(_ArrV3Client):
     """Sonarr REST client."""
 
     api_path = "/api/v3"  # D-03: Sonarr v4+ only — no multi-version dispatch in Phase 1
