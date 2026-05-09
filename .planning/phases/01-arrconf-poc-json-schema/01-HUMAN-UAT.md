@@ -3,7 +3,7 @@ status: partial
 phase: 01-arrconf-poc-json-schema
 source: [01-VERIFICATION.md]
 started: 2026-05-07T12:04:09Z
-updated: 2026-05-07T12:04:09Z
+updated: 2026-05-09T00:30:00Z
 ---
 
 ## Current Test
@@ -22,13 +22,13 @@ result: [pending]
 
 ### 3. Live round-trip against a real Sonarr instance
 expected: Against a running Sonarr v4+ instance (e.g. via `kubectl port-forward svc/sonarr 8989:8989`), `arrconf dump --apps sonarr > /tmp/live.yml` followed by `arrconf diff --config /tmp/live.yml --apps sonarr` reports zero drift (exit 0). Engine-level round-trip is already locked by the respx-mocked `test_round_trip_dump_apply_dry_run_is_noop`; this human check confirms it survives a live API. Belongs to Phase 2 (cluster validation) but listed here for traceability.
-result: [partial: Phase 2 Plan 02-05 ran apply against real Sonarr; `managed_tag_created` event emitted + arrconf-managed tag (id=1) created in Sonarr ✅. PUT downloadclient/1 then failed with HTTP 400 because YAML overwrites qBit credentials with `''` and Sonarr's pre-save validation can't authenticate to qBit. Phase 1 design issue: secrets cannot be safely represented in YAML. Tag stays orphan in Sonarr. Deferred to Phase 3 (or Phase 2.1 interrupt) — fix is to merge cluster's stored field values for sensitive/empty fields before PUT. See arr-stack/.planning/phases/02-arrconf-cluster-validation/02-05-SUMMARY.md §Root cause.]
+result: [passed: live round-trip 2026-05-09 — Plan 02.1-04 Task 4.3. Live `arrconf dump --apps sonarr` against the cluster Sonarr (kubectl port-forward 8989) produces 1277-byte YAML with `password: '********'` (Sonarr API mask, not a REDACTED leak — D-36 filter only drops literal `***REDACTED***` which Sonarr does not emit for download_client password fields). `arrconf diff --config <dump> --apps sonarr` exits 0 (no_drift event), proving REQ-idempotence reaffirmed end-to-end. PR3 apply Job (Plan 02.1-03) attached `arrconf-managed` tag id=1 to the qBit downloadclient (closes Phase 2 success #4). Drift detection demo (Plan 02.1-04 Task 4.2) captured `plan_action action=update` event but PUT 400 on credential re-validation — D-02.1-06 architectural finding documented in deferred-items.md, fix shipped in v0.1.4 via `?forceSave=true`. Evidence: .planning/phases/02.1-field-merge-fix/evidence/drift-demo-2026-05-09.log + snapshots/post-phase2.1-2026-05-09/ + snapshots/drift-test-2026-05-09/.]
 
 ## Summary
 
 total: 3
-passed: 1
-issues: 1
+passed: 2
+issues: 0
 pending: 1
 skipped: 0
 blocked: 0
