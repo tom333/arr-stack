@@ -106,7 +106,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 6 + 6 gap-closure plans (12 total) — Plans 01-05 complete; Plan 06 INCOMPLETE (visual gate FAILED); Plans 07-12 (gap-closure) created 2026-05-09 to ship v0.1.5 hotfix and close D-02.2-AUTH-REGRESSION
+**Plans:** 7/12 plans executed
 
 > **BLOCKER (2026-05-09T06:48:11Z):** Plan 02.2-06 visual gate FAILED. Sonarr "Test" on qBit downloadclient returns 401/403 after v0.1.4 deploy. The `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 helper) as the literal qBit password. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED. Phase 02.2 closure REJECTED until v0.1.5 hotfix ships. See `.planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md` D-02.2-AUTH-REGRESSION + Plan 06 SUMMARY §"Operator Visual Gate FAILED". Recommended next: `/gsd-plan-phase 02.2 --gaps`.
 
@@ -116,8 +116,8 @@ Plans:
 - [x] 02.2-03-PLAN.md — Wave 2: ADR-8 in spec.md §11 — trusted-controller stance documenting forceSave bypass (parallel to Plan 02)
 - [x] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
 - [x] 02.2-05-PLAN.md — Wave 4: my-kluster PR — image.tag bump 0.1.3 → 0.1.4 (suspend CronJob during merge window; placeholders STAY per Phase 2.1 PR4)
-- [ ] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED — **INCOMPLETE / FAILED at Task 6.4 visual gate (operator UAT)**. Tasks 6.1–6.3 automated dispositives PASSED (priority restored, `put_force_save_used` emitted, no HTTP 400, `manual_nudge_used: NO`); Task 6.4 detected the credential-side regression that priority-only checks could not surface. CronJob suspended; D-02.2-AUTH-REGRESSION opened.
-- [ ] 02.2-07-PLAN.md — Wave 6 (gap-closure): Pre-hotfix forensic snapshot baseline (ADR-6) + TDD RED test reproducing the credential-mask regression in tools/arrconf/tests/test_differ.py
+- [x] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED — **INCOMPLETE / FAILED at Task 6.4 visual gate (operator UAT)**. Tasks 6.1–6.3 automated dispositives PASSED (priority restored, `put_force_save_used` emitted, no HTTP 400, `manual_nudge_used: NO`); Task 6.4 detected the credential-side regression that priority-only checks could not surface. CronJob suspended; D-02.2-AUTH-REGRESSION opened.
+- [x] 02.2-07-PLAN.md — Wave 6 (gap-closure): Pre-hotfix forensic snapshot baseline (ADR-6) + TDD RED test reproducing the credential-mask regression in tools/arrconf/tests/test_differ.py
 - [ ] 02.2-08-PLAN.md — Wave 7 (gap-closure): TDD GREEN — Option A omit-by-privacy-metadata in differ.py:merge_fields_for_put + new merge_field_omitted_credential audit event + integration-test rewrite
 - [ ] 02.2-09-PLAN.md — Wave 7 (gap-closure, parallel to 08): ADR-8.1 refinement appended to spec.md §11 — documents v0.1.5 mitigation as append-only sub-section under existing ADR-8
 - [ ] 02.2-10-PLAN.md — Wave 8 (gap-closure): Release v0.1.5 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag, mirrors Plan 04)
