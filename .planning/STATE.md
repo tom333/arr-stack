@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: forceSave fix
-status: executing
-stopped_at: "Plan 02.2-06 complete: REQ-drift-detection correction half SATISFIED CLEANLY (FULLY AUTOMATED, no operator nudge); 3 commits (49fa7f8 evidence smoke, 4408884 snapshot post-deploy, 41f926d evidence drift FULL AUTO); Task 6.4 checkpoint awaits operator visual UI confirmation; ready for /gsd-verify-phase 02.2"
-last_updated: "2026-05-09T06:15:33.680Z"
+status: blocked
+stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened in deferred-items.md; Phase 02.2 BLOCKED on hotfix gap-closure plan (route to /gsd-plan-phase 02.2 --gaps); forensic snapshot snapshots/forensic-phase2.2-auth-regression-2026-05-09T0648/ + evidence/forensic-credentials-diff-2026-05-09T0651.txt + evidence/forensic-cronjob-logs-2026-05-09T0652.log captured"
+last_updated: "2026-05-09T06:55:00.000Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 11
   completed_phases: 5
   total_plans: 21
-  completed_plans: 21
-  percent: 100
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -25,12 +25,23 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 02.2 (v0-1-4-forcesave-fix) — EXECUTING
-Plan: 6 of 6 (final)
+Phase: 02.2 (v0-1-4-forcesave-fix) — **BLOCKED** (Plan 06 visual gate FAILED)
+Plan: 6 of 6 (final) — INCOMPLETE; Tasks 6.1–6.3 automated dispositives PASSED, Task 6.4 operator UAT FAILED
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-09
+Last activity: 2026-05-09T06:48:11Z (CronJob suspended) → 06:55Z (forensic + recovery artifacts committed)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 95% (Plan 06 incomplete; Phase 02.2 closure REJECTED until v0.1.5 hotfix)
+
+### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
+
+Sonarr's "Test" button on the qBit downloadclient returns 401/403 after v0.1.4 reconcile. Forensic shows the v0.1.4 `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 `merge_fields_for_put` helper) as the literal password value. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED at 2026-05-09T06:48:11Z. Recovery artifacts:
+
+- `snapshots/forensic-phase2.2-auth-regression-2026-05-09T0648/` (Sonarr 17 JSON + qBittorrent 8 files, redacted, anti-leak clean)
+- `.planning/phases/02.2-v0-1-4-forcesave-fix/evidence/forensic-credentials-diff-2026-05-09T0651.txt` (DISPOSITIVE: GET-side diff is EMPTY — proves the GET cannot detect the regression)
+- `.planning/phases/02.2-v0-1-4-forcesave-fix/evidence/forensic-cronjob-logs-2026-05-09T0652.log` (compiled smoke + drift logs showing `merge_field_preserved` + `put_force_save_used` + `apply_complete` chain)
+- Plan 06 SUMMARY §"Operator Visual Gate FAILED" + `deferred-items.md` D-02.2-AUTH-REGRESSION
+
+**Required next action:** route to `/gsd-plan-phase 02.2 --gaps` (or equivalent) to scope a hotfix plan that ships v0.1.5 with credential-aware merge (Option A omit / Option B mask-detect / Option C scope-forceSave), operator-driven Sonarr UI password re-entry, behavioral W-04 dispositive (Sonarr Test API HTTP 200), and re-run of Task 6.4.
 
 ### Phase 2 final state
 
@@ -198,6 +209,8 @@ Quick reference:
 - [Phase 02.2 P05]: PR merge style (squash vs merge-commit) is operator choice — both honored as non-deviation as long as +1/-1 file scope and PR title-in-commit-message audit anchor preserved.
 - [Phase 02.2]: drift-demo runbook FULLY AUTOMATED dispositive captured (RESTORED_PRIORITY=1 == ORIGINAL_PRIORITY=1, no operator nudge); REQ-drift-detection correction half SATISFIED CLEANLY; D-02.1-06 architectural finding LOCKED SHUT — differential proof against Phase 2.1 closure recorded as 'manual_nudge_used: NO' in evidence/drift-demo-2026-05-09.log DISPOSITIVE COMPARISON block
 - [Phase 02.2]: rtk token-saving CLI shim filters bare curl/jq/grep output (substitutes TypeScript-style schema or strips hex) — 'rtk proxy <cmd>' bypass is the documented escape hatch — pattern recorded for all future cluster-validation phases that capture raw API responses
+- [Phase 02.2 P06 RECOVERY]: ADR-8's accepted bypass risk realized in production — v0.1.4 `?forceSave=true` PUT + Phase 2.1 `merge_fields_for_put` helper combine to silently overwrite `privacy=password` fields with the API mask `"********"`. Detection requires BEHAVIORAL test (Sonarr Test API HTTP 200), NOT snapshot diff (GET-side serialization makes the regression invisible). Pattern recorded for v0.1.5 hotfix planning + Phase 3 prerequisite update — every reconciler that touches credential-bearing fields MUST include a post-PUT behavioral assertion in its W-04 dispositive contract.
+- [Phase 02.2 P06 RECOVERY]: `mv` is interactively-aliased on this workstation — rtk-proxied `jq | mv` patterns require explicit `mv -f` (or `\mv`) to bypass the prompt; without `-f` the .tmp output sits next to the original and the redaction silently fails the audit. Pattern recorded for all future per-snapshot redaction code paths.
 
 ### Pending Todos
 
@@ -211,7 +224,9 @@ None yet — projet vient d'être bootstrappé. Ouvertes mais non décidées : 1
 
 ### Blockers/Concerns
 
-None yet. Risque suivi à anticiper :
+- **D-02.2-AUTH-REGRESSION (HIGH, 2026-05-09T06:48:11Z)** — Plan 02.2-06 visual gate failed: Sonarr "Test" on qBit downloadclient returns 401/403; v0.1.4 `?forceSave=true` PUT stored API mask `"********"` as literal password (ADR-8 accepted-risk realized). CronJob `arrconf` SUSPENDED. Phase 02.2 cannot close until v0.1.5 hotfix ships + operator-driven cluster recovery + behavioral W-04 dispositive re-run. See deferred-items.md D-02.2-AUTH-REGRESSION for full required-action checklist.
+
+Risque suivi à anticiper :
 
 - **Q1 bloquante Phase 6** : si Seerr v3.2.0 a divergé de l'API Overseerr/Jellyseerr sur les endpoints critiques, Phase 6 doit être réévaluée (test à faire dès qu'on commence la phase, pas au milieu).
 
@@ -225,10 +240,10 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-09T06:15:33.668Z
-Stopped at: Plan 02.2-06 complete: REQ-drift-detection correction half SATISFIED CLEANLY (FULLY AUTOMATED, no operator nudge); 3 commits (49fa7f8 evidence smoke, 4408884 snapshot post-deploy, 41f926d evidence drift FULL AUTO); Task 6.4 checkpoint awaits operator visual UI confirmation; ready for /gsd-verify-phase 02.2
-Resume file: None
-Next plan: 02.2-06 (Wave 5 — cluster smoke + drift demo FULLY AUTOMATED — closes REQ-drift-detection correction half cleanly)
+Last session: 2026-05-09T06:55:00.000Z
+Stopped at: 2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)
+Resume file: .planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md (D-02.2-AUTH-REGRESSION) + Plan 06 SUMMARY §"Operator Visual Gate FAILED"
+Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
 

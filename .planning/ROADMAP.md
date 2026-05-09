@@ -106,7 +106,9 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 6/6 plans complete
+**Plans:** 5/6 plans complete — Plan 06 INCOMPLETE; Phase 02.2 BLOCKED on D-02.2-AUTH-REGRESSION
+
+> **BLOCKER (2026-05-09T06:48:11Z):** Plan 02.2-06 visual gate FAILED. Sonarr "Test" on qBit downloadclient returns 401/403 after v0.1.4 deploy. The `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 helper) as the literal qBit password. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED. Phase 02.2 closure REJECTED until v0.1.5 hotfix ships. See `.planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md` D-02.2-AUTH-REGRESSION + Plan 06 SUMMARY §"Operator Visual Gate FAILED". Recommended next: `/gsd-plan-phase 02.2 --gaps`.
 
 Plans:
 - [x] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
@@ -114,7 +116,7 @@ Plans:
 - [x] 02.2-03-PLAN.md — Wave 2: ADR-8 in spec.md §11 — trusted-controller stance documenting forceSave bypass (parallel to Plan 02)
 - [x] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
 - [x] 02.2-05-PLAN.md — Wave 4: my-kluster PR — image.tag bump 0.1.3 → 0.1.4 (suspend CronJob during merge window; placeholders STAY per Phase 2.1 PR4)
-- [x] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED (W-01 forensic snapshot + W-04 dispositive RESTORED == ORIGINAL value-equality, NO operator nudge — closes REQ-drift-detection correction half cleanly)
+- [ ] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED — **INCOMPLETE / FAILED at Task 6.4 visual gate (operator UAT)**. Tasks 6.1–6.3 automated dispositives PASSED (priority restored, `put_force_save_used` emitted, no HTTP 400, `manual_nudge_used: NO`); Task 6.4 detected the credential-side regression that priority-only checks could not surface. CronJob suspended; D-02.2-AUTH-REGRESSION opened.
 
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.
