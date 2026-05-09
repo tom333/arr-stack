@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
+
+import pytest
 
 from arrconf.differ import Action, diff_models, merge_fields_for_put, reconcile
 from arrconf.resources.sonarr.download_client import DownloadClient
@@ -143,3 +147,189 @@ def test_merge_when_cluster_field_missing() -> None:
     # No cluster value to preserve from; entry stays empty (caller handles downstream)
     by_name = {f["name"]: f.get("value") for f in merged["fields"]}
     assert by_name == {"password": ""}
+
+
+# --- v0.1.5 / D-02.2-AUTH-REGRESSION credential-mask omission contract -----------------
+# APPENDED in Plan 02.2-07 (RED → Plan 02.2-08 GREEN). The tests above this divider are
+# PRE-EXISTING (Phase 2.1 / Plan 02.2-02) and MUST NOT be modified. The 3 tests below
+# are the v0.1.5 contract: merge_fields_for_put must OMIT privacy=password|userName
+# entries from the merged PUT body (Sonarr preserves stored values via absence — safer
+# than substituting the API mask "********"). See ADR-8.1 (Plan 09).
+
+_FIXTURE_ROOT_V0_1_5 = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def sonarr_dc_with_real_mask() -> dict[str, Any]:
+    """Cluster GET response variant with the LITERAL production mask `"********"`.
+
+    The in-tree fixture uses `***REDACTED***` (the test-redaction substitute),
+    but the production cluster (forensic-credentials-diff-2026-05-09T0651.txt)
+    shows the real Sonarr API mask is `"********"`. Both must be omitted by
+    `merge_fields_for_put` after the v0.1.5 fix lands.
+    """
+    in_tree = json.loads((_FIXTURE_ROOT_V0_1_5 / "sonarr/downloadclient.json").read_text())
+    payload: dict[str, Any] = in_tree[0]
+    for f in payload["fields"]:
+        if f.get("privacy") in ("password", "userName"):
+            f["value"] = "********"
+    return payload
+
+
+def test_merge_fields_omits_privacy_password_when_value_is_api_mask(
+    sonarr_dc_with_real_mask: dict[str, Any],
+) -> None:
+    """RED — D-02.2-AUTH-REGRESSION: merge_fields_for_put MUST omit entries
+    whose CLUSTER-side privacy metadata is `password` or `userName`.
+
+    Trigger: cluster's stored value (as returned by Sonarr's GET) is the API
+    mask token `"********"`. If the merge helper substitutes that value into
+    the PUT body, Sonarr (with `?forceSave=true`) writes the literal mask as
+    the credential — overwriting the real password.
+
+    Behavior (post-fix): the merged body's `fields[]` list MUST NOT contain
+    ANY entry whose `name` is `password` or `username`. This test currently
+    FAILS because `merge_fields_for_put` consults only `name` (D-31/D-32
+    contract from Phase 2.1), not `privacy`. Plan 08 GREEN changes the helper
+    to consult `cur_f.privacy` and skip entries whose privacy is in
+    ("password", "userName").
+    """
+    current = DownloadClient.model_validate(sonarr_dc_with_real_mask)
+
+    desired_payload = dict(sonarr_dc_with_real_mask)
+    desired_payload["fields"] = [
+        {"name": "host", "value": "qbittorrent.selfhost.svc.cluster.local"},
+        {"name": "port", "value": 8080},
+        {"name": "useSsl", "value": False},
+        {"name": "urlBase", "value": ""},
+        {"name": "username", "value": ""},
+        {"name": "password", "value": ""},
+        {"name": "tvCategory", "value": "sonarr"},
+        {"name": "tvImportedCategory", "value": ""},
+        {"name": "recentTvPriority", "value": 0},
+        {"name": "olderTvPriority", "value": 0},
+        {"name": "initialState", "value": 0},
+        {"name": "sequentialOrder", "value": False},
+        {"name": "firstAndLast", "value": False},
+        {"name": "contentLayout", "value": 0},
+    ]
+    desired_payload["tags"] = [1]
+    desired = DownloadClient.model_validate(desired_payload)
+
+    merged_body = merge_fields_for_put(current, desired)
+
+    field_names = {f["name"] for f in merged_body.get("fields", [])}
+    assert "password" not in field_names, (
+        "RED — privacy=password field must be OMITTED from PUT body, NOT "
+        "substituted with cluster mask '********' (D-02.2-AUTH-REGRESSION)"
+    )
+    assert "username" not in field_names, (
+        "RED — privacy=userName field must be OMITTED from PUT body, NOT "
+        "substituted with cluster mask '********' (D-02.2-AUTH-REGRESSION)"
+    )
+
+    assert "host" in field_names
+    assert "port" in field_names
+    assert "tvCategory" in field_names
+
+    for f in merged_body.get("fields", []):
+        assert f.get("value") != "********", (
+            f"RED — merged body field {f['name']} carries API mask '********' — "
+            f"v0.1.5 fix must prevent ALL mask passthrough"
+        )
+
+
+def test_merge_fields_omits_privacy_password_when_value_is_in_tree_redacted_mask() -> None:
+    """RED — same contract, but exercises the in-tree fixture's `***REDACTED***`
+    substitute. Both equivalence-class members must be omitted. The fix must
+    consult the CLUSTER-side `privacy` metadata, NOT match against a
+    mask-alphabet — that's the architectural difference between Option A
+    (omit by metadata, chosen) and Option B (mask-token detect, rejected).
+
+    CRITICAL ordering invariant for Plan 08 (T-02.2-08-02): the omit-credential
+    branch MUST come BEFORE the existing empty-value-substitute-cluster branch
+    in the per-field loop. This test exercises a `cur_f.value="***REDACTED***"`
+    case (a non-empty cluster value) — a wrong-order helper would substitute
+    the redacted token THEN miss the omit branch, leaving "password" present
+    in the merged body. This test catches that ordering failure.
+    """
+    in_tree = json.loads((_FIXTURE_ROOT_V0_1_5 / "sonarr/downloadclient.json").read_text())
+    current = DownloadClient.model_validate(in_tree[0])
+
+    desired_payload = dict(in_tree[0])
+    desired_payload["fields"] = [
+        {"name": "host", "value": "qbittorrent.selfhost.svc.cluster.local"},
+        {"name": "port", "value": 8080},
+        {"name": "useSsl", "value": False},
+        {"name": "urlBase", "value": ""},
+        {"name": "username", "value": ""},
+        {"name": "password", "value": ""},
+        {"name": "tvCategory", "value": "sonarr"},
+        {"name": "tvImportedCategory", "value": ""},
+        {"name": "recentTvPriority", "value": 0},
+        {"name": "olderTvPriority", "value": 0},
+        {"name": "initialState", "value": 0},
+        {"name": "sequentialOrder", "value": False},
+        {"name": "firstAndLast", "value": False},
+        {"name": "contentLayout", "value": 0},
+    ]
+    desired_payload["tags"] = [1]
+    desired = DownloadClient.model_validate(desired_payload)
+
+    merged_body = merge_fields_for_put(current, desired)
+
+    field_names = {f["name"] for f in merged_body.get("fields", [])}
+    assert "password" not in field_names, (
+        "RED — privacy=password (in-tree '***REDACTED***') must be OMITTED"
+    )
+    assert "username" not in field_names, (
+        "RED — privacy=userName (in-tree 'admin') must be OMITTED. "
+        "Note: cluster's 'admin' is technically a real value, NOT a mask, "
+        "but the omit-by-privacy-metadata strategy treats ALL credential "
+        "fields uniformly — the absence-as-protection is the contract."
+    )
+
+
+def test_merge_fields_preserves_non_credential_empty_yaml_passthrough() -> None:
+    """Sanity (PASSING regression-guard) — the v0.1.5 fix MUST NOT regress
+    D-31/D-32 for non-credential fields. Empty YAML value + non-credential
+    cluster value still triggers the merge_field_preserved substitution.
+
+    Example: cluster.fields[name=tvCategory, value="sonarr",
+    privacy="normal"] + desired.fields[name=tvCategory, value=""] →
+    merged body MUST carry tvCategory=sonarr (not omit it). This is the
+    existing Phase 2.1 contract from `test_merge_preserves_cluster_value_when_yaml_empty`
+    but at a different angle (with explicit privacy=normal on the cluster
+    side); Plan 08 must preserve it.
+    """
+    cluster_payload: dict[str, Any] = {
+        "id": 1,
+        "name": "qBittorrent",
+        "enable": True,
+        "protocol": "torrent",
+        "priority": 1,
+        "implementation": "QBittorrent",
+        "configContract": "QBittorrentSettings",
+        "fields": [
+            {"name": "host", "value": "qb.local", "privacy": "normal"},
+            {"name": "tvCategory", "value": "sonarr", "privacy": "normal"},
+        ],
+        "tags": [1],
+        "removeCompletedDownloads": True,
+        "removeFailedDownloads": True,
+    }
+    desired_payload = dict(cluster_payload)
+    desired_payload["fields"] = [
+        {"name": "host", "value": ""},
+        {"name": "tvCategory", "value": ""},
+    ]
+    current = DownloadClient.model_validate(cluster_payload)
+    desired = DownloadClient.model_validate(desired_payload)
+
+    merged_body = merge_fields_for_put(current, desired)
+    merged_by_name = {f["name"]: f for f in merged_body["fields"]}
+
+    assert "host" in merged_by_name, "non-credential merge_field_preserved still required"
+    assert merged_by_name["host"]["value"] == "qb.local"
+    assert "tvCategory" in merged_by_name
+    assert merged_by_name["tvCategory"]["value"] == "sonarr"
