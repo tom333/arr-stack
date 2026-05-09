@@ -4,14 +4,14 @@ milestone: v3.2.0
 milestone_name: forceSave fix
 status: executing
 stopped_at: Phase 02.2 context gathered
-last_updated: "2026-05-09T02:04:06.944Z"
-last_activity: 2026-05-09 -- Phase 2.1 learnings extracted (6 decisions, 7 lessons, 6 patterns, 6 surprises)
+last_updated: "2026-05-09T03:07:25.697Z"
+last_activity: 2026-05-09
 progress:
   total_phases: 11
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_plans: 21
+  completed_plans: 16
+  percent: 76
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 2.1 — field-merge-fix
+**Current focus:** Phase 02.2 — v0-1-4-forcesave-fix
 
 ## Current Position
 
-Phase: 2.1 (field-merge-fix) — COMPLETE
-Plan: 4 of 3 (closure)
+Phase: 02.2 (v0-1-4-forcesave-fix) — EXECUTING
+Plan: 2 of 6
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-09 -- Phase 2.1 learnings extracted (6 decisions, 7 lessons, 6 patterns, 6 surprises)
+Last activity: 2026-05-09
 
-Progress: [██████████] 100% (Phase 2.1: 4/4 plans executed; total 15/19 plans)
+Progress: [████████░░] 76%
 
 ### Phase 2 final state
 
@@ -160,6 +160,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 02.2 P01 | 6 | 1 tasks | 26 files |
 
 ## Accumulated Context
 
@@ -180,6 +181,7 @@ Quick reference:
 - **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming)
 - **ADR-6** Snapshot baseline avant toute écriture
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
+- [Phase ?]: Phase 2.1 qBit auth workaround replayed cleanly for Phase 02.2
 
 ### Pending Todos
 
@@ -207,9 +209,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-09T02:04:06.932Z
+Last session: 2026-05-09T03:07:10.799Z
 Stopped at: Phase 02.2 context gathered
-Resume file: .planning/phases/02.2-v0-1-4-forcesave-fix/02.2-CONTEXT.md
+Resume file: None
 
 ### Phase 2.1 plan summary
 

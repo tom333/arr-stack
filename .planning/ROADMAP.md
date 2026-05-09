@@ -106,10 +106,10 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
-- [ ] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
+- [x] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
 - [ ] 02.2-02-PLAN.md — Wave 2: TDD RED+GREEN — _ArrV3Client mixin + put_force_save_used event + 3 tests (UPDATE positive + ADD/DELETE defensive negative)
 - [ ] 02.2-03-PLAN.md — Wave 2: ADR-8 in spec.md §11 — trusted-controller stance documenting forceSave bypass (parallel to Plan 02)
 - [ ] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
