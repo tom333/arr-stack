@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: forceSave fix
 status: executing
-stopped_at: "Plan 02.2-05 complete: my-kluster PR #1371 merged (bba9010636); cluster runs ghcr.io/tom333/arr-stack-arrconf:0.1.4 (ArgoCD Synced+Healthy); CronJob unsuspended"
-last_updated: "2026-05-09T05:42:00Z"
+stopped_at: "Plan 02.2-06 complete: REQ-drift-detection correction half SATISFIED CLEANLY (FULLY AUTOMATED, no operator nudge); 3 commits (49fa7f8 evidence smoke, 4408884 snapshot post-deploy, 41f926d evidence drift FULL AUTO); Task 6.4 checkpoint awaits operator visual UI confirmation; ready for /gsd-verify-phase 02.2"
+last_updated: "2026-05-09T06:15:33.680Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 11
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 21
-  completed_plans: 20
-  percent: 95
+  completed_plans: 21
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: 6 of 6 (final)
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
 Last activity: 2026-05-09
 
-Progress: [█████████▌] 95%
+Progress: [██████████] 100%
 
 ### Phase 2 final state
 
@@ -165,6 +165,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 | Phase 02.2 P03 | 1 | 1 tasks | 1 files |
 | Phase 02.2 P04 | 5 | 2 tasks | 0 files |
 | Phase 02.2 P05 | 130 | 2 tasks | 0 files (cross-repo: my-kluster PR #1371 +1/-1) |
+| Phase 02.2 P06 | 13min | 3 tasks | 44 files |
 
 ## Accumulated Context
 
@@ -195,6 +196,8 @@ Quick reference:
 - [Phase 02.2 P05]: my-kluster PR #1371 merged (merge commit bba9010636ec24c97e2419138e5974fe25a357d5, 2026-05-09T05:37:20Z) with atomic 1-line diff (charts/arrconf/values.yaml: tag "0.1.3"→"0.1.4"); ArgoCD selfHeal Synced+Healthy on revision matching merge commit SHA; live CronJob image=ghcr.io/tom333/arr-stack-arrconf:0.1.4 (DISPOSITIVE); CronJob unsuspended; hotfix-window discipline observed (suspend at 03:31:29Z → unsuspend at ~05:38Z, ~2h6m, 0 fires). Phase 2.1 PR4 hotfix decision honored (placeholders STAY — files/arrconf.yml NOT in PR file scope). Plan 06 unblocked.
 - [Phase 02.2 P05]: argocd CLI may be unavailable on operator workstation — kubectl-on-Application equivalent path is dispositive (`kubectl get application arrconf -n argocd -o jsonpath='{.status.sync.status} {.status.health.status} rev={.status.sync.revision}'`). Pattern recorded for future hotfix plans.
 - [Phase 02.2 P05]: PR merge style (squash vs merge-commit) is operator choice — both honored as non-deviation as long as +1/-1 file scope and PR title-in-commit-message audit anchor preserved.
+- [Phase 02.2]: drift-demo runbook FULLY AUTOMATED dispositive captured (RESTORED_PRIORITY=1 == ORIGINAL_PRIORITY=1, no operator nudge); REQ-drift-detection correction half SATISFIED CLEANLY; D-02.1-06 architectural finding LOCKED SHUT — differential proof against Phase 2.1 closure recorded as 'manual_nudge_used: NO' in evidence/drift-demo-2026-05-09.log DISPOSITIVE COMPARISON block
+- [Phase 02.2]: rtk token-saving CLI shim filters bare curl/jq/grep output (substitutes TypeScript-style schema or strips hex) — 'rtk proxy <cmd>' bypass is the documented escape hatch — pattern recorded for all future cluster-validation phases that capture raw API responses
 
 ### Pending Todos
 
@@ -222,8 +225,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-09T05:42:00Z
-Stopped at: Plan 02.2-05 complete: my-kluster PR #1371 merged (bba9010636); cluster runs ghcr.io/tom333/arr-stack-arrconf:0.1.4 (ArgoCD Synced+Healthy); CronJob unsuspended
+Last session: 2026-05-09T06:15:33.668Z
+Stopped at: Plan 02.2-06 complete: REQ-drift-detection correction half SATISFIED CLEANLY (FULLY AUTOMATED, no operator nudge); 3 commits (49fa7f8 evidence smoke, 4408884 snapshot post-deploy, 41f926d evidence drift FULL AUTO); Task 6.4 checkpoint awaits operator visual UI confirmation; ready for /gsd-verify-phase 02.2
 Resume file: None
 Next plan: 02.2-06 (Wave 5 — cluster smoke + drift demo FULLY AUTOMATED — closes REQ-drift-detection correction half cleanly)
 
