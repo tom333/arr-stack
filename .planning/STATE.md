@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: forceSave fix
 status: blocked
-stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened in deferred-items.md; Phase 02.2 BLOCKED on hotfix gap-closure plan (route to /gsd-plan-phase 02.2 --gaps); forensic snapshot snapshots/forensic-phase2.2-auth-regression-2026-05-09T0648/ + evidence/forensic-credentials-diff-2026-05-09T0651.txt + evidence/forensic-cronjob-logs-2026-05-09T0652.log captured"
-last_updated: "2026-05-09T06:55:00.000Z"
-last_activity: 2026-05-09
+stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
+last_updated: "2026-05-09T08:09:11.249Z"
+last_activity: 2026-05-09 -- Phase 02.2 planning complete
 progress:
   total_phases: 11
-  completed_phases: 5
-  total_plans: 21
-  completed_plans: 20
-  percent: 95
+  completed_phases: 4
+  total_plans: 27
+  completed_plans: 21
+  percent: 78
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 02.2 (v0-1-4-forcesave-fix) — **BLOCKED** (Plan 06 visual gate FAILED)
 Plan: 6 of 6 (final) — INCOMPLETE; Tasks 6.1–6.3 automated dispositives PASSED, Task 6.4 operator UAT FAILED
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-09T06:48:11Z (CronJob suspended) → 06:55Z (forensic + recovery artifacts committed)
+Last activity: 2026-05-09 -- Phase 02.2 planning complete
 
 Progress: [█████████░] 95% (Plan 06 incomplete; Phase 02.2 closure REJECTED until v0.1.5 hotfix)
 

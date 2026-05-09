@@ -124,6 +124,9 @@ Plans:
 - [ ] 02.2-11-PLAN.md — Wave 9 (gap-closure): my-kluster PR — image.tag bump 0.1.4 → 0.1.5; CronJob STAYS suspended through merge window (Plan 12 owns unsuspend)
 - [ ] 02.2-12-PLAN.md — Wave 10 (gap-closure): Cluster recovery checkpoint (operator UI password re-entry) + behavioral credential dispositive (Sonarr Test API HTTP 200) + CronJob unsuspend + credential-aware drift demo + Plan 06 Task 6.4 visual gate re-opened/closed → REQ-drift-detection FINAL closure
 
+**Cross-cutting constraints:**
+- charts/arrconf/templates/cronjob.yaml is UNCHANGED
+
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.
 **Depends on**: Phase 2
