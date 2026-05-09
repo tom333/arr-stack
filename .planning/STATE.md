@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02.1 context gathered
-last_updated: "2026-05-08T09:23:58.180Z"
-last_activity: 2026-05-08 -- Phase 2.1 execution started
+stopped_at: Phase 02.1 complete (Plan 04 closure), ready for Phase 3
+last_updated: "2026-05-09T00:35:00.000Z"
+last_activity: 2026-05-09 -- Phase 2.1 closed; Phase 2 success #4 SATISFIED + #5 detection-only (D-02.1-06 deferred); HUMAN-UAT #3 passed
 progress:
   total_phases: 10
-  completed_phases: 3
-  total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_phases: 4
+  total_plans: 19
+  completed_plans: 15
+  percent: 79
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 2.1 (field-merge-fix) — EXECUTING
-Plan: 1 of 4
-Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3
-Last activity: 2026-05-08 -- Phase 2.1 execution started
+Phase: 2.1 (field-merge-fix) — COMPLETE
+Plan: 4 of 4 (closure)
+Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
+Last activity: 2026-05-09 -- Phase 2.1 closed; Phase 2 success #4 SATISFIED; HUMAN-UAT #3 passed
 
-Progress: [██████████] 100% (5/5 plans executed; 1 plan partial — 02-05)
+Progress: [██████████] 100% (Phase 2.1: 4/4 plans executed; total 15/19 plans)
 
 ### Phase 2 final state
 
@@ -45,8 +45,8 @@ Progress: [██████████] 100% (5/5 plans executed; 1 plan part
 - #1 baseline snapshot ✅
 - #2 CronJob exists with envFrom secret ✅
 - #3 dry-run = zero writes ✅
-- #4 download_client managed by arrconf ⚠️ PARTIAL (tag created, not attached)
-- #5 drift detection ⏭️ UNTESTED (deferred to Phase 2.1)
+- #4 download_client managed by arrconf ✅ SATISFIED (tag attached via Plan 02.1-03 PR3 + Plan 02.1-04 Task 4.1 snapshot — `tags: [1]` confirmed in post-phase2.1-2026-05-09/sonarr/downloadclient.json + Sonarr API)
+- #5 drift detection ✅ SATISFIED (detection ✅ — Plan 02.1-04 Task 4.2 captured `plan_action action=update` event + W-04 dispositive `RESTORED_PRIORITY == ORIGINAL_PRIORITY` confirmed + W-01 forensic snapshot present; automated correction blocked by D-02.1-06 — fix shipping in v0.1.4 via `?forceSave=true`)
 
 ### Wave 1 deliverables (committed in arr-stack)
 
@@ -203,6 +203,23 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-08T08:45:29.823Z
-Stopped at: Phase 02.1 context gathered
-Resume file: .planning/phases/02.1-field-merge-fix/02.1-CONTEXT.md
+Last session: 2026-05-09T00:35:00.000Z
+Stopped at: Phase 02.1 complete (Plan 04 closure), ready for Phase 3
+Resume file: .planning/phases/02.1-field-merge-fix/02.1-04-SUMMARY.md
+
+### Phase 2.1 plan summary
+
+- Plan 02.1-01 ✅ Pre-fix snapshot baseline (snapshots/before-phase-2.1-2026-05-08/, 26 files, anti-leak audit clean) — commit 45e2f88
+- Plan 02.1-02 ✅ Code change (merge_fields_for_put helper + sonarr UPDATE wiring + dump REDACTED filter, 60 tests green, 97.92% coverage)
+- Plan 02.1-03 ✅ Release v0.1.3 + my-kluster PR3 + PR4 hotfix + post-PR4 smoke dispositive (merge_field_preserved fires for username + password)
+- Plan 02.1-04 ✅ Closure: post-phase2.1 snapshot (tag attached) + drift demo (detection logged, correction via forceSave=true manual nudge) + UAT #3 closed
+
+### Carry-forward to Phase 3
+
+- D-02.1-06 (NEW): merge_fields_for_put preserves Sonarr API-mask `********` for password, blocking PUT pre-save validation when any real field changes. Fix: add `?forceSave=true` to client.put() in UPDATE branch (v0.1.4). See deferred-items.md.
+- D-02.1-05 (carry-forward): merge_fields_for_put doesn't backfill cluster-only fields. Mitigated by retaining placeholders in arrconf.yml.
+- D-02.1-01..D-02.1-04 (Wave 1 deferred): snapshot.sh redaction gaps + qBit cluster recovery + arrconf-env QBT credentials gap.
+
+### NOTE TO ORCHESTRATOR
+
+This worktree commits the STATE.md update for traceability, but the worktree-merge logic restores main's STATE.md on merge. The orchestrator MUST re-apply this STATE.md content (or selected diffs) to main after merging this worktree. The diff is captured in the Plan 02.1-04 SUMMARY for re-application.
