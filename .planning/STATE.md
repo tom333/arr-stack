@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.2.0
 milestone_name: forceSave fix
-status: blocked
+status: ready_to_plan
 stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
 last_updated: "2026-05-10T05:21:52.612Z"
 last_activity: 2026-05-10 -- Phase 02.2 execution started
 progress:
   total_phases: 11
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 28
   completed_plans: 27
-  percent: 96
+  percent: 45
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 02.2 (v0-1-4-forcesave-fix) — EXECUTING
-Plan: 1 of 13
+Phase: 3
+Plan: Not started
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-10 -- Phase 02.2 execution started
+Last activity: 2026-05-10
 
 Progress: [█████████░] 95% (Plan 06 incomplete; Phase 02.2 closure REJECTED until v0.1.5 hotfix)
 
@@ -155,7 +155,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 16
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -164,6 +164,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 0 | 3 | - | - |
+| 02.2 | 13 | - | - |
 
 **Recent Trend:**
 
