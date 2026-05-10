@@ -16,7 +16,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code (completed 2026-05-08, 3 human-UAT items pending in 01-HUMAN-UAT.md)
 - [x] **Phase 2: Validation cluster** - Premier déploiement arrconf en CronJob `selfhost` (`ARRCONF_DRY_RUN=true` au 1er run), bascule en apply après validation des logs, drift detection prouvée — completed 2026-05-08 with **partial success criteria** (success #1-#3 ✅; #4 PARTIAL — arrconf-managed tag created in Sonarr but PUT downloadclient blocked by Phase 1 design issue: empty username/password in YAML overwrites real qBit credentials, Sonarr 400; #5 UNTESTED — drift demo deferred). CronJob currently suspended in cluster pending Phase 2.1/3 fix. See `.planning/phases/02-arrconf-cluster-validation/02-05-SUMMARY.md`.
 - [x] **Phase 2.1: Field-merge fix for sensitive YAML values** - Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so PUT body preserves cluster-stored field values when YAML value is `""` or for well-known sensitive field names. Re-run Plan 02-05 Tasks 5.1c + 5.2 (drift demo) for closure. Closes Phase 1 HUMAN-UAT #3. (completed 2026-05-09)
-- [ ] **Phase 2.2: v0.1.4 forceSave fix (INSERTED)** - Add `?forceSave=true` query param to arrconf's UPDATE-branch PUT in `client_base.py` / `reconcilers/sonarr.py` so Sonarr does not re-validate the API-mask `"********"` against qBit on every real field change. Closes D-02.1-06 architectural finding from Phase 2.1 — required prerequisite before Phase 3 (Radarr/Prowlarr) automated drift correction.
+- [x] **Phase 2.2: v0.1.4 forceSave fix (INSERTED)** - Add `?forceSave=true` query param to arrconf's UPDATE-branch PUT in `client_base.py` / `reconcilers/sonarr.py` so Sonarr does not re-validate the API-mask `"********"` against qBit on every real field change. Closes D-02.1-06 architectural finding from Phase 2.1 — required prerequisite before Phase 3 (Radarr/Prowlarr) automated drift correction. (completed 2026-05-10 — v0.1.5+v0.1.6, D-02.2-AUTH-REGRESSION closed, REQ-drift-detection validated)
 - [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 + 2.2 fix)
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
 - [ ] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants
@@ -108,7 +108,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Plans:** 13/13 plans complete
 
-> **BLOCKER (2026-05-09T06:48:11Z):** Plan 02.2-06 visual gate FAILED. Sonarr "Test" on qBit downloadclient returns 401/403 after v0.1.4 deploy. The `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 helper) as the literal qBit password. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED. Phase 02.2 closure REJECTED until v0.1.5 hotfix ships. See `.planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md` D-02.2-AUTH-REGRESSION + Plan 06 SUMMARY §"Operator Visual Gate FAILED". Recommended next: `/gsd-plan-phase 02.2 --gaps`.
+> **RESOLVED (2026-05-10):** D-02.2-AUTH-REGRESSION closed. v0.1.5 (omit-by-privacy strategy) + v0.1.6 (CR-01 rotation guard) shipped and deployed. Composite dispositive satisfied: `merge_field_omitted_credential ≥ 1`, `sonarr_qbit_test_http_status=200`, `manual_nudge_used=NO`. CronJob unsuspended. REQ-drift-detection FINAL closure.
 
 Plans:
 - [x] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
@@ -123,6 +123,7 @@ Plans:
 - [x] 02.2-10-PLAN.md — Wave 8 (gap-closure): Release v0.1.5 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag, mirrors Plan 04)
 - [x] 02.2-11-PLAN.md — Wave 9 (gap-closure): my-kluster PR — image.tag bump 0.1.4 → 0.1.5; CronJob STAYS suspended through merge window (Plan 12 owns unsuspend)
 - [x] 02.2-12-PLAN.md — Wave 10 (gap-closure): Cluster recovery checkpoint (operator UI password re-entry) + behavioral credential dispositive (Sonarr Test API HTTP 200) + CronJob unsuspend + credential-aware drift demo + Plan 06 Task 6.4 visual gate re-opened/closed → REQ-drift-detection FINAL closure
+- [x] 02.2-13-PLAN.md — Gap-closure (CR-01): Guard omit-credential branch in differ.py for non-empty rotation values + 20th differ test + v0.1.6 tag + GHCR CI → VERIFICATION.md 10/10 passed
 
 **Cross-cutting constraints:**
 - charts/arrconf/templates/cronjob.yaml is UNCHANGED
