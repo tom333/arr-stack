@@ -382,3 +382,34 @@ def test_merge_field_omitted_credential_event_payload_excludes_value(
             assert "value=admin" not in line, f"username value leaked: {line}"
             assert '"value": "admin"' not in line, f"username value leaked: {line}"
             assert '"value":"admin"' not in line, f"username value leaked: {line}"
+
+
+def test_merge_fields_passes_through_non_empty_credential_value_for_rotation() -> None:
+    """Non-empty YAML credential must reach the PUT body (user intends rotation).
+
+    CR-01 gap closure (VERIFICATION.md Truth #10): the omit-credential branch
+    must NOT fire when desired value is non-empty. diff_models plans an UPDATE
+    because the values differ; merge_fields_for_put must honour that intent by
+    passing the field through so Sonarr applies the credential change.
+
+    Contrast with test_merge_fields_omits_privacy_password_when_value_is_api_mask:
+    that test uses desired value='' (empty placeholder) — the omit branch fires
+    correctly. This test uses desired value='new_value' — the omit branch must
+    NOT fire.
+    """
+    from arrconf.resources.sonarr.download_client import FieldKV
+
+    cur = _dc(
+        "qBit",
+        fields=[FieldKV(name="password", value="old_stored", privacy="password")],
+    )
+    des = _dc(
+        "qBit",
+        fields=[FieldKV(name="password", value="new_value", privacy="password")],
+    )
+    result = merge_fields_for_put(cur, des)
+    fields_by_name = {f["name"]: f for f in result["fields"]}
+    assert "password" in fields_by_name, (
+        "Non-empty credential must NOT be omitted — user intends rotation (CR-01)"
+    )
+    assert fields_by_name["password"]["value"] == "new_value"

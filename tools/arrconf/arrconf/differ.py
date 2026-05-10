@@ -128,19 +128,28 @@ def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]
     for des_f in des_dump.get("fields", []):
         cur_f = cur_by_name.get(des_f["name"])
         cur_privacy = cur_privacy_by_name.get(des_f["name"])
-        # v0.1.5 / D-02.2-AUTH-REGRESSION: omit credential fields entirely (Option A).
+        # v0.1.5 / D-02.2-AUTH-REGRESSION: omit credential fields (Option A).
         # Sonarr preserves stored values when a field is absent from the PUT body —
         # safer than substituting the API mask "********" via the merge_field_preserved
         # branch below. Audit event payload is metadata-only ({name, privacy}); the
         # field VALUE is never logged (T-02.2-08-01).
-        if cur_privacy in ("password", "userName"):
-            log.info(
-                "merge_field_omitted_credential",
-                name=des_f["name"],
-                privacy=cur_privacy,
-            )
-            continue
+        # CR-01 gap-closure (v0.1.6): hoist value check — only omit when desired has
+        # no value to contribute. Non-empty desired = user intends credential rotation;
+        # pass through so Sonarr applies the change. Empty desired = safe to omit.
         v = des_f.get("value")
+        if cur_privacy in ("password", "userName"):
+            if v == "" or v is None:
+                # Desired is empty: safe to omit. Sonarr preserves stored value via absence.
+                log.info(
+                    "merge_field_omitted_credential",
+                    name=des_f["name"],
+                    privacy=cur_privacy,
+                )
+                continue
+            # Desired has a real value: user intends to update the credential.
+            # Pass through as-is (do NOT substitute cluster's masked value).
+            merged_fields.append(des_f)
+            continue
         if v == "" or v is None:
             if cur_f is not None and cur_f.get("value") not in ("", None):
                 merged = dict(des_f)
