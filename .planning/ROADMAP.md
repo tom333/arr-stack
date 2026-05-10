@@ -106,7 +106,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 12/12 plans complete
+**Plans:** 13/13 plans complete
 
 > **BLOCKER (2026-05-09T06:48:11Z):** Plan 02.2-06 visual gate FAILED. Sonarr "Test" on qBit downloadclient returns 401/403 after v0.1.4 deploy. The `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 helper) as the literal qBit password. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED. Phase 02.2 closure REJECTED until v0.1.5 hotfix ships. See `.planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md` D-02.2-AUTH-REGRESSION + Plan 06 SUMMARY §"Operator Visual Gate FAILED". Recommended next: `/gsd-plan-phase 02.2 --gaps`.
 
