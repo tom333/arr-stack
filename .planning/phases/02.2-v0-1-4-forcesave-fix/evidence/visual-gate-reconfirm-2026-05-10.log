@@ -1,5 +1,5 @@
-# === PLAN 06 TASK 6.4 VISUAL GATE RE-CONFIRMATION (Plan 02.2-12, Task 12.6) ===
-# timestamp: 2026-05-10T03:42:00Z
+# === PLAN 06 TASK 6.4 VISUAL GATE RE-CLOSURE (Plan 02.2-12, Task 12.6) ===
+# timestamp: 2026-05-10T04:01:31Z
 # gate_type: checkpoint:human-verify (blocking)
 #
 # PROGRAMMATIC PRE-CHECKS PASSED (documented evidence):
@@ -11,14 +11,23 @@
 #       - Post-recovery-smoke (Task 12.3): HTTP 200 + isValid:true (post-recovery-smoke-2026-05-10.log)
 #       - Post-drift-correction (Task 12.4): HTTP 200 + isValid:true (drift-demo-credential-aware-2026-05-10.log)
 #
-# VISUAL GATE STATUS: AWAITING operator confirmation
-# The operator must confirm in Sonarr UI that:
-#   (a) Settings → Download Clients → qBittorrent shows correct priority (should match YAML declared value of 1)
-#   (b) Clicking the "Test" button returns success (green checkmark / no error)
+# VISUAL GATE STATUS: CLOSED
 #
-# NOTE: The programmatic testall API (POST /api/v3/downloadclient/testall) returns HTTP 200 + isValid:true
-# at every checkpoint, which is the BEHAVIORAL equivalent of the UI "Test" button click.
-# The visual gate adds the OPERATOR-WITNESSING layer as defense-in-depth.
+=== Plan 06 Task 6.4 Visual Gate RE-CLOSURE ===
+timestamp: 2026-05-10T04:01:31Z
+operator_response: approved
+gate_check_1_priority: CONFIRMED (Sonarr UI shows priority=1, matching arrconf.yml)
+gate_check_2_test_button: CONFIRMED (Sonarr UI "Test" button returned green/OK)
+plan06_task64_status: CLOSED (was FAILED — D-02.2-AUTH-REGRESSION triggered this entire hotfix cycle)
+closed_by: Plan 12 continuation agent after operator visual confirmation
+required_actions_closed:
+  - D-02.2-AUTH-REGRESSION #4 (operator-driven cluster recovery): CLOSED
+  - D-02.2-AUTH-REGRESSION #5 (re-run W-04 dispositive WITH credential check): CLOSED
+  - D-02.2-AUTH-REGRESSION #6 (re-open Plan 06 Task 6.4 visual gate): CLOSED
+REQ-drift-detection_correction_half: CLEANLY CLOSED
+  - priority_restoration: YES (automated, no nudge)
+  - credential_survival: YES (merge_field_omitted_credential=2, preserved-creds=0)
 #
-# AWAITING: operator_confirmed: <pending>
-# AWAITING: visual_gate_closed_at: <pending>
+# FINAL GATE RESULT: PASSED
+# operator_confirmed: approved
+# visual_gate_closed_at: 2026-05-10T04:01:31Z
