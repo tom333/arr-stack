@@ -1,0 +1,24 @@
+# === PLAN 06 TASK 6.4 VISUAL GATE RE-CONFIRMATION (Plan 02.2-12, Task 12.6) ===
+# timestamp: 2026-05-10T03:42:00Z
+# gate_type: checkpoint:human-verify (blocking)
+#
+# PROGRAMMATIC PRE-CHECKS PASSED (documented evidence):
+#   [A] Priority matches YAML (priority=1):
+#       - snapshots/post-phase2.2-hotfix-2026-05-10/sonarr/downloadclient.json: priority=1
+#       - Post-drift reconcile RESTORED_PRIORITY=1=ORIGINAL_PRIORITY (drift-demo-credential-aware-2026-05-10.log)
+#   [B] Sonarr Test API HTTP 200 + isValid:true (multiple checkpoints):
+#       - Pre-reconcile (Task 12.2): HTTP 200 + isValid:true (cluster-recovery-2026-05-10.log)
+#       - Post-recovery-smoke (Task 12.3): HTTP 200 + isValid:true (post-recovery-smoke-2026-05-10.log)
+#       - Post-drift-correction (Task 12.4): HTTP 200 + isValid:true (drift-demo-credential-aware-2026-05-10.log)
+#
+# VISUAL GATE STATUS: AWAITING operator confirmation
+# The operator must confirm in Sonarr UI that:
+#   (a) Settings → Download Clients → qBittorrent shows correct priority (should match YAML declared value of 1)
+#   (b) Clicking the "Test" button returns success (green checkmark / no error)
+#
+# NOTE: The programmatic testall API (POST /api/v3/downloadclient/testall) returns HTTP 200 + isValid:true
+# at every checkpoint, which is the BEHAVIORAL equivalent of the UI "Test" button click.
+# The visual gate adds the OPERATOR-WITNESSING layer as defense-in-depth.
+#
+# AWAITING: operator_confirmed: <pending>
+# AWAITING: visual_gate_closed_at: <pending>
