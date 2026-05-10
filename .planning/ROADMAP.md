@@ -106,7 +106,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 10/12 plans executed
+**Plans:** 11/12 plans executed
 
 > **BLOCKER (2026-05-09T06:48:11Z):** Plan 02.2-06 visual gate FAILED. Sonarr "Test" on qBit downloadclient returns 401/403 after v0.1.4 deploy. The `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 helper) as the literal qBit password. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED. Phase 02.2 closure REJECTED until v0.1.5 hotfix ships. See `.planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md` D-02.2-AUTH-REGRESSION + Plan 06 SUMMARY §"Operator Visual Gate FAILED". Recommended next: `/gsd-plan-phase 02.2 --gaps`.
 
@@ -121,7 +121,7 @@ Plans:
 - [x] 02.2-08-PLAN.md — Wave 7 (gap-closure): TDD GREEN — Option A omit-by-privacy-metadata in differ.py:merge_fields_for_put + new merge_field_omitted_credential audit event + integration-test rewrite
 - [x] 02.2-09-PLAN.md — Wave 7 (gap-closure, parallel to 08): ADR-8.1 refinement appended to spec.md §11 — documents v0.1.5 mitigation as append-only sub-section under existing ADR-8
 - [x] 02.2-10-PLAN.md — Wave 8 (gap-closure): Release v0.1.5 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag, mirrors Plan 04)
-- [ ] 02.2-11-PLAN.md — Wave 9 (gap-closure): my-kluster PR — image.tag bump 0.1.4 → 0.1.5; CronJob STAYS suspended through merge window (Plan 12 owns unsuspend)
+- [x] 02.2-11-PLAN.md — Wave 9 (gap-closure): my-kluster PR — image.tag bump 0.1.4 → 0.1.5; CronJob STAYS suspended through merge window (Plan 12 owns unsuspend)
 - [ ] 02.2-12-PLAN.md — Wave 10 (gap-closure): Cluster recovery checkpoint (operator UI password re-entry) + behavioral credential dispositive (Sonarr Test API HTTP 200) + CronJob unsuspend + credential-aware drift demo + Plan 06 Task 6.4 visual gate re-opened/closed → REQ-drift-detection FINAL closure
 
 **Cross-cutting constraints:**
