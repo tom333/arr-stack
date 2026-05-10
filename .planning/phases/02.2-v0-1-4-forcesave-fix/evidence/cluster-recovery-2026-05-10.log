@@ -1,0 +1,33 @@
+# === CLUSTER RECOVERY DISPOSITIVE (Plan 02.2-12, Task 12.2) ===
+# timestamp: 2026-05-10T02:51:00Z
+# operator_action: re-entered real qBit password in Sonarr UI (Settings → Download Clients → qBittorrent → Password → Save)
+# checkpoint_approved: true (operator confirmed "approved" to Task 12.1 gate)
+#
+# TEST API — PRE-RECONCILE (CronJob still SUSPENDED at this point)
+# Endpoint: POST /api/v3/downloadclient/testall
+# This endpoint uses Sonarr's internally stored credentials (equivalent to clicking UI "Test" button)
+# NOT POST /api/v3/downloadclient/test with a body (that would re-submit the masked "********" value)
+#
+sonarr_qbit_test_http_status: 200
+sonarr_qbit_test_isValid: true
+sonarr_qbit_test_validationFailures: []
+test_ran_BEFORE_reconcile: true
+cronjob_suspend_at_test_time: true
+cronjob_image_at_test_time: ghcr.io/tom333/arr-stack-arrconf:0.1.5
+#
+# INTERPRETATION:
+# isValid: true BEFORE any v0.1.5 reconcile fires confirms:
+#   (a) Operator re-entered the real password in Sonarr UI successfully
+#   (b) The "********" literal stored by v0.1.4 regression has been overwritten by the real credential
+#   (c) Sonarr can now authenticate to qBittorrent (HTTP 200 from POST /testall)
+#   This is the NECESSARY pre-condition for Task 12.3 unsuspend — confirmed GREEN
+#
+# COMPOSITE DISPOSITIVE STATUS at this checkpoint:
+#   signal_1: merge_field_omitted_credential >= 1 — PENDING (no v0.1.5 smoke yet, CronJob suspended)
+#   signal_2: merge_field_preserved for {password,username} == 0 — PENDING (no v0.1.5 smoke yet)
+#   signal_3: Sonarr Test API HTTP 200 + isValid: true — CONFIRMED (this evidence block)
+# => Overall: PRE-CONDITION MET. Proceed to Task 12.3 unsuspend + smoke.
+#
+# RAW API RESPONSE (POST /api/v3/downloadclient/testall):
+# [{"id": 1, "isValid": true, "validationFailures": []}]
+# HTTP status: 200
