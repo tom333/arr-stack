@@ -19,12 +19,10 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
-from arrconf.resources.prowlarr.application import Application
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
 from arrconf.resources.sonarr.notification import Notification
 from arrconf.resources.sonarr.root_folder import RootFolder
-
 
 # ---------------------------------------------------------------------------
 # Section models — one per resource type. Each carries an opt-in prune flag
@@ -113,7 +111,9 @@ class AppEntry(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    name: str = Field(description="Display name of the connection in Prowlarr (match key, D-03-03).")
+    name: str = Field(
+        description="Display name of the connection in Prowlarr (match key, D-03-03).",
+    )
     type: Literal["sonarr", "radarr"] = Field(
         description="Target *arr family member type.",
     )
