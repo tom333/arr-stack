@@ -25,9 +25,11 @@ import pytest
 import respx
 
 from arrconf.client_base import ProwlarrClient
-from arrconf.config import AppEntry, AppsSection, ProwlarrInstance
+from arrconf.config import AppEntry, AppsSection, ProwlarrInstance, RootConfig
+from arrconf.diff_cmd import diff_prowlarr
+from arrconf.differ import Action
 from arrconf.exceptions import ReconcileError
-from arrconf.reconcilers.prowlarr import reconcile_prowlarr
+from arrconf.reconcilers.prowlarr import ProwlarrResult, reconcile_prowlarr
 
 PROWLARR_BASE = "http://prowlarr.test"
 FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "prowlarr"
@@ -306,3 +308,104 @@ def test_multi_app_add(respx_mock: respx.MockRouter) -> None:
     bodies = [json.loads(call.request.content.decode()) for call in post_route.calls]
     implementations = sorted(b["implementation"] for b in bodies)
     assert implementations == ["Radarr", "Sonarr"]
+
+
+# ---------------------------------------------------------------------------
+# CR-02 regression: reconcile_prowlarr returns ProwlarrResult with plan populated
+# in dry-run; diff_prowlarr gates on plan (not actions_taken).
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
+def test_reconcile_prowlarr_returns_result_with_plan_in_dry_run(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """CR-02 regression: dry-run must populate result.plan so diff can detect drift.
+
+    Pre-fix behaviour: reconcile_prowlarr returned list[str] which was empty in
+    dry-run because _execute skips every action. Post-fix: ProwlarrResult.plan
+    carries the planned actions (ADD/UPDATE/...) so diff_prowlarr can gate on
+    non-NO_OP entries.
+    """
+    respx_mock.get("/applications").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.post("/applications")  # registered but expected 0 calls
+
+    instance = ProwlarrInstance(
+        base_url=PROWLARR_BASE,
+        apps=AppsSection(prune=False, items=[_sonarr_app_entry()]),
+    )
+    client = ProwlarrClient(base_url=PROWLARR_BASE, api_key="fake")
+    with patch.dict(os.environ, {"SONARR_API_KEY": "test"}):
+        result = reconcile_prowlarr(client, instance, dry_run=True)
+
+    assert isinstance(result, ProwlarrResult)
+    assert result.actions_taken == [], "dry_run must NOT issue actions"
+    # CR-02: plan must carry the ADD even when dry-run skips executing it.
+    assert len(result.plan) == 1
+    assert result.plan[0].action == Action.ADD
+    assert result.plan[0].name == "Sonarr"
+
+
+@pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
+def test_diff_prowlarr_returns_3_on_planned_drift(respx_mock: respx.MockRouter) -> None:
+    """CR-02 regression: diff_prowlarr must return 3 when there is planned drift.
+
+    Pre-fix behaviour: diff_prowlarr returned 0 in dry-run because it gated on
+    the actions_taken list (always empty in dry-run). Post-fix: gates on
+    result.plan, so any non-NO_OP planned action triggers exit 3.
+    """
+    # Cluster has zero apps; YAML declares one — that is an ADD.
+    respx_mock.get("/applications").mock(return_value=httpx.Response(200, json=[]))
+
+    root = RootConfig.model_validate(
+        {
+            "prowlarr": {
+                "main": {
+                    "base_url": PROWLARR_BASE,
+                    "apps": {
+                        "prune": False,
+                        "items": [
+                            {
+                                "name": "Sonarr",
+                                "type": "sonarr",
+                                "base_url": "http://sonarr:8989",
+                                "api_key_env": "SONARR_API_KEY",
+                                "sync_level": "fullSync",
+                            }
+                        ],
+                    },
+                }
+            }
+        }
+    )
+    client = ProwlarrClient(base_url=PROWLARR_BASE, api_key="fake")
+    with patch.dict(os.environ, {"SONARR_API_KEY": "test"}):
+        code = diff_prowlarr(client, root)
+    assert code == 3, (
+        "CR-02: diff_prowlarr must return 3 when there is planned drift (ADD) — "
+        f"got {code}. Pre-fix bug: returned 0 because actions_taken is [] in dry-run."
+    )
+
+
+@pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
+def test_diff_prowlarr_returns_0_on_no_drift(respx_mock: respx.MockRouter) -> None:
+    """CR-02 companion: diff_prowlarr must return 0 when cluster matches YAML.
+
+    YAML declares zero apps and cluster has zero apps → no planned non-NO_OP
+    actions → exit code 0.
+    """
+    respx_mock.get("/applications").mock(return_value=httpx.Response(200, json=[]))
+
+    root = RootConfig.model_validate(
+        {
+            "prowlarr": {
+                "main": {
+                    "base_url": PROWLARR_BASE,
+                    "apps": {"prune": False, "items": []},
+                }
+            }
+        }
+    )
+    client = ProwlarrClient(base_url=PROWLARR_BASE, api_key="fake")
+    code = diff_prowlarr(client, root)
+    assert code == 0

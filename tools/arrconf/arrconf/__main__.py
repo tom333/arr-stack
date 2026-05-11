@@ -151,13 +151,17 @@ def apply(
             prowlarr_client = ProwlarrClient(
                 base_url=prowlarr_instance.base_url, api_key=prowlarr_api_key
             )
-            prowlarr_actions = reconcile_prowlarr(
+            prowlarr_result = reconcile_prowlarr(
                 prowlarr_client, prowlarr_instance, dry_run=dry_run or settings.arrconf_dry_run
             )
-            if not prowlarr_actions:
+            # CR-02 (Phase 3 code review): reconcile_prowlarr now returns ProwlarrResult
+            # (plan + actions_taken). The apply branch logs based on actions_taken, which
+            # is empty in dry-run; that's correct here (apply is non-dry by default and
+            # the dry-run path emits per-action structlog events from _execute).
+            if not prowlarr_result.actions_taken:
                 log.info("no-op", app="prowlarr", count=len(prowlarr_instance.apps.items))
             else:
-                log.info("apply_complete", app="prowlarr", actions=prowlarr_actions)
+                log.info("apply_complete", app="prowlarr", actions=prowlarr_result.actions_taken)
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="prowlarr", error=str(e))
             failures.append("prowlarr")

@@ -56,21 +56,20 @@ def diff_radarr(client: RadarrClient, root_config: RootConfig) -> int:
 def diff_prowlarr(client: ProwlarrClient, root_config: RootConfig) -> int:
     """Run ``reconcile_prowlarr`` in dry-run mode and return CLI exit code.
 
-    Prowlarr reconciler returns ``list[str]`` (no SonarrResult-style dataclass),
-    so drift is signaled by non-empty actions_taken — even in dry-run, the
-    reconciler logs dry_run_skip events whose count equals the would-be writes.
+    CR-02 (Phase 3 code review): gates on the PLAN (which is populated even in
+    dry-run), not on the actions-taken list. In dry-run, ``_execute`` returns
+    an empty list (every entry skipped), so gating on ``actions_taken`` would
+    silently always return 0 — breaking the documented exit-code contract
+    (3 = drift). Mirror of ``diff_sonarr`` / ``diff_radarr``.
     """
     if "main" not in root_config.prowlarr:
         log.warning("no_prowlarr_config", hint="prowlarr.main missing in YAML")
         return 0
-    # In dry_run, reconcile_prowlarr returns [] (no actions issued); the underlying
-    # plan_action / dry_run_skip events from differ.reconcile + _execute already
-    # log drift details. Treat dry-run as "no measurable drift surfaced via
-    # actions_taken" for the exit-code contract — drift detection still works via
-    # the structlog stream.
-    actions_taken = reconcile_prowlarr(client, root_config.prowlarr["main"], dry_run=True)
-    if not actions_taken:
+    result = reconcile_prowlarr(client, root_config.prowlarr["main"], dry_run=True)
+    non_noop = [p for p in result.plan if p.action != Action.NO_OP]
+    if not non_noop:
         log.info("no_drift", apps=["prowlarr"])
         return 0
-    log.info("drift", apps=["prowlarr"], actions=actions_taken)
+    for p in non_noop:
+        log.info("drift", action=p.action.value, name=p.name, diff_fields=p.diff_fields)
     return 3

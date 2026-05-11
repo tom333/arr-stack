@@ -31,6 +31,7 @@ sending an empty apiKey.
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass, field
 
 import structlog
 
@@ -49,6 +50,21 @@ from arrconf.resources.sonarr.download_client import FieldKV
 log = structlog.get_logger()
 
 APPLICATIONS_PATH = "/applications"
+
+
+@dataclass
+class ProwlarrResult:
+    """Result of a Prowlarr reconcile run.
+
+    CR-02 (Phase 3 code review): mirror of SonarrResult / RadarrResult — the
+    plan field is populated EVEN IN DRY-RUN, so the diff CLI gate can detect
+    drift via ``any(p.action != Action.NO_OP for p in result.plan)``. The
+    actions_taken list reflects writes actually issued (empty in dry-run).
+    """
+
+    plan: list[PlannedAction[Application]] = field(default_factory=list)
+    actions_taken: list[str] = field(default_factory=list)
+
 
 # AppEntry.type → (Prowlarr Application.implementation, configContract).
 # Locked by D-03-02 / Prowlarr API observation (snapshots/baseline-2026-05-07).
@@ -138,12 +154,13 @@ def reconcile_prowlarr(
     client: ProwlarrClient,
     instance: ProwlarrInstance,
     dry_run: bool,
-) -> list[str]:
+) -> ProwlarrResult:
     """Reconcile a Prowlarr instance (D-03-02 — app sync only).
 
-    Returns the list of action labels actually issued (e.g. ``add:Sonarr``).
-    No SonarrResult-style dataclass needed — Prowlarr has only one resource
-    type and no managed-tag concept.
+    Returns a ``ProwlarrResult`` carrying the planned actions AND the list of
+    action labels actually issued (empty in dry-run). CR-02 (Phase 3 code
+    review): the plan is needed so the diff CLI can detect drift in dry-run
+    mode, where ``actions_taken`` is empty by definition.
     """
     # Build desired BEFORE issuing the GET so missing-env errors fail fast
     # without unnecessary HTTP traffic (Pitfall 5):
@@ -163,4 +180,5 @@ def reconcile_prowlarr(
         managed_tag_id=None,  # Prowlarr applications have no managed-tag concept
     )
 
-    return _execute(client, plan, dry_run)
+    actions_taken = _execute(client, plan, dry_run)
+    return ProwlarrResult(plan=plan, actions_taken=actions_taken)
