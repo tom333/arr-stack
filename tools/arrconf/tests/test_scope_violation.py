@@ -15,8 +15,14 @@ import respx
 from arrconf.exceptions import ScopeViolationError
 from arrconf.resources.radarr import (
     custom_format as radarr_custom_format,
+)
+from arrconf.resources.radarr import (
     media_naming as radarr_media_naming,
+)
+from arrconf.resources.radarr import (
     quality_definition as radarr_quality_definition,
+)
+from arrconf.resources.radarr import (
     quality_profile as radarr_quality_profile,
 )
 from arrconf.resources.sonarr import (
