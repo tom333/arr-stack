@@ -141,7 +141,7 @@ Plans:
   6. VS Code propose les nouveaux champs (indexers, notifications, etc.) automatiquement après régénération du JSON Schema (CI bloque si oublié)
 **Plans**: 6 plans
 - [x] 03-01-PLAN.md — Wave 1: Foundation — WR-01 frozenset + IN-02 import + 5 resource models (Indexer/Notification/RootFolder/HostConfig + Prowlarr Application) + RadarrClient + ProwlarrClient + pyproject coverage source expansion
-- [ ] 03-02-PLAN.md — Wave 2: Config restructure (monolithic RootConfig D-03-05 — flat sonarr/radarr/prowlarr top-level + 6 section models + AppEntry D-03-03) + caller migration (__main__/diff_cmd/dump/test_round_trip to root.sonarr["main"] path) + 4 Radarr frontière modules (REQ-configarr-coexistence) + test_scope_violation extension + test_config rewrite
+- [x] 03-02-PLAN.md — Wave 2: Config restructure (monolithic RootConfig D-03-05 — flat sonarr/radarr/prowlarr top-level + 6 section models + AppEntry D-03-03) + caller migration (__main__/diff_cmd/dump/test_round_trip to root.sonarr["main"] path) + 4 Radarr frontière modules (REQ-configarr-coexistence) + test_scope_violation extension + test_config rewrite
 - [ ] 03-03-PLAN.md — Wave 3 (parallel): Sonarr reconciler extension — indexers + notifications + root_folders + host_config (opt-in D-03-04) + 9 new tests + 4 sanitized fixtures
 - [ ] 03-04-PLAN.md — Wave 3 (parallel): Radarr reconciler — full-parity mirror of extended Sonarr (D-03-01) + 11+ new tests + 6 sanitized fixtures + scope-guard smoke
 - [ ] 03-05-PLAN.md — Wave 3 (parallel): Prowlarr reconciler — app sync only (D-03-02) + AppEntry env resolution + 7 new tests + 1 sanitized fixture + /api/v1 verification (Pitfall 3)
