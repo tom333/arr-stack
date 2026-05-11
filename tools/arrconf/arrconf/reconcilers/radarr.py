@@ -165,17 +165,35 @@ def _reconcile_host_config(
 
     Mirror of sonarr._reconcile_host_config. Same Pitfall 4 (re-inject id)
     + forceSave-inherited discipline.
+
+    CR-01 (Phase 3 code review): scope the diff to ONLY the keys declared
+    by the operator in HostConfigSection. HostConfig uses extra="allow", so
+    a parse of the raw GET carries every server-only field
+    (analyticsEnabled, backupInterval, backupRetention, ...). Comparing
+    a sparse desired against the full cluster state would flag drift on
+    every server-only field and the resulting PUT body would OMIT those
+    fields — silently dropping server config on every reconcile. Mirror of
+    sonarr._reconcile_host_config (lines 200-227).
     """
     if not section.enable:
         log.info("host_config_reconcile_skipped")
         return
 
     raw = client.get(HOST_CONFIG_PATH)
-    current = HostConfig.model_validate(raw)
+    current_full = HostConfig.model_validate(raw)
+    # Build desired from the section's writable fields only (enable is metadata):
     desired_payload = section.model_dump(exclude_none=True, exclude={"enable"})
     desired = HostConfig.model_validate(desired_payload)
 
-    diffs = diff_models(current, desired)
+    # CR-01: scope the diff to only the keys that the operator declared in HostConfigSection.
+    # HostConfig uses extra="allow" so current_full carries ALL server fields; comparing
+    # against a sparse desired would flag diffs on every server-only field (analyticsEnabled,
+    # backupInterval, etc.) and the constructed PUT body would omit them. We want idempotence:
+    # if the operator's desired subset matches the cluster, no PUT should be issued.
+    scoped_keys = set(desired_payload.keys())
+    current_scoped = HostConfig.model_validate({k: v for k, v in raw.items() if k in scoped_keys})
+
+    diffs = diff_models(current_scoped, desired)
     if not diffs:
         log.info("host_config_no_op")
         return
@@ -184,13 +202,15 @@ def _reconcile_host_config(
         log.info("dry_run_skip", action="update", resource="host_config", diff_fields=diffs)
         return
 
-    body = merge_fields_for_put(current, desired)
-    if current.id is None:
+    body = merge_fields_for_put(current_scoped, desired)
+    # Pitfall 4: merge_fields_for_put strips _READ_ONLY_FIELDS (which includes id);
+    # re-inject the cluster-known id so the PUT body validates server-side.
+    if current_full.id is None:
         raise ReconcileError(
             "host_config GET returned no id — cannot construct PUT (this should never happen)"
         )
-    body["id"] = current.id
-    client.put(HOST_CONFIG_PATH, id=current.id, json=body)
+    body["id"] = current_full.id
+    client.put(HOST_CONFIG_PATH, id=current_full.id, json=body)
 
 
 def reconcile_radarr(

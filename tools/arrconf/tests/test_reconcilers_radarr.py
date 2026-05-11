@@ -324,6 +324,87 @@ def test_host_config_update_when_different(respx_mock: respx.MockRouter) -> None
     assert "password" not in body_json, "HostConfig.password must be excluded from PUT body"
 
 
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_host_config_no_op_when_identical(respx_mock: respx.MockRouter) -> None:
+    """CR-01 regression: cluster matches the operator-declared subset → 0 PUT.
+
+    Mirrors test_host_config_no_op_when_identical from test_reconcilers_sonarr.py.
+    HostConfig uses extra="allow" so the parsed cluster carries 30+ server-only fields
+    (analyticsEnabled, backupInterval, ...). The reconciler must scope the diff to
+    only the keys the operator declared — otherwise every reconcile would flag drift
+    on server-only fields and issue a destructive PUT that drops them.
+    """
+    fixture = _load("config_host.json")
+    _mock_radarr_gets(respx_mock, hostconfig=fixture)
+    put_host = respx_mock.put(url__regex=rf"^{RADARR_BASE}/api/v3/config/host/\d+(?:\?.*)?$")
+
+    # Mirror the cluster's writable subset back into the section:
+    section = HostConfigSection(
+        enable=True,
+        authenticationMethod=fixture.get("authenticationMethod"),
+        authenticationRequired=fixture.get("authenticationRequired"),
+        urlBase=fixture.get("urlBase"),
+        instanceName=fixture.get("instanceName"),
+    )
+    instance = RadarrInstance(base_url=RADARR_BASE, host_config=section)
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    reconcile_radarr(client, instance, dry_run=False)
+
+    assert put_host.call_count == 0, (
+        "CR-01: identical cluster/desired subset must NOT trigger a PUT — "
+        "host_config diff must be scoped to operator-declared keys"
+    )
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_host_config_put_body_only_contains_scoped_keys(respx_mock: respx.MockRouter) -> None:
+    """CR-01 regression: PUT body MUST be scoped to operator-declared keys.
+
+    The Radarr reconciler must NOT submit a body that omits server-only fields
+    (analyticsEnabled, backupInterval, backupRetention, bindAddress, branch, ...).
+    Today's contract is "scope BOTH sides of the diff and the PUT body to the
+    operator-declared subset". That means the PUT body intentionally carries
+    ONLY the scoped keys (+ id) — Radarr's API, like Sonarr's, preserves
+    unspecified server-only fields by omission. If a future PUT semantic
+    regression were to treat "missing field" as "reset to default", this test
+    locks the contract: the PUT body must not be a full HostConfig payload
+    that risks rewriting analyticsEnabled / backupInterval / etc.
+    """
+    fixture = _load("config_host.json")
+    _mock_radarr_gets(respx_mock, hostconfig=fixture)
+    put_host = respx_mock.put(url__regex=rf"^{RADARR_BASE}/api/v3/config/host/\d+(?:\?.*)?$").mock(
+        return_value=httpx.Response(200, json={"id": fixture.get("id", 1)})
+    )
+
+    # Operator declares only instanceName (drifted) — no other writable subset.
+    section = HostConfigSection(enable=True, instanceName="RadarrPhase3Renamed")
+    instance = RadarrInstance(base_url=RADARR_BASE, host_config=section)
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    reconcile_radarr(client, instance, dry_run=False)
+
+    assert put_host.call_count == 1
+    body_json = json.loads(put_host.calls.last.request.content.decode())
+    # Body should be scoped to {instanceName, id} (+ possibly "fields": [] from merge,
+    # which WR-06 will clean up). CR-01 contract: scoped to operator-declared keys.
+    assert "instanceName" in body_json
+    assert body_json["instanceName"] == "RadarrPhase3Renamed"
+    assert "id" in body_json
+    # Server-only fields MUST NOT be re-asserted — operator didn't declare them so the
+    # scoped-diff design preserves their cluster state by absence from PUT body:
+    for server_only_key in (
+        "analyticsEnabled",
+        "backupInterval",
+        "backupRetention",
+        "bindAddress",
+        "branch",
+        "logLevel",
+    ):
+        assert server_only_key not in body_json, (
+            f"CR-01: PUT body must NOT carry server-only field {server_only_key!r} — "
+            "scoped diff design means undeclared keys are preserved by omission"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Round-trip idempotence — all 5 resource types simultaneously, no writes.
 # ---------------------------------------------------------------------------
