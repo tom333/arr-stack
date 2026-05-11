@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.2.0
-milestone_name: phase-3-extend-arrconf
-status: ready_to_plan
+milestone_name: milestone
+status: Phase 03 complete
 stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
-last_updated: "2026-05-11T09:06:03.327Z"
-last_activity: 2026-05-11
+last_updated: "2026-05-11T12:13:57.422Z"
+last_activity: 2026-05-11 -- Phase 03 marked complete
 progress:
   total_phases: 11
   completed_phases: 6
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 03 (Étendre arrconf (Sonarr ext + Radarr + Prowlarr)) — EXECUTING
+Phase: 03 — COMPLETE
 Plan: 2 of 6
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-11
+Last activity: 2026-05-11 -- Phase 03 marked complete
 
 Progress: [██████████] 100%
 
