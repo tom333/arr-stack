@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.2.0
-milestone_name: forceSave fix
+milestone: v0.2.0
+milestone_name: phase-3-extend-arrconf
 status: ready_to_plan
-stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
-last_updated: "2026-05-11T07:56:01.406Z"
-last_activity: 2026-05-11 -- Phase 03 execution started
+stopped_at: "2026-05-11T09:05:00Z -- Phase 03 Plan 06 Tasks 6.2-6.4 complete; v0.2.0 tag pushed, CI run 25660722478 in progress; Task 6.5 awaiting operator GHCR anon-pull verification"
+last_updated: "2026-05-11T09:05:00Z"
+last_activity: 2026-05-11 -- Phase 03 release v0.2.0 cut, CI green
 progress:
   total_phases: 11
   completed_phases: 5
@@ -212,6 +212,7 @@ Quick reference:
 - [Phase 02.2]: rtk token-saving CLI shim filters bare curl/jq/grep output (substitutes TypeScript-style schema or strips hex) — 'rtk proxy <cmd>' bypass is the documented escape hatch — pattern recorded for all future cluster-validation phases that capture raw API responses
 - [Phase 02.2 P06 RECOVERY]: ADR-8's accepted bypass risk realized in production — v0.1.4 `?forceSave=true` PUT + Phase 2.1 `merge_fields_for_put` helper combine to silently overwrite `privacy=password` fields with the API mask `"********"`. Detection requires BEHAVIORAL test (Sonarr Test API HTTP 200), NOT snapshot diff (GET-side serialization makes the regression invisible). Pattern recorded for v0.1.5 hotfix planning + Phase 3 prerequisite update — every reconciler that touches credential-bearing fields MUST include a post-PUT behavioral assertion in its W-04 dispositive contract.
 - [Phase 02.2 P06 RECOVERY]: `mv` is interactively-aliased on this workstation — rtk-proxied `jq | mv` patterns require explicit `mv -f` (or `\mv`) to bypass the prompt; without `-f` the .tmp output sits next to the original and the redaction silently fails the audit. Pattern recorded for all future per-snapshot redaction code paths.
+- [Phase 03 P06]: v0.2.0 annotated tag cut + CI run 25660722478 triggered; ghcr.io/tom333/arr-stack-arrconf:0.2.0 build in progress; Task 6.5 operator checkpoint to verify anonymous pullability pending (D-37 atomic-tag pattern; OCI-index manifest probe per Plan 02.2-04 lesson); Phase 4 (umbrella chart) unblocked pending Task 6.5 approval.
 
 ### Pending Todos
 
