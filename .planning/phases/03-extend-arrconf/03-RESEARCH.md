@@ -147,7 +147,7 @@ sonarr()   radarr()   prowlarr()
  (_ArrV3Client) (_ArrV3Client) (_ArrV3Client)
     │              │                │
     │              │                ▼
-    │              │        GET /api/v3/applications
+    │              │        GET /api/v1/applications
     │              │        differ.reconcile(match_key="name")
     │              │        POST/PUT/DELETE
     │              │
@@ -907,24 +907,30 @@ already covers all three apps]
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `_execute()` be extracted to a shared utility or remain per-reconciler?**
-   - What we know: `_execute()` in `reconcilers/sonarr.py` is 40 lines, generic-typed via
+   - **RESOLVED:** duplicate per-reconciler (Plan 04 minimum-surface decision; no shared
+     extraction in Phase 3). The 40-line duplication is accepted in this phase to keep the
+     blast radius narrow — Plans 03/04/05 each carry their own `_execute()` against the same
+     `PlannedAction[T]` shape. A follow-up refactor that hoists `execute_plan[T: BaseModel]()`
+     into `differ.py` is deferred to a post-Phase-3 cleanup ticket once all three reconcilers
+     are green and we can refactor against a verified test suite.
+   - Original context: `_execute()` in `reconcilers/sonarr.py` is 40 lines, generic-typed via
      `list[PlannedAction[DownloadClient]]` today, but easily generalized with `T: BaseModel`.
-   - What's unclear: whether the planner prefers minimal-diff (duplicate `_execute` in radarr.py
-     and prowlarr.py) or refactor-first (extract to `differ.py` or a new utility).
-   - Recommendation: Extract to `differ.py` as `execute_plan[T: BaseModel](...)` in the first
-     Wave 1 task. The duplication debt across 3 reconcilers outweighs the extraction cost.
+     The duplication debt across 3 reconcilers was considered but rejected for Phase 3 to
+     minimize cross-reconciler coupling during the initial implementation.
 
 2. **`Notification` `on*` fields — include in YAML diff or exclude?**
-   - What we know: `onGrab`, `onDownload`, etc. are diff-visible (they affect notification
-     behavior). The current `extra="allow"` on `Notification` will capture them. But they're
-     app-specific (Sonarr vs Radarr names differ).
-   - What's unclear: whether the user wants to control these from YAML or let Prowlarr/app
-     defaults manage them.
-   - Recommendation: Include them as diff-visible via `extra="allow"`. The user can set them in
-     YAML if desired; if absent from YAML they won't be in the desired model and won't be diffed.
+   - **RESOLVED:** included via `extra="allow"` on the `Notification` model (Plan 01 Task 1.2
+     choice). The user controls them optionally in YAML — if absent from desired state, they
+     won't be diffed; if present, they participate in the diff like any other field. This
+     handles both Sonarr (`onSeriesAdd`, `onEpisodeFileDelete`) and Radarr (`onMovieAdded`,
+     `onMovieFileDelete`) without splitting into per-app models. `supportsOn*` (server-set
+     capabilities) remain `exclude=True` to avoid spurious diffs.
+   - Original context: `onGrab`, `onDownload`, etc. are diff-visible and affect notification
+     behavior. The `extra="allow"` configuration captures them transparently while preserving
+     the option for the user to omit them and inherit *arr defaults.
 
 ---
 
