@@ -165,6 +165,64 @@ def test_dump_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
     assert result.exit_code == 2
 
 
+def test_diff_sonarr_catches_reconcile_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """WR-03 regression: diff sonarr branch must catch ReconcileError, not crash.
+
+    Pre-fix, the diff branch only caught ApiClientError. A ReconcileError
+    raised from a reconcile / diff helper would propagate as an unhandled
+    exception and crash the CLI instead of returning the documented exit
+    code 1.
+
+    Patches diff_cmd.diff_sonarr to raise ReconcileError directly — the
+    test is about the exception-handling contract in __main__.diff, not
+    about which specific path can raise (the apply branch already catches
+    both).
+    """
+    from arrconf.exceptions import ReconcileError as _ReconcileError
+
+    def boom(*a, **k):  # noqa: ANN001, ANN002, ANN003, ANN202
+        raise _ReconcileError("synthetic for WR-03 contract test")
+
+    monkeypatch.setattr("arrconf.__main__.diff_sonarr", boom)
+
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    download_clients:\n      prune: false\n      items: []\n"
+    )
+    monkeypatch.setenv("SONARR_API_KEY", "fake")
+    result = runner.invoke(app, ["--config", str(cfg), "diff"])
+    assert result.exit_code == 1, (
+        f"WR-03: diff branch must catch ReconcileError and exit 1, got "
+        f"{result.exit_code}: {result.stdout!r}"
+    )
+    assert "app_failed" in result.stdout
+
+
+def test_diff_radarr_catches_reconcile_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """WR-03 regression: diff radarr branch must catch ReconcileError, not crash."""
+    from arrconf.exceptions import ReconcileError as _ReconcileError
+
+    def boom(*a, **k):  # noqa: ANN001, ANN002, ANN003, ANN202
+        raise _ReconcileError("synthetic for WR-03 contract test")
+
+    monkeypatch.setattr("arrconf.__main__.diff_radarr", boom)
+
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "radarr:\n  main:\n    base_url: http://radarr.test\n"
+        "    download_clients:\n      prune: false\n      items: []\n"
+    )
+    monkeypatch.setenv("RADARR_API_KEY", "fake")
+    result = runner.invoke(app, ["--config", str(cfg), "diff", "--apps", "radarr"])
+    assert result.exit_code == 1
+    assert "app_failed" in result.stdout
+
+
 def test_apply_known_apps_subset_accepted(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """CR-03 companion: valid subset (e.g. --apps sonarr,radarr) is accepted."""
     cfg = tmp_path / "cfg.yml"

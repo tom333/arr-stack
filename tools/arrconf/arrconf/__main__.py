@@ -265,7 +265,11 @@ def diff(
             client = SonarrClient(base_url=instance.base_url, api_key=api_key)
             code = diff_sonarr(client, root)
             max_code = max(max_code, code)
-        except ApiClientError as e:
+        # WR-03 (Phase 3 code review): also catch ReconcileError — _reconcile_host_config
+        # can raise "host_config GET returned no id ..." and the apply branch already
+        # catches both. Without this, the diff CLI would crash with an unhandled
+        # exception instead of the documented exit code 1.
+        except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="sonarr", error=str(e))
             raise typer.Exit(code=1) from e
 
@@ -282,7 +286,8 @@ def diff(
             )
             code = diff_radarr(radarr_diff_client, root)
             max_code = max(max_code, code)
-        except ApiClientError as e:
+        # WR-03: mirror Sonarr branch — _reconcile_host_config can raise ReconcileError.
+        except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="radarr", error=str(e))
             raise typer.Exit(code=1) from e
 
