@@ -246,6 +246,11 @@ def reconcile_sonarr(
     rationale.
     """
     managed_tag = _ensure_managed_tag(client, dry_run)
+    # WR-04 (Phase 3 code review): use the defensive sentinel CONSISTENTLY everywhere.
+    # Pre-fix, the sentinel was only applied to _ensure_managed_tag_in_desired and
+    # raw managed_tag.id was passed to reconcile() / _reconcile_list_resource(),
+    # so the defensive fallback only protected one call site. Now both forms use
+    # managed_tag_id (with sentinel fallback) — defense in depth across the file.
     managed_tag_id = managed_tag.id if managed_tag.id is not None else DRY_RUN_TAG_SENTINEL_ID
     actions_taken: list[str] = []
 
@@ -258,7 +263,7 @@ def reconcile_sonarr(
         instance.indexers.items,
         match_key="name",
         prune=instance.indexers.prune,
-        managed_tag_id=managed_tag.id,
+        managed_tag_id=managed_tag_id,
         dry_run=dry_run,
     )
 
@@ -288,7 +293,7 @@ def reconcile_sonarr(
         desired=desired_dcs,
         match_key="name",
         prune=instance.download_clients.prune,
-        managed_tag_id=managed_tag.id,
+        managed_tag_id=managed_tag_id,
     )
 
     actions_taken += _execute(client, DOWNLOAD_CLIENT_PATH, plan, dry_run)
@@ -302,7 +307,7 @@ def reconcile_sonarr(
         instance.notifications.items,
         match_key="name",
         prune=instance.notifications.prune,
-        managed_tag_id=managed_tag.id,
+        managed_tag_id=managed_tag_id,
         dry_run=dry_run,
     )
 
@@ -312,5 +317,5 @@ def reconcile_sonarr(
     return SonarrResult(
         plan=plan,
         actions_taken=actions_taken,
-        managed_tag_id=managed_tag.id,
+        managed_tag_id=managed_tag_id,
     )
