@@ -125,6 +125,10 @@ def test_diff_returns_3_on_drift(
     respx_mock.get("/downloadclient").mock(
         return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
     )
+    # Phase 3 extension: reconcile_sonarr also reads these endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"

@@ -77,6 +77,10 @@ def test_managed_tag_added_to_download_client_on_apply(
     """When applying, the managed tag id must end up in the POSTed DC body (D-02)."""
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
     respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 3 extension: reconcile_sonarr also reads these endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
     post_dc = respx_mock.post("/downloadclient").mock(
         return_value=httpx.Response(201, json={"id": 7, "name": "qbit"})
     )
@@ -114,6 +118,10 @@ def test_managed_tag_never_deleted_in_prune_mode(
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
     respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 3 extension: reconcile_sonarr also reads these endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
     delete_tag_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/tag/\d+$")
 
     instance = SonarrInstance(
