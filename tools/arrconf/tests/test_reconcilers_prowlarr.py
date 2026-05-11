@@ -388,6 +388,66 @@ def test_diff_prowlarr_returns_3_on_planned_drift(respx_mock: respx.MockRouter) 
 
 
 @pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
+def test_update_preserves_cluster_side_tags(respx_mock: respx.MockRouter) -> None:
+    """WR-02 regression: Prowlarr UPDATE must NOT wipe operator-applied cluster tags.
+
+    Pre-fix: _build_desired_application hardcoded tags=[] and merge_fields_for_put
+    deliberately did NOT merge tags (Sonarr/Radarr reconcilers stamp managed_tag_id
+    into desired before diffing, so desired's tags list legitimately overrides
+    cluster's). Prowlarr does NOT stamp a managed tag (D-03-02 — no managed-tag
+    concept for applications). Without the override, every Prowlarr UPDATE PUT
+    would wipe operator-applied tags on the cluster.
+
+    Setup: cluster has 1 Sonarr app with tags=[5,7], YAML drives an UPDATE via
+    baseUrl drift. PUT body must carry tags=[5,7] (preserved from cluster).
+    """
+    cluster = [
+        {
+            "configContract": "SonarrSettings",
+            "enable": True,
+            "id": 1,
+            "implementation": "Sonarr",
+            "implementationName": "Sonarr",
+            "name": "Sonarr",
+            "syncLevel": "fullSync",
+            "tags": [5, 7],  # operator manually applied these via Prowlarr UI
+            "fields": [
+                {"name": "prowlarrUrl", "value": "http://prowlarr:9696"},
+                {"name": "baseUrl", "value": "http://sonarr-old:8989"},
+                {"name": "apiKey", "value": "********", "privacy": "apiKey"},
+            ],
+        }
+    ]
+    respx_mock.get("/applications").mock(return_value=httpx.Response(200, json=cluster))
+    put_route = respx_mock.put(
+        url__regex=rf"^{PROWLARR_BASE}/api/v1/applications/\d+(?:\?.*)?$"
+    ).mock(return_value=httpx.Response(200, json={"id": 1, "name": "Sonarr"}))
+
+    entry = AppEntry(
+        name="Sonarr",
+        type="sonarr",
+        base_url="http://sonarr-new:8989",  # intentional drift on baseUrl
+        api_key_env="SONARR_API_KEY",
+        sync_level="fullSync",
+    )
+    instance = ProwlarrInstance(
+        base_url="http://prowlarr:9696",
+        apps=AppsSection(prune=False, items=[entry]),
+    )
+    client = ProwlarrClient(base_url=PROWLARR_BASE, api_key="fake")
+    with patch.dict(os.environ, {"SONARR_API_KEY": "real-key"}):
+        reconcile_prowlarr(client, instance, dry_run=False)
+
+    assert put_route.call_count == 1
+    body = json.loads(put_route.calls.last.request.content.decode())
+    # WR-02 contract: PUT body MUST carry the cluster's tags, not desired's []:
+    assert body.get("tags") == [5, 7], (
+        f"WR-02: cluster tags [5,7] must be preserved in PUT body — got {body.get('tags')!r}. "
+        "Pre-fix: desired's tags=[] would have wiped operator-applied tags."
+    )
+
+
+@pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
 def test_idempotent_against_production_api_mask(respx_mock: respx.MockRouter) -> None:
     """WR-01 regression: cluster returns apiKey value '********' (real Prowlarr API mask).
 

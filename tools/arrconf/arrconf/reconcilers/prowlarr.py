@@ -139,6 +139,16 @@ def _execute(
             # supplied a fresh api_key_env value (CR-01 passthrough), the new key
             # writes through normally.
             body = merge_fields_for_put(p.current, p.desired)
+            # WR-02 (Phase 3 code review): preserve cluster-side tags on UPDATE.
+            # merge_fields_for_put intentionally does NOT merge tags (Sonarr/Radarr
+            # reconcilers stamp managed_tag_id into desired before diffing, so
+            # desired's tags list legitimately overrides cluster's). Prowlarr does
+            # NOT stamp a managed tag (D-03-02 — no managed-tag concept for
+            # applications), so desired carries tags=[] by construction. Without
+            # this override, every Prowlarr UPDATE PUT would wipe operator-applied
+            # tags on the cluster. Preserve cluster tags by absence of explicit
+            # desired tags from the operator.
+            body["tags"] = list(p.current.tags)
             body["id"] = p.current.id
             client.put(APPLICATIONS_PATH, id=p.current.id, json=body)
             actions_taken.append(f"update:{p.name}")
