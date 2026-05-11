@@ -31,6 +31,15 @@ _READ_ONLY_FIELDS: set[str] = {
 # round-trip contract) can normalize cluster state in the same way before comparing.
 _REDACTED_VALUE = "***REDACTED***"
 
+# WR-01 (Phase 3 code review): Prowlarr / real *arr instances serialize credential
+# fields with the API mask ``"********"`` instead of the in-tree fixture sentinel
+# ``"***REDACTED***"``. Both must be stripped so the diff is value-blind for masked
+# credentials — otherwise every reconcile cycle plans a spurious UPDATE on Prowlarr
+# applications (cluster sends back ``"********"``, desired carries the real key,
+# diff flags ``fields`` as different → UPDATE), violating the CLAUDE.md "RÈGLE D'OR"
+# idempotence rule.
+_API_MASK_VALUES: frozenset[str] = frozenset({_REDACTED_VALUE, "********"})
+
 # v0.2.0 / WR-01 (02.2-REVIEW.md): module-level set so apiKey + token privacy
 # values (Phase 3 indexer / notification / Prowlarr application fields) get the
 # same omit-by-metadata protection as password / userName. Auditable in one place;
@@ -61,29 +70,78 @@ class PlannedAction[T: BaseModel]:
     diff_fields: list[str]
 
 
-def _strip_redacted_fields(dump: dict[str, Any]) -> dict[str, Any]:
+def _credential_field_names(*models: BaseModel) -> set[str]:
+    """Collect FieldKV.name entries with credential privacy across the given models.
+
+    WR-01 (Phase 3 code review): privacy is excluded from FieldKV dumps so the dump
+    on disk (YAML) loses it. On the cluster side, the GET response carries privacy
+    on every field. To make the diff symmetric for credential fields we union the
+    names from BOTH sides — if EITHER side flags a name as credential-privacy, we
+    strip it from BOTH sides of the diff.
+    """
+    names: set[str] = set()
+    for m in models:
+        for f in getattr(m, "fields", []) or []:
+            if getattr(f, "privacy", None) in _CREDENTIAL_PRIVACY_VALUES:
+                names.add(f.name)
+    return names
+
+
+def _strip_redacted_fields(
+    dump: dict[str, Any], credential_names: frozenset[str] | set[str] = frozenset()
+) -> dict[str, Any]:
     """Drop fields[] entries whose value is REDACTED — mirror of dump.py filter (D-36).
 
     Applied symmetrically on both sides of ``diff_models`` so the round-trip property
     (D-31/D-35/D-36) holds: dump emits without REDACTED, reload→reconcile compares
     cluster (post-strip) against desired (already post-strip from dump) → NO_OP.
+
+    WR-01 (Phase 3 code review): also strips entries with value ``"********"``
+    (the real production API mask used by Prowlarr / real *arr instances), and
+    strips entries by name when their backing FieldKV (on EITHER side of the diff)
+    has ``privacy in _CREDENTIAL_PRIVACY_VALUES`` — by metadata, not by value.
+    See _credential_field_names for why we union the names across both sides.
+
+    The actual credential is preserved on PUT by the omit-by-metadata branch in
+    ``merge_fields_for_put`` (D-02.2-AUTH-REGRESSION).
     """
     if "fields" not in dump:
         return dump
     dump = dict(dump)
-    dump["fields"] = [f for f in dump["fields"] if f.get("value") != _REDACTED_VALUE]
+    # WR-01: only string values can be API masks — non-string values (e.g. lists,
+    # ints, bools from select / numeric / checkbox fields) cannot be masks and
+    # must NOT be tested against a hashable frozenset (would raise TypeError on
+    # unhashable list values like syncCategories=[5000, 5010, ...]).
+    dump["fields"] = [
+        f
+        for f in dump["fields"]
+        if f.get("name") not in credential_names
+        and not (isinstance(f.get("value"), str) and f["value"] in _API_MASK_VALUES)
+    ]
     return dump
 
 
 def diff_models(a: BaseModel, b: BaseModel) -> list[str]:
     """Return sorted field names that differ (excluding D-21 read-only fields).
 
-    Both sides are normalized via ``_strip_redacted_fields`` (D-36) so cluster's
-    REDACTED ``fields[]`` entries — which the dump emitter omits — do not flag a
-    spurious UPDATE on round-trip.
+    Both sides are normalized via ``_strip_redacted_fields`` (D-36 / WR-01) so:
+      - cluster's REDACTED / masked ``fields[]`` entries do not flag a spurious
+        UPDATE on round-trip (D-36);
+      - credential-privacy fields (apiKey, password, token, userName) — flagged
+        by EITHER side's metadata — are stripped symmetrically so cluster (masked)
+        vs desired (real key) does not flag drift on every cycle.
+    The real credential is preserved on PUT by the omit-by-metadata branch in
+    ``merge_fields_for_put`` (D-02.2-AUTH-REGRESSION).
     """
-    a_dump = _strip_redacted_fields(a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
-    b_dump = _strip_redacted_fields(b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
+    credential_names = _credential_field_names(a, b)
+    a_dump = _strip_redacted_fields(
+        a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS),
+        credential_names=credential_names,
+    )
+    b_dump = _strip_redacted_fields(
+        b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS),
+        credential_names=credential_names,
+    )
     return sorted({k for k in (set(a_dump) | set(b_dump)) if a_dump.get(k) != b_dump.get(k)})
 
 

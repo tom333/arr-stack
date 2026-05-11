@@ -388,6 +388,74 @@ def test_diff_prowlarr_returns_3_on_planned_drift(respx_mock: respx.MockRouter) 
 
 
 @pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
+def test_idempotent_against_production_api_mask(respx_mock: respx.MockRouter) -> None:
+    """WR-01 regression: cluster returns apiKey value '********' (real Prowlarr API mask).
+
+    Pre-fix, _strip_redacted_fields only matched the in-tree fixture sentinel
+    '***REDACTED***'. Against a real Prowlarr cluster, the GET response carries
+    '********' for privacy='apiKey' fields, the diff flagged 'fields' as drifted on
+    every cycle, and reconcile planned a spurious UPDATE on every reconcile cycle.
+
+    This test exercises a minimal cluster response shaped like Prowlarr's actual
+    output — only the 3 FieldKV entries the reconciler emits — so the WR-01 fix
+    is the load-bearing change. Using the full fixture has known structural
+    drift (cluster carries syncCategories / extra metadata that desired doesn't),
+    which is a separate problem outside WR-01 scope.
+    """
+    cluster = [
+        {
+            "configContract": "SonarrSettings",
+            "enable": True,
+            "id": 1,
+            "implementation": "Sonarr",
+            "implementationName": "Sonarr",
+            "infoLink": "https://wiki.servarr.com/prowlarr/supported#sonarr",
+            "name": "Sonarr",
+            "syncLevel": "fullSync",
+            "tags": [],
+            "fields": [
+                {"name": "prowlarrUrl", "value": "http://prowlarr:9696"},
+                {"name": "baseUrl", "value": "http://sonarr:8989"},
+                # The real production mask — WR-01 targets exactly this:
+                {"name": "apiKey", "value": "********", "privacy": "apiKey"},
+            ],
+        }
+    ]
+    respx_mock.get("/applications").mock(return_value=httpx.Response(200, json=cluster))
+    put_route = respx_mock.put(url__regex=rf"^{PROWLARR_BASE}/api/v1/applications/\d+(?:\?.*)?$")
+
+    # AppEntry matching the cluster on prowlarrUrl + baseUrl + sync_level; the
+    # desired apiKey resolves to a real key value (NOT the mask):
+    entry = AppEntry(
+        name="Sonarr",
+        type="sonarr",
+        base_url="http://sonarr:8989",
+        api_key_env="SONARR_API_KEY",
+        sync_level="fullSync",
+    )
+    instance = ProwlarrInstance(
+        base_url="http://prowlarr:9696",
+        apps=AppsSection(prune=False, items=[entry]),
+    )
+    client = ProwlarrClient(base_url=PROWLARR_BASE, api_key="fake")
+    with patch.dict(os.environ, {"SONARR_API_KEY": "real-sonarr-key"}):
+        result = reconcile_prowlarr(client, instance, dry_run=False)
+
+    assert put_route.call_count == 0, (
+        "WR-01: cluster apiKey value '********' must be stripped before diff — "
+        "otherwise every Prowlarr reconcile plans a spurious UPDATE (golden-rule "
+        "violation)"
+    )
+    # The plan should be NO_OP for the Sonarr entry — the matching cluster state is
+    # identical modulo the masked apiKey:
+    sonarr_plan = next(p for p in result.plan if p.name == "Sonarr")
+    assert sonarr_plan.action == Action.NO_OP, (
+        f"WR-01: plan must be NO_OP, got {sonarr_plan.action.value} with "
+        f"diff_fields={sonarr_plan.diff_fields}"
+    )
+
+
+@pytest.mark.respx(base_url=f"{PROWLARR_BASE}/api/v1", assert_all_called=False)
 def test_diff_prowlarr_returns_0_on_no_drift(respx_mock: respx.MockRouter) -> None:
     """CR-02 companion: diff_prowlarr must return 0 when cluster matches YAML.
 

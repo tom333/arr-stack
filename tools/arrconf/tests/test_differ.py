@@ -73,6 +73,39 @@ def test_diff_models_detects_field_change() -> None:
     assert diff_models(a, b) == ["priority"]
 
 
+def test_diff_models_strips_production_api_mask() -> None:
+    """WR-01 (Phase 3 code review): real production mask `"********"` must be stripped.
+
+    Pre-fix, _strip_redacted_fields only matched the in-tree fixture sentinel
+    `"***REDACTED***"`. Against a real Prowlarr cluster, the GET response carries
+    `"********"` for `privacy="apiKey"` fields. Comparing that against desired
+    (which carries the real resolved key) flagged `fields` as drifted on every
+    cycle — every Prowlarr reconcile planned a spurious UPDATE. The fix extends
+    the stripping to the frozenset `_API_MASK_VALUES = {"***REDACTED***", "********"}`.
+
+    Contract: when the only difference between two models is that one side has an
+    apiKey field with the production mask `"********"` and the other has it
+    stripped (i.e. dump emitter's behaviour), diff_models returns NO drift on
+    the `fields` axis. The test exercises both mask sentinels symmetrically.
+    """
+    cluster_with_production_mask = _dc(
+        "qbit",
+        fields=[FieldKV(name="apiKey", value="********", privacy="apiKey")],
+    )
+    cluster_with_in_tree_mask = _dc(
+        "qbit",
+        fields=[FieldKV(name="apiKey", value="***REDACTED***", privacy="apiKey")],
+    )
+    desired_with_real_key_stripped_by_dump = _dc("qbit", fields=[])
+    # Both mask variants must compare-equal to a stripped-fields desired:
+    assert "fields" not in diff_models(
+        cluster_with_production_mask, desired_with_real_key_stripped_by_dump
+    ), "WR-01: '********' production mask must be stripped before diff_models"
+    assert "fields" not in diff_models(
+        cluster_with_in_tree_mask, desired_with_real_key_stripped_by_dump
+    ), "Existing contract: '***REDACTED***' fixture sentinel must continue to be stripped"
+
+
 def test_no_managed_tag_id_treats_as_protected() -> None:
     """If managed_tag_id is None, prune=True must STILL not delete (T-01-04 defensive default)."""
     cur = _dc("orphan", tags=[42])
