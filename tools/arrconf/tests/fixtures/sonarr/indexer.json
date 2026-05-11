@@ -1,0 +1,2567 @@
+[
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "URL",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "http://prowlarr.selfhost.svc.cluster.local:9696/2/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les émissions standard/quotidiennes",
+        "isFloat": false,
+        "label": "Catégories",
+        "name": "categories",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5000
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les animes",
+        "isFloat": false,
+        "label": "Catégories Anime",
+        "name": "animeCategories",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5070
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Rechercher également les animes en utilisant la numérotation standard",
+        "isFloat": false,
+        "label": "Recherche au format standard pour les animes",
+        "name": "animeStandardFormatSearch",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Veuillez noter que si vous modifiez la catégorie, vous devrez ajouter des règles requises/restrictives concernant les sous-groupes pour éviter les sorties en langues étrangères.",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Quelles langues sont normalement présentes dans une version multiple de l'indexeur ?",
+        "isFloat": false,
+        "label": "Multilingue",
+        "name": "multiLanguages",
+        "order": 7,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "Original",
+            "order": 0,
+            "value": -2
+          },
+          {
+            "name": "Arabic",
+            "order": 0,
+            "value": 26
+          },
+          {
+            "name": "Bosnian",
+            "order": 0,
+            "value": 41
+          },
+          {
+            "name": "Bulgarian",
+            "order": 0,
+            "value": 28
+          },
+          {
+            "name": "Catalan",
+            "order": 0,
+            "value": 38
+          },
+          {
+            "name": "Chinese",
+            "order": 0,
+            "value": 10
+          },
+          {
+            "name": "Croatian",
+            "order": 0,
+            "value": 39
+          },
+          {
+            "name": "Czech",
+            "order": 0,
+            "value": 25
+          },
+          {
+            "name": "Danish",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "Dutch",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "English",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "Estonian",
+            "order": 0,
+            "value": 42
+          },
+          {
+            "name": "Finnish",
+            "order": 0,
+            "value": 16
+          },
+          {
+            "name": "Flemish",
+            "order": 0,
+            "value": 19
+          },
+          {
+            "name": "French",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "German",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "Greek",
+            "order": 0,
+            "value": 20
+          },
+          {
+            "name": "Hebrew",
+            "order": 0,
+            "value": 23
+          },
+          {
+            "name": "Hindi",
+            "order": 0,
+            "value": 27
+          },
+          {
+            "name": "Hungarian",
+            "order": 0,
+            "value": 22
+          },
+          {
+            "name": "Icelandic",
+            "order": 0,
+            "value": 9
+          },
+          {
+            "name": "Indonesian",
+            "order": 0,
+            "value": 44
+          },
+          {
+            "name": "Italian",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "Japanese",
+            "order": 0,
+            "value": 8
+          },
+          {
+            "name": "Korean",
+            "order": 0,
+            "value": 21
+          },
+          {
+            "name": "Latvian",
+            "order": 0,
+            "value": 36
+          },
+          {
+            "name": "Lithuanian",
+            "order": 0,
+            "value": 24
+          },
+          {
+            "name": "Macedonian",
+            "order": 0,
+            "value": 45
+          },
+          {
+            "name": "Malayalam",
+            "order": 0,
+            "value": 29
+          },
+          {
+            "name": "Norwegian",
+            "order": 0,
+            "value": 15
+          },
+          {
+            "name": "Persian",
+            "order": 0,
+            "value": 37
+          },
+          {
+            "name": "Polish",
+            "order": 0,
+            "value": 12
+          },
+          {
+            "name": "Portuguese",
+            "order": 0,
+            "value": 18
+          },
+          {
+            "name": "Portuguese (Brazil)",
+            "order": 0,
+            "value": 33
+          },
+          {
+            "name": "Romanian",
+            "order": 0,
+            "value": 35
+          },
+          {
+            "name": "Russian",
+            "order": 0,
+            "value": 11
+          },
+          {
+            "name": "Serbian",
+            "order": 0,
+            "value": 40
+          },
+          {
+            "name": "Slovak",
+            "order": 0,
+            "value": 31
+          },
+          {
+            "name": "Slovenian",
+            "order": 0,
+            "value": 46
+          },
+          {
+            "name": "Spanish",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "Spanish (Latino)",
+            "order": 0,
+            "value": 34
+          },
+          {
+            "name": "Swedish",
+            "order": 0,
+            "value": 14
+          },
+          {
+            "name": "Tamil",
+            "order": 0,
+            "value": 43
+          },
+          {
+            "name": "Thai",
+            "order": 0,
+            "value": 32
+          },
+          {
+            "name": "Turkish",
+            "order": 0,
+            "value": 17
+          },
+          {
+            "name": "Ukrainian",
+            "order": 0,
+            "value": 30
+          },
+          {
+            "name": "Vietnamese",
+            "order": 0,
+            "value": 13
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Lors du traitement des téléchargements terminés, Sonarr traitera ces types de fichiers sélectionnés comme des téléchargements ayant échoué.",
+        "isFloat": false,
+        "label": "Échec des téléchargements",
+        "name": "failDownloads",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Executables",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Potentially Dangerous",
+            "order": 10,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders exigé.",
+        "isFloat": false,
+        "label": "Seeders minimum",
+        "name": "minimumSeeders",
+        "order": 9,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "seedCriteria.seedRatio",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "seedCriteria.seedTime",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le temps pendant lequel un torrent de pack de saison doit être partagé avant de s'arrêter, laisser vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Season-Pack Seed Time",
+        "name": "seedCriteria.seasonPackSeedTime",
+        "order": 12,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si un torrent est bloqué par le hachage, il peut ne pas être correctement rejeté pendant le RSS/recherche pour certains indexeurs. L'activation de cette fonction permet de le rejeter après que le torrent a été saisi, mais avant qu'il ne soit envoyé au client.",
+        "isFloat": false,
+        "label": "Rejeter les hachages de torrent sur liste noir lors de la saisie",
+        "name": "rejectBlocklistedTorrentHashesWhileGrabbing",
+        "order": 13,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 1,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#torznab",
+    "name": "C411 (Prowlarr)",
+    "priority": 50,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "URL",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "http://prowlarr.selfhost.svc.cluster.local:9696/1/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les émissions standard/quotidiennes",
+        "isFloat": false,
+        "label": "Catégories",
+        "name": "categories",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5000,
+          5050
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les animes",
+        "isFloat": false,
+        "label": "Catégories Anime",
+        "name": "animeCategories",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5070
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Rechercher également les animes en utilisant la numérotation standard",
+        "isFloat": false,
+        "label": "Recherche au format standard pour les animes",
+        "name": "animeStandardFormatSearch",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Veuillez noter que si vous modifiez la catégorie, vous devrez ajouter des règles requises/restrictives concernant les sous-groupes pour éviter les sorties en langues étrangères.",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Quelles langues sont normalement présentes dans une version multiple de l'indexeur ?",
+        "isFloat": false,
+        "label": "Multilingue",
+        "name": "multiLanguages",
+        "order": 7,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "Original",
+            "order": 0,
+            "value": -2
+          },
+          {
+            "name": "Arabic",
+            "order": 0,
+            "value": 26
+          },
+          {
+            "name": "Bosnian",
+            "order": 0,
+            "value": 41
+          },
+          {
+            "name": "Bulgarian",
+            "order": 0,
+            "value": 28
+          },
+          {
+            "name": "Catalan",
+            "order": 0,
+            "value": 38
+          },
+          {
+            "name": "Chinese",
+            "order": 0,
+            "value": 10
+          },
+          {
+            "name": "Croatian",
+            "order": 0,
+            "value": 39
+          },
+          {
+            "name": "Czech",
+            "order": 0,
+            "value": 25
+          },
+          {
+            "name": "Danish",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "Dutch",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "English",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "Estonian",
+            "order": 0,
+            "value": 42
+          },
+          {
+            "name": "Finnish",
+            "order": 0,
+            "value": 16
+          },
+          {
+            "name": "Flemish",
+            "order": 0,
+            "value": 19
+          },
+          {
+            "name": "French",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "German",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "Greek",
+            "order": 0,
+            "value": 20
+          },
+          {
+            "name": "Hebrew",
+            "order": 0,
+            "value": 23
+          },
+          {
+            "name": "Hindi",
+            "order": 0,
+            "value": 27
+          },
+          {
+            "name": "Hungarian",
+            "order": 0,
+            "value": 22
+          },
+          {
+            "name": "Icelandic",
+            "order": 0,
+            "value": 9
+          },
+          {
+            "name": "Indonesian",
+            "order": 0,
+            "value": 44
+          },
+          {
+            "name": "Italian",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "Japanese",
+            "order": 0,
+            "value": 8
+          },
+          {
+            "name": "Korean",
+            "order": 0,
+            "value": 21
+          },
+          {
+            "name": "Latvian",
+            "order": 0,
+            "value": 36
+          },
+          {
+            "name": "Lithuanian",
+            "order": 0,
+            "value": 24
+          },
+          {
+            "name": "Macedonian",
+            "order": 0,
+            "value": 45
+          },
+          {
+            "name": "Malayalam",
+            "order": 0,
+            "value": 29
+          },
+          {
+            "name": "Norwegian",
+            "order": 0,
+            "value": 15
+          },
+          {
+            "name": "Persian",
+            "order": 0,
+            "value": 37
+          },
+          {
+            "name": "Polish",
+            "order": 0,
+            "value": 12
+          },
+          {
+            "name": "Portuguese",
+            "order": 0,
+            "value": 18
+          },
+          {
+            "name": "Portuguese (Brazil)",
+            "order": 0,
+            "value": 33
+          },
+          {
+            "name": "Romanian",
+            "order": 0,
+            "value": 35
+          },
+          {
+            "name": "Russian",
+            "order": 0,
+            "value": 11
+          },
+          {
+            "name": "Serbian",
+            "order": 0,
+            "value": 40
+          },
+          {
+            "name": "Slovak",
+            "order": 0,
+            "value": 31
+          },
+          {
+            "name": "Slovenian",
+            "order": 0,
+            "value": 46
+          },
+          {
+            "name": "Spanish",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "Spanish (Latino)",
+            "order": 0,
+            "value": 34
+          },
+          {
+            "name": "Swedish",
+            "order": 0,
+            "value": 14
+          },
+          {
+            "name": "Tamil",
+            "order": 0,
+            "value": 43
+          },
+          {
+            "name": "Thai",
+            "order": 0,
+            "value": 32
+          },
+          {
+            "name": "Turkish",
+            "order": 0,
+            "value": 17
+          },
+          {
+            "name": "Ukrainian",
+            "order": 0,
+            "value": 30
+          },
+          {
+            "name": "Vietnamese",
+            "order": 0,
+            "value": 13
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Lors du traitement des téléchargements terminés, Sonarr traitera ces types de fichiers sélectionnés comme des téléchargements ayant échoué.",
+        "isFloat": false,
+        "label": "Échec des téléchargements",
+        "name": "failDownloads",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Executables",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Potentially Dangerous",
+            "order": 10,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders exigé.",
+        "isFloat": false,
+        "label": "Seeders minimum",
+        "name": "minimumSeeders",
+        "order": 9,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "seedCriteria.seedRatio",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "seedCriteria.seedTime",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le temps pendant lequel un torrent de pack de saison doit être partagé avant de s'arrêter, laisser vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Season-Pack Seed Time",
+        "name": "seedCriteria.seasonPackSeedTime",
+        "order": 12,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si un torrent est bloqué par le hachage, il peut ne pas être correctement rejeté pendant le RSS/recherche pour certains indexeurs. L'activation de cette fonction permet de le rejeter après que le torrent a été saisi, mais avant qu'il ne soit envoyé au client.",
+        "isFloat": false,
+        "label": "Rejeter les hachages de torrent sur liste noir lors de la saisie",
+        "name": "rejectBlocklistedTorrentHashesWhileGrabbing",
+        "order": 13,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 2,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#torznab",
+    "name": "NorTorrent (Prowlarr)",
+    "priority": 25,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "URL",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "http://prowlarr.selfhost.svc.cluster.local:9696/7/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les émissions standard/quotidiennes",
+        "isFloat": false,
+        "label": "Catégories",
+        "name": "categories",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5000
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les animes",
+        "isFloat": false,
+        "label": "Catégories Anime",
+        "name": "animeCategories",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5070
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Rechercher également les animes en utilisant la numérotation standard",
+        "isFloat": false,
+        "label": "Recherche au format standard pour les animes",
+        "name": "animeStandardFormatSearch",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Veuillez noter que si vous modifiez la catégorie, vous devrez ajouter des règles requises/restrictives concernant les sous-groupes pour éviter les sorties en langues étrangères.",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Quelles langues sont normalement présentes dans une version multiple de l'indexeur ?",
+        "isFloat": false,
+        "label": "Multilingue",
+        "name": "multiLanguages",
+        "order": 7,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "Original",
+            "order": 0,
+            "value": -2
+          },
+          {
+            "name": "Arabic",
+            "order": 0,
+            "value": 26
+          },
+          {
+            "name": "Bosnian",
+            "order": 0,
+            "value": 41
+          },
+          {
+            "name": "Bulgarian",
+            "order": 0,
+            "value": 28
+          },
+          {
+            "name": "Catalan",
+            "order": 0,
+            "value": 38
+          },
+          {
+            "name": "Chinese",
+            "order": 0,
+            "value": 10
+          },
+          {
+            "name": "Croatian",
+            "order": 0,
+            "value": 39
+          },
+          {
+            "name": "Czech",
+            "order": 0,
+            "value": 25
+          },
+          {
+            "name": "Danish",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "Dutch",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "English",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "Estonian",
+            "order": 0,
+            "value": 42
+          },
+          {
+            "name": "Finnish",
+            "order": 0,
+            "value": 16
+          },
+          {
+            "name": "Flemish",
+            "order": 0,
+            "value": 19
+          },
+          {
+            "name": "French",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "German",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "Greek",
+            "order": 0,
+            "value": 20
+          },
+          {
+            "name": "Hebrew",
+            "order": 0,
+            "value": 23
+          },
+          {
+            "name": "Hindi",
+            "order": 0,
+            "value": 27
+          },
+          {
+            "name": "Hungarian",
+            "order": 0,
+            "value": 22
+          },
+          {
+            "name": "Icelandic",
+            "order": 0,
+            "value": 9
+          },
+          {
+            "name": "Indonesian",
+            "order": 0,
+            "value": 44
+          },
+          {
+            "name": "Italian",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "Japanese",
+            "order": 0,
+            "value": 8
+          },
+          {
+            "name": "Korean",
+            "order": 0,
+            "value": 21
+          },
+          {
+            "name": "Latvian",
+            "order": 0,
+            "value": 36
+          },
+          {
+            "name": "Lithuanian",
+            "order": 0,
+            "value": 24
+          },
+          {
+            "name": "Macedonian",
+            "order": 0,
+            "value": 45
+          },
+          {
+            "name": "Malayalam",
+            "order": 0,
+            "value": 29
+          },
+          {
+            "name": "Norwegian",
+            "order": 0,
+            "value": 15
+          },
+          {
+            "name": "Persian",
+            "order": 0,
+            "value": 37
+          },
+          {
+            "name": "Polish",
+            "order": 0,
+            "value": 12
+          },
+          {
+            "name": "Portuguese",
+            "order": 0,
+            "value": 18
+          },
+          {
+            "name": "Portuguese (Brazil)",
+            "order": 0,
+            "value": 33
+          },
+          {
+            "name": "Romanian",
+            "order": 0,
+            "value": 35
+          },
+          {
+            "name": "Russian",
+            "order": 0,
+            "value": 11
+          },
+          {
+            "name": "Serbian",
+            "order": 0,
+            "value": 40
+          },
+          {
+            "name": "Slovak",
+            "order": 0,
+            "value": 31
+          },
+          {
+            "name": "Slovenian",
+            "order": 0,
+            "value": 46
+          },
+          {
+            "name": "Spanish",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "Spanish (Latino)",
+            "order": 0,
+            "value": 34
+          },
+          {
+            "name": "Swedish",
+            "order": 0,
+            "value": 14
+          },
+          {
+            "name": "Tamil",
+            "order": 0,
+            "value": 43
+          },
+          {
+            "name": "Thai",
+            "order": 0,
+            "value": 32
+          },
+          {
+            "name": "Turkish",
+            "order": 0,
+            "value": 17
+          },
+          {
+            "name": "Ukrainian",
+            "order": 0,
+            "value": 30
+          },
+          {
+            "name": "Vietnamese",
+            "order": 0,
+            "value": 13
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Lors du traitement des téléchargements terminés, Sonarr traitera ces types de fichiers sélectionnés comme des téléchargements ayant échoué.",
+        "isFloat": false,
+        "label": "Échec des téléchargements",
+        "name": "failDownloads",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Executables",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Potentially Dangerous",
+            "order": 10,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders exigé.",
+        "isFloat": false,
+        "label": "Seeders minimum",
+        "name": "minimumSeeders",
+        "order": 9,
+        "privacy": "normal",
+        "type": "number",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "seedCriteria.seedRatio",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "seedCriteria.seedTime",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le temps pendant lequel un torrent de pack de saison doit être partagé avant de s'arrêter, laisser vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Season-Pack Seed Time",
+        "name": "seedCriteria.seasonPackSeedTime",
+        "order": 12,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si un torrent est bloqué par le hachage, il peut ne pas être correctement rejeté pendant le RSS/recherche pour certains indexeurs. L'activation de cette fonction permet de le rejeter après que le torrent a été saisi, mais avant qu'il ne soit envoyé au client.",
+        "isFloat": false,
+        "label": "Rejeter les hachages de torrent sur liste noir lors de la saisie",
+        "name": "rejectBlocklistedTorrentHashesWhileGrabbing",
+        "order": 13,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 7,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#torznab",
+    "name": "Torr9 (Prowlarr)",
+    "priority": 25,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "URL",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "http://prowlarr.selfhost.svc.cluster.local:9696/5/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les émissions standard/quotidiennes",
+        "isFloat": false,
+        "label": "Catégories",
+        "name": "categories",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5000
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les animes",
+        "isFloat": false,
+        "label": "Catégories Anime",
+        "name": "animeCategories",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": false,
+        "helpText": "Rechercher également les animes en utilisant la numérotation standard",
+        "isFloat": false,
+        "label": "Recherche au format standard pour les animes",
+        "name": "animeStandardFormatSearch",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Veuillez noter que si vous modifiez la catégorie, vous devrez ajouter des règles requises/restrictives concernant les sous-groupes pour éviter les sorties en langues étrangères.",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Quelles langues sont normalement présentes dans une version multiple de l'indexeur ?",
+        "isFloat": false,
+        "label": "Multilingue",
+        "name": "multiLanguages",
+        "order": 7,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "Original",
+            "order": 0,
+            "value": -2
+          },
+          {
+            "name": "Arabic",
+            "order": 0,
+            "value": 26
+          },
+          {
+            "name": "Bosnian",
+            "order": 0,
+            "value": 41
+          },
+          {
+            "name": "Bulgarian",
+            "order": 0,
+            "value": 28
+          },
+          {
+            "name": "Catalan",
+            "order": 0,
+            "value": 38
+          },
+          {
+            "name": "Chinese",
+            "order": 0,
+            "value": 10
+          },
+          {
+            "name": "Croatian",
+            "order": 0,
+            "value": 39
+          },
+          {
+            "name": "Czech",
+            "order": 0,
+            "value": 25
+          },
+          {
+            "name": "Danish",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "Dutch",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "English",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "Estonian",
+            "order": 0,
+            "value": 42
+          },
+          {
+            "name": "Finnish",
+            "order": 0,
+            "value": 16
+          },
+          {
+            "name": "Flemish",
+            "order": 0,
+            "value": 19
+          },
+          {
+            "name": "French",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "German",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "Greek",
+            "order": 0,
+            "value": 20
+          },
+          {
+            "name": "Hebrew",
+            "order": 0,
+            "value": 23
+          },
+          {
+            "name": "Hindi",
+            "order": 0,
+            "value": 27
+          },
+          {
+            "name": "Hungarian",
+            "order": 0,
+            "value": 22
+          },
+          {
+            "name": "Icelandic",
+            "order": 0,
+            "value": 9
+          },
+          {
+            "name": "Indonesian",
+            "order": 0,
+            "value": 44
+          },
+          {
+            "name": "Italian",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "Japanese",
+            "order": 0,
+            "value": 8
+          },
+          {
+            "name": "Korean",
+            "order": 0,
+            "value": 21
+          },
+          {
+            "name": "Latvian",
+            "order": 0,
+            "value": 36
+          },
+          {
+            "name": "Lithuanian",
+            "order": 0,
+            "value": 24
+          },
+          {
+            "name": "Macedonian",
+            "order": 0,
+            "value": 45
+          },
+          {
+            "name": "Malayalam",
+            "order": 0,
+            "value": 29
+          },
+          {
+            "name": "Norwegian",
+            "order": 0,
+            "value": 15
+          },
+          {
+            "name": "Persian",
+            "order": 0,
+            "value": 37
+          },
+          {
+            "name": "Polish",
+            "order": 0,
+            "value": 12
+          },
+          {
+            "name": "Portuguese",
+            "order": 0,
+            "value": 18
+          },
+          {
+            "name": "Portuguese (Brazil)",
+            "order": 0,
+            "value": 33
+          },
+          {
+            "name": "Romanian",
+            "order": 0,
+            "value": 35
+          },
+          {
+            "name": "Russian",
+            "order": 0,
+            "value": 11
+          },
+          {
+            "name": "Serbian",
+            "order": 0,
+            "value": 40
+          },
+          {
+            "name": "Slovak",
+            "order": 0,
+            "value": 31
+          },
+          {
+            "name": "Slovenian",
+            "order": 0,
+            "value": 46
+          },
+          {
+            "name": "Spanish",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "Spanish (Latino)",
+            "order": 0,
+            "value": 34
+          },
+          {
+            "name": "Swedish",
+            "order": 0,
+            "value": 14
+          },
+          {
+            "name": "Tamil",
+            "order": 0,
+            "value": 43
+          },
+          {
+            "name": "Thai",
+            "order": 0,
+            "value": 32
+          },
+          {
+            "name": "Turkish",
+            "order": 0,
+            "value": 17
+          },
+          {
+            "name": "Ukrainian",
+            "order": 0,
+            "value": 30
+          },
+          {
+            "name": "Vietnamese",
+            "order": 0,
+            "value": 13
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Lors du traitement des téléchargements terminés, Sonarr traitera ces types de fichiers sélectionnés comme des téléchargements ayant échoué.",
+        "isFloat": false,
+        "label": "Échec des téléchargements",
+        "name": "failDownloads",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Executables",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Potentially Dangerous",
+            "order": 10,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders exigé.",
+        "isFloat": false,
+        "label": "Seeders minimum",
+        "name": "minimumSeeders",
+        "order": 9,
+        "privacy": "normal",
+        "type": "number",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "seedCriteria.seedRatio",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "seedCriteria.seedTime",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le temps pendant lequel un torrent de pack de saison doit être partagé avant de s'arrêter, laisser vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Season-Pack Seed Time",
+        "name": "seedCriteria.seasonPackSeedTime",
+        "order": 12,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si un torrent est bloqué par le hachage, il peut ne pas être correctement rejeté pendant le RSS/recherche pour certains indexeurs. L'activation de cette fonction permet de le rejeter après que le torrent a été saisi, mais avant qu'il ne soit envoyé au client.",
+        "isFloat": false,
+        "label": "Rejeter les hachages de torrent sur liste noir lors de la saisie",
+        "name": "rejectBlocklistedTorrentHashesWhileGrabbing",
+        "order": 13,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 5,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#torznab",
+    "name": "Torrent9 (Prowlarr)",
+    "priority": 25,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "URL",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "http://prowlarr.selfhost.svc.cluster.local:9696/6/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les émissions standard/quotidiennes",
+        "isFloat": false,
+        "label": "Catégories",
+        "name": "categories",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5000,
+          5050
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les animes",
+        "isFloat": false,
+        "label": "Catégories Anime",
+        "name": "animeCategories",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5070
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Rechercher également les animes en utilisant la numérotation standard",
+        "isFloat": false,
+        "label": "Recherche au format standard pour les animes",
+        "name": "animeStandardFormatSearch",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Veuillez noter que si vous modifiez la catégorie, vous devrez ajouter des règles requises/restrictives concernant les sous-groupes pour éviter les sorties en langues étrangères.",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Quelles langues sont normalement présentes dans une version multiple de l'indexeur ?",
+        "isFloat": false,
+        "label": "Multilingue",
+        "name": "multiLanguages",
+        "order": 7,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "Original",
+            "order": 0,
+            "value": -2
+          },
+          {
+            "name": "Arabic",
+            "order": 0,
+            "value": 26
+          },
+          {
+            "name": "Bosnian",
+            "order": 0,
+            "value": 41
+          },
+          {
+            "name": "Bulgarian",
+            "order": 0,
+            "value": 28
+          },
+          {
+            "name": "Catalan",
+            "order": 0,
+            "value": 38
+          },
+          {
+            "name": "Chinese",
+            "order": 0,
+            "value": 10
+          },
+          {
+            "name": "Croatian",
+            "order": 0,
+            "value": 39
+          },
+          {
+            "name": "Czech",
+            "order": 0,
+            "value": 25
+          },
+          {
+            "name": "Danish",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "Dutch",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "English",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "Estonian",
+            "order": 0,
+            "value": 42
+          },
+          {
+            "name": "Finnish",
+            "order": 0,
+            "value": 16
+          },
+          {
+            "name": "Flemish",
+            "order": 0,
+            "value": 19
+          },
+          {
+            "name": "French",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "German",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "Greek",
+            "order": 0,
+            "value": 20
+          },
+          {
+            "name": "Hebrew",
+            "order": 0,
+            "value": 23
+          },
+          {
+            "name": "Hindi",
+            "order": 0,
+            "value": 27
+          },
+          {
+            "name": "Hungarian",
+            "order": 0,
+            "value": 22
+          },
+          {
+            "name": "Icelandic",
+            "order": 0,
+            "value": 9
+          },
+          {
+            "name": "Indonesian",
+            "order": 0,
+            "value": 44
+          },
+          {
+            "name": "Italian",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "Japanese",
+            "order": 0,
+            "value": 8
+          },
+          {
+            "name": "Korean",
+            "order": 0,
+            "value": 21
+          },
+          {
+            "name": "Latvian",
+            "order": 0,
+            "value": 36
+          },
+          {
+            "name": "Lithuanian",
+            "order": 0,
+            "value": 24
+          },
+          {
+            "name": "Macedonian",
+            "order": 0,
+            "value": 45
+          },
+          {
+            "name": "Malayalam",
+            "order": 0,
+            "value": 29
+          },
+          {
+            "name": "Norwegian",
+            "order": 0,
+            "value": 15
+          },
+          {
+            "name": "Persian",
+            "order": 0,
+            "value": 37
+          },
+          {
+            "name": "Polish",
+            "order": 0,
+            "value": 12
+          },
+          {
+            "name": "Portuguese",
+            "order": 0,
+            "value": 18
+          },
+          {
+            "name": "Portuguese (Brazil)",
+            "order": 0,
+            "value": 33
+          },
+          {
+            "name": "Romanian",
+            "order": 0,
+            "value": 35
+          },
+          {
+            "name": "Russian",
+            "order": 0,
+            "value": 11
+          },
+          {
+            "name": "Serbian",
+            "order": 0,
+            "value": 40
+          },
+          {
+            "name": "Slovak",
+            "order": 0,
+            "value": 31
+          },
+          {
+            "name": "Slovenian",
+            "order": 0,
+            "value": 46
+          },
+          {
+            "name": "Spanish",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "Spanish (Latino)",
+            "order": 0,
+            "value": 34
+          },
+          {
+            "name": "Swedish",
+            "order": 0,
+            "value": 14
+          },
+          {
+            "name": "Tamil",
+            "order": 0,
+            "value": 43
+          },
+          {
+            "name": "Thai",
+            "order": 0,
+            "value": 32
+          },
+          {
+            "name": "Turkish",
+            "order": 0,
+            "value": 17
+          },
+          {
+            "name": "Ukrainian",
+            "order": 0,
+            "value": 30
+          },
+          {
+            "name": "Vietnamese",
+            "order": 0,
+            "value": 13
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Lors du traitement des téléchargements terminés, Sonarr traitera ces types de fichiers sélectionnés comme des téléchargements ayant échoué.",
+        "isFloat": false,
+        "label": "Échec des téléchargements",
+        "name": "failDownloads",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Executables",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Potentially Dangerous",
+            "order": 10,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders exigé.",
+        "isFloat": false,
+        "label": "Seeders minimum",
+        "name": "minimumSeeders",
+        "order": 9,
+        "privacy": "normal",
+        "type": "number",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "seedCriteria.seedRatio",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "seedCriteria.seedTime",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le temps pendant lequel un torrent de pack de saison doit être partagé avant de s'arrêter, laisser vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Season-Pack Seed Time",
+        "name": "seedCriteria.seasonPackSeedTime",
+        "order": 12,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si un torrent est bloqué par le hachage, il peut ne pas être correctement rejeté pendant le RSS/recherche pour certains indexeurs. L'activation de cette fonction permet de le rejeter après que le torrent a été saisi, mais avant qu'il ne soit envoyé au client.",
+        "isFloat": false,
+        "label": "Rejeter les hachages de torrent sur liste noir lors de la saisie",
+        "name": "rejectBlocklistedTorrentHashesWhileGrabbing",
+        "order": 13,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 6,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#torznab",
+    "name": "World-torrent (Prowlarr)",
+    "priority": 25,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "URL",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "http://prowlarr.selfhost.svc.cluster.local:9696/3/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les émissions standard/quotidiennes",
+        "isFloat": false,
+        "label": "Catégories",
+        "name": "categories",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5000
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Liste déroulante, laissez vide pour désactiver les animes",
+        "isFloat": false,
+        "label": "Catégories Anime",
+        "name": "animeCategories",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "newznabCategories",
+        "type": "select",
+        "value": [
+          5070
+        ]
+      },
+      {
+        "advanced": false,
+        "helpText": "Rechercher également les animes en utilisant la numérotation standard",
+        "isFloat": false,
+        "label": "Recherche au format standard pour les animes",
+        "name": "animeStandardFormatSearch",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Veuillez noter que si vous modifiez la catégorie, vous devrez ajouter des règles requises/restrictives concernant les sous-groupes pour éviter les sorties en langues étrangères.",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Quelles langues sont normalement présentes dans une version multiple de l'indexeur ?",
+        "isFloat": false,
+        "label": "Multilingue",
+        "name": "multiLanguages",
+        "order": 7,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "Original",
+            "order": 0,
+            "value": -2
+          },
+          {
+            "name": "Arabic",
+            "order": 0,
+            "value": 26
+          },
+          {
+            "name": "Bosnian",
+            "order": 0,
+            "value": 41
+          },
+          {
+            "name": "Bulgarian",
+            "order": 0,
+            "value": 28
+          },
+          {
+            "name": "Catalan",
+            "order": 0,
+            "value": 38
+          },
+          {
+            "name": "Chinese",
+            "order": 0,
+            "value": 10
+          },
+          {
+            "name": "Croatian",
+            "order": 0,
+            "value": 39
+          },
+          {
+            "name": "Czech",
+            "order": 0,
+            "value": 25
+          },
+          {
+            "name": "Danish",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "Dutch",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "English",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "Estonian",
+            "order": 0,
+            "value": 42
+          },
+          {
+            "name": "Finnish",
+            "order": 0,
+            "value": 16
+          },
+          {
+            "name": "Flemish",
+            "order": 0,
+            "value": 19
+          },
+          {
+            "name": "French",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "German",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "Greek",
+            "order": 0,
+            "value": 20
+          },
+          {
+            "name": "Hebrew",
+            "order": 0,
+            "value": 23
+          },
+          {
+            "name": "Hindi",
+            "order": 0,
+            "value": 27
+          },
+          {
+            "name": "Hungarian",
+            "order": 0,
+            "value": 22
+          },
+          {
+            "name": "Icelandic",
+            "order": 0,
+            "value": 9
+          },
+          {
+            "name": "Indonesian",
+            "order": 0,
+            "value": 44
+          },
+          {
+            "name": "Italian",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "Japanese",
+            "order": 0,
+            "value": 8
+          },
+          {
+            "name": "Korean",
+            "order": 0,
+            "value": 21
+          },
+          {
+            "name": "Latvian",
+            "order": 0,
+            "value": 36
+          },
+          {
+            "name": "Lithuanian",
+            "order": 0,
+            "value": 24
+          },
+          {
+            "name": "Macedonian",
+            "order": 0,
+            "value": 45
+          },
+          {
+            "name": "Malayalam",
+            "order": 0,
+            "value": 29
+          },
+          {
+            "name": "Norwegian",
+            "order": 0,
+            "value": 15
+          },
+          {
+            "name": "Persian",
+            "order": 0,
+            "value": 37
+          },
+          {
+            "name": "Polish",
+            "order": 0,
+            "value": 12
+          },
+          {
+            "name": "Portuguese",
+            "order": 0,
+            "value": 18
+          },
+          {
+            "name": "Portuguese (Brazil)",
+            "order": 0,
+            "value": 33
+          },
+          {
+            "name": "Romanian",
+            "order": 0,
+            "value": 35
+          },
+          {
+            "name": "Russian",
+            "order": 0,
+            "value": 11
+          },
+          {
+            "name": "Serbian",
+            "order": 0,
+            "value": 40
+          },
+          {
+            "name": "Slovak",
+            "order": 0,
+            "value": 31
+          },
+          {
+            "name": "Slovenian",
+            "order": 0,
+            "value": 46
+          },
+          {
+            "name": "Spanish",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "Spanish (Latino)",
+            "order": 0,
+            "value": 34
+          },
+          {
+            "name": "Swedish",
+            "order": 0,
+            "value": 14
+          },
+          {
+            "name": "Tamil",
+            "order": 0,
+            "value": 43
+          },
+          {
+            "name": "Thai",
+            "order": 0,
+            "value": 32
+          },
+          {
+            "name": "Turkish",
+            "order": 0,
+            "value": 17
+          },
+          {
+            "name": "Ukrainian",
+            "order": 0,
+            "value": 30
+          },
+          {
+            "name": "Vietnamese",
+            "order": 0,
+            "value": 13
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Lors du traitement des téléchargements terminés, Sonarr traitera ces types de fichiers sélectionnés comme des téléchargements ayant échoué.",
+        "isFloat": false,
+        "label": "Échec des téléchargements",
+        "name": "failDownloads",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Executables",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Potentially Dangerous",
+            "order": 10,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": []
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders exigé.",
+        "isFloat": false,
+        "label": "Seeders minimum",
+        "name": "minimumSeeders",
+        "order": 9,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "seedCriteria.seedRatio",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "seedCriteria.seedTime",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le temps pendant lequel un torrent de pack de saison doit être partagé avant de s'arrêter, laisser vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Season-Pack Seed Time",
+        "name": "seedCriteria.seasonPackSeedTime",
+        "order": 12,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si un torrent est bloqué par le hachage, il peut ne pas être correctement rejeté pendant le RSS/recherche pour certains indexeurs. L'activation de cette fonction permet de le rejeter après que le torrent a été saisi, mais avant qu'il ne soit envoyé au client.",
+        "isFloat": false,
+        "label": "Rejeter les hachages de torrent sur liste noir lors de la saisie",
+        "name": "rejectBlocklistedTorrentHashesWhileGrabbing",
+        "order": 13,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 3,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#torznab",
+    "name": "ZkTorrent (Prowlarr)",
+    "priority": 25,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  }
+]
