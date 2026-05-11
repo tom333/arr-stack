@@ -31,6 +31,13 @@ _READ_ONLY_FIELDS: set[str] = {
 # round-trip contract) can normalize cluster state in the same way before comparing.
 _REDACTED_VALUE = "***REDACTED***"
 
+# v0.2.0 / WR-01 (02.2-REVIEW.md): module-level set so apiKey + token privacy
+# values (Phase 3 indexer / notification / Prowlarr application fields) get the
+# same omit-by-metadata protection as password / userName. Auditable in one place;
+# adding a new privacy value (e.g. "secret" if a future *arr version introduces it)
+# is a 1-line change here.
+_CREDENTIAL_PRIVACY_VALUES: frozenset[str] = frozenset({"password", "userName", "apiKey", "token"})
+
 
 class Action(Enum):
     """Reconciliation outcomes (D-04 / D-09 / D-11)."""
@@ -137,7 +144,7 @@ def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]
         # no value to contribute. Non-empty desired = user intends credential rotation;
         # pass through so Sonarr applies the change. Empty desired = safe to omit.
         v = des_f.get("value")
-        if cur_privacy in ("password", "userName"):
+        if cur_privacy in _CREDENTIAL_PRIVACY_VALUES:
             if v == "" or v is None:
                 # Desired is empty: safe to omit. Sonarr preserves stored value via absence.
                 log.info(
