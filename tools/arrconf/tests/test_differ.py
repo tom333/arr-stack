@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 
 from arrconf.differ import Action, diff_models, merge_fields_for_put, reconcile
-from arrconf.resources.sonarr.download_client import DownloadClient
+from arrconf.resources.sonarr.download_client import DownloadClient, FieldKV
 
 
 def _dc(name: str, **kwargs: Any) -> DownloadClient:
@@ -397,8 +397,6 @@ def test_merge_fields_passes_through_non_empty_credential_value_for_rotation() -
     correctly. This test uses desired value='new_value' — the omit branch must
     NOT fire.
     """
-    from arrconf.resources.sonarr.download_client import FieldKV
-
     cur = _dc(
         "qBit",
         fields=[FieldKV(name="password", value="old_stored", privacy="password")],
@@ -413,3 +411,48 @@ def test_merge_fields_passes_through_non_empty_credential_value_for_rotation() -
         "Non-empty credential must NOT be omitted — user intends rotation (CR-01)"
     )
     assert fields_by_name["password"]["value"] == "new_value"
+
+
+def test_merge_fields_omits_api_key_privacy_field() -> None:
+    """WR-01: apiKey privacy -> omitted from PUT body when desired is empty.
+
+    Phase 3 indexer reconcilers and Prowlarr app-sync reconcilers rely on this
+    behavior — without it, ?forceSave=true would write the API mask
+    "***REDACTED***" as the literal API key (the v0.1.4 regression class
+    extended to apiKey privacy fields).
+    """
+    cur = _dc(
+        "sonarr-indexer",
+        fields=[FieldKV(name="apiKey", value="***REDACTED***", privacy="apiKey")],
+    )
+    des = _dc(
+        "sonarr-indexer",
+        fields=[FieldKV(name="apiKey", value="", privacy="apiKey")],
+    )
+    result = merge_fields_for_put(cur, des)
+    field_names = {f["name"] for f in result["fields"]}
+    assert "apiKey" not in field_names, (
+        "WR-01: privacy=apiKey field must be OMITTED from PUT body when desired value is empty"
+    )
+
+
+def test_merge_fields_omits_token_privacy_field() -> None:
+    """WR-01: token privacy -> omitted from PUT body when desired is empty.
+
+    Notifications (webhook tokens) and any future *arr resource using
+    privacy="token" must benefit from the same omit-by-metadata strategy
+    that protects password / userName / apiKey.
+    """
+    cur = _dc(
+        "webhook-notif",
+        fields=[FieldKV(name="token", value="***REDACTED***", privacy="token")],
+    )
+    des = _dc(
+        "webhook-notif",
+        fields=[FieldKV(name="token", value="", privacy="token")],
+    )
+    result = merge_fields_for_put(cur, des)
+    field_names = {f["name"] for f in result["fields"]}
+    assert "token" not in field_names, (
+        "WR-01: privacy=token field must be OMITTED from PUT body when desired value is empty"
+    )

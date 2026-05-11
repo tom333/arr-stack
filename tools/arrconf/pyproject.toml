@@ -54,7 +54,7 @@ addopts = "-v --strict-markers"
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["arrconf.differ", "arrconf.reconcilers.sonarr"]
+source = ["arrconf.differ", "arrconf.reconcilers.sonarr", "arrconf.reconcilers.radarr", "arrconf.reconcilers.prowlarr"]
 branch = true
 
 [tool.coverage.report]

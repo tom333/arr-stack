@@ -4,8 +4,8 @@ milestone: v3.2.0
 milestone_name: forceSave fix
 status: ready_to_plan
 stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
-last_updated: "2026-05-11T07:29:49.302Z"
-last_activity: 2026-05-11 -- Phase 03 planning complete
+last_updated: "2026-05-11T07:56:01.406Z"
+last_activity: 2026-05-11 -- Phase 03 execution started
 progress:
   total_phases: 11
   completed_phases: 5
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 02.2 — v0-1-4-forcesave-fix
+**Current focus:** Phase 03 — Étendre arrconf (Sonarr ext + Radarr + Prowlarr)
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 03 (Étendre arrconf (Sonarr ext + Radarr + Prowlarr)) — EXECUTING
+Plan: 1 of 6
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-11 -- Phase 03 planning complete
+Last activity: 2026-05-11 -- Phase 03 execution started
 
 Progress: [█████████░] 95% (Plan 06 incomplete; Phase 02.2 closure REJECTED until v0.1.5 hotfix)
 
