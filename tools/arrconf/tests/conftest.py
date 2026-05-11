@@ -32,5 +32,29 @@ def sonarr_tag_empty_fixture() -> list[dict[str, Any]]:
 
 
 @pytest.fixture
+def sonarr_indexer_fixture() -> list[dict[str, Any]]:
+    """Sonarr GET /api/v3/indexer (REDACTED apiKey values)."""
+    return json.loads((FIXTURE_ROOT / "sonarr/indexer.json").read_text())
+
+
+@pytest.fixture
+def sonarr_notification_fixture() -> list[dict[str, Any]]:
+    """Sonarr GET /api/v3/notification (REDACTED apiKey/token values)."""
+    return json.loads((FIXTURE_ROOT / "sonarr/notification.json").read_text())
+
+
+@pytest.fixture
+def sonarr_rootfolder_fixture() -> list[dict[str, Any]]:
+    """Sonarr GET /api/v3/rootfolder (no secrets — path-only)."""
+    return json.loads((FIXTURE_ROOT / "sonarr/rootfolder.json").read_text())
+
+
+@pytest.fixture
+def sonarr_hostconfig_fixture() -> dict[str, Any]:
+    """Sonarr GET /api/v3/config/host (REDACTED apiKey/password)."""
+    return json.loads((FIXTURE_ROOT / "sonarr/config_host.json").read_text())
+
+
+@pytest.fixture
 def sonarr_base_url() -> str:
     return "http://sonarr.test"

@@ -13,10 +13,20 @@ import pytest
 import respx
 
 from arrconf.client_base import SonarrClient
-from arrconf.config import DownloadClientsSection, SonarrInstance
+from arrconf.config import (
+    DownloadClientsSection,
+    HostConfigSection,
+    IndexersSection,
+    NotificationsSection,
+    RootFoldersSection,
+    SonarrInstance,
+)
 from arrconf.differ import Action
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.resources.sonarr.download_client import DownloadClient
+from arrconf.resources.sonarr.indexer import Indexer
+from arrconf.resources.sonarr.notification import Notification
+from arrconf.resources.sonarr.root_folder import RootFolder
 
 
 def _build_dc(name: str = "qbit", **overrides: Any) -> DownloadClient:
@@ -27,6 +37,31 @@ def _build_dc(name: str = "qbit", **overrides: Any) -> DownloadClient:
     }
     defaults.update(overrides)
     return DownloadClient(name=name, **defaults)
+
+
+def _mock_base_gets(
+    respx_mock: respx.MockRouter,
+    tag_fixture: list[dict[str, Any]],
+    *,
+    indexers: list[dict[str, Any]] | None = None,
+    rootfolders: list[dict[str, Any]] | None = None,
+    downloadclients: list[dict[str, Any]] | None = None,
+    notifications: list[dict[str, Any]] | None = None,
+) -> None:
+    """Mock the GET endpoints that the extended reconciler always touches.
+
+    The Phase-3 reconciler calls GET /indexer, /rootfolder, /downloadclient,
+    /notification in every run. Tests that focus on download_clients only must
+    still mock all four endpoints to avoid AllMockedAssertionError from respx.
+    Defaults to empty lists for endpoints the test does not care about.
+    """
+    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=tag_fixture))
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=indexers or []))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=rootfolders or []))
+    respx_mock.get("/downloadclient").mock(
+        return_value=httpx.Response(200, json=downloadclients or [])
+    )
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
@@ -43,8 +78,7 @@ def test_dump_apply_no_op(
     cluster_payload: list[dict[str, Any]] = [
         {**dc, "tags": [1]} for dc in sonarr_downloadclient_fixture
     ]
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=cluster_payload))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=cluster_payload)
     post_route = respx_mock.post("/downloadclient")
     put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient(/\d+)?$")
     delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
@@ -69,8 +103,7 @@ def test_add_new_download_client(
     respx_mock: respx.MockRouter,
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture)
     post_route = respx_mock.post("/downloadclient").mock(
         return_value=httpx.Response(201, json={"id": 7, "name": "qbit"})
     )
@@ -96,9 +129,8 @@ def test_update_existing_download_client(
     sonarr_downloadclient_fixture: list[dict[str, Any]],
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(
-        return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
+    _mock_base_gets(
+        respx_mock, sonarr_tag_managed_fixture, downloadclients=sonarr_downloadclient_fixture
     )
     put_route = respx_mock.put(
         url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
@@ -146,9 +178,8 @@ def test_update_omits_privacy_credential_fields_from_put_body(
     on this same UPDATE — the merge-layer omission and the HTTP-layer bypass
     are independent layered defenses.
     """
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(
-        return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
+    _mock_base_gets(
+        respx_mock, sonarr_tag_managed_fixture, downloadclients=sonarr_downloadclient_fixture
     )
     put_route = respx_mock.put(
         url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
@@ -219,9 +250,8 @@ def test_prune_skip_default(
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
     """Orphan in cluster + desired empty + prune=False → 0 DELETE, PRUNE_SKIP logged."""
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(
-        return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
+    _mock_base_gets(
+        respx_mock, sonarr_tag_managed_fixture, downloadclients=sonarr_downloadclient_fixture
     )
     delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
 
@@ -257,8 +287,7 @@ def test_prune_protected_without_managed_tag(
             "removeFailedDownloads": True,
         }
     ]
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=orphan_unmanaged))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=orphan_unmanaged)
     delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
 
     instance = SonarrInstance(
@@ -293,8 +322,7 @@ def test_prune_executes_with_managed_tag(
             "removeFailedDownloads": True,
         }
     ]
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=orphan_managed))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=orphan_managed)
     delete_route = respx_mock.delete(
         url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$"
     ).mock(return_value=httpx.Response(204))
@@ -316,8 +344,7 @@ def test_dry_run_logs_no_writes(
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
     """Dry-run plans actions but issues zero POST/PUT/DELETE."""
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture)
     post_route = respx_mock.post("/downloadclient")
     put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient(/\d+)?$")
     delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
@@ -350,9 +377,8 @@ def test_update_passes_forceSave_query_param(  # noqa: N802 — `forceSave` matc
     Trigger is the action (UPDATE), not body content. Asserts URL params at the
     HTTP layer, not body shape.
     """
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(
-        return_value=httpx.Response(200, json=sonarr_downloadclient_fixture)
+    _mock_base_gets(
+        respx_mock, sonarr_tag_managed_fixture, downloadclients=sonarr_downloadclient_fixture
     )
     put_route = respx_mock.put(
         url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
@@ -381,8 +407,7 @@ def test_add_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSave` 
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
     """Defensive — ADR-8: forceSave is UPDATE-only. POST (ADD) must NOT carry it."""
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture)
     post_route = respx_mock.post("/downloadclient").mock(
         return_value=httpx.Response(201, json={"id": 1, "name": "qbit-new"})
     )
@@ -409,8 +434,7 @@ def test_delete_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSav
     cluster_payload: list[dict[str, Any]] = [
         {**dc, "tags": [1]} for dc in sonarr_downloadclient_fixture
     ]
-    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
-    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=cluster_payload))
+    _mock_base_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=cluster_payload)
     delete_route = respx_mock.delete(
         url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$"
     ).mock(return_value=httpx.Response(204))
@@ -425,3 +449,263 @@ def test_delete_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSav
 
     assert delete_route.call_count == 1
     assert "forceSave" not in delete_route.calls.last.request.url.params
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — Sonarr extension tests (REQ-app-coverage)
+# ---------------------------------------------------------------------------
+
+
+def _mock_phase3_gets(
+    respx_mock: respx.MockRouter,
+    tag_fixture: list[dict[str, Any]],
+    *,
+    indexers: list[dict[str, Any]] | None = None,
+    notifications: list[dict[str, Any]] | None = None,
+    rootfolders: list[dict[str, Any]] | None = None,
+    downloadclients: list[dict[str, Any]] | None = None,
+    hostconfig: dict[str, Any] | None = None,
+) -> None:
+    """Mock every GET endpoint the extended reconciler touches.
+
+    Defaults to empty lists for list resources. host_config GET is only
+    mocked if `hostconfig` is provided — tests for the skipped branch should
+    NOT pass a hostconfig fixture so respx records 0 calls.
+    """
+    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=tag_fixture))
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=indexers or []))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=rootfolders or []))
+    respx_mock.get("/downloadclient").mock(
+        return_value=httpx.Response(200, json=downloadclients or [])
+    )
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    if hostconfig is not None:
+        respx_mock.get("/config/host").mock(return_value=httpx.Response(200, json=hostconfig))
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_add_new_indexer(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """REQ-app-coverage: new indexer in YAML → POST /indexer."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture)
+    post_indexer = respx_mock.post("/indexer").mock(
+        return_value=httpx.Response(201, json={"id": 42, "name": "myindexer"})
+    )
+
+    indexer = Indexer(
+        name="myindexer",
+        implementation="Newznab",
+        configContract="NewznabSettings",
+    )
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        indexers=IndexersSection(prune=False, items=[indexer]),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert post_indexer.call_count == 1
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_indexer_no_op_when_identical(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+    sonarr_indexer_fixture: list[dict[str, Any]],
+) -> None:
+    """REQ-app-coverage: cluster indexer == desired → 0 PUT."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, indexers=sonarr_indexer_fixture)
+    put_indexer = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/indexer/\d+(?:\?.*)?$")
+
+    desired = [Indexer.model_validate(e) for e in sonarr_indexer_fixture]
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        indexers=IndexersSection(prune=False, items=desired),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert put_indexer.call_count == 0
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_add_new_notification(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """REQ-app-coverage: new notification in YAML → POST /notification."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture)
+    post_notif = respx_mock.post("/notification").mock(
+        return_value=httpx.Response(201, json={"id": 7, "name": "discord-main"})
+    )
+
+    notif = Notification(
+        name="discord-main",
+        implementation="Discord",
+        configContract="DiscordSettings",
+    )
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        notifications=NotificationsSection(prune=False, items=[notif]),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert post_notif.call_count == 1
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_notification_no_op_when_identical(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+    sonarr_notification_fixture: list[dict[str, Any]],
+) -> None:
+    """REQ-app-coverage: cluster notification == desired → 0 PUT."""
+    _mock_phase3_gets(
+        respx_mock, sonarr_tag_managed_fixture, notifications=sonarr_notification_fixture
+    )
+    put_notif = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/notification/\d+(?:\?.*)?$")
+
+    desired = [Notification.model_validate(e) for e in sonarr_notification_fixture]
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        notifications=NotificationsSection(prune=False, items=desired),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert put_notif.call_count == 0
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_add_new_root_folder(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """REQ-app-coverage: new root folder in YAML → POST /rootfolder."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture)
+    post_rf = respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 3, "path": "/media/new"})
+    )
+
+    rf = RootFolder(path="/media/new")
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        root_folders=RootFoldersSection(prune=False, items=[rf]),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert post_rf.call_count == 1
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_root_folder_no_update_action_ever(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+    sonarr_rootfolder_fixture: list[dict[str, Any]],
+) -> None:
+    """Pitfall 1: root folders have no PUT endpoint. UPDATE plan_action is a bug.
+
+    With the RootFolder model excluding accessible / freeSpace / unmappedFolders
+    (Plan 01 Task 1.2), a path-matched root folder NEVER differs server-side —
+    only ADD / NO_OP / PRUNE_SKIP / DELETE are valid outcomes.
+    """
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, rootfolders=sonarr_rootfolder_fixture)
+    put_rf = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/rootfolder/\d+(?:\?.*)?$")
+
+    # Desired matches cluster path exactly:
+    desired = [RootFolder.model_validate(e) for e in sonarr_rootfolder_fixture]
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        root_folders=RootFoldersSection(prune=False, items=desired),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert put_rf.call_count == 0, "Pitfall 1: root folders must never receive a PUT"
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_host_config_skipped_when_enable_false(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """D-03-04: host_config GET MUST NOT be issued when section.enable is False."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture)
+    # Register the host route but expect 0 calls:
+    get_host = respx_mock.get("/config/host")
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        host_config=HostConfigSection(enable=False),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert get_host.call_count == 0, (
+        "D-03-04: host_config reconcile must not GET /config/host when enable=False"
+    )
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_host_config_no_op_when_identical(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+    sonarr_hostconfig_fixture: dict[str, Any],
+) -> None:
+    """D-03-04 + idempotence: enable=True + desired matches cluster → 0 PUT."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, hostconfig=sonarr_hostconfig_fixture)
+    put_host = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/config/host/\d+(?:\?.*)?$")
+
+    # Mirror the cluster's writable subset back into the section:
+    section = HostConfigSection(
+        enable=True,
+        authenticationMethod=sonarr_hostconfig_fixture.get("authenticationMethod"),
+        authenticationRequired=sonarr_hostconfig_fixture.get("authenticationRequired"),
+        urlBase=sonarr_hostconfig_fixture.get("urlBase"),
+        instanceName=sonarr_hostconfig_fixture.get("instanceName"),
+    )
+    instance = SonarrInstance(base_url="http://sonarr.test", host_config=section)
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert put_host.call_count == 0
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_host_config_update_when_different(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+    sonarr_hostconfig_fixture: dict[str, Any],
+) -> None:
+    """D-03-04 + REQ-app-coverage: instanceName change → PUT /config/host/{id}?forceSave=true."""
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, hostconfig=sonarr_hostconfig_fixture)
+    put_host = respx_mock.put(
+        url__regex=r"^http://sonarr\.test/api/v3/config/host/\d+(?:\?.*)?$"
+    ).mock(return_value=httpx.Response(200, json={"id": sonarr_hostconfig_fixture.get("id", 1)}))
+
+    section = HostConfigSection(
+        enable=True,
+        authenticationMethod=sonarr_hostconfig_fixture.get("authenticationMethod"),
+        authenticationRequired=sonarr_hostconfig_fixture.get("authenticationRequired"),
+        urlBase=sonarr_hostconfig_fixture.get("urlBase"),
+        instanceName="PhaseThreeRenamed",  # intentionally drifts from cluster
+    )
+    instance = SonarrInstance(base_url="http://sonarr.test", host_config=section)
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert put_host.call_count == 1
+    last_req = put_host.calls.last.request
+    # Pitfall 4: id MUST be present in body (re-injected after merge):
+    body_json = json.loads(last_req.content.decode())
+    assert "id" in body_json, "Pitfall 4: host_config PUT body must include id"
+    # Inherited from _ArrV3Client: forceSave=true on every UPDATE PUT:
+    assert last_req.url.params["forceSave"] == "true"
+    # Credentials MUST NOT leak via the PUT body
+    # (Plan 01 Task 1.2 — HostConfig excludes apiKey/password):
+    assert "apiKey" not in body_json, "HostConfig.apiKey must be excluded from PUT body"
+    assert "password" not in body_json, "HostConfig.password must be excluded from PUT body"
