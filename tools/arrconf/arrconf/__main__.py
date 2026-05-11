@@ -14,9 +14,9 @@ from pathlib import Path
 import structlog
 import typer
 
-from arrconf.client_base import SonarrClient
+from arrconf.client_base import ProwlarrClient, RadarrClient, SonarrClient
 from arrconf.config import load_config
-from arrconf.diff_cmd import diff_sonarr
+from arrconf.diff_cmd import diff_prowlarr, diff_radarr, diff_sonarr
 from arrconf.dump import dump_sonarr
 from arrconf.exceptions import (
     ApiClientError,
@@ -25,6 +25,8 @@ from arrconf.exceptions import (
     ScopeViolationError,
 )
 from arrconf.logging import configure_logging
+from arrconf.reconcilers.prowlarr import reconcile_prowlarr
+from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.schema_gen import write_schema
 from arrconf.settings import Settings
@@ -38,8 +40,16 @@ app = typer.Typer(
 
 
 def _selected_apps(apps: str | None) -> set[str]:
-    """Return the set of apps targeted by ``--apps``; default ``{"sonarr"}``."""
-    return {a.strip() for a in apps.split(",")} if apps else {"sonarr"}
+    """Return the set of apps targeted by ``--apps``; defaults to all Phase-3 apps.
+
+    Each branch in apply/dump/diff additionally guards on whether the app is
+    present in the YAML (``"main" in root.<app>``), so the default of
+    ``{sonarr, radarr, prowlarr}`` is safe — apps absent from the YAML
+    simply skip silently.
+    """
+    if apps:
+        return {a.strip() for a in apps.split(",")}
+    return {"sonarr", "radarr", "prowlarr"}
 
 
 @app.callback()
@@ -107,6 +117,51 @@ def apply(
             log.error("app_failed", app="sonarr", error=str(e))
             failures.append("sonarr")
 
+    # NEW: Radarr branch (Plan 06 wiring — D-03-01 full parity).
+    if "radarr" in targets and "main" in root.radarr:
+        radarr_instance = root.radarr["main"]
+        if not settings.radarr_api_key:
+            log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
+            raise typer.Exit(code=2)
+        radarr_api_key = settings.radarr_api_key.get_secret_value()
+        try:
+            radarr_client = RadarrClient(base_url=radarr_instance.base_url, api_key=radarr_api_key)
+            radarr_result = reconcile_radarr(
+                radarr_client, radarr_instance, dry_run=dry_run or settings.arrconf_dry_run
+            )
+            if all(
+                a == "no-op" or a.startswith("prune-")
+                for a in (p.action.value for p in radarr_result.plan)
+            ):
+                log.info("no-op", app="radarr", count=len(radarr_result.plan))
+            else:
+                log.info("apply_complete", app="radarr", actions=radarr_result.actions_taken)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="radarr", error=str(e))
+            failures.append("radarr")
+
+    # NEW: Prowlarr branch (Plan 06 wiring — D-03-02 app sync only).
+    if "prowlarr" in targets and "main" in root.prowlarr:
+        prowlarr_instance = root.prowlarr["main"]
+        if not settings.prowlarr_api_key:
+            log.error("missing_api_key", app="prowlarr", env_var="PROWLARR_API_KEY")
+            raise typer.Exit(code=2)
+        prowlarr_api_key = settings.prowlarr_api_key.get_secret_value()
+        try:
+            prowlarr_client = ProwlarrClient(
+                base_url=prowlarr_instance.base_url, api_key=prowlarr_api_key
+            )
+            prowlarr_actions = reconcile_prowlarr(
+                prowlarr_client, prowlarr_instance, dry_run=dry_run or settings.arrconf_dry_run
+            )
+            if not prowlarr_actions:
+                log.info("no-op", app="prowlarr", count=len(prowlarr_instance.apps.items))
+            else:
+                log.info("apply_complete", app="prowlarr", actions=prowlarr_actions)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="prowlarr", error=str(e))
+            failures.append("prowlarr")
+
     if failures:
         raise typer.Exit(code=1)
     raise typer.Exit(code=0)
@@ -146,6 +201,14 @@ def dump(
         except ApiClientError as e:
             log.error("app_failed", app="sonarr", error=str(e))
             raise typer.Exit(code=1) from e
+    # dump is sonarr-only in Phase 3 (CONTEXT.md deferred stretch goal).
+    for unsupported in targets - {"sonarr"}:
+        if unsupported in ("radarr", "prowlarr"):
+            log.warning(
+                "dump_not_implemented",
+                app=unsupported,
+                hint="dump for radarr/prowlarr is deferred to a future phase (Phase 3 CONTEXT.md)",
+            )
     raise typer.Exit(code=0)
 
 
@@ -178,6 +241,41 @@ def diff(
         except ApiClientError as e:
             log.error("app_failed", app="sonarr", error=str(e))
             raise typer.Exit(code=1) from e
+
+    # NEW: Radarr diff.
+    if "radarr" in targets and "main" in root.radarr:
+        radarr_diff_instance = root.radarr["main"]
+        if not settings.radarr_api_key:
+            log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
+            raise typer.Exit(code=2)
+        radarr_diff_key = settings.radarr_api_key.get_secret_value()
+        try:
+            radarr_diff_client = RadarrClient(
+                base_url=radarr_diff_instance.base_url, api_key=radarr_diff_key
+            )
+            code = diff_radarr(radarr_diff_client, root)
+            max_code = max(max_code, code)
+        except ApiClientError as e:
+            log.error("app_failed", app="radarr", error=str(e))
+            raise typer.Exit(code=1) from e
+
+    # NEW: Prowlarr diff.
+    if "prowlarr" in targets and "main" in root.prowlarr:
+        prowlarr_diff_instance = root.prowlarr["main"]
+        if not settings.prowlarr_api_key:
+            log.error("missing_api_key", app="prowlarr", env_var="PROWLARR_API_KEY")
+            raise typer.Exit(code=2)
+        prowlarr_diff_key = settings.prowlarr_api_key.get_secret_value()
+        try:
+            prowlarr_diff_client = ProwlarrClient(
+                base_url=prowlarr_diff_instance.base_url, api_key=prowlarr_diff_key
+            )
+            code = diff_prowlarr(prowlarr_diff_client, root)
+            max_code = max(max_code, code)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="prowlarr", error=str(e))
+            raise typer.Exit(code=1) from e
+
     raise typer.Exit(code=max_code)
 
 
