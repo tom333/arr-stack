@@ -23,10 +23,10 @@ def diff_sonarr(client: SonarrClient, root_config: RootConfig) -> int:
     otherwise. The drift details are emitted as structlog events so the
     CronJob log pipeline can ingest them.
     """
-    if root_config.apps.sonarr is None or root_config.apps.sonarr.main is None:
-        log.warning("no_sonarr_config", hint="apps.sonarr.main missing in YAML")
+    if "main" not in root_config.sonarr:
+        log.warning("no_sonarr_config", hint="sonarr.main missing in YAML")
         return 0
-    result = reconcile_sonarr(client, root_config.apps.sonarr.main, dry_run=True)
+    result = reconcile_sonarr(client, root_config.sonarr["main"], dry_run=True)
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
         log.info("no_drift", apps=["sonarr"])
