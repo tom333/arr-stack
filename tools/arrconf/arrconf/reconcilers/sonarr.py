@@ -98,10 +98,18 @@ def _ensure_managed_tag_in_desired(
 def _execute(
     client: SonarrClient,
     path: str,
-    plan: list[PlannedAction[DownloadClient]],
+    plan: list[PlannedAction[Any]],
     dry_run: bool,
 ) -> list[str]:
-    """Execute the plan against the API. Returns list of action labels actually issued."""
+    """Execute the plan against the API. Returns list of action labels actually issued.
+
+    WR-05 (Phase 3 code review): plan is typed ``list[PlannedAction[Any]]`` (mirror
+    of Radarr's _execute at radarr.py:96) because the same function executes plans
+    for DownloadClient, Indexer, Notification, and RootFolder. _execute only uses
+    the BaseModel API (model_dump, .id) so the runtime contract is identical across
+    types. Pre-fix the annotation was ``list[PlannedAction[DownloadClient]]`` and
+    relied on covariance under type-erasure for the other resource types.
+    """
     actions_taken: list[str] = []
     for p in plan:
         if p.action in (Action.NO_OP, Action.PRUNE_SKIP, Action.PRUNE_PROTECTED):
