@@ -1,0 +1,2880 @@
+[
+  {
+    "added": "2026-04-14T00:59:43Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [
+        "q"
+      ],
+      "categories": [
+        {
+          "id": 1000,
+          "name": "Console",
+          "subCategories": [
+            {
+              "id": 1030,
+              "name": "Console/Wii",
+              "subCategories": []
+            },
+            {
+              "id": 1040,
+              "name": "Console/XBox",
+              "subCategories": []
+            },
+            {
+              "id": 1180,
+              "name": "Console/PS4",
+              "subCategories": []
+            },
+            {
+              "id": 1090,
+              "name": "Console/Other",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 101000,
+          "name": "Jeux Vidéo & Emulation & VR",
+          "subCategories": []
+        },
+        {
+          "id": 101030,
+          "name": "Nintendo",
+          "subCategories": []
+        },
+        {
+          "id": 101040,
+          "name": "Microsoft",
+          "subCategories": []
+        },
+        {
+          "id": 101080,
+          "name": "Sony",
+          "subCategories": []
+        },
+        {
+          "id": 101090,
+          "name": "Jeux Autre & ROM/ISO",
+          "subCategories": []
+        },
+        {
+          "id": 2000,
+          "name": "Movies",
+          "subCategories": [
+            {
+              "id": 2020,
+              "name": "Movies/Other",
+              "subCategories": []
+            },
+            {
+              "id": 2010,
+              "name": "Movies/Foreign",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 102000,
+          "name": "Films & Vidéos",
+          "subCategories": []
+        },
+        {
+          "id": 102010,
+          "name": "Films Collection",
+          "subCategories": []
+        },
+        {
+          "id": 102030,
+          "name": "Films Foreign",
+          "subCategories": []
+        },
+        {
+          "id": 102050,
+          "name": "Vidéo-clips",
+          "subCategories": []
+        },
+        {
+          "id": 102060,
+          "name": "Films Animation",
+          "subCategories": []
+        },
+        {
+          "id": 102070,
+          "name": "Films Documentaire",
+          "subCategories": []
+        },
+        {
+          "id": 102080,
+          "name": "Films Spectacle",
+          "subCategories": []
+        },
+        {
+          "id": 102090,
+          "name": "Films Concert",
+          "subCategories": []
+        },
+        {
+          "id": 3000,
+          "name": "Audio",
+          "subCategories": [
+            {
+              "id": 3010,
+              "name": "Audio/MP3",
+              "subCategories": []
+            },
+            {
+              "id": 3030,
+              "name": "Audio/Audiobook",
+              "subCategories": []
+            },
+            {
+              "id": 3050,
+              "name": "Audio/Other",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 103000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 103010,
+          "name": "Musique",
+          "subCategories": []
+        },
+        {
+          "id": 103030,
+          "name": "Audiobooks",
+          "subCategories": []
+        },
+        {
+          "id": 103050,
+          "name": "Karaoké & Podcast Radio & Samples",
+          "subCategories": []
+        },
+        {
+          "id": 4000,
+          "name": "PC",
+          "subCategories": [
+            {
+              "id": 4010,
+              "name": "PC/0day",
+              "subCategories": []
+            },
+            {
+              "id": 4070,
+              "name": "PC/Mobile-Android",
+              "subCategories": []
+            },
+            {
+              "id": 4060,
+              "name": "PC/Mobile-iOS",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 104000,
+          "name": "Applications & Windows & Nulled",
+          "subCategories": []
+        },
+        {
+          "id": 104030,
+          "name": "Linux & MacOS",
+          "subCategories": []
+        },
+        {
+          "id": 104040,
+          "name": "Formation",
+          "subCategories": []
+        },
+        {
+          "id": 104050,
+          "name": "Games-Linux & Games-MacOS & Games-Divers & Autre & Émulateur & GPS & Scripts PHP & CMS & Wordpress",
+          "subCategories": []
+        },
+        {
+          "id": 104060,
+          "name": "Android Mobile & Smartphone & Tablette & Applications & Cartes",
+          "subCategories": []
+        },
+        {
+          "id": 104070,
+          "name": "iOS Smartphone & Tablette",
+          "subCategories": []
+        },
+        {
+          "id": 5000,
+          "name": "TV",
+          "subCategories": [
+            {
+              "id": 5060,
+              "name": "TV/Sport",
+              "subCategories": []
+            },
+            {
+              "id": 5070,
+              "name": "TV/Anime",
+              "subCategories": []
+            },
+            {
+              "id": 5080,
+              "name": "TV/Documentary",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 105000,
+          "name": "Série TV",
+          "subCategories": []
+        },
+        {
+          "id": 105060,
+          "name": "Sport",
+          "subCategories": []
+        },
+        {
+          "id": 105070,
+          "name": "Animation Série",
+          "subCategories": []
+        },
+        {
+          "id": 105080,
+          "name": "Emission TV",
+          "subCategories": []
+        },
+        {
+          "id": 6000,
+          "name": "XXX",
+          "subCategories": [
+            {
+              "id": 6010,
+              "name": "XXX/DVD",
+              "subCategories": []
+            },
+            {
+              "id": 6070,
+              "name": "XXX/Other",
+              "subCategories": []
+            },
+            {
+              "id": 6060,
+              "name": "XXX/ImageSet",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 106000,
+          "name": "3X & 3X VR",
+          "subCategories": []
+        },
+        {
+          "id": 106010,
+          "name": "3X Films",
+          "subCategories": []
+        },
+        {
+          "id": 106050,
+          "name": "3X Ebooks",
+          "subCategories": []
+        },
+        {
+          "id": 106060,
+          "name": "3X Images",
+          "subCategories": []
+        },
+        {
+          "id": 106070,
+          "name": "Hentai",
+          "subCategories": []
+        },
+        {
+          "id": 106080,
+          "name": "3X Jeux",
+          "subCategories": []
+        },
+        {
+          "id": 7000,
+          "name": "Books",
+          "subCategories": [
+            {
+              "id": 7010,
+              "name": "Books/Mags",
+              "subCategories": []
+            },
+            {
+              "id": 7020,
+              "name": "Books/EBook",
+              "subCategories": []
+            },
+            {
+              "id": 7030,
+              "name": "Books/Comics",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 107000,
+          "name": "Ebook",
+          "subCategories": []
+        },
+        {
+          "id": 107010,
+          "name": "Presse",
+          "subCategories": []
+        },
+        {
+          "id": 107020,
+          "name": "Livres",
+          "subCategories": []
+        },
+        {
+          "id": 107030,
+          "name": "BDs & Comics & Manga",
+          "subCategories": []
+        },
+        {
+          "id": 8000,
+          "name": "Other",
+          "subCategories": [
+            {
+              "id": 8010,
+              "name": "Other/Misc",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 108010,
+          "name": "Imprimante 3D & Objets & Pack & Personnages",
+          "subCategories": []
+        }
+      ],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [
+        "q",
+        "imdbId",
+        "tmdbId"
+      ],
+      "musicSearchParams": [
+        "q"
+      ],
+      "searchParams": [
+        "q",
+        "q"
+      ],
+      "supportsRawSearch": true,
+      "tvSearchParams": [
+        "q",
+        "season",
+        "ep",
+        "imdbId",
+        "tmdbId"
+      ]
+    },
+    "configContract": "CardigannSettings",
+    "definitionName": "c411",
+    "description": "C411 (Community 411) is a FRENCH Private Torrent Tracker for MOVIES / TV / GENERAL",
+    "downloadClientId": 0,
+    "enable": true,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "hidden": "hidden",
+        "isFloat": false,
+        "name": "definitionFile",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "c411"
+      },
+      {
+        "advanced": false,
+        "helpText": "Sélectionnez l'url de base que Prowlarr utilisera pour les requêtes vers le site",
+        "isFloat": false,
+        "label": "Url de base",
+        "name": "baseUrl",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "getUrls",
+        "type": "select",
+        "value": "https://c411.org/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 2,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 7,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 8,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 9,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "API Key",
+        "name": "apikey",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "742d0d22d2127cab57cb5c5022e0f9b1a32448571157ae7cd75fc8440b656504"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "About your API key",
+        "name": "info_key",
+        "order": 1,
+        "privacy": "normal",
+        "type": "info",
+        "value": "You can find or generate a new API Key by accessing the <a href=\"https://c411.org/user/integrations\" target=\"_blank\">C411 Intégrations API</a> page."
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by another language in release name",
+        "name": "multilang",
+        "order": 2,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by this language",
+        "name": "multilanguage",
+        "order": 3,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "ENGLISH",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "FRENCH",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "MULTi.ENGLISH",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "MULTi.FRENCH",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "MULTi.VOSTFR",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "VOSTFR",
+            "order": 0,
+            "value": 5
+          }
+        ],
+        "type": "select",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace VOSTFR and SUBFRENCH with ENGLISH",
+        "name": "vostfr",
+        "order": 4,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Including 3X",
+        "name": "info_3x",
+        "order": 5,
+        "privacy": "normal",
+        "type": "info",
+        "value": "IF you want to see 3x torrents access your <a href=\"https://c411.org/user/settings\" target=\"_blank\">C411 Paramètres</a> page and tick the <b>Afficher le contenu XXX</b> checkbox."
+      }
+    ],
+    "id": 2,
+    "implementation": "Cardigann",
+    "implementationName": "Cardigann",
+    "indexerUrls": [
+      "https://c411.org/"
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#c411",
+    "language": "fr-FR",
+    "legacyUrls": [
+      "https://staging-68d548c5bd4.c411.org/"
+    ],
+    "name": "C411",
+    "priority": 50,
+    "privacy": "private",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "c411",
+    "supportsPagination": false,
+    "supportsRedirect": false,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "added": "2026-04-14T01:43:06Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [],
+      "categories": [],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [],
+      "musicSearchParams": [],
+      "searchParams": [
+        "q"
+      ],
+      "supportsRawSearch": false,
+      "tvSearchParams": []
+    },
+    "configContract": "TorznabSettings",
+    "definitionName": "Torznab",
+    "description": "A Newznab-like api for torrents.",
+    "downloadClientId": 0,
+    "enable": false,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Url",
+        "name": "baseUrl",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "https://dd.darkiworld16.com/api/v1/torznab"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès à l'api, généralement /api",
+        "isFloat": false,
+        "label": "Chemin d'accès à l'API",
+        "name": "apiPath",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "/api"
+      },
+      {
+        "advanced": false,
+        "helpText": "Clé API du site",
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 2,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "********"
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 4,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 7,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": true,
+        "helpText": "Paramètres supplémentaires de Newznab",
+        "isFloat": false,
+        "label": "Paramètres supplémentaires",
+        "name": "additionalParameters",
+        "order": 8,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": false,
+        "helpText": "Entrez la date (yyyy-mm-dd) pour l'expiration du VIP ou vide, Prowlarr notifiera 1 semaine après l'expiration du VIP",
+        "isFloat": false,
+        "label": "Expiration de la carte VIP",
+        "name": "vipExpiration",
+        "order": 9,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": ""
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 10,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 11,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 12,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      }
+    ],
+    "id": 4,
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "indexerUrls": [
+      ""
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#torznab",
+    "language": "en-US",
+    "legacyUrls": [],
+    "name": "Darki World",
+    "priority": 10,
+    "privacy": "private",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "darki world",
+    "supportsPagination": true,
+    "supportsRedirect": true,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "added": "2026-04-14T00:58:47Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [
+        "q"
+      ],
+      "categories": [
+        {
+          "id": 2000,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 145469,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 5000,
+          "name": "TV",
+          "subCategories": [
+            {
+              "id": 5070,
+              "name": "TV/Anime",
+              "subCategories": []
+            },
+            {
+              "id": 5080,
+              "name": "TV/Documentary",
+              "subCategories": []
+            },
+            {
+              "id": 5050,
+              "name": "TV/Other",
+              "subCategories": []
+            },
+            {
+              "id": 5060,
+              "name": "TV/Sport",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 158485,
+          "name": "Anime",
+          "subCategories": []
+        },
+        {
+          "id": 129118,
+          "name": "Documentaires",
+          "subCategories": []
+        },
+        {
+          "id": 108670,
+          "name": "TV",
+          "subCategories": []
+        },
+        {
+          "id": 3000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 139807,
+          "name": "Music",
+          "subCategories": []
+        },
+        {
+          "id": 7000,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 122878,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 111361,
+          "name": "Livres",
+          "subCategories": []
+        },
+        {
+          "id": 4000,
+          "name": "PC",
+          "subCategories": [
+            {
+              "id": 4050,
+              "name": "PC/Games",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 156868,
+          "name": "Software",
+          "subCategories": []
+        },
+        {
+          "id": 151062,
+          "name": "Applications",
+          "subCategories": []
+        },
+        {
+          "id": 132101,
+          "name": "PC Games",
+          "subCategories": []
+        },
+        {
+          "id": 1000,
+          "name": "Console",
+          "subCategories": [
+            {
+              "id": 1050,
+              "name": "Console/XBox 360",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 139292,
+          "name": "Console Games",
+          "subCategories": []
+        },
+        {
+          "id": 6000,
+          "name": "XXX",
+          "subCategories": []
+        },
+        {
+          "id": 123615,
+          "name": "Porno",
+          "subCategories": []
+        },
+        {
+          "id": 144267,
+          "name": "Spectacles",
+          "subCategories": []
+        },
+        {
+          "id": 160463,
+          "name": "Sports",
+          "subCategories": []
+        },
+        {
+          "id": 8000,
+          "name": "Other",
+          "subCategories": []
+        },
+        {
+          "id": 104653,
+          "name": "Formations",
+          "subCategories": []
+        },
+        {
+          "id": 104842,
+          "name": "Vidéos",
+          "subCategories": []
+        }
+      ],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [
+        "q"
+      ],
+      "musicSearchParams": [
+        "q"
+      ],
+      "searchParams": [
+        "q",
+        "q"
+      ],
+      "supportsRawSearch": true,
+      "tvSearchParams": [
+        "q",
+        "season",
+        "ep"
+      ]
+    },
+    "configContract": "CardigannSettings",
+    "definitionName": "nortorrent",
+    "description": "NorTorrent is a FRENCH Public tracker for MOVIES / TV / GENERAL",
+    "downloadClientId": 0,
+    "enable": true,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "hidden": "hidden",
+        "isFloat": false,
+        "name": "definitionFile",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "nortorrent"
+      },
+      {
+        "advanced": false,
+        "helpText": "Sélectionnez l'url de base que Prowlarr utilisera pour les requêtes vers le site",
+        "isFloat": false,
+        "label": "Url de base",
+        "name": "baseUrl",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "getUrls",
+        "type": "select",
+        "value": "https://www.nortorrent.cc/"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 2,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 7,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 8,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 9,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "helpLink": "https://wiki.servarr.com/prowlarr/faq#can-i-use-flaresolverr-indexers",
+        "isFloat": false,
+        "label": "FlareSolverr Info",
+        "name": "info_flaresolverr",
+        "order": 0,
+        "privacy": "normal",
+        "type": "info",
+        "value": "This site may use Cloudflare DDoS Protection, therefore Prowlarr requires <a href=\"https://wiki.servarr.com/prowlarr/faq#can-i-use-flaresolverr-indexers\" target=\"_blank\" rel=\"noreferrer\">FlareSolverr</a> to access it."
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by another language in release name",
+        "name": "multilang",
+        "order": 1,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by this language",
+        "name": "multilanguage",
+        "order": 2,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "ENGLISH",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "FRENCH",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "MULTi ENGLISH",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "MULTi FRENCH",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "MULTi VOSTFR",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "VOSTFR",
+            "order": 0,
+            "value": 5
+          }
+        ],
+        "type": "select",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace VOSTFR and SUBFRENCH with ENGLISH",
+        "name": "vostfr",
+        "order": 3,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 1,
+    "implementation": "Cardigann",
+    "implementationName": "Cardigann",
+    "indexerUrls": [
+      "https://www.torrent9.ml/"
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#nortorrent",
+    "language": "fr-FR",
+    "legacyUrls": [
+      "https://www.rantop.xyz/",
+      "https://www.site-torrent.cc/",
+      "https://www.torrent-site.cc/",
+      "https://www.torrent-p2p.cc/",
+      "https://www.protege-torrent.com/",
+      "https://www.torrent.ws/",
+      "https://www.protege-liens.com/",
+      "https://www.protege-liens.net/",
+      "https://www.torrent.onl/",
+      "https://torrent9.news/",
+      "https://www.site-torrent.com/",
+      "https://www.rantop.my/",
+      "https://www.torrent-site.com/",
+      "https://www.rantop.org/",
+      "https://www.nortorrent6.com/",
+      "https://www.nortorrent.net/",
+      "https://www.nortorrent.town/",
+      "https://nortorrent-proxy.site/",
+      "https://ww1-nortorrent.me/",
+      "https://www.nortorrent.rent/",
+      "https://ww1-nortorrent.town/",
+      "https://www.nortorrent7.com/",
+      "https://www.nortorrent8.com/",
+      "https://ww1-nortorrent.com/",
+      "https://www-nortorrent.com/",
+      "https://ww2-nortorrent.com/",
+      "https://ww3-nortorrent.com/",
+      "https://www.nortorrent.org/",
+      "https://www.nortorrent.cc/"
+    ],
+    "name": "NorTorrent",
+    "priority": 25,
+    "privacy": "public",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "nortorrent",
+    "supportsPagination": false,
+    "supportsRedirect": false,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "added": "2026-05-07T02:31:59Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [
+        "q"
+      ],
+      "categories": [
+        {
+          "id": 1000,
+          "name": "Console",
+          "subCategories": []
+        },
+        {
+          "id": 101000,
+          "name": "Console/Games",
+          "subCategories": []
+        },
+        {
+          "id": 2000,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 102000,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 3000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 103000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 4000,
+          "name": "PC",
+          "subCategories": []
+        },
+        {
+          "id": 104000,
+          "name": "PC/Applications",
+          "subCategories": []
+        },
+        {
+          "id": 5000,
+          "name": "TV",
+          "subCategories": [
+            {
+              "id": 5070,
+              "name": "TV/Anime",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 105000,
+          "name": "TV",
+          "subCategories": []
+        },
+        {
+          "id": 105000,
+          "name": "Animes",
+          "subCategories": []
+        },
+        {
+          "id": 6000,
+          "name": "XXX",
+          "subCategories": []
+        },
+        {
+          "id": 106000,
+          "name": "XXX",
+          "subCategories": []
+        },
+        {
+          "id": 7000,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 107000,
+          "name": "Books/eBook",
+          "subCategories": []
+        },
+        {
+          "id": 8000,
+          "name": "Other",
+          "subCategories": []
+        },
+        {
+          "id": 108000,
+          "name": "Other",
+          "subCategories": []
+        }
+      ],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [
+        "q",
+        "imdbId"
+      ],
+      "musicSearchParams": [
+        "q"
+      ],
+      "searchParams": [
+        "q",
+        "q"
+      ],
+      "supportsRawSearch": false,
+      "tvSearchParams": [
+        "q",
+        "season",
+        "ep",
+        "tvdbId"
+      ]
+    },
+    "configContract": "CardigannSettings",
+    "definitionName": "torr9",
+    "description": "Torr9 is a FRENCH Private Torrent Tracker for MOVIES / TV / GENERAL",
+    "downloadClientId": 0,
+    "enable": true,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "hidden": "hidden",
+        "isFloat": false,
+        "name": "definitionFile",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "torr9"
+      },
+      {
+        "advanced": false,
+        "helpText": "Sélectionnez l'url de base que Prowlarr utilisera pour les requêtes vers le site",
+        "isFloat": false,
+        "label": "Url de base",
+        "name": "baseUrl",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "getUrls",
+        "type": "select"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 2,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 7,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 8,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 9,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "PassKey",
+        "name": "passkey",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "47842ed8a9c81816f452fd1751367224"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "About your PassKey",
+        "name": "info_key",
+        "order": 1,
+        "privacy": "normal",
+        "type": "info",
+        "value": "You can find the API PassKey by accessing your <a href=\"https://torr9.net/profile\" target=\"_blank\">Torr9 Profile</a> page and scrolling down to the <b>Passkey Tracker</b> section."
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "API URL",
+        "name": "apiurl",
+        "order": 2,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "api.torr9.net"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by another language in release name",
+        "name": "multilang",
+        "order": 3,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by this language",
+        "name": "multilanguage",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "ENGLISH",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "FRENCH",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "MULTi.ENGLISH",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "MULTi.FRENCH",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "MULTi.VOSTFR",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "VOSTFR",
+            "order": 0,
+            "value": 5
+          }
+        ],
+        "type": "select",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace VOSTFR and SUBFRENCH with ENGLISH",
+        "name": "vostfr",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Including 3X",
+        "name": "info_3x",
+        "order": 6,
+        "privacy": "normal",
+        "type": "info",
+        "value": "IF you want to see 3x torrents access your <a href=\"https://torr9.net/profile\" target=\"_blank\">Torr9 Profile</a> page and enabling the <b>Contenu adulte</b> option."
+      }
+    ],
+    "id": 7,
+    "implementation": "Cardigann",
+    "implementationName": "Cardigann",
+    "indexerUrls": [
+      "https://torr9.net/"
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#torr9",
+    "language": "fr-FR",
+    "legacyUrls": [
+      "https://torr9.xyz/",
+      "https://torr9.com/"
+    ],
+    "name": "Torr9",
+    "priority": 25,
+    "privacy": "private",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "torr9",
+    "supportsPagination": false,
+    "supportsRedirect": false,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "added": "2026-04-17T06:23:05Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [
+        "q"
+      ],
+      "categories": [
+        {
+          "id": 2000,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 131681,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 5000,
+          "name": "TV",
+          "subCategories": []
+        },
+        {
+          "id": 117804,
+          "name": "TV",
+          "subCategories": []
+        },
+        {
+          "id": 3000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 106099,
+          "name": "Music",
+          "subCategories": []
+        },
+        {
+          "id": 7000,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 113570,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 4000,
+          "name": "PC",
+          "subCategories": [
+            {
+              "id": 4050,
+              "name": "PC/Games",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 117202,
+          "name": "Software",
+          "subCategories": []
+        },
+        {
+          "id": 159776,
+          "name": "PC Games",
+          "subCategories": []
+        },
+        {
+          "id": 8000,
+          "name": "Other",
+          "subCategories": []
+        },
+        {
+          "id": 138096,
+          "name": "Other",
+          "subCategories": []
+        }
+      ],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [
+        "q"
+      ],
+      "musicSearchParams": [
+        "q"
+      ],
+      "searchParams": [
+        "q",
+        "q"
+      ],
+      "supportsRawSearch": true,
+      "tvSearchParams": [
+        "q",
+        "season",
+        "ep"
+      ]
+    },
+    "configContract": "CardigannSettings",
+    "definitionName": "torrent9",
+    "description": "Torrent9 is a FRENCH Public site for MOVIES / TV / GENERAL",
+    "downloadClientId": 0,
+    "enable": true,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "hidden": "hidden",
+        "isFloat": false,
+        "name": "definitionFile",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "torrent9"
+      },
+      {
+        "advanced": false,
+        "helpText": "Sélectionnez l'url de base que Prowlarr utilisera pour les requêtes vers le site",
+        "isFloat": false,
+        "label": "Url de base",
+        "name": "baseUrl",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "getUrls",
+        "type": "select"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 2,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 7,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 8,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 9,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "helpLink": "https://wiki.servarr.com/prowlarr/faq#can-i-use-flaresolverr-indexers",
+        "isFloat": false,
+        "label": "FlareSolverr Info",
+        "name": "info_flaresolverr",
+        "order": 0,
+        "privacy": "normal",
+        "type": "info",
+        "value": "This site may use Cloudflare DDoS Protection, therefore Prowlarr requires <a href=\"https://wiki.servarr.com/prowlarr/faq#can-i-use-flaresolverr-indexers\" target=\"_blank\" rel=\"noreferrer\">FlareSolverr</a> to access it."
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by another language in release name",
+        "name": "multilang",
+        "order": 1,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by this language",
+        "name": "multilanguage",
+        "order": 2,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "ENGLISH",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "FRENCH",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "MULTi ENGLISH",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "MULTi FRENCH",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "MULTi VOSTFR",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "VOSTFR",
+            "order": 0,
+            "value": 5
+          }
+        ],
+        "type": "select",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace VOSTFR and SUBFRENCH with ENGLISH",
+        "name": "vostfr",
+        "order": 3,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Sort requested from site (Only works for searches with Keywords)",
+        "name": "sort",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "best",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "created asc",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "created desc",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "title asc",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "title desc",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "size asc",
+            "order": 0,
+            "value": 5
+          },
+          {
+            "name": "size desc",
+            "order": 0,
+            "value": 6
+          },
+          {
+            "name": "seeders asc",
+            "order": 0,
+            "value": 7
+          },
+          {
+            "name": "seeders desc",
+            "order": 0,
+            "value": 8
+          }
+        ],
+        "type": "select",
+        "value": 0
+      }
+    ],
+    "id": 5,
+    "implementation": "Cardigann",
+    "implementationName": "Cardigann",
+    "indexerUrls": [
+      "https://www.torrent9.club/"
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#torrent9",
+    "language": "fr-FR",
+    "legacyUrls": [
+      "https://www.torrent9.pl/",
+      "https://torrent9.black-mirror.xyz/",
+      "https://torrent9.unblocked.casa/",
+      "https://torrent9.proxyportal.fun/",
+      "https://torrent9.uk-unblock.xyz/",
+      "https://torrent9.ind-unblock.xyz/",
+      "https://ww1.torrent9.to/",
+      "https://www.torrent9.is/",
+      "https://torrent9.li/",
+      "https://www.oxtorrent.me/",
+      "https://www.torrent9.gg/",
+      "https://www.torrent9.fi/",
+      "https://www.torrent9.fm/",
+      "https://torrent9.se/",
+      "https://torrent9.ninjaproxy1.com/",
+      "https://torrent9.proxyninja.org/",
+      "https://www.torrent9.se/",
+      "https://torrent9.unblockninja.com/",
+      "https://ww1.torrent9.fm/",
+      "https://www.torrent9.zone/",
+      "https://torrent9.to/",
+      "https://ww2.torrent9.to/",
+      "https://www5.torrent9.to/"
+    ],
+    "name": "Torrent9",
+    "priority": 25,
+    "privacy": "public",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "torrent9",
+    "supportsPagination": false,
+    "supportsRedirect": false,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "added": "2026-04-17T06:23:12Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [
+        "q"
+      ],
+      "categories": [
+        {
+          "id": 2000,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 145469,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 5000,
+          "name": "TV",
+          "subCategories": [
+            {
+              "id": 5070,
+              "name": "TV/Anime",
+              "subCategories": []
+            },
+            {
+              "id": 5080,
+              "name": "TV/Documentary",
+              "subCategories": []
+            },
+            {
+              "id": 5050,
+              "name": "TV/Other",
+              "subCategories": []
+            },
+            {
+              "id": 5060,
+              "name": "TV/Sport",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 158485,
+          "name": "Anime",
+          "subCategories": []
+        },
+        {
+          "id": 129118,
+          "name": "Documentaires",
+          "subCategories": []
+        },
+        {
+          "id": 108670,
+          "name": "TV",
+          "subCategories": []
+        },
+        {
+          "id": 3000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 139807,
+          "name": "Music",
+          "subCategories": []
+        },
+        {
+          "id": 7000,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 122878,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 111361,
+          "name": "Livres",
+          "subCategories": []
+        },
+        {
+          "id": 4000,
+          "name": "PC",
+          "subCategories": [
+            {
+              "id": 4050,
+              "name": "PC/Games",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 156868,
+          "name": "Software",
+          "subCategories": []
+        },
+        {
+          "id": 151062,
+          "name": "Applications",
+          "subCategories": []
+        },
+        {
+          "id": 132101,
+          "name": "PC Games",
+          "subCategories": []
+        },
+        {
+          "id": 1000,
+          "name": "Console",
+          "subCategories": [
+            {
+              "id": 1050,
+              "name": "Console/XBox 360",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 139292,
+          "name": "Console Games",
+          "subCategories": []
+        },
+        {
+          "id": 6000,
+          "name": "XXX",
+          "subCategories": []
+        },
+        {
+          "id": 123615,
+          "name": "Porno",
+          "subCategories": []
+        },
+        {
+          "id": 144267,
+          "name": "Spectacles",
+          "subCategories": []
+        },
+        {
+          "id": 160463,
+          "name": "Sports",
+          "subCategories": []
+        },
+        {
+          "id": 8000,
+          "name": "Other",
+          "subCategories": []
+        },
+        {
+          "id": 104653,
+          "name": "Formations",
+          "subCategories": []
+        },
+        {
+          "id": 104842,
+          "name": "Vidéos",
+          "subCategories": []
+        }
+      ],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [
+        "q"
+      ],
+      "musicSearchParams": [
+        "q"
+      ],
+      "searchParams": [
+        "q",
+        "q"
+      ],
+      "supportsRawSearch": true,
+      "tvSearchParams": [
+        "q",
+        "season",
+        "ep"
+      ]
+    },
+    "configContract": "CardigannSettings",
+    "definitionName": "world-torrent",
+    "description": "World-torrent is a FRENCH Public site for MOVIES / TV / GENERAL",
+    "downloadClientId": 0,
+    "enable": true,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "hidden": "hidden",
+        "isFloat": false,
+        "name": "definitionFile",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "world-torrent"
+      },
+      {
+        "advanced": false,
+        "helpText": "Sélectionnez l'url de base que Prowlarr utilisera pour les requêtes vers le site",
+        "isFloat": false,
+        "label": "Url de base",
+        "name": "baseUrl",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "getUrls",
+        "type": "select"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 2,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 7,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 8,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 9,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by another language in release name",
+        "name": "multilang",
+        "order": 0,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by this language",
+        "name": "multilanguage",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "ENGLISH",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "FRENCH",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "MULTi ENGLISH",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "MULTi FRENCH",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "MULTi VOSTFR",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "VOSTFR",
+            "order": 0,
+            "value": 5
+          }
+        ],
+        "type": "select",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace VOSTFR and SUBFRENCH with ENGLISH",
+        "name": "vostfr",
+        "order": 2,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 6,
+    "implementation": "Cardigann",
+    "implementationName": "Cardigann",
+    "indexerUrls": [
+      "https://www.darkfox.cc/",
+      "https://www.vidlox.cc/",
+      "https://www.sharework.cc/"
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#world-torrent",
+    "language": "fr-FR",
+    "legacyUrls": [
+      "https://www.rantop.xyz/",
+      "https://www.site-torrent.cc/",
+      "https://www.torrent-site.cc/",
+      "https://www.torrent-p2p.cc/",
+      "https://www.protege-torrent.com/",
+      "https://www.torrent.ws/",
+      "https://www.protege-liens.com/",
+      "https://www.protege-liens.net/",
+      "https://www.torrent.onl/",
+      "https://www.site-torrent.com/",
+      "https://www.rantop.my/",
+      "https://www.torrent-site.com/",
+      "https://www.rantop.org/",
+      "https://www.zetorrents.rent/",
+      "https://ww1-zetorrents.town/",
+      "https://ww3-cine-torrent.com/",
+      "https://www.cine-torrent.org/",
+      "https://www.cine-torrent.cc/",
+      "https://www.magnet-torrent.com/",
+      "https://www.magnet-torrent.org/",
+      "https://www.magnet-torrent.cc/",
+      "https://www.mania-torrent.com/",
+      "https://www.mania-torrent.org/",
+      "https://www.mania-torrent.cc/",
+      "https://ww3-mega-torrent.com/",
+      "https://www.mega-torrent.pw/",
+      "https://www.mega-torrent.cc/",
+      "https://ww2-warez-torrent.com/",
+      "https://www.warez-torrent.org/",
+      "https://www.warez-torrent.cc/",
+      "https://www.world-torrent1.com/",
+      "https://www-world-torrent.com/",
+      "https://ww1-world-torrent.com/",
+      "https://ww4-zone-torrent.com/",
+      "https://www.zone-torrent.com/",
+      "https://www.zone-torrent.org/",
+      "https://www.darkflix.cc/"
+    ],
+    "name": "World-torrent",
+    "priority": 25,
+    "privacy": "public",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "world torrent",
+    "supportsPagination": false,
+    "supportsRedirect": false,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  },
+  {
+    "added": "2026-04-14T01:00:12Z",
+    "appProfileId": 1,
+    "capabilities": {
+      "bookSearchParams": [
+        "q"
+      ],
+      "categories": [
+        {
+          "id": 2000,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 145469,
+          "name": "Movies",
+          "subCategories": []
+        },
+        {
+          "id": 104842,
+          "name": "Vidéos",
+          "subCategories": []
+        },
+        {
+          "id": 5000,
+          "name": "TV",
+          "subCategories": [
+            {
+              "id": 5070,
+              "name": "TV/Anime",
+              "subCategories": []
+            },
+            {
+              "id": 5080,
+              "name": "TV/Documentary",
+              "subCategories": []
+            },
+            {
+              "id": 5060,
+              "name": "TV/Sport",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 158485,
+          "name": "Anime",
+          "subCategories": []
+        },
+        {
+          "id": 108670,
+          "name": "TV Series",
+          "subCategories": []
+        },
+        {
+          "id": 144267,
+          "name": "TV Shows",
+          "subCategories": []
+        },
+        {
+          "id": 129118,
+          "name": "Documentaries",
+          "subCategories": []
+        },
+        {
+          "id": 160463,
+          "name": "Sport",
+          "subCategories": []
+        },
+        {
+          "id": 3000,
+          "name": "Audio",
+          "subCategories": []
+        },
+        {
+          "id": 139807,
+          "name": "Music",
+          "subCategories": []
+        },
+        {
+          "id": 7000,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 122878,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 111361,
+          "name": "Books",
+          "subCategories": []
+        },
+        {
+          "id": 4000,
+          "name": "PC",
+          "subCategories": [
+            {
+              "id": 4050,
+              "name": "PC/Games",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 156868,
+          "name": "Software",
+          "subCategories": []
+        },
+        {
+          "id": 132101,
+          "name": "PC Games",
+          "subCategories": []
+        },
+        {
+          "id": 1000,
+          "name": "Console",
+          "subCategories": [
+            {
+              "id": 1050,
+              "name": "Console/XBox 360",
+              "subCategories": []
+            }
+          ]
+        },
+        {
+          "id": 139292,
+          "name": "Console Games",
+          "subCategories": []
+        },
+        {
+          "id": 6000,
+          "name": "XXX",
+          "subCategories": []
+        },
+        {
+          "id": 123615,
+          "name": "XXX",
+          "subCategories": []
+        }
+      ],
+      "limitsDefault": 100,
+      "limitsMax": 100,
+      "movieSearchParams": [
+        "q"
+      ],
+      "musicSearchParams": [
+        "q"
+      ],
+      "searchParams": [
+        "q",
+        "q"
+      ],
+      "supportsRawSearch": true,
+      "tvSearchParams": [
+        "q",
+        "season",
+        "ep"
+      ]
+    },
+    "configContract": "CardigannSettings",
+    "definitionName": "zktorrent",
+    "description": "ZkTorrent is a FRENCH Public site for MOVIES / TV / GENERAL",
+    "downloadClientId": 0,
+    "enable": true,
+    "encoding": "Unicode (UTF-8)",
+    "fields": [
+      {
+        "advanced": false,
+        "hidden": "hidden",
+        "isFloat": false,
+        "name": "definitionFile",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "zktorrent"
+      },
+      {
+        "advanced": false,
+        "helpText": "Sélectionnez l'url de base que Prowlarr utilisera pour les requêtes vers le site",
+        "isFloat": false,
+        "label": "Url de base",
+        "name": "baseUrl",
+        "order": 1,
+        "privacy": "normal",
+        "selectOptionsProviderAction": "getUrls",
+        "type": "select"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre de requêtes maximales tel que spécifié par l'unité respective que Prowlarr autorisera au site",
+        "isFloat": false,
+        "label": "Limite de requête",
+        "name": "baseSettings.queryLimit",
+        "order": 2,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "Le nombre maximum de récupérations autorisé par Prowlarr pour ce site, selon l'unité spécifiée",
+        "isFloat": false,
+        "label": "Limite de récupération",
+        "name": "baseSettings.grabLimit",
+        "order": 3,
+        "privacy": "normal",
+        "type": "number"
+      },
+      {
+        "advanced": true,
+        "helpText": "L'unité de temps pour le comptage des limites par indexeur",
+        "isFloat": false,
+        "label": "Limites d'unité",
+        "name": "baseSettings.limitsUnit",
+        "order": 4,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "hint": "(0)",
+            "name": "Day",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "hint": "(1)",
+            "name": "Hour",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": true,
+        "helpText": "Nombre minimum de seeders requis par l'application pour que l'indexeur effectue une récupération. Si vide, la valeur par défaut du profil de synchronisation sera utilisée",
+        "isFloat": false,
+        "label": "Apps avec le nombre minimum de seeders disponibles",
+        "name": "torrentBaseSettings.appMinimumSeeders",
+        "order": 5,
+        "privacy": "normal",
+        "type": "number",
+        "value": 3
+      },
+      {
+        "advanced": false,
+        "helpText": "Le ratio qu'un torrent doit atteindre avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement. Le ratio doit être d'au moins 1.0 et suivre les règles des indexeurs",
+        "isFloat": true,
+        "label": "Ratio d'envoi",
+        "name": "torrentBaseSettings.seedRatio",
+        "order": 6,
+        "privacy": "normal",
+        "type": "number",
+        "value": 2
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent doit être envoyé avant de s'arrêter, vide utilise la valeur par défaut du client de téléchargement",
+        "isFloat": false,
+        "label": "Temps d'envoi",
+        "name": "torrentBaseSettings.seedTime",
+        "order": 7,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Durée pendant laquelle un torrent de pack (saison ou discographie) doit être diffusé avant de s'arrêter, vide est la valeur par défaut de l'application",
+        "isFloat": false,
+        "label": "Temps de seed du pack",
+        "name": "torrentBaseSettings.packSeedTime",
+        "order": 8,
+        "privacy": "normal",
+        "type": "number",
+        "unit": "minutes"
+      },
+      {
+        "advanced": true,
+        "helpText": "Si activé, cet indexeur privilégiera si possible l'usage de liens de type magnet aux liens torrent",
+        "isFloat": false,
+        "label": "URL de préférence Magnet",
+        "name": "torrentBaseSettings.preferMagnetUrl",
+        "order": 9,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "helpLink": "https://wiki.servarr.com/prowlarr/faq#can-i-use-flaresolverr-indexers",
+        "isFloat": false,
+        "label": "FlareSolverr Info",
+        "name": "info_flaresolverr",
+        "order": 0,
+        "privacy": "normal",
+        "type": "info",
+        "value": "This site may use Cloudflare DDoS Protection, therefore Prowlarr requires <a href=\"https://wiki.servarr.com/prowlarr/faq#can-i-use-flaresolverr-indexers\" target=\"_blank\" rel=\"noreferrer\">FlareSolverr</a> to access it."
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by another language in release name",
+        "name": "multilang",
+        "order": 1,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace MULTi by this language",
+        "name": "multilanguage",
+        "order": 2,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "name": "ENGLISH",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "name": "FRENCH",
+            "order": 0,
+            "value": 1
+          },
+          {
+            "name": "MULTi ENGLISH",
+            "order": 0,
+            "value": 2
+          },
+          {
+            "name": "MULTi FRENCH",
+            "order": 0,
+            "value": 3
+          },
+          {
+            "name": "MULTi VOSTFR",
+            "order": 0,
+            "value": 4
+          },
+          {
+            "name": "VOSTFR",
+            "order": 0,
+            "value": 5
+          }
+        ],
+        "type": "select",
+        "value": 1
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Replace VOSTFR and SUBFRENCH with ENGLISH",
+        "name": "vostfr",
+        "order": 3,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      }
+    ],
+    "id": 3,
+    "implementation": "Cardigann",
+    "implementationName": "Cardigann",
+    "indexerUrls": [
+      "https://www.zktorrent.cc/"
+    ],
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported-indexers#zktorrent",
+    "language": "fr-FR",
+    "legacyUrls": [
+      "https://www.rantop.xyz/",
+      "https://www.site-torrent.cc/",
+      "https://www.torrent-site.cc/",
+      "https://www.torrent-p2p.cc/",
+      "https://www.protege-torrent.com/",
+      "https://www.torrent.ws/",
+      "https://www.protege-liens.com/",
+      "https://www.protege-liens.net/",
+      "https://www.torrent.onl/",
+      "https://gktorrent.news/",
+      "https://www.site-torrent.com/",
+      "https://www.rantop.my/",
+      "https://www.torrent-site.com/",
+      "https://www.rantop.org/",
+      "https://www.zktorrent5.com/",
+      "https://www.zktorrent.net/",
+      "https://www.zktorrent6.com/",
+      "https://www.zktorrent.town/",
+      "https://zktorrent-proxy.site/",
+      "https://ww1-zktorrent.me/",
+      "https://www.zktorrent.rent/",
+      "https://ww1-zktorrent.town/",
+      "https://www.zktorrent7.com/",
+      "https://www.zktorrent8.com/",
+      "https://ww1-zktorrent.com/",
+      "https://www-zktorrent.com/",
+      "https://ww2-zktorrent.com/",
+      "https://www.zktorrent.com/",
+      "https://www.zktorrent.org/"
+    ],
+    "name": "ZkTorrent",
+    "priority": 25,
+    "privacy": "public",
+    "protocol": "torrent",
+    "redirect": false,
+    "sortName": "zktorrent",
+    "supportsPagination": false,
+    "supportsRedirect": false,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  }
+]

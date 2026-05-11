@@ -1,0 +1,238 @@
+[
+  {
+    "configContract": "QBittorrentSettings",
+    "enable": true,
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "H\u00f4te",
+        "name": "host",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "qbittorrent.selfhost.svc.cluster.local"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Port",
+        "name": "port",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": 8080
+      },
+      {
+        "advanced": false,
+        "helpText": "Utilisez une connexion s\u00e9curis\u00e9e. Voir Options -> UI Web -> 'Utiliser HTTPS au lieu de HTTP' dans qBittorrent.",
+        "isFloat": false,
+        "label": "Utiliser SSL",
+        "name": "useSsl",
+        "order": 2,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": true,
+        "helpText": "Ajoute un pr\u00e9fixe \u00e0 l'url qBittorrent, tel que http://[host]:[port]/[urlBase]/api",
+        "isFloat": false,
+        "label": "Base URL",
+        "name": "urlBase",
+        "order": 3,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": ""
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Nom d'utilisateur",
+        "name": "username",
+        "order": 4,
+        "privacy": "userName",
+        "type": "textbox",
+        "value": "***REDACTED***"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Mot de passe",
+        "name": "password",
+        "order": 5,
+        "privacy": "password",
+        "type": "password",
+        "value": "********"
+      },
+      {
+        "advanced": false,
+        "helpText": "L'ajout d'une cat\u00e9gorie sp\u00e9cifique \u00e0 Radarr permet d'\u00e9viter les conflits avec des t\u00e9l\u00e9chargements sans rapport avec Radarr. L'utilisation d'une cat\u00e9gorie est facultative, mais fortement recommand\u00e9e.",
+        "isFloat": false,
+        "label": "Cat\u00e9gorie",
+        "name": "movieCategory",
+        "order": 6,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "radarr"
+      },
+      {
+        "advanced": true,
+        "helpText": "Cat\u00e9gorie que Radarr doit d\u00e9finir apr\u00e8s avoir import\u00e9 le t\u00e9l\u00e9chargement. Radarr ne supprimera pas les torrents de cette cat\u00e9gorie m\u00eame si l'ensemencement est termin\u00e9. Laisser vide pour conserver la m\u00eame cat\u00e9gorie.",
+        "isFloat": false,
+        "label": "Cat\u00e9gorie apr\u00e8s l'importation",
+        "name": "movieImportedCategory",
+        "order": 7,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": false,
+        "helpText": "Priorit\u00e9 \u00e0 utiliser pour la r\u00e9cup\u00e9ration de films diffus\u00e9s au cours des 21 derniers jours",
+        "isFloat": false,
+        "label": "Priorit\u00e9 r\u00e9cente",
+        "name": "recentMoviePriority",
+        "order": 8,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "dividerAfter": false,
+            "name": "Last",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "dividerAfter": false,
+            "name": "First",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": false,
+        "helpText": "Priorit\u00e9 \u00e0 utiliser pour la r\u00e9cup\u00e9ration de films diffus\u00e9s il y a plus de 21 jours",
+        "isFloat": false,
+        "label": "Priorit\u00e9 plus ancienne",
+        "name": "olderMoviePriority",
+        "order": 9,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "dividerAfter": false,
+            "name": "Last",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "dividerAfter": false,
+            "name": "First",
+            "order": 1,
+            "value": 1
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": false,
+        "helpText": "\u00c9tat initial des torrents ajout\u00e9s \u00e0 qBittorrent. Notez que les torrents forc\u00e9s ne respectent pas les restrictions relatives aux seeds",
+        "isFloat": false,
+        "label": "\u00c9tat initial",
+        "name": "initialState",
+        "order": 10,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "dividerAfter": false,
+            "hint": "(0)",
+            "name": "D\u00e9marr\u00e9",
+            "order": 7,
+            "value": 0
+          },
+          {
+            "dividerAfter": false,
+            "hint": "(1)",
+            "name": "Force Started",
+            "order": 10,
+            "value": 1
+          },
+          {
+            "dividerAfter": false,
+            "hint": "(2)",
+            "name": "Stopped",
+            "order": 13,
+            "value": 2
+          }
+        ],
+        "type": "select",
+        "value": 0
+      },
+      {
+        "advanced": false,
+        "helpText": "T\u00e9l\u00e9chargement dans l'ordre s\u00e9quentiel (qBittorrent 4.1.0+)",
+        "isFloat": false,
+        "label": "Ordre s\u00e9quentiel",
+        "name": "sequentialOrder",
+        "order": 11,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "helpText": "T\u00e9l\u00e9charger d'abord le premier et le dernier morceau (qBittorrent 4.1.0+)",
+        "isFloat": false,
+        "label": "Premier et dernier premiers",
+        "name": "firstAndLast",
+        "order": 12,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "helpText": "Utiliser la disposition du contenu configur\u00e9e par qBittorrent, la disposition originale du torrent ou toujours cr\u00e9er un sous-dossier (qBittorrent 4.3.2+)",
+        "isFloat": false,
+        "label": "Disposition du contenu",
+        "name": "contentLayout",
+        "order": 13,
+        "privacy": "normal",
+        "selectOptions": [
+          {
+            "dividerAfter": false,
+            "name": "Default",
+            "order": 0,
+            "value": 0
+          },
+          {
+            "dividerAfter": false,
+            "name": "Original",
+            "order": 1,
+            "value": 1
+          },
+          {
+            "dividerAfter": false,
+            "name": "Subfolder",
+            "order": 2,
+            "value": 2
+          }
+        ],
+        "type": "select",
+        "value": 0
+      }
+    ],
+    "id": 1,
+    "implementation": "QBittorrent",
+    "implementationName": "qBittorrent",
+    "infoLink": "https://wiki.servarr.com/radarr/supported#qbittorrent",
+    "name": "qBittorrent",
+    "priority": 1,
+    "protocol": "torrent",
+    "removeCompletedDownloads": true,
+    "removeFailedDownloads": true,
+    "tags": []
+  }
+]
