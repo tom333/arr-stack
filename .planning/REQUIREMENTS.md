@@ -29,11 +29,11 @@ Requirements for initial release. Each maps to a roadmap phase. IDs preserved fr
 
 ### Frontière configarr / arrconf
 
-- [ ] **REQ-configarr-coexistence**: La config configarr (`charts/arr-stack/files/configarr.yml`) reste source de vérité unique pour quality_profiles / custom_formats / quality_definitions / media_naming. arrconf ne touche PAS à ces endpoints (refus codé en dur côté reconcilers — `ScopeViolationError`). Coexistence sans conflit, CronJobs séparés.
+- [x] **REQ-configarr-coexistence**: La config configarr (`charts/arr-stack/files/configarr.yml`) reste source de vérité unique pour quality_profiles / custom_formats / quality_definitions / media_naming. arrconf ne touche PAS à ces endpoints (refus codé en dur côté reconcilers — `ScopeViolationError`). Coexistence sans conflit, CronJobs séparés.
 
 ### Couverture des apps
 
-- [ ] **REQ-app-coverage**: Apps couvertes (cible MVP) — Helm umbrella + arrconf : Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin ; Helm umbrella seul (config UI/env) : FlareSolverr, Cleanuparr ; Helm umbrella + sa propre config dédiée : configarr (`files/configarr.yml`), arrconf (`files/arrconf.yml`).
+- [x] **REQ-app-coverage**: Apps couvertes (cible MVP) — Helm umbrella + arrconf : Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin ; Helm umbrella seul (config UI/env) : FlareSolverr, Cleanuparr ; Helm umbrella + sa propre config dédiée : configarr (`files/configarr.yml`), arrconf (`files/arrconf.yml`).
 
 ### Helm umbrella & Renovate
 
@@ -101,14 +101,14 @@ Mapping `REQ-* → Phase`. Chaque requirement v1 mappé à exactement une phase 
 | REQ-drift-detection | Phase 2 | Complete |
 | REQ-bootstrap-exception | Phase 2 | Pending |
 | REQ-secret-management | Phase 2 | Pending |
-| REQ-configarr-coexistence | Phase 3 | Pending |
+| REQ-configarr-coexistence | Phase 3 | Complete |
 | REQ-config-as-code | Phase 4 | Pending |
 | REQ-umbrella-deployment | Phase 4 | Pending |
 | REQ-renovate-image-tracking | Phase 4 | Pending |
 | REQ-helm-validation | Phase 4 | Pending |
 | REQ-pr-to-cluster-latency | Phase 4 | Pending |
 | REQ-readme-onboarding | Phase 4 | Pending |
-| REQ-app-coverage | Phases 1, 3, 5, 6, 7 | Pending |
+| REQ-app-coverage | Phases 1, 3, 5, 6, 7 | Complete |
 
 **Notes traçabilité** :
 

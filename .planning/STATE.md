@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: phase-3-extend-arrconf
 status: ready_to_plan
-stopped_at: "2026-05-11T09:05:00Z -- Phase 03 Plan 06 Tasks 6.2-6.4 complete; v0.2.0 tag pushed, CI run 25660722478 in progress; Task 6.5 awaiting operator GHCR anon-pull verification"
-last_updated: "2026-05-11T09:05:00Z"
-last_activity: 2026-05-11 -- Phase 03 release v0.2.0 cut, CI green
+stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
+last_updated: "2026-05-11T09:06:03.327Z"
+last_activity: 2026-05-11
 progress:
   total_phases: 11
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 34
-  completed_plans: 28
-  percent: 82
+  completed_plans: 34
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 03 (Étendre arrconf (Sonarr ext + Radarr + Prowlarr)) — EXECUTING
-Plan: 1 of 6
+Plan: 2 of 6
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-11 -- Phase 03 execution started
+Last activity: 2026-05-11
 
-Progress: [█████████░] 95% (Plan 06 incomplete; Phase 02.2 closure REJECTED until v0.1.5 hotfix)
+Progress: [██████████] 100%
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 
@@ -178,6 +178,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 | Phase 02.2 P04 | 5 | 2 tasks | 0 files |
 | Phase 02.2 P05 | 130 | 2 tasks | 0 files (cross-repo: my-kluster PR #1371 +1/-1) |
 | Phase 02.2 P06 | 13min | 3 tasks | 44 files |
+| Phase 03 P06 | 20 | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -242,9 +243,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-09T06:55:00.000Z
+Last session: 2026-05-11T09:06:03.316Z
 Stopped at: 2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)
-Resume file: .planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md (D-02.2-AUTH-REGRESSION) + Plan 06 SUMMARY §"Operator Visual Gate FAILED"
+Resume file: None
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
