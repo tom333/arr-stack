@@ -84,8 +84,8 @@ def apply(
     settings = Settings()
     failures: list[str] = []
 
-    if "sonarr" in targets and root.apps.sonarr is not None and root.apps.sonarr.main is not None:
-        instance = root.apps.sonarr.main
+    if "sonarr" in targets and "main" in root.sonarr:
+        instance = root.sonarr["main"]
         # Fast-fail when SONARR_API_KEY missing — no silent fallback to "" (CLAUDE.md
         # "no silent failures"). Symptom of the old fallback: 401 from upstream with
         # no clear hint that env was missing.
@@ -132,8 +132,8 @@ def dump(
     except ConfigError as e:
         log.error("config_error", error=str(e))
         raise typer.Exit(code=2) from e
-    if "sonarr" in targets and root.apps.sonarr is not None and root.apps.sonarr.main is not None:
-        instance = root.apps.sonarr.main
+    if "sonarr" in targets and "main" in root.sonarr:
+        instance = root.sonarr["main"]
         # Fast-fail when SONARR_API_KEY missing — mirrors the apply branch.
         if not settings.sonarr_api_key:
             log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
@@ -164,8 +164,8 @@ def diff(
     targets = _selected_apps(apps)
     settings = Settings()
     max_code = 0
-    if "sonarr" in targets and root.apps.sonarr is not None and root.apps.sonarr.main is not None:
-        instance = root.apps.sonarr.main
+    if "sonarr" in targets and "main" in root.sonarr:
+        instance = root.sonarr["main"]
         # Fast-fail when SONARR_API_KEY missing — mirrors apply/dump branches.
         if not settings.sonarr_api_key:
             log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
