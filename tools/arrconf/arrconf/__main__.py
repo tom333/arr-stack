@@ -39,6 +39,9 @@ app = typer.Typer(
 )
 
 
+_VALID_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "prowlarr"})
+
+
 def _selected_apps(apps: str | None) -> set[str]:
     """Return the set of apps targeted by ``--apps``; defaults to all Phase-3 apps.
 
@@ -46,10 +49,30 @@ def _selected_apps(apps: str | None) -> set[str]:
     present in the YAML (``"main" in root.<app>``), so the default of
     ``{sonarr, radarr, prowlarr}`` is safe — apps absent from the YAML
     simply skip silently.
+
+    CR-03 (Phase 3 code review): unknown app names raise ``typer.BadParameter``
+    (which typer translates to exit code 2 — config error per CLAUDE.md CLI
+    conventions). A typo like ``--apps sonar`` would otherwise silently skip
+    every branch and exit 0 with no work done — invisible disable of all
+    reconciliation in a CronJob context.
     """
-    if apps:
-        return {a.strip() for a in apps.split(",")}
-    return {"sonarr", "radarr", "prowlarr"}
+    log = structlog.get_logger()
+    if not apps:
+        return set(_VALID_APPS)
+    selected = {a.strip() for a in apps.split(",") if a.strip()}
+    unknown = selected - _VALID_APPS
+    if unknown:
+        # Emit a structured log first so CronJob log pipelines can ingest the
+        # validation failure with the same key shape as other config errors.
+        log.error(
+            "unknown_apps",
+            unknown=sorted(unknown),
+            valid=sorted(_VALID_APPS),
+        )
+        raise typer.BadParameter(
+            f"unknown app(s): {sorted(unknown)} — valid: {sorted(_VALID_APPS)}"
+        )
+    return selected
 
 
 @app.callback()

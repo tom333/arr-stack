@@ -111,6 +111,78 @@ def test_schema_gen_writes_draft_2020_12(tmp_path: Path) -> None:
     assert data["$schema"] == "https://json-schema.org/draft/2020-12/schema"
 
 
+def test_apply_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
+    """CR-03 regression: typo in --apps must fail loud (exit 2), not silently skip.
+
+    Pre-fix behaviour: ``--apps sonar`` returned ``{"sonar"}``, every branch in
+    apply / dump / diff skipped because no guard matched, and the command
+    exited 0 with no work done. Combined with the CronJob deployment model,
+    that silently disabled all reconciliation on a typo. The fix validates
+    against ``_VALID_APPS`` and raises ``typer.BadParameter`` (exit 2 — config
+    error per CLAUDE.md CLI conventions).
+    """
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    download_clients:\n      prune: false\n      items: []\n"
+    )
+    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonar"])
+    assert result.exit_code == 2, (
+        f"CR-03: --apps sonar must exit 2 (config error), got {result.exit_code}: {result.stdout!r}"
+    )
+
+
+def test_diff_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
+    """CR-03 regression: typo in --apps for diff also fails loud."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    download_clients:\n      prune: false\n      items: []\n"
+    )
+    result = runner.invoke(app, ["--config", str(cfg), "diff", "--apps", "radar"])
+    assert result.exit_code == 2
+
+
+def test_dump_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
+    """CR-03 regression: typo in --apps for dump also fails loud."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    download_clients:\n      prune: false\n      items: []\n"
+    )
+    result = runner.invoke(
+        app,
+        [
+            "--config",
+            str(cfg),
+            "dump",
+            "--output",
+            str(tmp_path / "out.yml"),
+            "--apps",
+            "prowlar",
+        ],
+    )
+    assert result.exit_code == 2
+
+
+def test_apply_known_apps_subset_accepted(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """CR-03 companion: valid subset (e.g. --apps sonarr,radarr) is accepted."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    download_clients:\n      prune: false\n      items: []\n"
+    )
+    # No SONARR_API_KEY → exit 2 from missing_api_key (not from CR-03 validation),
+    # which still proves CR-03 validation accepted "sonarr,radarr":
+    monkeypatch.delenv("SONARR_API_KEY", raising=False)
+    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr,radarr"])
+    assert result.exit_code == 2
+    assert "missing_api_key" in result.stdout, (
+        "validation must let known-apps subset through to api-key check; "
+        f"got stdout: {result.stdout!r}"
+    )
+
+
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
 def test_diff_returns_3_on_drift(
     respx_mock,  # noqa: ANN001
