@@ -223,7 +223,14 @@ def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]
                 merged_fields.append(merged)
                 continue
         merged_fields.append(des_f)
-    des_dump["fields"] = merged_fields
+    # WR-06 (Phase 3 code review): only set des_dump["fields"] when the input had
+    # a "fields" key. Pre-fix, this assignment was unconditional, so HostConfig
+    # (which has no fields[] attribute) ended up with des_dump["fields"] = [] in
+    # the PUT body. Radarr/Sonarr's /config/host endpoint likely ignores the spurious
+    # key today, but it pollutes audit logs and could regress on a future API version
+    # that validates payloads strictly.
+    if "fields" in des_dump or merged_fields:
+        des_dump["fields"] = merged_fields
     return des_dump
 
 

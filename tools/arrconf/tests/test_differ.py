@@ -469,6 +469,26 @@ def test_merge_fields_omits_api_key_privacy_field() -> None:
     )
 
 
+def test_merge_fields_does_not_inject_empty_fields_for_models_without_fields() -> None:
+    """WR-06 regression: HostConfig has no fields attribute — PUT body must NOT carry 'fields': [].
+
+    Pre-fix, merge_fields_for_put's last statement unconditionally set
+    des_dump['fields'] = merged_fields, so HostConfig (no fields[] attribute)
+    ended up with des_dump['fields'] = [] in the PUT body. The endpoint likely
+    ignored it, but it polluted audit logs and risked regressing on a future
+    API version that validates payloads strictly.
+    """
+    from arrconf.resources.sonarr.host_config import HostConfig
+
+    current = HostConfig(instanceName="Sonarr")
+    desired = HostConfig(instanceName="SonarrRenamed")
+    body = merge_fields_for_put(current, desired)
+    assert "fields" not in body, (
+        "WR-06: merge_fields_for_put must NOT inject empty 'fields': [] for models "
+        f"that have no fields attribute — got body keys: {sorted(body.keys())}"
+    )
+
+
 def test_merge_fields_omits_token_privacy_field() -> None:
     """WR-01: token privacy -> omitted from PUT body when desired is empty.
 
