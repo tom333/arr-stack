@@ -41,7 +41,14 @@ findings:
   warning: 7
   info: 4
   total: 14
-status: issues_found
+status: clean
+fixed_at: 2026-05-11T00:00:00Z
+fixed:
+  critical: 3
+  warning: 7
+  info: 0
+  deferred: 4
+deferred_findings: [IN-01, IN-02, IN-03, IN-04]
 ---
 
 # Phase 3: Code Review Report
@@ -49,7 +56,40 @@ status: issues_found
 **Reviewed:** 2026-05-11
 **Depth:** standard
 **Files Reviewed:** 32
-**Status:** issues_found
+**Status:** clean (all critical + warning findings fixed)
+
+## Fix Summary (2026-05-11)
+
+All 3 BLOCKER findings (CR-01, CR-02, CR-03) and all 7 WARNING findings
+(WR-01..WR-07) were fixed with regression tests in this iteration. The 4
+INFO findings are deferred (none required this phase — see per-finding
+notes below).
+
+Final state after fixes:
+- Test suite: 128 passed (was 113 pre-fix; +15 regression tests)
+- `ruff check .`: clean
+- `ruff format --check .`: clean
+- `mypy arrconf/`: clean (0 errors in 34 source files)
+
+| Finding | Commit | Notes |
+|---|---|---|
+| CR-01 | `21321af` | Mirror Sonarr scoped-diff logic in `radarr._reconcile_host_config`; 2 regression tests |
+| CR-02 | `1ae2078` | `reconcile_prowlarr` returns `ProwlarrResult` (plan + actions_taken); `diff_prowlarr` gates on plan; 3 regression tests |
+| CR-03 | `25824b8` | `_selected_apps` validates against `_VALID_APPS` frozenset; raises `typer.BadParameter`; 4 regression tests |
+| WR-01 | `6a4bc3f` | `_strip_redacted_fields` extended with `_API_MASK_VALUES` + symmetric credential-privacy strip; 2 regression tests |
+| WR-02 | `271caa9` | Prowlarr `_execute` UPDATE branch overrides body["tags"] = current.tags; 1 regression test |
+| WR-03 | `1e4e168` | Sonarr/Radarr diff branches catch `(ApiClientError, ReconcileError)`; 2 regression tests |
+| WR-04 | `b6f33bf` | Sonarr/Radarr `managed_tag_id` sentinel used at every call site (defense in depth) |
+| WR-05 | `5a6396d` | Sonarr `_execute` typed `list[PlannedAction[Any]]` (mirror of Radarr) |
+| WR-06 | `2d68069` | `merge_fields_for_put` only sets `des_dump["fields"]` when input had a `fields` key or merged is non-empty; 1 regression test |
+| WR-07 | `23b651c` | `conftest.py` documents fixture layout + `_load_fixture` helper for clearer missing-fixture errors |
+
+Deferred (Info-level, no action required this phase):
+
+- **IN-01** — `dump.py` Phase-4 TODO. Schedule for Phase 4 plan as the review notes.
+- **IN-02** — Frontière `reconcile(*args, **kwargs)` discards inputs. By design (ADR-5 / D-12 / T-01-05).
+- **IN-03** — Extract `reconcilers/_shared.py` between Sonarr / Radarr. Future cleanup, scope too large for a fix iteration.
+- **IN-04** — Extend `[tool.coverage.run]` source list. Trivial config change, can be bundled with a future test-config tweak.
 
 ## Summary
 
@@ -77,6 +117,8 @@ issues also need attention before this code ships to my-kluster.
 ## Critical Issues
 
 ### CR-01: Radarr `_reconcile_host_config` issues a destructive PUT that drops every server-only field
+
+**Status: FIXED in commit `21321af`**
 
 **File:** `tools/arrconf/arrconf/reconcilers/radarr.py:173-193`
 **Issue:**
@@ -158,6 +200,8 @@ blocker, not a "future cleanup".
 
 ### CR-02: `diff_prowlarr` can never return drift code 3 — Prowlarr drift is silently swallowed by the CLI
 
+**Status: FIXED in commit `1ae2078`**
+
 **File:** `tools/arrconf/arrconf/diff_cmd.py:56-76`
 **Issue:**
 `diff_prowlarr` calls `reconcile_prowlarr(..., dry_run=True)` and exits 3
@@ -229,6 +273,8 @@ Update `apply` branch in `__main__.py:154-160` accordingly (read
 
 ### CR-03: `--apps` accepts arbitrary strings and silently skips on typos
 
+**Status: FIXED in commit `25824b8`**
+
 **File:** `tools/arrconf/arrconf/__main__.py:42-52`
 **Issue:**
 ```python
@@ -281,6 +327,12 @@ Add a CLI test asserting `--apps sonar` exits non-zero with a clear error.
 
 ### WR-01: Prowlarr application UPDATE writes through `apiKey` on every run — non-idempotent
 
+**Status: FIXED in commit `6a4bc3f`** — applied the architecturally consistent
+fix (symmetric strip by privacy metadata across both sides of `diff_models`)
+in addition to extending the value-strip to recognize `"********"`. The simple
+value-strip alone was insufficient because desired-side credential fields
+carry the real resolved key value, not the mask.
+
 **File:** `tools/arrconf/arrconf/reconcilers/prowlarr.py:61-90` and
 `arrconf/differ.py:64-87`
 **Issue:**
@@ -324,6 +376,13 @@ strategy from `merge_fields_for_put`).
 
 ### WR-02: Prowlarr UPDATE wipes cluster-side `tags` on every reconcile
 
+**Status: FIXED in commit `271caa9`** — body override applied after merge.
+Note: this fix preserves tags ON UPDATE but does NOT exclude tags from
+`diff_models`, so cluster tags still flag drift every cycle. Excluding
+tags from the Prowlarr diff entirely is a deeper refactor outside WR-02's
+scope; the next reconcile re-issues an UPDATE PUT that is now a no-op for
+the tags field.
+
 **File:** `tools/arrconf/arrconf/reconcilers/prowlarr.py:84-90`
 **Issue:**
 `_build_desired_application` hardcodes `tags=[]` for every desired
@@ -356,6 +415,9 @@ UPDATE, PUT body carries `tags: [5]`.
 
 ### WR-03: `diff_radarr` and `diff_sonarr` swallow `ReconcileError` from host_config path
 
+**Status: FIXED in commit `1e4e168`** — caught `(ApiClientError, ReconcileError)`
+on both diff branches; mirrors apply/prowlarr handling.
+
 **File:** `tools/arrconf/arrconf/__main__.py:241-260` and
 `arrconf/diff_cmd.py:21-53`
 **Issue:**
@@ -375,6 +437,10 @@ Catch `(ApiClientError, ReconcileError)` on the Sonarr/Radarr diff branches
 too. Or move the catch into `diff_sonarr` / `diff_radarr` themselves.
 
 ### WR-04: Sonarr/Radarr download_clients `managed_tag.id` passed unguarded to `reconcile()`
+
+**Status: FIXED in commit `b6f33bf`** — pass `managed_tag_id` (post-sentinel-fallback)
+to every call site in both Sonarr and Radarr reconcilers; result dataclass also
+uses the post-fallback id.
 
 **File:** `tools/arrconf/arrconf/reconcilers/sonarr.py:247-292` and
 `reconcilers/radarr.py:206-248`
@@ -416,6 +482,9 @@ managed_tag_id = managed_tag.id if managed_tag.id is not None else DRY_RUN_TAG_S
 
 ### WR-05: Sonarr `_execute` is typed `list[PlannedAction[DownloadClient]]` but receives Indexer / Notification / RootFolder plans
 
+**Status: FIXED in commit `5a6396d`** — Sonarr's `_execute` signature changed to
+`list[PlannedAction[Any]]` matching Radarr. mypy strict passes.
+
 **File:** `tools/arrconf/arrconf/reconcilers/sonarr.py:98-171`
 **Issue:**
 `_execute` is annotated `plan: list[PlannedAction[DownloadClient]]` but is
@@ -437,6 +506,11 @@ cd tools/arrconf && mypy .
 ```
 
 ### WR-06: `merge_fields_for_put` injects `"fields": []` into bodies for models without a `fields` attribute
+
+**Status: FIXED in commit `2d68069`** — conditional assignment: only set
+`des_dump["fields"]` when input had a `fields` key or merged_fields is
+non-empty. Regression test asserts HostConfig PUT body doesn't carry
+`"fields": []`.
 
 **File:** `tools/arrconf/arrconf/differ.py:135-168`
 **Issue:**
@@ -465,6 +539,11 @@ return des_dump
 
 ### WR-07: `tests/conftest.py` references fixture under `sonarr/edge_cases/` without confirming presence
 
+**Status: FIXED in commit `23b651c`** — added explanatory module docstring describing
+the canonical / edge_cases fixture layout, and a `_load_fixture` helper that
+surfaces a clear, actionable error when a fixture file is missing (replaces the
+confusing FileNotFoundError that used to surface inside the fixture function).
+
 **File:** `tools/arrconf/tests/conftest.py:24`
 **Issue:**
 The `sonarr_tag_managed_fixture` fixture reads
@@ -489,6 +568,8 @@ resolve.
 
 ### IN-01: `dump.py` keeps a Phase-4 TODO for a documented limitation
 
+**Status: DEFERRED to Phase 4** (no action required this phase).
+
 **File:** `tools/arrconf/arrconf/dump.py:7-14, 29-31`
 **Issue:**
 The module hardcodes `SCHEMA_RELATIVE_PATH_FROM_EXAMPLES =
@@ -501,6 +582,8 @@ action needed for this phase; flagging for the Phase 4 plan to address.
 docstring TODO.
 
 ### IN-02: Frontière `reconcile(*args, **kwargs)` signatures discard caller intent
+
+**Status: DEFERRED — by design** (ADR-5 / D-12 / T-01-05 mitigation; reviewer concurs).
 
 **File:** `tools/arrconf/arrconf/resources/radarr/{custom_format,media_naming,quality_definition,quality_profile}.py`
 **Issue:**
@@ -517,6 +600,9 @@ all eight frontière modules.
 
 ### IN-03: Radarr docstring says "Mirror of sonarr." 6 times — extract the shared module
 
+**Status: DEFERRED to a future plan** (scope too large for a fix iteration —
+needs its own design + tests for the shared module surface).
+
 **File:** `tools/arrconf/arrconf/reconcilers/radarr.py:14-19, 67-80, 83-90, 93-129, 132-156, 159-193`
 **Issue:**
 Six functions in `radarr.py` are documented as "Mirror of sonarr." The open
@@ -532,6 +618,10 @@ reconciler reduces to ~50 lines of orchestration.
 `reconcilers/_shared.py` and wire both Sonarr and Radarr to it.
 
 ### IN-04: `coverage.run` source list misses `arrconf.client_base`, `arrconf.diff_cmd`, `arrconf.dump`
+
+**Status: DEFERRED — trivial config change** that can be bundled with a future
+test-config tweak. No regression risk this phase (test suite + lint + mypy all
+clean post-fix).
 
 **File:** `tools/arrconf/pyproject.toml:58-60`
 **Issue:**
