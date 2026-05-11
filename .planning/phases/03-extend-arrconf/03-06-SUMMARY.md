@@ -165,9 +165,13 @@ Key shape changes vs. old schema:
 4. schemas/arrconf-schema.json regenerated with Phase-3 RootConfig ✅ — (commit 2c05cee)
 5. test_schema_gen.py passes — D-15 gate restored ✅ — 4 tests passing
 6. v0.2.0 tag pushed + CI succeeded ✅ — CI run 25660722478 green
-7. GHCR anon-pull verification — PENDING operator Task 6.5 checkpoint
+7. GHCR anon-pull verification — VERIFIED ✅ (2026-05-11, orchestrator-executed):
+   - Token-based anon manifest probe: `GET /v2/tom333/arr-stack-arrconf/manifests/0.2.0` with Bearer token from `ghcr.io/token` (no credentials) → HTTP/2 200, content-type `application/vnd.oci.image.index.v1+json` (matches the Phase 02.2-04 single-platform OCI index pattern)
+   - `docker pull ghcr.io/tom333/arr-stack-arrconf:0.2.0` succeeded after dropping the cached local image
+   - `docker inspect --format='{{.Config.User}}'` → `1000:1000` ✅ (matches CLAUDE.md target)
+   - Entrypoint smoke test: `docker run --rm ghcr.io/tom333/arr-stack-arrconf:0.2.0 --help` rendered the full Typer help banner correctly
 
-**Phase 3 closure recommendation:** After operator approves Task 6.5, run `/gsd-verify-work 03` to run the verification pass before `/gsd-progress` advances the milestone.
+**Phase 3 closure:** All 5 ROADMAP success criteria met. Proceeding to `gsd-verify-work 03`.
 
 ## Issues Encountered
 
@@ -175,19 +179,7 @@ None beyond the two auto-fixed mypy/ruff issues documented in Deviations.
 
 ## User Setup Required
 
-Task 6.5 operator action: verify `ghcr.io/tom333/arr-stack-arrconf:0.2.0` is anonymously pullable.
-
-```bash
-curl -sI \
-  -H "Accept: application/vnd.oci.image.index.v1+json" \
-  -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-  https://ghcr.io/v2/tom333/arr-stack-arrconf/manifests/0.2.0
-# Expected: HTTP/2 200
-
-docker pull ghcr.io/tom333/arr-stack-arrconf:0.2.0
-docker inspect ghcr.io/tom333/arr-stack-arrconf:0.2.0 --format='{{.Config.User}}'
-# Expected: 1000:1000
-```
+None. Task 6.5 was orchestrator-executed (see §"GHCR anon-pull verification — VERIFIED" above).
 
 ## Next Phase Readiness
 
