@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.2.0
-milestone_name: milestone
+milestone_name: forceSave fix
 status: Phase 03 complete
-stopped_at: "2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)"
-last_updated: "2026-05-11T12:13:57.422Z"
+stopped_at: Phase 4 context gathered
+last_updated: "2026-05-12T06:05:18.832Z"
 last_activity: 2026-05-11 -- Phase 03 marked complete
 progress:
   total_phases: 11
@@ -243,9 +243,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-11T09:06:03.316Z
-Stopped at: 2026-05-09T06:48:11Z -- Plan 02.2-06 visual gate FAILED — qBit creds wiped by v0.1.4 forceSave; CronJob suspended at 06:48:11Z; D-02.2-AUTH-REGRESSION opened; Phase 02.2 BLOCKED on hotfix gap-closure plan (recommended next: /gsd-plan-phase 02.2 --gaps)
-Resume file: None
+Last session: 2026-05-12T06:05:18.818Z
+Stopped at: Phase 4 context gathered
+Resume file: .planning/phases/04-umbrella-chart-migration-des-9-apps/04-CONTEXT.md
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
