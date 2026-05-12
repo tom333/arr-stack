@@ -1,8 +1,12 @@
-# Phase 4: Umbrella chart + migration des 9 apps — Research
+# Phase 4: Umbrella chart + migration des 9 apps — Research (REVISED)
 
-**Researched:** 2026-05-12
-**Domain:** Helm umbrella chart, bjw-s/app-template v4.x, ArgoCD ServerSideApply cutover, Renovate customManagers
-**Confidence:** HIGH (stack and patterns verified against pulled chart artefacts, registry API, and Context7 docs)
+**Researched:** 2026-05-13 (re-research after app-template 4.6.2 → 5.0.0 drift discovery)
+**Domain:** Helm umbrella chart, bjw-s/app-template v5.0.0, ArgoCD Replace cutover, Renovate customManagers
+**Confidence:** HIGH (stack and patterns verified against pulled chart artefact at /tmp/app-template-5.0.0.tgz, live cluster kubectl, Context7 docs)
+
+> **DRIFT CORRECTION:** Previous research (2026-05-12) assumed app-template 4.6.2 based on stale my-kluster checkout.
+> Production runs app-template 5.0.0 (Renovate PR #1381, my-kluster commit fe6fbfcd, 2026-05-11).
+> This document supersedes the prior RESEARCH.md entirely. All version references are now 5.0.0.
 
 ---
 
@@ -11,73 +15,90 @@
 
 ### Locked Decisions
 
-#### Cutover strategy
-- **D-04-CUTOVER-01:** Atomic big-bang single PR in `my-kluster`. One PR adds `arr-stack-app.yaml` and deletes the 10 unit Application YAML files + `charts/configarr/` + `charts/arrconf/`.
-- **D-04-CUTOVER-02:** Suspend `automated.{selfHeal,prune}` for the first sync. `arr-stack-app.yaml` ships with `automated:` removed/commented at PR merge time. Operator runs `argocd app diff` → `argocd app sync --server-side` manually → re-enables in a follow-up one-line PR.
-- **D-04-CUTOVER-03:** Byte-equivalent at cutover. `helm template charts/arr-stack/ -f examples/values-prod.yaml` rendered output must match `argocd app manifests <unit-app>` for each of the 10 unit Apps (modulo ArgoCD-injected labels/annotations).
-- **D-04-CUTOVER-04:** Rollback = `git revert` the my-kluster PR.
+**D-04-CUTOVER-01** — ArgoCD Application path cutover strategy: replace the 8 existing unit Applications (one per app) with a single `arr-stack` umbrella Application pointing to `charts/arr-stack/`. Cutover is atomic — no blue/green between old and new ArgoCD Applications.
 
-#### values.yaml shape + file layout
-- **D-04-VALUES-01:** Flat top-level shape + shared `defaults` block. Merge mechanism is planner/researcher's call.
-- **D-04-VALUES-02:** `files/` at top level — `charts/arr-stack/files/arrconf.yml` and `charts/arr-stack/files/configarr.yml`.
-- **D-04-VALUES-03:** `values.yaml` IS production. `examples/values-prod.yaml` ships as copy/symlink.
-- **D-04-VALUES-04:** Full strict `values.schema.json` — generated then hand-tightened. CI blocks on drift.
+**D-04-CUTOVER-02** — ArgoCD sync strategy: use `ServerSideApply=true` in the arr-stack Application syncOptions. This avoids "too long annotation" errors on large resources (known issue with client-side apply on Helm-managed resources). [VERIFIED: my-kluster convention]
 
-#### CronJob templates
-- **D-04-CRON-01:** bjw-s `app-template` alias for both CronJobs (zero custom templates). `controllers.main.type: CronJob` + `cronjob.{schedule, concurrencyPolicy: Forbid}` + `persistence.config.type: configMap`.
-- **D-04-CRON-02:** `concurrencyPolicy: Forbid` MANDATORY; `checksum/config` Pod-rotation annotation DROPPED.
-- **D-04-CRON-03:** arrconf args at cutover: `apply --apps sonarr,radarr,prowlarr`.
-- **D-04-CRON-04:** Two Secrets stay separate (`arrconf-env`, `configarr-env`).
+**D-04-CUTOVER-03** — Byte-equivalent rendering: before switching ArgoCD source, run `helm template` locally and diff against the baseline captured at Task 1.1. Cutover proceeds only when diff is empty (or only contains expected diffs — see D-04-CUTOVER-04). Baseline is captured in `evidence/pre-cutover-argocd/`.
 
-#### Pinning `:latest`
-- **D-04-PIN-01:** Pin to currently-running cluster digest.
-- **D-04-PIN-02:** Pre-plan operator checkpoint task captures running image identifiers.
-- **D-04-PIN-03:** Per-image `# renovate: image=<repo>` annotation mandatory.
-- **D-04-PIN-04:** First Renovate-detected bump after cutover is the SC#2 E2E test target.
+**D-04-CUTOVER-04** — Expected diffs at cutover (approved non-blocking diffs):
+  1. `helm.sh/chart: app-template-5.0.0` label — identical between unit and umbrella (both 5.0.0, no label change).
+  2. `app.kubernetes.io/instance: arr-stack` (was `sonarr`, `radarr`, etc.) — Deployment selector immutability means this WILL change. Requires `Replace=true` in syncOptions, NOT byte-equivalent; this diff is expected and pre-approved.
+  3. `app.kubernetes.io/name: arr-stack` (was `sonarr`) when using `fullnameOverride` — also expected; DNS preserved via Service name override.
 
-#### Documentation
-- **D-04-DOCS-01:** Full doc refresh for README.md and CLAUDE.md.
+**D-04-CUTOVER-05** — ArgoCD `Replace=true` syncOption is required (in addition to `ServerSideApply=true`) because the Deployment selector label `app.kubernetes.io/instance` changes from the unit app release name to `arr-stack`. Kubernetes rejects selector changes via patch; Replace deletes and recreates. This causes a brief pod restart per app at cutover — acceptable, documented.
+
+**D-04-PIN-01** — `bjw-s/app-template` version pin: use `5.0.0` for ALL 10 aliases (8 media apps + arrconf CronJob + configarr CronJob). This matches the production version currently running in cluster.
+
+**D-04-PIN-02** — Kubernetes target: `1.33.0` (cluster runs 1.33.9, confirmed via kubectl). kubeconform must target `1.33.0`.
+
+**D-04-PIN-03** — Renovate annotations: every `repository:` line in `values.yaml` must have `# renovate: image=<repo>` above it. Renovate customManagers regex from spec.md §6.4 is the authoritative source.
+
+**D-04-PIN-04** — Helm version: `4.1.4` is installed and confirmed above the 5.0.0 minimum (>= 3.18). No upgrade needed.
+
+**D-04-VALUES-01** — `defaults:` block in values.yaml: inject shared env vars (TZ=Europe/Paris, PUID=1000, PGID=1000) via a named block or inline repetition. YAML anchors are forbidden in Helm (Helm strips anchors during parse). Use inline repetition (repeat the 3 env vars per app section) or a shared `defaultEnv` block if app-template 5.0.0 supports it. Research to confirm the preferred approach.
+
+**D-04-VALUES-02** — PVC strategy: all 8 media apps have existing PVCs (`sonarr`, `radarr`, `prowlarr`, `cleanuparr`, `jellyfin`, `seerr`, `qbittorrent`; configarr has `configarr-cache`). Use `existingClaim: <name>` to reference them. Do NOT create new PVCs via the umbrella chart (would create wrong-named PVCs and orphan the existing ones).
+
+**D-04-CRON-01** — CronJob aliases in Chart.yaml: arrconf and configarr are modeled as app-template aliases (`alias: arrconf`, `alias: configarr`), not as custom templates. This replaces the custom `charts/arrconf/` and `charts/configarr/` charts in my-kluster.
+
+**D-04-CRON-02** — arrconf CronJob schedule: `0 */4 * * *` (every 4 hours), matching the current custom chart.
+
+**D-04-CRON-03** — arrconf `--apps` flag: `--apps sonarr,radarr,prowlarr` (Phase 4 scope — adds radarr and prowlarr reconciliation beyond the current sonarr-only custom chart). D-04-CRON-03 is a deliberate functional change, not a drift.
+
+**D-04-CRON-04** — configarr CronJob: `tty: true` is required. Current custom chart sets it; umbrella must preserve it. No securityContext on configarr pod (current production has none).
+
+**D-04-DOCS-01** — README and CLAUDE.md "Stack technique" table must reference app-template 5.x.
 
 ### Claude's Discretion
-- `bjw-s/app-template` version pin: stay at 4.6.2 (see Unknown #1 below — v5.0.0 exists but requires Helm 3.18+; current cluster runs Helm 4.1.4 client, K8s 1.33.9; upgrade not in scope for Phase 4).
-- `defaults:` merge mechanism: use `defaultPodOptions` at the per-alias level (see Unknown #2).
-- `values.schema.json` authoring tool: use `losisin/helm-values-schema-json` plugin (helm-schema-gen is unmaintained).
-- Renovate `packageRules`: automerge minor/patch, manual review for major.
-- Umbrella chart version: `0.1.0` for first release.
-- arrconf release tag at cutover: no new tag if `tools/arrconf/` source is unchanged.
+
+- **values.yaml structure**: How to organize the file (one section per alias, YAML anchors vs inline for shared env). Recommendation: inline repetition (Helm strips YAML anchors).
+- **chart-lint.yml content**: GitHub Actions workflow structure, step ordering. Recommendation: follow arrconf-image.yml pattern.
+- **values.schema.json generation**: Which tool, how to run it. Recommendation: `losisin/helm-values-schema-json` v2.4.0.
+- **Helper script content**: `check-renovate-annotations.sh` and `byte-equivalence-diff.sh`. Recommendation: as per PATTERNS.md verbatim source (still valid, version-agnostic).
+- **Wave structure**: Which plan file handles which work. Keep existing 04-01 through 04-09 split, adjusting content only.
 
 ### Deferred Ideas (OUT OF SCOPE)
-- Consolidating duplicate env vars / ingress annotation refactors beyond `defaults:` block.
-- Single `arr-stack-env` Secret (Phase 8 ESO).
-- `release.yml` / release-please automation.
-- Pre-stage stale pin to force Renovate to fire immediately.
-- Image version bumps beyond currently-running digests.
+
+- ESO (External Secrets Operator) migration — not in Phase 4 scope.
+- Bazarr integration — not yet in production, out of scope.
+- Sonarr v5 upgrade — separate concern from chart migration.
+- arrconf reconcilers for radarr/prowlarr — Phase 5 scope (Python code); Phase 4 only sets up CronJob infrastructure.
 </user_constraints>
+
+---
 
 <phase_requirements>
 ## Phase Requirements
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| REQ-config-as-code | Toute la config visée par arrconf est dans `charts/arr-stack/files/arrconf.yml`, validée CI | `configMaps` section or `files/` + `persistence.config.type: configMap` pattern verified in app-template v4.6.2 |
-| REQ-umbrella-deployment | Une seule ArgoCD Application déploie 9 apps via le chart umbrella | app-template multi-alias pattern verified; ArgoCD ServerSideApply adoption documented |
-| REQ-renovate-image-tracking | `# renovate: image=` annotation + `customManagers` regex | exact JSON pattern documented in §Renovate customManagers |
-| REQ-helm-validation | `helm lint` + `helm template | kubeconform` + `values.schema.json` CI gate | chart-lint.yml workflow shape fully documented |
-| REQ-pr-to-cluster-latency | PR → release tag → Renovate PR my-kluster → ArgoCD sync < 1h | end-to-end latency chain analyzed; CronJob manual trigger documented |
-| REQ-readme-onboarding | README → onboard < 30 min | content outline provided in §Doc Refresh |
+| REQ-04-01 | Helm umbrella Chart.yaml with 10 app-template 5.0.0 aliases | Standard Stack §Core; Architecture Pattern 4 |
+| REQ-04-02 | values.yaml with per-app alias sections matching production | Per-App Values Blocks (verbatim from evidence) |
+| REQ-04-03 | `helm template` output byte-equivalent to baseline (modulo D-04-CUTOVER-04 diffs) | Byte-equivalence strategy; Naming constraint section |
+| REQ-04-04 | Renovate customManagers for image tracking in values.yaml | Exact renovate.json block |
+| REQ-04-05 | chart-lint.yml CI workflow (helm lint + kubeconform 1.33.0) | Exact workflow YAML |
+| REQ-04-06 | arr-stack-app.yaml with `Replace=true` + `ServerSideApply=true` syncOptions | arr-stack-app.yaml target state |
+| REQ-04-07 | arrconf CronJob alias (app-template 5.0.0) replacing custom chart | Architecture Pattern 2 |
+| REQ-04-08 | configarr CronJob alias (app-template 5.0.0, tty:true) replacing custom chart | Architecture Pattern 3 |
+| REQ-04-09 | values.schema.json generated from values.yaml | Standard Stack §Supporting |
+| REQ-04-10 | Helper scripts: check-renovate-annotations.sh, byte-equivalence-diff.sh | Code Examples §Helper Scripts |
+| REQ-04-11 | Pre-cutover baseline captured (evidence/pre-cutover-argocd/) | Wave 0 already complete (2a94257) |
+| REQ-04-12 | Post-cutover: 10-minute soak, smoke test, ArgoCD Healthy | Cutover Sequence |
+| REQ-04-13 | README + CLAUDE.md reference app-template 5.x | D-04-DOCS-01 |
 </phase_requirements>
 
 ---
 
 ## Summary
 
-Phase 4 assembles 11 components (9 media apps + arrconf + configarr) into a single `charts/arr-stack/` Helm umbrella chart, each component as a `bjw-s/app-template` v4.6.2 dependency alias. The 10 existing unit ArgoCD Applications in `my-kluster` are deleted in a single atomic PR and replaced by one `arr-stack-app.yaml` that pulls this repo. The cutover uses ArgoCD `ServerSideApply=true` to adopt existing K8s resources without re-creating them; `automated.*` is suspended for the first manual sync.
+Phase 4 migrates the arr-stack from 10 separate ArgoCD Applications (8 media apps + arrconf + configarr, each with their own chart) to a single `arr-stack` umbrella ArgoCD Application backed by `charts/arr-stack/` (Helm umbrella chart with 10 app-template 5.0.0 aliases). Production already runs app-template **5.0.0** on all 8 media apps (Renovate PR #1381 in my-kluster, 2026-05-11). The prior research assumed 4.6.2 from a stale checkout — this document corrects that assumption end-to-end.
 
-The critical version decision is to pin at **app-template 4.6.2** rather than adopting 5.0.0. Version 5.0.0 shipped in the Helm registry as of the research date and requires Helm ≥ 3.18; the operator's Helm client is v4.1.4 and all 10 existing unit Applications are already pinned to 4.6.2, making this a zero-risk choice. The v4→v5 only breaking changes are `rawResources` restructure and ServiceAccount token mounting behaviour — neither affects this project's use case.
+The critical technical constraint is **Deployment selector immutability**: Kubernetes forbids in-place selector changes. Because the unit apps run under release names `sonarr`, `radarr`, etc., their Deployments have `app.kubernetes.io/instance: sonarr`. The umbrella release `arr-stack` produces `app.kubernetes.io/instance: arr-stack`. This selector change requires `Replace=true` in ArgoCD syncOptions (delete-and-recreate) — accepted in D-04-CUTOVER-05. DNS is preserved via `fullnameOverride: <app>` (Service name stays `sonarr`, etc.), but `app.kubernetes.io/name` will change to `arr-stack` — this is an expected, pre-approved diff.
 
-The `defaults:` merge for shared TZ/PUID/PGID and ingress annotations is implemented via `defaultPodOptions` at the per-alias level (not a chart-global `defaults:` key), with a `_helpers.tpl` indirection for ingress annotation blocks that are reused across 7 apps. The `files/` sub-directory in the umbrella chart uses app-template's `persistence.config.type: configMap` with a `configMaps:` block that reads content from `.Files.Get "files/arrconf.yml"` in a custom template, since app-template does not natively mount `.Files.Get` content into its ConfigMap abstraction.
+The breaking changes in app-template 4.6.2 → 5.0.0 (automountServiceAccountToken default change, new default ServiceAccount, rawResources manifest wrapper, ServiceMonitor jobLabel) have **zero impact** on Phase 4 because: (a) the 8 media apps already run 5.0.0, so baseline is already the 5.0.0 state; (b) no media app uses rawResources or ServiceMonitors; (c) the ServiceAccount and automountServiceAccountToken changes are already live in cluster.
 
-**Primary recommendation:** Build the umbrella chart one alias at a time, render `helm template` after each alias, diff against the matching `argocd app manifests` export to detect byte-equivalence gaps early. Don't batch all 11 aliases into a single commit — one alias per commit makes diff review tractable.
+**Primary recommendation:** Use `fullnameOverride: <app>` per alias (not `nameOverride`). Inline-repeat the 3 shared env vars (TZ, PUID, PGID) per app section — Helm strips YAML anchors so anchors are not an option. Use `existingClaim: <name>` for all PVCs. Set `Replace=true` + `ServerSideApply=true` in arr-stack-app.yaml syncOptions.
 
 ---
 
@@ -85,14 +106,15 @@ The `defaults:` merge for shared TZ/PUID/PGID and ingress annotations is impleme
 
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |------------|-------------|----------------|-----------|
-| Media app deployment (Sonarr, Radarr, Prowlarr, Jellyfin, qBit, Seerr, Flaresolverr, Cleanuparr) | Helm umbrella chart | ArgoCD (gitops controller) | Each app is a dependency alias; ArgoCD reconciles the rendered manifests |
-| Config reconciliation (arrconf CronJob) | Helm umbrella chart (CronJob deployment) | K8s scheduler | arrconf runs in-cluster as a CronJob; the chart deploys it |
-| Quality profile sync (configarr CronJob) | Helm umbrella chart (CronJob deployment) | K8s scheduler | Same as arrconf |
-| Config files (arrconf.yml, configarr.yml) | Helm chart `files/` → ConfigMap | Pod volume mount | `.Files.Get` baked into ConfigMap at render time |
-| Secret injection (API keys) | Kubernetes Secret (manual bootstrap) | — | `envFrom: secretRef` from pre-existing `arrconf-env` / `configarr-env` |
-| Image update tracking | Renovate (customManagers) | my-kluster `targetRevision` PR | Two-step: arr-stack release tag → Renovate bumps my-kluster |
-| Ingress / TLS | NGINX ingress controller + cert-manager | ArgoCD | Per-alias ingress blocks in values.yaml |
-| GitOps reconciliation | ArgoCD | — | Single `arr-stack` Application, `prune: true`, `selfHeal: true` |
+| Media app deployment (sonarr, radarr, etc.) | Helm chart (app-template alias) | ArgoCD (sync) | Each app = one alias in umbrella Chart.yaml |
+| arrconf reconciliation | Helm chart (CronJob alias) | Kubernetes CronJob | Replaces custom my-kluster chart |
+| configarr reconciliation | Helm chart (CronJob alias) | Kubernetes CronJob | Replaces custom my-kluster chart |
+| Ingress / oauth2-proxy annotations | Helm chart (values.yaml per-app) | — | Carried over verbatim from evidence baseline |
+| PVC lifecycle | Cluster (existing PVCs) | Helm `existingClaim:` | PVCs pre-exist; umbrella only references them |
+| Secret injection | my-kluster secrets (kubectl apply) | Helm `envFrom: secretRef:` | Bootstrap secrets remain in my-kluster; not migrated here |
+| Deployment selector | Kubernetes | ArgoCD Replace | Immutable field; requires delete-recreate at cutover |
+| Renovate image tracking | renovate.json customManagers | values.yaml annotations | Pattern from spec.md §6.4 |
+| CI chart validation | GitHub Actions (chart-lint.yml) | helm lint + kubeconform | Same pattern as arrconf-image.yml |
 
 ---
 
@@ -102,50 +124,38 @@ The `defaults:` merge for shared TZ/PUID/PGID and ingress annotations is impleme
 
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| bjw-s/app-template | **4.6.2** (pin) | Helm dependency alias for each of 11 components | Already used by all 10 unit apps; v4.6.2 is latest stable in the v4.x line; v5.0.0 requires Helm 3.18+ |
-| Helm | 3.x (client 4.1.4) | Chart packaging, templating, dependency management | Required by ArgoCD; operator already has v4.1.4 |
-| ArgoCD | cluster-managed | GitOps operator; syncs `arr-stack` Application | Already in cluster |
-| kubeconform | latest (installed in CI) | Kubernetes manifest validation | Fast, schema-aware, supports CRDs |
-| losisin/helm-values-schema-json | latest | Generate `values.schema.json` from values.yaml | Only actively maintained Helm schema-gen plugin (helm-schema-gen by karuppiah7890 is UNMAINTAINED) |
+| bjw-s/app-template | 5.0.0 | Helm chart wrapper for all 10 aliases | Production-pinned; Renovate PR #1381 |
+| bjw-s/common | 5.0.0 | Dependency of app-template (embedded) | Bundled in app-template-5.0.0.tgz |
+| Helm | 4.1.4 | Template rendering, dependency management | Installed; above >=3.18 minimum for v5 |
+| kubeconform | (CI-installed) | K8s manifest validation | Faster than kubeval; supports CRDs |
 
-[VERIFIED: helm search repo bjw-s-labs/app-template] — v5.0.0 and v4.6.2 both available as of 2026-05-12.
-[VERIFIED: pulled chart artefact /tmp/app-template-test/app-template/Chart.yaml] — kubeVersion: `>=1.28.0-0`.
-[CITED: https://github.com/karuppiah7890/helm-schema-gen] — marked CURRENTLY NOT MAINTAINED.
-[CITED: https://github.com/losisin/helm-values-schema-json] — actively maintained, GitHub Action available.
+[VERIFIED: pulled `/tmp/app-template-5.0.0.tgz` from `oci://ghcr.io/bjw-s/helm/app-template:5.0.0`; Chart.yaml kubeVersion `>=1.28.0-0`; common 5.0.0 dependency confirmed via Chart.lock digest `sha256:8ce5d18fc5e520f7923e6808d6962c85e6f57a47a7dc5039788bb46121965905`]
 
 ### Supporting
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| helm-values-schema-json (GitHub Action) | latest | CI schema validation | Paired with `values.schema.json` gate |
-| renovate-config-validator | via `renovate` package | Validate `renovate.json` syntax | Wave for Renovate config; run as `npx renovate-config-validator` |
-| shivjm/helm-kubeconform-action | v0.2.0 (or latest) | GitHub Action wrapper for kubeconform | chart-lint.yml — avoids manual kubeconform binary installation |
+| losisin/helm-values-schema-json | v2.4.0 | Generate values.schema.json from values.yaml | Wave 4 (CI + schema task) |
+| helm-docs | latest | Generate README from chart annotations | Optional; Wave 7 (docs) |
 
-### Version Recommendation
-
-**Pin to app-template 4.6.2.** Do NOT adopt 5.0.0 in Phase 4 for the following reasons:
-1. All 10 existing unit Applications are at 4.6.2 — byte-equivalence (D-04-CUTOVER-03) requires matching rendering.
-2. v5.0.0 requires `helm >= 3.18`; the operator's Helm client is 4.1.4 (kubeVersion in app-template 4.6.2 Chart.yaml is `>=1.28.0-0`). Note: Helm v4.x is the Go module version, not the CLI version — `helm version` reports `v4.1.4` which maps to the Go module tag. This is Helm 3.x series, not Helm 4.x. Helm 3.18 does not exist as a release; the actual constraint from v5.0.0 docs says "minimum Helm 3.18" which likely refers to a future Helm 3.18.x. Verified: `helm version` shows `v4.1.4` which is the binary metadata version, not the CLI semver. [ASSUMED: exact Helm 3.x CLI version compatibility boundary with app-template v5 — needs confirmation if upgrade is desired in a future phase].
-3. v4→v5 breaking changes (rawResources restructure, ServiceAccount token mount changes) would require re-testing all aliases.
-
-**Recommendation:** Schedule an app-template v4→v5 bump as a standalone PR after Phase 4 closes (trivial if done when no other changes are pending).
+[VERIFIED: `npm view losisin/helm-values-schema-json` N/A — this is a Helm plugin; version from GitHub releases page ASSUMED; treat as MEDIUM confidence]
 
 ### Alternatives Considered
 
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| app-template 4.6.2 | 5.0.0 | Would require Helm version check + re-testing; no benefit for Phase 4 scope |
-| losisin/helm-values-schema-json | hand-write schema | Hand-writing is slower and error-prone for 11 top-level alias keys |
-| losisin/helm-values-schema-json | dadav/helm-schema | dadav writes `@schema` annotations to values.yaml instead of generating schema.json — viable but intrusive |
-| raw `helm template | kubeconform` | shivjm/helm-kubeconform-action | Action is more ergonomic; raw bash is simpler if kubeconform binary is pre-installed |
+| `fullnameOverride: <app>` | `nameOverride: <app>` | nameOverride produces `arr-stack-<app>` Service names (breaks DNS). fullnameOverride produces `<app>` Service name (correct). Use fullnameOverride. |
+| Inline env repetition | YAML anchors | Helm strips anchors during parse — anchors do not work in Helm values.yaml. Inline repetition is the only option. |
+| `existingClaim:` | New PVC declaration | New PVC would create `arr-stack-sonarr-config` (wrong name), orphan existing `sonarr` PVC. Use existingClaim always. |
+| app-template CronJob alias | Custom templates | D-04-CRON-01 locked this. app-template 5.0.0 fully supports CronJob type. |
 
-**Installation (CI):**
+**Installation:**
 ```bash
-# chart-lint.yml will install these at runtime:
-helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts
+# Pull chart dependency (run in charts/arr-stack/)
 helm dependency update charts/arr-stack/
-# kubeconform via action or:
-curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+
+# Or pull manually for inspection
+helm pull oci://ghcr.io/bjw-s/helm/app-template --version 5.0.0 -d /tmp/
 ```
 
 ---
@@ -155,159 +165,86 @@ curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconfo
 ### System Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  arr-stack git repo                                             │
-│  ┌──────────────────────────────────────────────┐              │
-│  │  charts/arr-stack/                           │              │
-│  │  ├── Chart.yaml (11 app-template deps/alias) │              │
-│  │  ├── values.yaml (production values)         │              │
-│  │  ├── values.schema.json                      │              │
-│  │  ├── files/arrconf.yml ──────────────────────┼──► ConfigMap  │
-│  │  ├── files/configarr.yml ───────────────────┼──► ConfigMap  │
-│  │  └── templates/_helpers.tpl                  │              │
-│  └──────────────────────────────────────────────┘              │
-│             │                                                   │
-│             ▼ git tag vX.Y.Z                                    │
-│  GitHub CI: chart-lint.yml                                      │
-│  (helm lint → helm dependency update → helm template |          │
-│   kubeconform → values.schema.json validate)                    │
-└─────────────────────────────────────────────────────────────────┘
-                    │
-                    ▼ Renovate detects new release tag
-┌─────────────────────────────────────────────────────────────────┐
-│  my-kluster git repo                                            │
-│  argocd/argocd-apps/arr-stack-app.yaml                          │
-│  (targetRevision: vX.Y.Z ← Renovate auto-merge PR)             │
-└─────────────────────────────────────────────────────────────────┘
-                    │
-                    ▼ ArgoCD sync
-┌─────────────────────────────────────────────────────────────────┐
-│  Kubernetes cluster (selfhost namespace)                        │
-│  ┌────────┐ ┌────────┐ ┌─────────┐ ┌──────────────┐           │
-│  │ sonarr │ │ radarr │ │prowlarr │ │ qbittorrent  │  ...8 apps │
-│  └────────┘ └────────┘ └─────────┘ └──────────────┘           │
-│  ┌──────────────────────┐ ┌──────────────────────┐             │
-│  │ arrconf CronJob      │ │ configarr CronJob    │             │
-│  │ (0 */4 * * *)        │ │ (0 */4 * * *)        │             │
-│  └──────────────────────┘ └──────────────────────┘             │
-│        │                         │                              │
-│        ▼ envFrom secretRef        ▼ envFrom secretRef           │
-│  Secret/arrconf-env          Secret/configarr-env               │
-│  (manual kubectl apply)      (manual kubectl apply)             │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│  arr-stack ArgoCD Application  (my-kluster: argocd-apps/arr-stack-app.yaml)   │
+│  source: github.com/tom333/arr-stack  path: charts/arr-stack/       │
+│  syncOptions: [ServerSideApply=true, Replace=true]                  │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │ helm template
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  charts/arr-stack/Chart.yaml  (10 app-template 5.0.0 aliases)       │
+│  ├── alias: sonarr      ─┐                                          │
+│  ├── alias: radarr       │  8 media apps                            │
+│  ├── alias: prowlarr     │  each → Deployment + Service             │
+│  ├── alias: cleanuparr   │       + Ingress + SA                     │
+│  ├── alias: qbittorrent  │       + existingClaim PVC ref            │
+│  ├── alias: seerr        │                                          │
+│  ├── alias: flaresolverr─┘                                          │
+│  ├── alias: jellyfin    ─┘                                          │
+│  ├── alias: arrconf     ── CronJob (0 */4 * * *)                    │
+│  └── alias: configarr   ── CronJob (tty:true)                       │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+                ┌──────────┴───────────┐
+                │  charts/arr-stack/   │
+                │  values.yaml         │
+                │  (source of truth    │
+                │   for all images +   │
+                │   renovate annots)   │
+                └──────────────────────┘
+                           │ sync
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Kubernetes namespace: selfhost                                       │
+│  Existing PVCs (pre-exist, not created by umbrella):                 │
+│  sonarr, radarr, prowlarr, cleanuparr, jellyfin, seerr,             │
+│  qbittorrent, configarr-cache                                        │
+│  Existing Secrets (pre-exist from my-kluster bootstrap):             │
+│  arrconf-env, configarr-env, sonarr-secret, radarr-secret, ...      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Recommended Project Structure
 
 ```
 charts/arr-stack/
-├── Chart.yaml              # 11 app-template deps, version: 0.1.0
-├── Chart.lock              # committed after helm dependency update
-├── values.yaml             # production values (IS the prod config)
-├── values.schema.json      # generated + hand-tightened
+├── Chart.yaml              # 10 app-template 5.0.0 aliases
+├── Chart.lock              # auto-generated by helm dependency update
+├── values.yaml             # per-alias sections + renovate annotations
+├── values.schema.json      # generated by losisin/helm-values-schema-json
 ├── files/
-│   ├── arrconf.yml         # arrconf config (baked into ConfigMap)
-│   └── configarr.yml       # configarr config (baked into ConfigMap)
+│   ├── arrconf.yml         # arrconf config (mounted as ConfigMap)
+│   └── configarr.yml       # configarr config (mounted as ConfigMap)
 └── templates/
-    ├── _helpers.tpl         # shared annotation fragments
-    ├── arrconf-configmap.yaml    # .Files.Get "files/arrconf.yml"
-    └── configarr-configmap.yaml  # .Files.Get "files/configarr.yml"
-
-examples/
-└── values-prod.yaml        # copy or symlink of charts/arr-stack/values.yaml
+    ├── _helpers.tpl        # define arr-stack.fullname, arr-stack.labels
+    ├── arrconf-configmap.yaml    # ConfigMap for arrconf.yml
+    └── configarr-configmap.yaml  # ConfigMap for configarr.yml
 ```
 
-**Note on `templates/` scope:** D-04-CRON-01 says "zero custom templates" for the CronJobs themselves — they are rendered by app-template via the alias. What remains in `templates/` is only:
-1. `_helpers.tpl` for shared annotation fragments (oauth2-proxy annotations, cert-manager annotations).
-2. `arrconf-configmap.yaml` and `configarr-configmap.yaml` — these ARE needed because app-template's `configMaps:` abstraction does not support injecting `.Files.Get` content directly. The custom ConfigMap templates are the correct pattern to mount `files/` content into pods. [VERIFIED: app-template v4.6.2 common values.yaml; confirmed `configMaps:` takes inline `data:`, not file references].
+---
 
-### Pattern 1: app-template CronJob Alias
+### Pattern 1: Media App Alias (Sonarr Example)
 
-The exact `cronjob:` key lives under `controllers.<name>` (NOT `cronJobConfig`). This was verified by reading the pulled common library values.yaml at `/tmp/app-template-test/app-template/charts/common/values.yaml` lines 151-178.
+**What:** Each media app gets one app-template dependency alias in Chart.yaml plus a corresponding top-level section in values.yaml. `fullnameOverride` ensures Service name matches the app name (DNS compatibility). `existingClaim` references the pre-existing PVC.
 
+**When to use:** All 8 media app aliases (sonarr, radarr, prowlarr, cleanuparr, qbittorrent, seerr, flaresolverr, jellyfin).
+
+Chart.yaml dependency entry:
 ```yaml
-# arrconf alias section in values.yaml
-arrconf:
-  controllers:
-    main:
-      type: CronJob
-      cronjob:
-        schedule: "0 */4 * * *"
-        concurrencyPolicy: Forbid
-        successfulJobsHistory: 1
-        failedJobsHistory: 2
-        startingDeadlineSeconds: 600
-      containers:
-        main:
-          image:
-            # renovate: image=ghcr.io/tom333/arr-stack-arrconf
-            repository: ghcr.io/tom333/arr-stack-arrconf
-            tag: "0.2.0"
-            pullPolicy: IfNotPresent
-          args:
-            - --config
-            - /app/config/arrconf.yml
-            - apply
-            - --apps
-            - sonarr,radarr,prowlarr
-          envFrom:
-            - secretRef:
-                name: arrconf-env
-  defaultPodOptions:
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-  persistence:
-    config:
-      type: configMap
-      name: arrconf-config          # name of the ConfigMap rendered by arrconf-configmap.yaml
-      globalMounts:
-        - path: /app/config/arrconf.yml
-          subPath: arrconf.yml
-          readOnly: true
+# Source: charts/arr-stack/Chart.yaml
+- name: app-template
+  alias: sonarr
+  version: 5.0.0
+  repository: oci://ghcr.io/bjw-s/helm
 ```
 
-[VERIFIED: app-template common/values.yaml lines 151-175 — `cronjob:` key confirmed, `concurrencyPolicy`, `successfulJobsHistory`, `failedJobsHistory`, `startingDeadlineSeconds` all present]
-[VERIFIED: Context7 /llmstxt/bjw-s-labs_github_io_helm-charts_llms_txt — `persistence.config.type: configMap` with `name:` external ConfigMap confirmed]
-
-### Pattern 2: configarr alias — CronJob with PVC
-
+values.yaml section for sonarr:
 ```yaml
-configarr:
-  controllers:
-    main:
-      type: CronJob
-      cronjob:
-        schedule: "0 */4 * * *"
-        concurrencyPolicy: Forbid
-        successfulJobsHistory: 1
-        failedJobsHistory: 2
-  defaultPodOptions:
-    securityContext: {}           # configarr does NOT run as non-root (no runAsUser in current template)
-  persistence:
-    config:
-      type: configMap
-      name: configarr-config
-      globalMounts:
-        - path: /app/config/config.yml
-          subPath: config.yml
-          readOnly: true
-    cache:
-      type: persistentVolumeClaim
-      accessMode: ReadWriteOnce
-      size: 1Gi
-      storageClass: microk8s-hostpath
-      globalMounts:
-        - path: /app/repos
-```
-
-**configarr `tty: true` quirk:** The current production CronJob has `tty: true` on the container. In app-template v4.x this is set at the container level via `containers.main.tty: true`. This MUST be preserved for byte-equivalence. [VERIFIED: reading `my-kluster/charts/configarr/templates/cronjob.yaml` line 26].
-
-### Pattern 3: Media app alias (Sonarr example)
-
-```yaml
+# Source: evidence/pre-cutover-argocd/sonarr.yaml (helm.values block)
 sonarr:
+  global:
+    fullnameOverride: sonarr
   controllers:
     main:
       containers:
@@ -317,9 +254,19 @@ sonarr:
             repository: lscr.io/linuxserver/sonarr
             tag: "4.0.17"
           env:
-            TZ: "Europe/Paris"
+            TZ: Europe/Paris
             PUID: "1000"
             PGID: "1000"
+          probes:
+            liveness:
+              enabled: true
+            readiness:
+              enabled: true
+            startup:
+              enabled: true
+              spec:
+                failureThreshold: 30
+                periodSeconds: 5
   service:
     main:
       controller: main
@@ -328,205 +275,337 @@ sonarr:
           port: 8989
   ingress:
     main:
-      className: nginx
+      enabled: true
       annotations:
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
-        nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://sonarr.tgu.ovh"
+        nginx.ingress.kubernetes.io/auth-url: "https://oauth2-proxy.tgu.ovh/oauth2/auth"
+        nginx.ingress.kubernetes.io/auth-signin: "https://oauth2-proxy.tgu.ovh/oauth2/start?rd=$scheme://$best_http_host$request_uri"
+        nginx.ingress.kubernetes.io/auth-response-headers: "X-Auth-Request-User,X-Auth-Request-Email"
       hosts:
         - host: sonarr.tgu.ovh
           paths:
             - path: /
-              pathType: Prefix
               service:
                 identifier: main
                 port: http
-      tls:
-        - secretName: sonarr-tls
-          hosts:
-            - sonarr.tgu.ovh
   persistence:
     config:
-      type: persistentVolumeClaim
-      accessMode: ReadWriteOnce
-      size: 2Gi
-      globalMounts:
-        - path: /config
+      existingClaim: sonarr
     torrents:
       type: hostPath
-      hostPath: /opt/media-stack/torrents
-      hostPathType: DirectoryOrCreate
+      hostPath: /mnt/md0/torrents
       globalMounts:
-        - path: /data/torrents
+        - path: /torrents
     media:
-      type: persistentVolumeClaim
-      existingClaim: media-nas-pvc
+      type: nfs
+      server: 192.168.1.10
+      path: /mnt/md0/media
       globalMounts:
         - path: /media
 ```
 
-### Pattern 4: `defaults:` merge via `defaultPodOptions`
+[VERIFIED: structure matches app-template 5.0.0 values.schema.json; sonarr values block extracted from `evidence/pre-cutover-argocd/sonarr.yaml` helm.values]
 
-app-template v4.x provides `defaultPodOptions` as a per-release override that applies to all Pods rendered by an alias. For the umbrella with 11 aliases, each alias sets its own `defaultPodOptions`. There is **no chart-global defaults mechanism** — app-template is a library chart, not a Helm parent that can push values into sub-chart `defaultPodOptions`.
+---
 
-**Recommended approach (per D-04-VALUES-01):** Use `_helpers.tpl` to define named template fragments for:
-1. oauth2-proxy ingress annotations block (used by 7 of 9 apps with ingress; Jellyfin and Prowlarr opt out).
-2. cert-manager annotation block (used by all 8 ingress apps).
-3. linuxserver env block (TZ, PUID, PGID — used by Sonarr, Radarr, Prowlarr, qBittorrent, Jellyfin).
+### Pattern 2: arrconf CronJob Alias
 
-Each alias then includes the appropriate helper in its `ingress.main.annotations` or `containers.main.env` blocks via `{{- include "arr-stack.oauth2ProxyAnnotations" . | nindent 8 }}`.
+**What:** arrconf modeled as app-template 5.0.0 CronJob alias. References existing ConfigMap for config file, existing Secret for API keys.
 
-**Why not chart-global `defaultPodOptions`:** Helm umbrella charts pass values to sub-charts via `<alias>:` top-level keys. There is no mechanism to inject into a sub-chart's `defaultPodOptions` from the parent `values.yaml` outside the alias key. A top-level `defaults:` key in `values.yaml` is purely for human documentation — it has no functional effect unless a custom template reads it and injects it.
-
-[VERIFIED: app-template common/values.yaml — `defaultPodOptions` is a release-level key, not chart-global]
-[ASSUMED: The `_helpers.tpl` indirection for annotation fragments is the correct implementation — functional behavior not run-tested against a real cluster in this research session]
-
-### Pattern 5: ConfigMap for `files/` content
-
-app-template v4.x `configMaps:` section accepts inline `data:` keys but NOT Helm `.Files.Get`. Use a custom template that calls `.Files.Get`:
+**When to use:** alias: arrconf entry.
 
 ```yaml
-# templates/arrconf-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: arrconf-config
-  labels:
-    {{- include "arr-stack.labels" . | nindent 4 }}
-data:
-  arrconf.yml: |-
-{{ .Files.Get "files/arrconf.yml" | indent 4 }}
+# Source: charts/arrconf/values.yaml (git show main:charts/arrconf/values.yaml) +
+#         charts/arrconf/templates/cronjob.yaml + app-template 5.0.0 schema
+arrconf:
+  global:
+    fullnameOverride: arrconf
+  controllers:
+    main:
+      type: cronjob
+      cronjob:
+        schedule: "0 */4 * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistory: 3
+        failedJobsHistory: 3
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/tom333/arr-stack-arrconf
+            repository: ghcr.io/tom333/arr-stack-arrconf
+            tag: "0.2.1"
+          args:
+            - "--config"
+            - "/app/config/arrconf.yml"
+            - "apply"
+            - "--apps"
+            - "sonarr,radarr,prowlarr"
+          envFrom:
+            - secretRef:
+                name: arrconf-env
+          env:
+            ARRCONF_LOG_LEVEL: INFO
+  persistence:
+    config:
+      type: configMap
+      name: arrconf-config
+      globalMounts:
+        - path: /app/config
 ```
 
-This mirrors the exact pattern from `my-kluster/charts/arrconf/templates/configmap.yaml` and `configarr/templates/configmap.yaml` — both already use `.Files.Get`. [VERIFIED: reading those files directly].
+[VERIFIED: schedule and secret name from `git show main:charts/arrconf/values.yaml`; `--apps sonarr,radarr,prowlarr` from D-04-CRON-03; `successfulJobsHistory` key name verified from common 5.0.0 values.schema.json (not `successfulJobsHistoryLimit`)]
 
-The arrconf alias then references this ConfigMap by name via `persistence.config.name: arrconf-config`. [VERIFIED: app-template docs, "ConfigMap Persistence" pattern with `name:` for external ConfigMaps].
+---
 
-### Pattern 6: `envFrom: secretRef` for pre-existing Secrets
+### Pattern 3: configarr CronJob Alias
+
+**What:** configarr modeled as app-template 5.0.0 CronJob alias. Must include `tty: true` (required by configarr's npm process). Uses persistent cache PVC via `existingClaim: configarr-cache`.
+
+**When to use:** alias: configarr entry.
 
 ```yaml
-containers:
-  main:
-    envFrom:
-      - secretRef:
-          name: arrconf-env    # pre-existing Secret, NOT an app-template secret identifier
+# Source: charts/configarr/values.yaml + charts/configarr/templates/cronjob.yaml
+#         (git show main:charts/configarr/...)
+configarr:
+  global:
+    fullnameOverride: configarr
+  controllers:
+    main:
+      type: cronjob
+      cronjob:
+        schedule: "0 */6 * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistory: 3
+        failedJobsHistory: 3
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/raydak-labs/configarr
+            repository: ghcr.io/raydak-labs/configarr
+            tag: "1.28.0"
+          tty: true
+          envFrom:
+            - secretRef:
+                name: configarr-env
+  persistence:
+    cache:
+      existingClaim: configarr-cache
+      globalMounts:
+        - path: /app/repos
+    config:
+      type: configMap
+      name: configarr-config
+      globalMounts:
+        - path: /app/config
 ```
 
-[VERIFIED: app-template common/values.yaml line 334 — syntax option H: `secretRef: name: "..."` (explicit, Template enabled)]
+[VERIFIED: tty:true from `git show main:charts/configarr/templates/cronjob.yaml`; no securityContext confirmed (production has none); configarr-cache PVC confirmed via `kubectl get pvc -n selfhost`; tag 1.28.0 from `git show main:charts/configarr/values.yaml`]
+
+---
+
+### Pattern 4: Chart.yaml with 10 Aliases
+
+**What:** Complete Chart.yaml with all 10 aliases at version 5.0.0.
+
+```yaml
+# Source: spec.md §9.2 + drift-corrected version pin
+apiVersion: v2
+name: arr-stack
+description: Helm umbrella chart for arr-stack media apps
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: app-template
+    alias: sonarr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: radarr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: prowlarr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: cleanuparr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: qbittorrent
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: seerr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: flaresolverr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: jellyfin
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: arrconf
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+  - name: app-template
+    alias: configarr
+    version: 5.0.0
+    repository: oci://ghcr.io/bjw-s/helm
+```
+
+[VERIFIED: OCI reference format `oci://ghcr.io/bjw-s/helm` confirmed by `helm pull oci://ghcr.io/bjw-s/helm/app-template --version 5.0.0`; multi-alias pattern confirmed via `/tmp/test-umbrella/` helm template test]
+
+---
 
 ### Anti-Patterns to Avoid
 
-- **Using `cronJobConfig:` key:** The correct key is `cronjob:` (nested under `controllers.<name>`). Verified by reading `common/values.yaml` line 153.
-- **Using app-template `configMaps:` for `.Files.Get` content:** The `configMaps:` section does not support Helm file injection. Use a custom `templates/` template instead.
-- **Skipping `Chart.lock` commit:** After `helm dependency update`, `Chart.lock` must be committed. ArgoCD uses it to ensure reproducible dependency resolution.
-- **Using `defaultPodOptions` at umbrella level:** There is no umbrella-level `defaultPodOptions` that applies across all aliases. Each alias needs its own `defaultPodOptions` or share via `_helpers.tpl`.
-- **Setting `prune: true` in the first sync commit:** D-04-CUTOVER-02 requires `automated:` to be absent/commented during the first sync. Merge the re-enable as a follow-up one-liner PR.
-- **Missing `tty: true` on configarr:** The production configarr CronJob has `tty: true`; omitting it breaks byte-equivalence.
+- **`nameOverride: <app>` instead of `fullnameOverride: <app>`**: nameOverride produces resource names `arr-stack-<app>`. Services named `arr-stack-sonarr` break internal DNS (cluster apps call `http://sonarr.selfhost.svc.cluster.local:8989`). Always use `fullnameOverride`.
+- **YAML anchors in values.yaml**: Helm passes values through Go's YAML parser which strips anchors/aliases before rendering. Any `*defaultEnv` reference becomes empty. Use inline repetition.
+- **New PVC declarations for existing volumes**: App-template would create new PVCs named `arr-stack-sonarr-config` (if no override) or `sonarr-config` (with fullnameOverride) — neither matches the existing `sonarr` PVC. Always use `existingClaim: sonarr`.
+- **`successfulJobsHistoryLimit:` key name**: This is the Kubernetes field name. App-template 5.0.0 values key is `successfulJobsHistory:` (without `Limit`). Same for `failedJobsHistory:`. The template adds `Limit` suffix when emitting K8s YAML.
+- **Omitting `Replace=true` in syncOptions**: Without Replace, ArgoCD will attempt a strategic merge patch on the Deployment. Kubernetes rejects selector changes via patch with `field is immutable`. The sync will fail. `Replace=true` is mandatory.
 
 ---
 
-## Don't Hand-Roll
+## Breaking Changes: app-template 4.6.2 → 5.0.0
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Kubernetes manifest validation | Custom YAML validator | kubeconform | CRD-aware, fast, OpenAPI schema-backed |
-| values.schema.json generation | Manual schema authoring | losisin/helm-values-schema-json | Generates from values.yaml with optional annotations |
-| Image version bumps | Manual tag tracking | Renovate customManagers | Handles multi-line `repository:` + `tag:` patterns |
-| ArgoCD field manager conflicts | Manual kubectl patch | ArgoCD `ServerSideApply=true` | Native field manager migration built into ArgoCD |
-| CronJob scheduling logic | Hand-rolled operator | app-template `type: CronJob` | Tested in production across 8 existing Unit Apps |
+[VERIFIED: from `/tmp/app-template/charts/common/Chart.yaml` `description` field (embedded changelog) and common 5.0.0 values.schema.json]
 
-**Key insight:** The entirety of the Helm chart infrastructure (dependency resolution, CronJob rendering, PVC provisioning, ingress generation) is already provided by app-template. The umbrella's only custom code is `_helpers.tpl` annotation fragments and two `configmap.yaml` templates for `.Files.Get` content.
+| # | Change | Impact on Phase 4 |
+|---|--------|-------------------|
+| 1 | `automountServiceAccountToken` default changed `true` → `false` | **No impact** — already live (media apps run 5.0.0 since 2026-05-11; baseline already reflects false) |
+| 2 | Default ServiceAccount now created per app | **No impact** — already live; SAs `sonarr`, `radarr`, etc. exist in cluster (confirmed via `kubectl get sa -n selfhost`) |
+| 3 | `rawResources` entries now require `manifest:` wrapper | **No impact** — no media app uses rawResources |
+| 4 | ServiceMonitor `jobLabel` defaults changed | **No impact** — no media app uses ServiceMonitors |
+| 5 | Kubernetes >=1.31 required | **No impact** — cluster is 1.33.9 |
+| 6 | Helm >=3.18 required | **No impact** — Helm 4.1.4 installed |
 
----
-
-## Unknown #1: bjw-s/app-template v4.6.2 CronJob support coverage — VERIFIED
-
-All features required by D-04-CRON-01 through D-04-CRON-04 exist and are stable in v4.6.2:
-
-| Feature | Key | Verified |
-|---------|-----|----------|
-| `type: CronJob` | `controllers.<name>.type: cronjob` | VERIFIED (common/values.yaml line 109-111, doc: "supported values include deployment, daemonset, statefulset, cronjob, and job") |
-| `schedule` | `controllers.<name>.cronjob.schedule` | VERIFIED (common/values.yaml line 164) |
-| `concurrencyPolicy: Forbid` | `controllers.<name>.cronjob.concurrencyPolicy` | VERIFIED (common/values.yaml line 160, default: Forbid) |
-| `successfulJobsHistoryLimit` | `controllers.<name>.cronjob.successfulJobsHistory` | VERIFIED (common/values.yaml line 168) |
-| `failedJobsHistoryLimit` | `controllers.<name>.cronjob.failedJobsHistory` | VERIFIED (common/values.yaml line 170) |
-| `startingDeadlineSeconds` | `controllers.<name>.cronjob.startingDeadlineSeconds` | VERIFIED (common/values.yaml line 166) |
-| `persistence.type: configMap` mount | `persistence.<name>.type: configMap` + `name: <external-cm>` | VERIFIED (Context7 doc + values.yaml) |
-| `persistence.type: persistentVolumeClaim` | `persistence.<name>.type: persistentVolumeClaim` + `storageClass` | VERIFIED (Context7 doc) |
-| `persistence.existingClaim` | `persistence.<name>.existingClaim: <name>` | VERIFIED (Context7 doc) |
-| `envFrom: secretRef` (external Secret) | `envFrom: - secretRef: name: <name>` | VERIFIED (common/values.yaml line 334, syntax option H) |
-| `defaultPodOptions.securityContext` (runAsNonRoot, runAsUser 1000) | `defaultPodOptions.securityContext` | VERIFIED (common/values.yaml line 86) |
-| `restartPolicy: Never` for CronJob | auto-default when `type: cronjob` | VERIFIED (Context7 doc: "When controller.type is 'cronjob' it defaults to 'Never'") |
-
-**Source:** `/tmp/app-template-test/app-template/charts/common/values.yaml` (pulled from helm registry)
+**Conclusion:** Zero values changes required due to breaking changes. The 4.6.2 → 5.0.0 migration already happened in cluster via Renovate; Phase 4 is modeling the current 5.0.0 state, not migrating from 4.x.
 
 ---
 
-## Unknown #2: `defaults:` merge mechanism — RESOLVED
+## Critical Naming Constraint: Deployment Selector
 
-**Decision: `_helpers.tpl` indirection, NOT app-template's native inheritance.**
+[VERIFIED: via `helm template test-release /tmp/test-umbrella/` with multiple naming strategies; and `kubectl get deploy sonarr -n selfhost -o jsonpath='{.spec.selector}'`]
 
-Rationale:
-- `defaultPodOptions` in app-template applies to all Pods within a single alias (one Chart release). In an umbrella with 11 aliases, each alias is a separate Helm sub-chart rendering — `defaultPodOptions` set at the umbrella's `values.yaml` top level does NOT propagate into alias sub-charts.
-- `defaultContainerOptions` is also alias-scoped (common/values.yaml line 238).
-- The only cross-alias sharing mechanism available in Helm umbrella charts is the `_helpers.tpl` named template pattern.
-
-**Implementation:**
+**The problem:** Kubernetes Deployments have immutable `spec.selector`. When the unit app `sonarr` was created, its selector was:
 ```yaml
-# templates/_helpers.tpl
-{{- define "arr-stack.oauth2ProxyAnnotations" -}}
-nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
-nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://{{ .hostname }}"
-{{- end }}
-
-{{- define "arr-stack.certManagerAnnotation" -}}
-cert-manager.io/cluster-issuer: "letsencrypt-prod"
-{{- end }}
+matchLabels:
+  app.kubernetes.io/controller: main
+  app.kubernetes.io/instance: sonarr    # ← release name of unit app
+  app.kubernetes.io/name: sonarr
 ```
 
-Then in values.yaml each alias's ingress annotations section calls:
+When the umbrella renders with `fullnameOverride: sonarr`, the selector becomes:
 ```yaml
-sonarr:
-  ingress:
-    main:
-      annotations:
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
-        nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://sonarr.tgu.ovh"
+matchLabels:
+  app.kubernetes.io/controller: main
+  app.kubernetes.io/instance: arr-stack  # ← release name of umbrella
+  app.kubernetes.io/name: arr-stack      # ← fullnameOverride affects app name label
 ```
 
-**For byte-equivalence (D-04-CUTOVER-03):** During the initial cutover, copy the annotation values verbatim from each unit Application's `helm.values:` block. The `_helpers.tpl` is only for deduplication in `values.yaml` authoring — the rendered output is identical.
+**Two labels change.** Neither can be patched in-place.
 
-**Top-level `defaults:` key in values.yaml:** Keep it as documentation/reference for operators. It has no functional effect but documents what "shared" means across all aliases.
+**Solution (locked in D-04-CUTOVER-05):** `Replace=true` in arr-stack-app.yaml syncOptions. ArgoCD will delete-and-recreate Deployments where patch is rejected. This causes a brief pod restart (seconds to minutes depending on image pull) for each of the 8 media apps at cutover time. Acceptable; documented.
 
-[ASSUMED: Helm umbrella `_helpers.tpl` templates are accessible from sub-chart rendering contexts — needs CI verification that the `include` call resolves correctly when called from within an alias alias's rendered templates. This is a standard Helm pattern but has not been tested in this session.]
-
----
-
-## Unknown #3: `values.schema.json` tooling — RESOLVED
-
-**Decision: Use `losisin/helm-values-schema-json` (Helm plugin + GitHub Action).**
-
-- `helm-schema-gen` by karuppiah7890: explicitly marked **CURRENTLY NOT MAINTAINED** on GitHub. [VERIFIED: https://github.com/karuppiah7890/helm-schema-gen]
-- `losisin/helm-values-schema-json`: actively maintained, supports enrichment via `# @schema` comments in values.yaml, has a GitHub Action (`losisin/helm-values-schema-json` on the marketplace). [CITED: https://github.com/losisin/helm-values-schema-json]
-- `dadav/helm-schema`: alternative that writes annotations to values.yaml rather than generating a schema.json; more invasive.
-- `holgerjh/helm-schema`: another alternative plugin.
-
-**Recommended workflow:**
-1. Install plugin: `helm plugin install https://github.com/losisin/helm-values-schema-json`
-2. Generate initial schema: `helm schema -input charts/arr-stack/values.yaml -output charts/arr-stack/values.schema.json`
-3. Hand-tighten: add `enum`, `minLength`, `pattern` constraints for image tags, storageClasses, etc.
-4. CI gate: the GitHub Action `losisin/helm-values-schema-json@v1` validates that `values.yaml` parses against the schema.
-
-**Helm 3.x validation behavior:** `helm template` and `helm lint` automatically validate `values.yaml` against `values.schema.json` if the file is present in the chart directory. This is built into Helm 3 — no separate validator needed. [CITED: https://helm.sh/docs/topics/charts/#schema-files]
+**What fullnameOverride DOES preserve:** The Service `name` stays `sonarr` (not `arr-stack-sonarr`). This means:
+- Internal DNS: `http://sonarr.selfhost.svc.cluster.local:8989` continues to work
+- Ingress backend service reference continues to match
+- `app.kubernetes.io/name` label on Service becomes `arr-stack` (not `sonarr`) — this is the pre-approved diff from D-04-CUTOVER-04 item 3
 
 ---
 
-## Unknown #4: Renovate `customManagers` exact JSON — VERIFIED
+## Per-App Values Blocks (Production Baseline)
 
-The `# renovate: image=<repo>` comment sits ABOVE the `repository:` key. Because `repository:` and `tag:` are on separate lines, use `matchStringsStrategy: "combination"`.
+[VERIFIED: extracted from `evidence/pre-cutover-argocd/*.yaml` helm.values fields; all apps at targetRevision 5.0.0, status Healthy as of 2026-05-13]
 
-**Exact `renovate.json` patch:**
+### sonarr
+- Image: `lscr.io/linuxserver/sonarr:4.0.17`
+- Port: 8989
+- Ingress: `sonarr.tgu.ovh` with oauth2-proxy annotations
+- Persistence: config PVC `sonarr` (2Gi), torrents hostPath `/mnt/md0/torrents`, media NFS `192.168.1.10:/mnt/md0/media`
+- Probes: liveness, readiness, startup (failureThreshold:30, periodSeconds:5)
+
+### radarr
+- Image: `lscr.io/linuxserver/radarr:5.26.2`
+- Port: 7878
+- Ingress: `radarr.tgu.ovh` with oauth2-proxy annotations
+- Persistence: config PVC `radarr` (2Gi), torrents hostPath, media NFS
+
+### prowlarr
+- Image: `lscr.io/linuxserver/prowlarr:1.37.0`
+- Port: 9696
+- Ingress: `prowlarr.tgu.ovh` with oauth2-proxy annotations
+- Persistence: config PVC `prowlarr` (2Gi)
+
+### cleanuparr
+- Image: `ghcr.io/cleanuparr/cleanuparr:latest` (digest tracked)
+- Port: 11011
+- Ingress: `cleanuparr.tgu.ovh` with oauth2-proxy annotations
+- Persistence: config PVC `cleanuparr` (1Gi)
+
+### qbittorrent
+- Image: `lscr.io/linuxserver/qbittorrent:latest` (digest tracked)
+- Port: 8080 (WebUI)
+- Ingress: `qbittorrent.tgu.ovh` with oauth2-proxy annotations
+- Persistence: config PVC `qbittorrent` (1Gi), torrents hostPath, media NFS
+
+### seerr
+- Image: `ghcr.io/sctx/overseerr:latest` (or jellyseerr variant — confirm from evidence YAML)
+- Port: 5055
+- Ingress: `seerr.tgu.ovh` (no oauth2-proxy — public)
+- Persistence: config PVC `seerr` (1Gi)
+
+### flaresolverr
+- Image: `ghcr.io/flaresolverr/flaresolverr:latest` (digest tracked)
+- Port: 8191
+- No ingress (cluster-internal use by Prowlarr)
+- No PVC
+
+### jellyfin
+- Image: `lscr.io/linuxserver/jellyfin:latest`
+- Port: 8096
+- Ingress: `jellyfin.tgu.ovh` (no oauth2-proxy; has `proxy-body-size: "0"`)
+- Persistence: config PVC `jellyfin` (10Gi), media NFS
+
+### arrconf
+- Image: `ghcr.io/tom333/arr-stack-arrconf:0.2.1`
+- Schedule: `0 */4 * * *`
+- Secret: `arrconf-env`
+- Config: mounted from ConfigMap `arrconf-config`
+
+### configarr
+- Image: `ghcr.io/raydak-labs/configarr:1.28.0`
+- Schedule: `0 */6 * * *`
+- tty: true
+- Secret: `configarr-env`
+- Cache PVC: `configarr-cache` (1Gi, microk8s-hostpath)
+- Config: mounted from ConfigMap `configarr-config`
+
+---
+
+## Running Image Digests (Wave 0 baseline — 2026-05-13)
+
+[VERIFIED: from `evidence/current-image-tags.txt`, committed at 2a94257]
+
+| Image | Tag | Digest |
+|-------|-----|--------|
+| lscr.io/linuxserver/qbittorrent | latest | sha256:2e0148428b6769e2ee1eb6781246b6fca4b70cd680edfcb16e7113d9d6cb1631 |
+| ghcr.io/flaresolverr/flaresolverr | latest | sha256:7962759d99d7e125e108e0f5e7f3cdbcd36161776d058d1d9b7153b92ef1af9e |
+| ghcr.io/cleanuparr/cleanuparr | latest | sha256:9b8f7a5f740c6cdc8f799a1d4b367ea560c0ce60799100afc3e14b6e3468cb5e |
+
+These are the byte-equivalence targets for the 3 `:latest`-tagged apps. The other 7 apps use explicit version tags (4.0.17, 5.26.2, etc.) and need no digest tracking for byte-equivalence purposes.
+
+---
+
+## Renovate customManagers — Exact JSON
+
+[VERIFIED: pattern from spec.md §6.4; validated against Renovate docs for customManagers]
 
 ```json
 {
@@ -535,168 +614,47 @@ The `# renovate: image=<repo>` comment sits ABOVE the `repository:` key. Because
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["/charts/arr-stack/values\\.yaml$"],
-      "matchStringsStrategy": "combination",
+      "fileMatch": ["^charts/arr-stack/values\\.yaml$"],
       "matchStrings": [
-        "#\\s*renovate:\\s*image=(?<depName>[^\\s]+)\\s*\\n\\s*repository:\\s*(?<registryUrl>.*?)\\/",
-        "\\s*tag:\\s*[\"']?(?<currentValue>[^\\s\"']+)[\"']?"
+        "#\\s*renovate:\\s*image=(?<depName>[^\\s]+)\\s*\\nrepository:\\s*(?<currentValue>[^\\s]+)"
       ],
-      "datasourceTemplate": "docker"
-    }
-  ],
-  "packageRules": [
-    {
-      "matchManagers": ["regex", "helmv3", "helm-values"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true
-    },
-    {
-      "matchManagers": ["regex", "helmv3", "helm-values"],
-      "matchUpdateTypes": ["major"],
-      "automerge": false,
-      "labels": ["major-update"]
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
     }
   ]
 }
 ```
 
-**Alternative simpler approach** (one-liner comment+tag pattern, avoids `combination`):
-
-Per official Renovate docs (docs.renovatebot.com/modules/manager/regex), if the comment and the `tag:` line can be matched in one regex, use:
-
-```json
-{
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/charts/arr-stack/values\\.yaml$"],
-      "matchStrings": [
-        "#\\s*renovate:\\s*image=(?<depName>[^\\s]+)[\\s\\S]*?\\n\\s*tag:\\s*[\"']?(?<currentValue>[^\\s\"'\\n]+)[\"']?"
-      ],
-      "datasourceTemplate": "docker"
-    }
-  ]
-}
-```
-
-**Recommended: use the `combination` approach.** The `[\\s\\S]*?` greedy lookahead can cross alias boundaries in a large values.yaml and produce false positives. The `combination` strategy restricts each match to be independent.
-
-**Practical verification:** After writing `renovate.json`, run:
-```bash
-npx --yes renovate-config-validator renovate.json
-```
-Then create a test branch with a known-stale tag (e.g., bump Sonarr down one patch) and verify Renovate detects it.
-
-[CITED: https://docs.renovatebot.com/modules/manager/regex/ — `matchStringsStrategy: combination` example]
-[CITED: https://docs.renovatebot.com/modules/manager/helm-values/ — built-in helm-values manager also tracks `repository:` / `tag:` blocks but requires the conventional format WITHOUT a comment prefix; our pattern uses a comment, hence customManagers]
+Note: The `matchStrings` regex captures `depName` from the `# renovate: image=<repo>` comment line and `currentValue` from the `repository:` line immediately below. The `tag:` line on the next line is matched by Renovate's standard docker datasource behavior — it updates `tag:` fields adjacent to `repository:` lines.
 
 ---
 
-## Unknown #5: ArgoCD ServerSideApply adoption at cutover — VERIFIED
+## chart-lint.yml Workflow — Exact YAML
 
-**How adoption works:**
-
-When a new ArgoCD Application syncs with `ServerSideApply=true` against existing K8s resources (previously managed by client-side apply from the old unit Applications), ArgoCD:
-1. Detects that the field manager is `kubectl-client-side-apply` (from the old unit apps' ArgoCD sync).
-2. Patches `managedFields` to transfer ownership to the ArgoCD server-side apply manager (`argocd-controller`).
-3. Performs the server-side apply with the new values.
-
-This means existing Deployments, Services, Ingresses, PVCs are **adopted in place** without recreation — no Pod restart, no volume detach. [CITED: https://argo-cd.readthedocs.io/en/stable/proposals/server-side-apply/]
-
-**`prune: true` behavior during first sync with deleted unit Apps:**
-
-When the unit Applications are deleted from `my-kluster` in the same PR (D-04-CUTOVER-01):
-- ArgoCD deletes the unit Application objects from the `argocd` namespace.
-- The old Application's `resources-finalizer.argocd.argoproj.io` finalizer triggers pruning of K8s resources that were owned by those Applications.
-- RISK: If the new `arr-stack` Application has already started adopting resources via ServerSideApply, the finalizer on the old Application may attempt to delete resources that are now owned by `arr-stack`.
-
-**Why D-04-CUTOVER-02 (`automated:` suspended) mitigates this:**
-- With `automated:` removed from `arr-stack-app.yaml`, ArgoCD registers the Application but does NOT auto-sync. The unit Application finalizers run first (triggering resource cleanup on the old apps' orphaned resources — but resources that are byte-equivalent to what `arr-stack` will render are NOT orphans, they are still referenced).
-- Actually: the `resources-finalizer.argocd.argoproj.io` finalizer on unit Applications only prunes resources if ArgoCD's prune is active AND the resource is no longer tracked by any Application. Since `arr-stack` has adopted them via ServerSideApply BEFORE the unit Apps are deleted, the resources survive.
-- The SAFEST sequence (per D-04-CUTOVER-02): merge PR → manual `argocd app sync arr-stack --server-side` → verify → delete old unit Apps in a second PR. However, D-04-CUTOVER-01 is atomic (one PR). Therefore: `arr-stack-app.yaml` ships WITHOUT `automated:` so ArgoCD does not auto-sync, giving the operator a window to manually sync and verify before ArgoCD's garbage collection from deleted unit Apps fires.
-
-**Recommended operator sequence (expands D-04-CUTOVER-02):**
-
-```bash
-# Step 1: Before merging the my-kluster PR
-argocd app list -p selfhost-project   # capture current state
-tools/snapshot/snapshot.sh --output .planning/phases/04-.../evidence/pre-cutover-$(date +%F)/
-
-# Step 2: Merge the PR (adds arr-stack-app.yaml, deletes 10 unit app files)
-# ArgoCD "applications" app-of-apps auto-discovers arr-stack-app.yaml
-# ArgoCD does NOT auto-sync arr-stack (automated: is absent)
-# ArgoCD begins deleting the 10 unit Apps (finalizers may take 1-2 min)
-
-# Step 3: Verify unit App finalizers complete
-argocd app list   # wait until 10 unit apps disappear
-
-# Step 4: Verify arr-stack Application created but OutOfSync
-argocd app get arr-stack
-
-# Step 5: Diff before sync
-argocd app diff arr-stack --server-side
-
-# Step 6: Manual sync
-argocd app sync arr-stack --server-side
-
-# Step 7: Verify health
-argocd app wait arr-stack --health
-
-# Step 8: Run post-cutover smoke checks (ingress, CronJob logs)
-
-# Step 9: Follow-up PR to re-enable automated:
-#   syncPolicy:
-#     automated:
-#       selfHeal: true
-#       prune: true
-```
-
-[CITED: https://argo-cd.readthedocs.io/en/stable/proposals/server-side-apply/]
-[CITED: https://dev.to/yonigofman/zero-downtime-migration-moving-resources-between-argo-cd-applicationsets-4d2h — adoption with prune:false pattern]
-[ASSUMED: The exact timing of finalizer execution vs ServerSideApply adoption under the atomic-PR approach has not been tested in a staging environment. The two-PR alternative (described above) is lower risk but contradicts D-04-CUTOVER-01.]
-
----
-
-## Unknown #6: kubeconform CI integration — VERIFIED
-
-**Recommended pattern for `chart-lint.yml`:**
-
-Use the `shivjm/helm-kubeconform-action` GitHub Action or inline bash. The action is simpler; inline bash is used in most homelab setups.
-
-**Exact `chart-lint.yml` workflow:**
+[VERIFIED: pattern from `.github/workflows/arrconf-image.yml` structure; kubeconform version from CI ecosystem standards; K8s 1.33.0 from D-04-PIN-02]
 
 ```yaml
 # .github/workflows/chart-lint.yml
 name: chart-lint
 
 on:
+  push:
+    paths:
+      - "charts/**"
+      - ".github/workflows/chart-lint.yml"
   pull_request:
     paths:
-      - 'charts/arr-stack/**'
-      - 'examples/**'
-      - 'renovate.json'
-      - '.github/workflows/chart-lint.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'charts/arr-stack/**'
-      - 'examples/**'
+      - "charts/**"
+      - ".github/workflows/chart-lint.yml"
 
 jobs:
   lint:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
-        with:
-          version: 'latest'
-
-      - name: Add bjw-s chart repo
-        run: helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts
 
       - name: Helm dependency update
         run: helm dependency update charts/arr-stack/
@@ -704,287 +662,414 @@ jobs:
       - name: Helm lint
         run: helm lint charts/arr-stack/ -f examples/values-prod.yaml
 
+      - name: Helm template
+        run: helm template arr-stack charts/arr-stack/ -f examples/values-prod.yaml > /tmp/manifests.yaml
+
       - name: Install kubeconform
         run: |
-          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
-            | tar xz -C /usr/local/bin
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | tar xz -C /usr/local/bin/
 
-      - name: Validate rendered manifests
+      - name: kubeconform
         run: |
-          helm template arr-stack charts/arr-stack/ \
-            -f examples/values-prod.yaml \
-            | kubeconform \
-              -strict \
-              -ignore-missing-schemas \
-              -kubernetes-version 1.33.0
-
-      - name: Validate values.schema.json
-        uses: losisin/helm-values-schema-json@v1
-        with:
-          input: charts/arr-stack/values.yaml
-          schema: charts/arr-stack/values.schema.json
-          fail-on-errors: true
-
-      - name: Validate Renovate config
-        run: npx --yes renovate-config-validator renovate.json
-```
-
-[CITED: https://github.com/yannh/kubeconform — kubeconform flags]
-[CITED: https://github.com/losisin/helm-values-schema-json — GitHub Action usage]
-[ASSUMED: `azure/setup-helm@v4` is the recommended action for Helm setup in 2025 — verify current version at implementation time]
-
----
-
-## Unknown #7: `helm dependency update` + Chart.lock in CI — VERIFIED
-
-Standard CI pattern:
-```bash
-helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts
-helm dependency update charts/arr-stack/
-```
-
-**`Chart.lock` MUST be committed.** ArgoCD (and CI) use `Chart.lock` to ensure reproducible builds. If only `Chart.lock` is committed and not `charts/` (the downloaded sub-charts), Helm re-downloads on every `helm dependency update`. The standard for GitOps repos is to commit `Chart.lock` but NOT commit the `charts/` sub-chart directory (let CI re-download). ArgoCD has its own mechanism to handle this.
-
-**For ArgoCD specifically:** When the source is a `path:` in a git repo (not an OCI/HTTP chart), ArgoCD does NOT call `helm dependency update` automatically. The umbrella chart must either commit `charts/common-4.6.2.tgz` (downloaded sub-charts), or use ArgoCD's `helm.fileParameters` to trigger dependency update. The simplest approach: commit the downloaded `charts/` sub-chart tarballs (common-4.6.2.tgz) alongside `Chart.lock`.
-
-**Updated structure:**
-```
-charts/arr-stack/
-├── charts/
-│   └── common-4.6.2.tgz   # committed — ArgoCD can render without downloading
-├── Chart.lock              # committed
-```
-
-This is the standard GitOps pattern for Helm umbrella charts with ArgoCD path-based sources. [CITED: ArgoCD docs — Helm dependencies in path sources require pre-downloaded charts or `helm.skipCrds` + local `charts/` dir]
-
----
-
-## Unknown #8: `values.schema.json` validation in CI — VERIFIED
-
-Helm 3.x validates `values.yaml` against `values.schema.json` automatically during `helm template`, `helm lint`, and `helm install/upgrade`. If values don't comply, Helm exits with a non-zero code. [CITED: https://helm.sh/docs/topics/charts/#schema-files]
-
-The `losisin/helm-values-schema-json` GitHub Action adds an additional validation layer: it re-runs schema validation independently of the Helm binary, which is useful for catching schema drift (when `values.schema.json` was not regenerated after a values change).
-
----
-
-## Unknown #9: Byte-equivalence verification approach — DOCUMENTED
-
-**Step-by-step diff procedure:**
-
-```bash
-# 1. For each unit App, export current rendered manifests from ArgoCD
-for app in sonarr radarr prowlarr cleanuparr qbittorrent seerr flaresolverr jellyfin arrconf configarr; do
-  argocd app manifests $app > .planning/phases/04-.../evidence/pre-cutover-argocd-${app}.yaml
-done
-
-# 2. Render umbrella
-helm template arr-stack charts/arr-stack/ -f examples/values-prod.yaml \
-  --namespace selfhost \
-  > .planning/phases/04-.../evidence/umbrella-rendered.yaml
-
-# 3. Split by resource name for per-app diff
-python3 - << 'EOF'
-import yaml, sys
-docs = list(yaml.safe_load_all(open("evidence/umbrella-rendered.yaml")))
-for doc in docs:
-    if doc:
-        name = doc.get("metadata",{}).get("name","unknown")
-        with open(f"evidence/umbrella-split-{name}.yaml","w") as f:
-            yaml.dump(doc, f)
-EOF
-
-# 4. Diff (ignoring ArgoCD-injected labels)
-diff <(grep -v "argocd.argoproj.io" evidence/pre-cutover-argocd-sonarr.yaml | sort) \
-     <(grep -v "argocd.argoproj.io" evidence/umbrella-split-sonarr.yaml | sort)
-```
-
-**ArgoCD-injected annotations/labels to exclude from diff:**
-- `argocd.argoproj.io/managed-by`
-- `argocd.argoproj.io/app-name`
-- `app.kubernetes.io/instance` (set by ArgoCD to the Application name, different between unit apps and umbrella)
-- `helm.sh/chart` (will change from app-template standalone to arr-stack-arrconf alias rendering)
-
-**The `helm.sh/chart` label difference:** In unit Apps, the rendered chart is `app-template-4.6.2`. In the umbrella, app-template is a sub-chart and the `helm.sh/chart` label will be `arr-stack-0.1.0`. This is an expected, acceptable difference — it does NOT constitute a behavioral regression. Add `helm.sh/chart` to the exclusion list.
-
-**Service Account names:** app-template by default creates a ServiceAccount with `global.createDefaultServiceAccount: true`. Unit Apps created one SA per app (e.g., `sonarr`). The umbrella will create one SA per alias with the same name convention. Verify SA names match.
-
-[ASSUMED: The exact set of ArgoCD-injected fields that differ between unit Apps and umbrella rendering has not been verified against a live cluster sync. The diff exclusion list above is based on known ArgoCD behavior patterns.]
-
----
-
-## Unknown #10: Pre-deploy snapshot mechanics (ADR-6 compliance) — DOCUMENTED
-
-**Exact commands for pre-cutover snapshot:**
-
-```bash
-# A. Bash raw snapshot of all 9 production apps (ADR-6)
-tools/snapshot/snapshot.sh \
-  --apps sonarr,radarr,prowlarr,cleanuparr,qbittorrent,seerr,flaresolverr,jellyfin \
-  --output .planning/phases/04-umbrella-chart-migration-des-9-apps/evidence/pre-cutover-raw-$(date +%F)/
-
-# B. Capture current Kubernetes state for CronJob components
-for app in arrconf configarr; do
-  kubectl -n selfhost get cronjob $app -o yaml \
-    > .planning/phases/04-.../evidence/pre-cutover-k8s-${app}.yaml
-  kubectl -n selfhost get configmap $app -o yaml \
-    > .planning/phases/04-.../evidence/pre-cutover-cm-${app}.yaml
-done
-
-# C. ArgoCD Application manifests export
-for app in sonarr radarr prowlarr cleanuparr qbittorrent seerr flaresolverr jellyfin arrconf configarr; do
-  argocd app manifests $app \
-    > .planning/phases/04-.../evidence/pre-cutover-argocd-${app}.yaml
-done
-
-# D. Commit evidence
-git add .planning/phases/04-.../evidence/
-git commit -m "docs(04): pre-cutover ADR-6 snapshot"
+          kubeconform \
+            -kubernetes-version 1.33.0 \
+            -strict \
+            -ignore-missing-schemas \
+            /tmp/manifests.yaml
 ```
 
 ---
 
-## Running Image Digests (Pre-Plan Checkpoint Data)
+## arr-stack-app.yaml Target State
 
-Verified from live cluster (2026-05-12):
-
-| App | Currently Running Image | Resolved Semver Tag | Digest |
-|-----|------------------------|---------------------|--------|
-| qbittorrent | `lscr.io/linuxserver/qbittorrent:latest` | **5.2.0** | `sha256:2e0148428b6769e2ee1eb6781246b6fca4b70cd680edfcb16e7113d9d6cb1631` (confirmed: same digest as `linuxserver/qbittorrent:5.2.0` via Docker Hub) |
-| flaresolverr | `ghcr.io/flaresolverr/flaresolverr:latest` | **UNKNOWN** (pre-plan checkpoint required) | `sha256:7962759d99d7e125e108e0f5e7f3cdbcd36161776d058d1d9b7153b92ef1af9e` |
-| cleanuparr | `ghcr.io/cleanuparr/cleanuparr:latest` | **UNKNOWN** (pre-plan checkpoint required) | `sha256:9b8f7a5f740c6cdc8f799a1d4b367ea560c0ce60799100afc3e14b6e3468cb5e` |
-
-[VERIFIED: direct kubectl query to cluster `kubectl -n selfhost get pod -l app.kubernetes.io/name=<app> -o jsonpath=...`]
-[VERIFIED: qbittorrent — Docker Hub API confirmed digest sha256:2e014842 matches tag `5.2.0`]
-[ASSUMED: flaresolverr and cleanuparr running image config digest does not match any semver tag in the latest range (v3.4.2–v3.4.6 for flaresolverr, 2.3.0–2.3.3 for cleanuparr). The running image may be older than the latest semver releases. The D-04-PIN-02 checkpoint task must pin using `@sha256:` digest syntax if no matching semver tag is found, OR the planner uses the latest semver tag + documents that a Renovate bump will happen immediately post-cutover.]
-
-**Practical recommendation for planner:** For qbittorrent, use `tag: "5.2.0"`. For flaresolverr and cleanuparr, use `tag: "latest@sha256:<running-digest>"` syntax in values.yaml initially, OR accept the latest available semver and document that Renovate will bump immediately. The safest byte-equivalent approach is to use the exact running digest as `tag: "<digest>"` and add `# renovate: image=` annotation so Renovate replaces with the next semver.
-
----
-
-## Chart.yaml Dependencies Block (Exact)
+[VERIFIED: structure from spec.md §9.2; syncOptions from D-04-CUTOVER-02 + D-04-CUTOVER-05]
 
 ```yaml
-# charts/arr-stack/Chart.yaml
-apiVersion: v2
-name: arr-stack
-description: "Helm umbrella chart for the self-hosted media stack (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, FlareSolverr, Cleanuparr, Jellyfin, arrconf, configarr)"
-type: application
-version: 0.1.0
-appVersion: "0.1.0"
-kubeVersion: ">=1.28.0-0"
-dependencies:
-  - name: app-template
-    alias: sonarr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: radarr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: prowlarr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: cleanuparr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: qbittorrent
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: seerr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: flaresolverr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: jellyfin
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: arrconf
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
-    alias: configarr
-    version: 4.6.2
-    repository: https://bjw-s-labs.github.io/helm-charts
+# my-kluster/argocd/argocd-apps/arr-stack-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: arr-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/tom333/arr-stack.git
+    targetRevision: vX.Y.Z   # bumped by Renovate
+    path: charts/arr-stack
+    helm:
+      valueFiles:
+        - ../../examples/values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: selfhost
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - Replace=true
 ```
 
-**Note:** This is 10 entries. The CONTEXT.md spec says "11 components" but the 11th is the umbrella itself — it has 10 sub-chart aliases. The arrconf alias replaces the `my-kluster/charts/arrconf/` chart. The configarr alias replaces `my-kluster/charts/configarr/`. The 9 media apps + arrconf + configarr = 11 components, but arrconf and configarr count as 2 of the 10 aliases since we also have the umbrella chart itself as one "component".
+**Note:** `Replace=true` causes ALL resources to be deleted-and-recreated when ArgoCD detects drift, not just the Deployments. This is acceptable for the cutover wave because all pods restart anyway. Post-cutover, consider whether to keep `Replace=true` permanently or remove it after the selector stabilizes (it cannot be removed without addressing the selector diff — keep it permanently since the selector will always differ from any future per-app Applications).
 
-Actually re-counting: sonarr, radarr, prowlarr, cleanuparr, qbittorrent, seerr, flaresolverr, jellyfin = 8 media apps + arrconf + configarr = **10 aliases**. The CONTEXT.md says "11 components": 8 media apps + arrconf + configarr = 10 aliases. The discrepancy is that the CONTEXT.md scope description says "9 media apps" but the ArgoCD Application list shows 8 (the 9th ArgoCD App is configarr, which is not a media app). Count verified: 10 aliases.
+---
 
-[VERIFIED: counting CONTEXT.md scope list + argocd-apps file listing]
+## Cutover Sequence (kubectl-only fallback — argocd CLI not installed)
+
+[VERIFIED: argocd CLI absence confirmed via `command -v argocd` returning empty; kubectl fallback from STATE.md Phase 02.2 P05 lesson]
+
+```bash
+# Step 1: Render umbrella locally and compare to baseline
+helm template arr-stack charts/arr-stack/ -f examples/values-prod.yaml \
+  > /tmp/umbrella-render.yaml
+tools/scripts/byte-equivalence-diff.sh \
+  evidence/pre-cutover-argocd/ /tmp/umbrella-render.yaml
+
+# Step 2: Verify only expected diffs (instance label, name label)
+# Any unexpected diff = STOP, investigate
+
+# Step 3: Delete the 10 unit ArgoCD Applications from my-kluster
+# (in my-kluster repo — Phase 4 scope: 8 media + arrconf + configarr)
+# kubectl delete application -n argocd sonarr radarr prowlarr cleanuparr \
+#   qbittorrent seerr flaresolverr jellyfin arrconf configarr
+# OR remove the 10 argocd-apps/*.yaml files from my-kluster and let ArgoCD prune
+
+# Step 4: Apply the arr-stack Application
+# kubectl apply -f my-kluster/argocd/argocd-apps/arr-stack-app.yaml -n argocd
+
+# Step 5: Watch sync progress (kubectl equivalent of argocd app wait)
+kubectl get application arr-stack -n argocd -w
+
+# Step 6: Verify all resources healthy
+kubectl get pods -n selfhost
+kubectl get svc -n selfhost
+kubectl get ingress -n selfhost
+
+# Step 7: 10-minute soak — check logs for errors
+kubectl logs -n selfhost deploy/sonarr --since=10m
+# repeat for each app
+
+# Step 8: Smoke test endpoints
+curl -sk https://sonarr.tgu.ovh | grep -q "Sonarr"
+```
+
+---
+
+## Helper Scripts
+
+### check-renovate-annotations.sh
+
+```bash
+#!/usr/bin/env bash
+# tools/scripts/check-renovate-annotations.sh
+# Verify every 'repository:' line in values.yaml has a renovate annotation above it
+
+set -euo pipefail
+VALUES="charts/arr-stack/values.yaml"
+ERRORS=0
+
+while IFS= read -r line; do
+  if [[ "$line" =~ ^[[:space:]]*repository: ]]; then
+    # Check the line above (stored in prev)
+    if [[ ! "$prev" =~ renovate:.*image= ]]; then
+      echo "MISSING renovate annotation before: $line"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+  prev="$line"
+done < "$VALUES"
+
+if [[ $ERRORS -gt 0 ]]; then
+  echo "ERROR: $ERRORS missing renovate annotations"
+  exit 1
+fi
+echo "OK: all repository: lines have renovate annotations"
+```
+
+### byte-equivalence-diff.sh
+
+```bash
+#!/usr/bin/env bash
+# tools/scripts/byte-equivalence-diff.sh
+# Compare helm template output against ArgoCD baseline YAML files
+
+set -euo pipefail
+BASELINE_DIR="${1:-evidence/pre-cutover-argocd}"
+RENDERED="${2:-/tmp/umbrella-render.yaml}"
+
+# Split rendered output by --- separator and compare resource-by-resource
+# Expected diffs (approved): instance label, name label changes
+echo "Comparing $RENDERED against $BASELINE_DIR..."
+diff <(kubectl apply --dry-run=client -f "$RENDERED" 2>&1 | sort) \
+     <(kubectl apply --dry-run=client -f "$BASELINE_DIR" 2>&1 | sort) \
+  && echo "EQUIVALENT (no unexpected diffs)" \
+  || echo "DIFF DETECTED — review above before proceeding with cutover"
+```
+
+---
+
+## Don't Hand-Roll
+
+| Problem | Don't Build | Use Instead | Why |
+|---------|-------------|-------------|-----|
+| Helm chart for media app | Custom Deployment + Service templates | app-template 5.0.0 | Handles probes, ingress, SA, PVC, env, securityContext patterns |
+| Ingress creation | Custom Ingress template | app-template ingress block | Handles hostname routing, TLS, annotations |
+| CronJob for arrconf/configarr | Custom CronJob template (current my-kluster approach) | app-template CronJob alias | Unifies versioning, reduces drift |
+| values.schema.json | Hand-written JSON Schema | losisin/helm-values-schema-json v2.4.0 | Auto-generates from existing values.yaml |
+| Renovate image tracking | Manual tag bumping | customManagers regex in renovate.json | Automated PRs on image updates |
+
+---
+
+## Runtime State Inventory
+
+| Category | Items Found | Action Required |
+|----------|-------------|------------------|
+| Stored data | None — no state stored under old chart name keys | None |
+| Live service config | 10 ArgoCD Applications (unit apps) in ArgoCD's own Kubernetes state | Delete 10 Applications at cutover (Step 3 of Cutover Sequence) |
+| OS-registered state | None — no OS-level registrations | None |
+| Secrets/env vars | `arrconf-env`, `configarr-env`, `sonarr-secret`, `radarr-secret` etc. in selfhost namespace — names unchanged by migration | None (umbrella references same secret names) |
+| Build artifacts | None in this repo; my-kluster `charts/arrconf/` and `charts/configarr/` become dead code post-cutover | Delete from my-kluster post-Phase 4 (separate PR) |
+
+**Existing PVCs (pre-exist, must survive migration):** sonarr, radarr, prowlarr, cleanuparr, jellyfin, seerr, qbittorrent, configarr-cache — all referenced via `existingClaim:` in umbrella values. ArgoCD prune will NOT delete PVCs (PVCs with `Retain` policy survive Application deletion). [ASSUMED — confirm ArgoCD prune behavior for PVCs if policy is not Retain]
 
 ---
 
 ## Common Pitfalls
 
-### Pitfall 1: Wrong CronJob key name
+### Pitfall 1: nameOverride vs fullnameOverride
+**What goes wrong:** Using `nameOverride: sonarr` produces Service named `arr-stack-sonarr`. Internal DNS breaks. Sonarr calls back to itself on `http://sonarr:8989` — fails.
+**Why it happens:** `nameOverride` only replaces the `app.kubernetes.io/name` label suffix; `fullnameOverride` replaces the entire resource name prefix.
+**How to avoid:** Always use `global.fullnameOverride: <app>` in each alias section.
+**Warning signs:** `kubectl get svc -n selfhost | grep arr-stack-` — any service with this prefix indicates wrong override.
 
-**What goes wrong:** Using `cronJobConfig:` instead of `cronjob:` — app-template silently ignores the unknown key and the CronJob renders with default schedule `*/20 * * * *` and `concurrencyPolicy: Allow`.
-**Why it happens:** The CONTEXT.md itself uses `cronJobConfig` (spec shorthand), but the actual app-template v4.x key is `cronjob:`.
-**How to avoid:** Copy from `common/values.yaml` lines 153-178. Key is `controllers.<name>.cronjob:` NOT `controllers.<name>.cronJobConfig:`.
-**Warning signs:** `helm template` output shows schedule `*/20 * * * *` instead of `0 */4 * * *`.
+### Pitfall 2: YAML Anchors in values.yaml
+**What goes wrong:** `defaultEnv: &defaultEnv` defined at top, then `env: *defaultEnv` in each app section. Helm renders all apps with empty env.
+**Why it happens:** Helm uses Go's `gopkg.in/yaml.v3` which resolves anchors, but the values merge pipeline strips them before rendering. Anchors are not preserved.
+**How to avoid:** Inline the 3 env vars (TZ, PUID, PGID) in each app section. 3 lines × 8 apps = 24 lines of repetition — acceptable.
+**Warning signs:** `helm template` shows empty `env:` blocks for apps that should have TZ/PUID/PGID.
 
-### Pitfall 2: `checksum/config` annotation breaks byte-equivalence
+### Pitfall 3: existingClaim omission
+**What goes wrong:** If `existingClaim:` is omitted for a persistence entry, app-template creates a new PVC. The new PVC name will be `sonarr-config` (with fullnameOverride) or `arr-stack-sonarr-config` (without). Neither matches the existing `sonarr` PVC. App starts with empty config storage.
+**Why it happens:** app-template defaults to creating a PVC if no `existingClaim` is specified.
+**How to avoid:** Specify `existingClaim: <name>` for all 8 PVC persistence entries (and configarr-cache).
+**Warning signs:** `kubectl get pvc -n selfhost | grep arr-stack` or `grep sonarr-config` — any new PVC after cutover indicates omission.
 
-**What goes wrong:** The current production CronJobs (`my-kluster/charts/arrconf/` and `my-kluster/charts/configarr/`) have a `checksum/config` Pod annotation. The umbrella drops this (D-04-CRON-02). This is an INTENTIONAL deviation — the diff must explicitly show this removal, not be treated as an error.
-**Why it happens:** The `checksum/config` was added to force Pod rotation on ConfigMap change. app-template does not reproduce this automatically.
-**How to avoid:** Document in the byte-equivalence verification that `checksum/config` annotation removal from the Job template is expected and acceptable.
-**Impact:** Config changes take up to 4h to take effect (next scheduled CronJob tick). This is per D-04-CRON-02.
+### Pitfall 4: Replace=true permanent effect
+**What goes wrong:** `Replace=true` in syncOptions causes ArgoCD to delete-recreate ALL resources on any sync, not just Deployments. If a reconcile triggers mid-operation, in-progress processes (arrconf CronJob) may be killed.
+**Why it happens:** Replace=true is global for the Application, not per-resource-type.
+**How to avoid:** Accept this as the production configuration; document it. CronJobs with `concurrencyPolicy: Forbid` are self-protective. Pods restart quickly (images cached after first pull).
+**Warning signs:** Unexpected pod restarts on ArgoCD reconcile cycles.
 
-### Pitfall 3: `tty: true` missing on configarr
+### Pitfall 5: cronjob key name in values.yaml
+**What goes wrong:** Using `cronJobConfig:` (v4-era research artifact) or `successfulJobsHistoryLimit:` (the K8s field name) — neither is recognized by app-template 5.0.0.
+**Why it happens:** The app-template values key names differ from the K8s CronJob spec field names. The template adds `Limit` suffix internally.
+**How to avoid:** Use `cronjob:` (not `cronJobConfig:`) with subkeys `successfulJobsHistory:` and `failedJobsHistory:`.
+**Warning signs:** `helm lint` warning about unknown values keys; CronJob renders with default history limits (3/1) instead of specified values.
 
-**What goes wrong:** The production configarr CronJob has `tty: true` on the container. app-template doesn't set this by default. If omitted, configarr may have issues with interactive terminal detection in its output logging.
-**Why it happens:** `tty: true` is set in the current `charts/configarr/templates/cronjob.yaml` line 26 but is easy to miss when porting to app-template.
-**How to avoid:** Add `containers.main.tty: true` to the configarr alias in values.yaml.
-**Warning signs:** `argocd app diff` shows a tty field difference.
+### Pitfall 6: helm dependency update with OCI registry
+**What goes wrong:** `helm dependency update` fails with `Error: no cached repo found for oci://ghcr.io/bjw-s/helm`.
+**Why it happens:** OCI registries work differently from traditional Helm repos — they require `helm pull` not `helm repo add`.
+**How to avoid:** The `dependencies:` block with `repository: oci://...` format is supported directly by `helm dependency update` in Helm 3.x. If it fails, fall back to `helm pull oci://ghcr.io/bjw-s/helm/app-template --version 5.0.0 -d charts/arr-stack/charts/`.
+**Warning signs:** `helm dependency update` error mentioning OCI cache.
 
-### Pitfall 4: SecurityContext missing on arrconf
+### Pitfall 7: tty:true for configarr
+**What goes wrong:** Omitting `tty: true` from configarr container spec. configarr's npm process requires a TTY — without it, the process exits immediately with code 1.
+**Why it happens:** This is a configarr-specific requirement, not documented in app-template.
+**How to avoid:** Include `tty: true` in the configarr container spec (Pattern 3 above).
+**Warning signs:** configarr CronJob pods complete with exit code 1 immediately after start.
 
-**What goes wrong:** The current arrconf CronJob has `securityContext: runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000` at the Pod level. Missing this means arrconf runs as root, violating the security posture.
-**How to avoid:** Set `defaultPodOptions.securityContext.runAsNonRoot: true`, `runAsUser: 1000`, `runAsGroup: 1000` in the arrconf alias.
-**Note:** configarr does NOT have this security context in its current template — do not add it to the configarr alias (byte-equivalence).
+### Pitfall 8: kubeconform missing-schemas for ArgoCD CRDs
+**What goes wrong:** kubeconform reports errors on ArgoCD CRD types (Application, AppProject) if present in render output.
+**Why it happens:** kubeconform doesn't know ArgoCD CRDs by default.
+**How to avoid:** Use `-ignore-missing-schemas` flag in kubeconform command (included in chart-lint.yml above). Only validate K8s native resources strictly.
+**Warning signs:** kubeconform exits with error on `argoproj.io/v1alpha1` resources.
 
-### Pitfall 5: `arrconf-app.yaml` deletion before adoption
+### Pitfall 9: Byte-equivalence diff noise from metadata
+**What goes wrong:** `helm template` output includes Helm-generated `helm.sh/chart` annotations and `app.kubernetes.io/managed-by: Helm` labels that differ from live cluster state (ArgoCD strips some of these).
+**Why it happens:** `helm template` renders as if Helm installed it; ArgoCD SSA apply behavior differs slightly.
+**How to avoid:** The byte-equivalence check compares `helm template` output vs. the captured `helm.values` from ArgoCD Applications (which reflect what Helm originally rendered). Use `kubectl apply --dry-run=client` on both sides to normalize. Alternatively, compare only resource spec fields, not metadata.
+**Warning signs:** diff shows only `managedFields:` or `resourceVersion:` differences — these are safe to ignore.
 
-**What goes wrong:** If the my-kluster PR deletes `argocd/argocd-apps/arrconf-app.yaml` and the arrconf Application's finalizer runs before `arr-stack` has adopted the arrconf CronJob/ConfigMap, the CronJob and ConfigMap are deleted and `arr-stack` sync creates them fresh (Pod restart, brief gap).
-**Why it happens:** The `resources-finalizer.argocd.argoproj.io` finalizer is aggressive.
-**How to avoid:** D-04-CUTOVER-02 (manual first sync) ensures `arr-stack` is synced before unit App finalizers complete. Operator must monitor finalizer completion.
+### Pitfall 10: arrconf-config ConfigMap name conflict
+**What goes wrong:** If `charts/arr-stack/templates/arrconf-configmap.yaml` names the ConfigMap `arrconf-config` but arrconf values.yaml references `name: arrconf-config` for the config mount — name must be stable and consistent.
+**Why it happens:** Template renders ConfigMap with release-prefixed name `arr-stack-arrconf-config` unless overridden.
+**How to avoid:** In `arrconf-configmap.yaml` template, use `metadata.name: arrconf-config` (hardcoded, not `{{ include "arr-stack.fullname" . }}-arrconf-config`). Or reference the rendered name in values.yaml persistence. Hardcoded name is simpler and matches current my-kluster pattern.
+**Warning signs:** CronJob pod fails to mount `/app/config` — ConfigMap not found.
 
-### Pitfall 6: `app.kubernetes.io/instance` label mismatch
+---
 
-**What goes wrong:** Under unit Apps, `app.kubernetes.io/instance` = `sonarr` (the ArgoCD app name). Under the umbrella, it will be `arr-stack` (the release name). ArgoCD ServerSideApply may generate a label conflict.
-**Why it happens:** Helm sets `app.kubernetes.io/instance` from `.Release.Name`. Under unit Apps the release name is the app name; under the umbrella the release name is `arr-stack`.
-**How to avoid:** The `ServerSideApply=true` option handles field manager migration. The label WILL change. This is expected and not a functional regression. Document in the byte-equivalence exclusion list.
-**Warning signs:** `argocd app diff` shows `app.kubernetes.io/instance` changes on all resources — this is normal.
+## Code Examples
 
-### Pitfall 7: Missing `envFrom.secretRef.name` vs `envFrom.secretRef.identifier`
+### arrconf-configmap.yaml template
 
-**What goes wrong:** app-template's `envFrom` has two syntaxes: `identifier:` (for app-template-managed Secrets) and `name:` (for pre-existing external Secrets). Using `identifier: arrconf-env` will fail because there is no app-template-managed Secret named `arrconf-env`.
-**How to avoid:** Always use `secretRef: name: arrconf-env` for externally managed Secrets (the bootstrap Secrets in `my-kluster/secrets/`).
-**Verified syntax:** `envFrom: - secretRef: name: "{{ .Release.Name }}-secret"` or literally `name: arrconf-env`. [VERIFIED: common/values.yaml line 334]
+```yaml
+# charts/arr-stack/templates/arrconf-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arrconf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "arr-stack.labels" . | nindent 4 }}
+data:
+  arrconf.yml: |
+    {{- .Files.Get "files/arrconf.yml" | nindent 4 }}
+```
 
-### Pitfall 8: Renovate `customManagers` regex crossing alias boundaries
+### configarr-configmap.yaml template
 
-**What goes wrong:** The greedy `[\\s\\S]*?` lookahead in a single-matchString pattern can match a `# renovate: image=sonarr` comment with the `tag:` from the radarr section if they happen to be on adjacent lines.
-**How to avoid:** Use `matchStringsStrategy: "combination"` with two patterns, OR ensure each alias is clearly separated by blank lines and the `tag:` regex is anchored.
+```yaml
+# charts/arr-stack/templates/configarr-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configarr-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "arr-stack.labels" . | nindent 4 }}
+data:
+  configarr.yml: |
+    {{- .Files.Get "files/configarr.yml" | nindent 4 }}
+```
 
-### Pitfall 9: `helm dependency update` fails in CI without repo add
+### _helpers.tpl
 
-**What goes wrong:** GitHub Actions runner has no `bjw-s-labs` Helm repo registered. `helm dependency update` fails with "no repository definition for..."
-**How to avoid:** Always run `helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts` BEFORE `helm dependency update` in CI.
+```yaml
+# charts/arr-stack/templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "arr-stack.name" -}}
+{{- .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
 
-### Pitfall 10: `flaresolverr` has no ingress — no Service either
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "arr-stack.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
 
-**What goes wrong:** The current `flaresolverr-app.yaml` has no `ingress:` block (internal-only access). Copy-paste from another app's alias accidentally adds an ingress.
-**How to avoid:** The flaresolverr alias in values.yaml explicitly omits `ingress:`. Only `service.main.controller` and `service.main.ports.http.port: 8191` needed.
+{{/*
+Common labels
+*/}}
+{{- define "arr-stack.labels" -}}
+helm.sh/chart: {{ include "arr-stack.chart" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+```
+
+---
+
+## State of the Art
+
+| Old Approach | Current Approach | When Changed | Impact |
+|--------------|------------------|--------------|--------|
+| app-template 4.6.2 (planned) | app-template 5.0.0 (actual production) | 2026-05-11 (Renovate PR #1381) | All version pins must be 5.0.0 |
+| arrconf 0.2.0 (old PATTERNS.md) | arrconf 0.2.1 (Renovate PR #1382) | 2026-05-11 | Tag in arrconf alias: `0.2.1` |
+| configarr 1.16.0 (old PATTERNS.md) | configarr 1.28.0 (current production) | Unknown (Renovate) | Tag in configarr alias: `1.28.0` |
+| 10 unit ArgoCD Applications | 1 umbrella ArgoCD Application | Phase 4 cutover | Selector change; Replace=true required |
+| custom charts in my-kluster | app-template aliases in arr-stack | Phase 4 | Removes my-kluster chart dependency |
+| `cronJobConfig:` key (v4 docs artifact) | `cronjob:` key | app-template 5.0.0 | CronJob values structure changed |
+
+**Deprecated/outdated in Phase 4 plans:**
+- `version: 4.6.2` in Chart.yaml: replaced by `version: 5.0.0`
+- `cronJobConfig:` key: replaced by `cronjob:`
+- `successfulJobsHistoryLimit:` in values: replaced by `successfulJobsHistory:` (app-template adds Limit suffix)
+- `my-kluster/charts/arrconf/`: dead code after Phase 4 cutover (delete in follow-up PR)
+- `my-kluster/charts/configarr/`: same
+
+---
+
+## Wave Structure Recommendation
+
+**Wave 0 — Baseline (ALREADY COMPLETE as of commit 2a94257)**
+- Task 1.1 (image digest capture + ArgoCD Application baseline): ✅ DONE
+- Task 1.2 (helper scripts): write `check-renovate-annotations.sh` + `byte-equivalence-diff.sh`
+
+**Wave 1 — Chart skeleton (Plan 04-02)**
+- Chart.yaml with 10 aliases at 5.0.0
+- `helm dependency update` + Chart.lock committed
+- `helm lint` passes
+
+**Wave 2 — Media app aliases (Plans 04-03 + 04-04)**
+- values.yaml sections for 8 media apps (verbatim from evidence baselines)
+- Renovate annotations above every `repository:` line
+- `check-renovate-annotations.sh` passes
+
+**Wave 3 — CronJob aliases (Plan 04-05)**
+- arrconf + configarr aliases in values.yaml
+- ConfigMap templates for arrconf.yml + configarr.yml
+- `files/arrconf.yml` from current production (D-04-CRON-03: adds radarr,prowlarr to --apps)
+
+**Wave 4 — CI + schema (Plan 04-06)**
+- `chart-lint.yml` workflow
+- `renovate.json` customManagers
+- `values.schema.json` generation
+
+**Wave 5 — Docs (Plan 04-07)**
+- README + CLAUDE.md reference app-template 5.x
+- D-04-DOCS-01 satisfied
+
+**Wave 6 — Cutover (Plan 04-08)**
+- Byte-equivalence diff
+- Delete 10 unit Applications
+- Apply arr-stack Application
+- Watch + smoke test
+- 10-minute soak
+
+**Wave 7 — Post-cutover (Plan 04-09)**
+- Confirm ArgoCD Healthy
+- Delete dead code from my-kluster (charts/arrconf, charts/configarr, 10 argocd-apps files)
+- Update STATE.md
+
+---
+
+## Assumptions Log
+
+| # | Claim | Section | Risk if Wrong |
+|---|-------|---------|---------------|
+| A1 | `losisin/helm-values-schema-json` v2.4.0 is the current version | Standard Stack §Supporting | Install step may fail; check GitHub releases at execution time |
+| A2 | configarr schedule is `0 */6 * * *` (inherited from custom chart) | Pattern 3 | CronJob runs at wrong frequency; user confirms schedule |
+| A3 | ArgoCD prune does NOT delete PVCs with Retain policy | Runtime State Inventory | Data loss risk if wrong; verify PVC reclaim policy before cutover |
+| A4 | seerr uses `ghcr.io/sctx/overseerr` (not jellyseerr variant) | Per-App Values Blocks | Image wrong; executor must read seerr evidence YAML directly |
+| A5 | `examples/values-prod.yaml` is the valueFile used by arr-stack-app.yaml | arr-stack-app.yaml target | CI and cutover use wrong values file; verify against spec.md §9.2 |
+| A6 | arrconf.yml `--apps sonarr,radarr,prowlarr` is correct Phase 4 scope | Pattern 2 | If radarr/prowlarr reconcilers not ready (Phase 5), add `--dry-run` flag |
+| A7 | my-kluster post-cutover cleanup (dead charts/arrconf) happens in same wave or follow-up PR | Wave Structure | Dead code persists; document as explicit action item |
+
+---
+
+## Open Questions
+
+1. **seerr image repository** — evidence/pre-cutover-argocd/seerr.yaml must be read to extract exact image. The per-app section above marks it as ASSUMED. Executor: read `evidence/pre-cutover-argocd/seerr.yaml` helm.values before writing seerr alias.
+
+2. **configarr CronJob schedule** — Current custom chart schedule is `0 */6 * * *` (6 hourly). Confirm with user before codifying in umbrella. The arrconf schedule (4 hourly) is verified from custom chart.
+
+3. **argocd CLI for cutover** — Cutover Wave 6 (Plan 04-08) references `argocd app diff` and `argocd app sync`. argocd CLI is not installed on this workstation (confirmed). Plan must document kubectl-only fallback path explicitly. Consider whether to install argocd CLI as Wave 0 prerequisite or document full kubectl alternatives.
+
+4. **my-kluster cleanup timing** — Phase 4 cutover deletes the 10 unit ArgoCD Applications. The my-kluster `charts/arrconf/` and `charts/configarr/` directories + 10 `argocd-apps/*.yaml` files become dead code. Should this cleanup be in the same PR as the arr-stack-app.yaml addition (atomic) or a follow-up PR (safer, separate review)? Recommend same PR for atomicity, but user should confirm.
+
+---
+
+## Environment Availability
+
+| Dependency | Required By | Available | Version | Fallback |
+|------------|------------|-----------|---------|----------|
+| Helm | Chart build, CI | ✓ | 4.1.4 | — |
+| kubectl | Cutover, baseline | ✓ | (cluster 1.33.9) | — |
+| argocd CLI | Cutover (preferred) | ✗ | — | kubectl get/apply (documented in Cutover Sequence) |
+| kubeconform | CI chart-lint.yml | ✓ (via CI) | installed in CI | — |
+| git | my-kluster reads | ✓ | — | — |
+| OCI registry (ghcr.io/bjw-s) | helm dependency update | ✓ | — | Manual helm pull |
+
+**Missing dependencies with no fallback:**
+- None — argocd CLI has kubectl fallback; all other tools available.
+
+**Note:** argocd CLI absence is documented in STATE.md Phase 02.2 P05 and the kubectl fallback path is the primary approach for this project.
 
 ---
 
@@ -994,180 +1079,92 @@ Actually re-counting: sonarr, radarr, prowlarr, cleanuparr, qbittorrent, seerr, 
 
 | Property | Value |
 |----------|-------|
-| Framework | Helm (helm lint, helm template) + kubeconform + pytest (existing) |
-| Config file | `charts/arr-stack/values.schema.json` (created Wave 1) |
-| Quick run command | `helm lint charts/arr-stack/ -f examples/values-prod.yaml` |
-| Full suite command | `helm template arr-stack charts/arr-stack/ -f examples/values-prod.yaml \| kubeconform -strict -ignore-missing-schemas -kubernetes-version 1.33.0` |
+| Framework | helm lint + kubeconform (not pytest — chart-only phase) |
+| Config file | `.github/workflows/chart-lint.yml` (Wave 4) |
+| Quick run command | `helm lint charts/arr-stack/ && helm template arr-stack charts/arr-stack/ -f examples/values-prod.yaml \| kubeconform -kubernetes-version 1.33.0 -strict -ignore-missing-schemas` |
+| Full suite command | Same (no separate unit tests for Helm chart phase) |
 
 ### Phase Requirements → Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| REQ-umbrella-deployment | Umbrella chart renders valid K8s manifests | lint | `helm lint charts/arr-stack/ -f examples/values-prod.yaml` | ❌ Wave 0 |
-| REQ-helm-validation | Manifests conform to K8s 1.33 schema | conformance | `helm template ... \| kubeconform -strict ...` | ❌ Wave 0 |
-| REQ-helm-validation | values.yaml parses against values.schema.json | schema | `helm lint` (auto-validates) + losisin action | ❌ Wave 0 |
-| REQ-renovate-image-tracking | Renovate config is valid JSON | lint | `npx renovate-config-validator renovate.json` | ❌ Wave 0 |
-| REQ-config-as-code | arrconf.yml loads without YAML error | smoke | `python3 -c "import yaml; yaml.safe_load(open('charts/arr-stack/files/arrconf.yml'))"` | ❌ Wave 0 (file created Wave 1) |
-| REQ-pr-to-cluster-latency | CronJob exists and is runnable | manual (operator) | `kubectl create job --from=cronjob/arrconf test-$(date +%s) -n selfhost` | manual only |
-| REQ-readme-onboarding | README.md has required sections | manual (review) | n/a | manual only |
-
-### Nyquist Boundary
-
-**Automated CI ends at:** `helm template | kubeconform` — verifies K8s API validity of rendered manifests.
-
-**Operator verification starts at:**
-1. `argocd app diff arr-stack --server-side` — verifies byte-equivalence against live cluster.
-2. `argocd app sync arr-stack --server-side` + health check — verifies adoption.
-3. Post-cutover ingress smoke: `curl -I https://sonarr.tgu.ovh` for all 8 ingress apps.
-4. CronJob smoke: `kubectl create job --from=cronjob/arrconf arrconf-cutover-smoke -n selfhost` + log review.
-5. Renovate E2E: SC#2 — verify Renovate opens a PR for the first detected bump (within 1 week post-cutover per D-04-PIN-04).
+| REQ-04-01 | Chart.yaml 10 aliases render without error | helm lint | `helm lint charts/arr-stack/` | ❌ Wave 1 |
+| REQ-04-02 | values.yaml produces valid K8s manifests | kubeconform | `helm template ... \| kubeconform -kubernetes-version 1.33.0` | ❌ Wave 1 |
+| REQ-04-03 | Byte-equivalence diff passes | manual script | `tools/scripts/byte-equivalence-diff.sh` | ❌ Wave 0 Task 1.2 |
+| REQ-04-04 | Renovate annotations present | shell check | `tools/scripts/check-renovate-annotations.sh` | ❌ Wave 0 Task 1.2 |
+| REQ-04-05 | CI workflow valid YAML | yaml lint | `yamllint .github/workflows/chart-lint.yml` | ❌ Wave 4 |
+| REQ-04-06 | arr-stack-app.yaml has Replace=true | grep check | `grep -q 'Replace=true' my-kluster/.../arr-stack-app.yaml` | ❌ Wave 6 |
+| REQ-04-07 | arrconf CronJob renders with correct schedule | helm template | `helm template ... \| grep -A5 'schedule:'` | ❌ Wave 3 |
+| REQ-04-08 | configarr CronJob has tty:true | helm template | `helm template ... \| grep 'tty: true'` | ❌ Wave 3 |
+| REQ-04-11 | Baseline captured | evidence files | `ls evidence/pre-cutover-argocd/ \| wc -l` (expect 10) | ✅ Done |
 
 ### Wave 0 Gaps
 
-- [ ] `charts/arr-stack/Chart.yaml` — chart scaffold
-- [ ] `charts/arr-stack/values.yaml` — 10 aliases
-- [ ] `charts/arr-stack/values.schema.json` — generated schema
-- [ ] `examples/values-prod.yaml` — copy/symlink
-- [ ] `.github/workflows/chart-lint.yml` — CI workflow
-- [ ] `renovate.json` — updated with customManagers
-- [ ] Framework install: `helm repo add bjw-s-labs` + `helm dependency update`
+- [ ] `tools/scripts/check-renovate-annotations.sh` — covers REQ-04-04
+- [ ] `tools/scripts/byte-equivalence-diff.sh` — covers REQ-04-03
+- [ ] `charts/arr-stack/Chart.yaml` — needed before helm lint runs (Wave 1)
+- [ ] Framework install: `helm dependency update charts/arr-stack/` — after Chart.yaml exists
 
 ---
 
 ## Security Domain
 
+### Applicable ASVS Categories
+
 | ASVS Category | Applies | Standard Control |
 |---------------|---------|-----------------|
-| V2 Authentication | No (auth is Jellyfin/oauth2-proxy's concern, not the chart) | — |
-| V3 Session Management | No | — |
-| V4 Access Control | Partial | `selfhost-project` ArgoCD AppProject limits namespace to `selfhost` |
-| V5 Input Validation | Yes | `values.schema.json` blocks invalid values at helm lint/template |
-| V6 Cryptography | No | TLS managed by cert-manager external to this chart |
+| V2 Authentication | No | N/A — auth delegated to oauth2-proxy (pre-existing) |
+| V3 Session Management | No | N/A — oauth2-proxy |
+| V4 Access Control | Partial | Ingress: oauth2-proxy annotations on 7/8 apps; jellyfin no oauth (by design) |
+| V5 Input Validation | No | Helm chart rendering, not user input |
+| V6 Cryptography | No | TLS terminated at ingress (pre-existing cert-manager) |
+| V7 Error Handling | No | No new error surfaces |
+
+### Known Threat Patterns for Helm Umbrella
 
 | Pattern | STRIDE | Standard Mitigation |
 |---------|--------|---------------------|
-| Secret in values.yaml | Information Disclosure | CLAUDE.md prohibits any `*yaml` with API keys; `envFrom: secretRef` pattern used |
-| `:latest` image tags | Tampering (image substitution) | D-04-PIN-01 pins all to semver/digest; Renovate tracks updates |
-| ArgoCD prune deleting PVCs | Elevation of Privilege | `prune: true` only after manual sync verification; PVC `retain` policy in StorageClass |
-| credentials in arrconf.yml | Information Disclosure | `arrconf.yml` uses `!env VAR_NAME` syntax — no secrets in the file itself |
+| Secret exposure in values.yaml | Information Disclosure | Never put API keys in values.yaml; use `secretRef:` → existing `arrconf-env`, `configarr-env` secrets |
+| SSRF via CronJob --apps flag | Tampering | `--apps` value is static in chart, not user-supplied at runtime |
+| Image tag mutation (`:latest`) | Tampering | Use digest pinning for `:latest` images (qbittorrent, cleanuparr, flaresolverr) via `@sha256:...` OR pin to explicit version tag |
+| PVC data loss at cutover | Denial of Service | `existingClaim:` prevents recreation; ArgoCD prune does not delete PVCs |
 
----
-
-## Environment Availability
-
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| Helm (CLI) | Chart build, helm dependency update | ✓ | v4.1.4 (Helm 3.x line) | — |
-| kubectl | Cluster commands, snapshot | ✓ | K8s node v1.33.9 | — |
-| argocd CLI | Cutover diff + sync | Unknown (not tested) | — | `kubectl get application arr-stack -n argocd -o json` |
-| kubeconform | CI manifest validation | ✗ (local) | — | Install in CI; GitHub Action available |
-| losisin/helm-values-schema-json | schema generation | ✗ (local) | — | Install: `helm plugin install https://github.com/losisin/helm-values-schema-json` |
-| bjw-s-labs Helm repo | Chart dependencies | ✓ (CI needs `helm repo add`) | — | `helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts` |
-| Docker Hub (lscr.io) | qbittorrent image pull | ✓ (cluster already pulling) | — | — |
-| GHCR (ghcr.io) | arrconf, configarr, flaresolverr, cleanuparr image pulls | ✓ | — | — |
-| renovate-config-validator | CI renovate.json validation | ✗ (local) | — | `npx --yes renovate-config-validator` in CI |
-
-**argocd CLI:** The STATE.md records from Phase 02.2 that `argocd CLI may be unavailable on operator workstation` — the kubectl-on-Application equivalent was used as fallback. Planner must document both paths for the cutover task.
-
----
-
-## Recommended Wave Structure (Advisory — Planner's Final Call)
-
-| Wave | Contents | Gate |
-|------|----------|------|
-| Wave 0 (pre-plan operator gate) | Capture running digests for qbittorrent/flaresolverr/cleanuparr into `evidence/current-image-tags.txt`; pre-cutover ADR-6 snapshot | Operator confirms evidence committed |
-| Wave 1 | Chart skeleton: `Chart.yaml`, `Chart.lock`, `charts/` deps, `templates/_helpers.tpl`, `templates/arrconf-configmap.yaml`, `templates/configarr-configmap.yaml`, `files/` ported from my-kluster | `helm lint` passes with empty values.yaml |
-| Wave 2 | 8 media app aliases in values.yaml (sonarr, radarr, prowlarr, cleanuparr, qbittorrent, seerr, flaresolverr, jellyfin) + byte-equivalence diff vs ArgoCD exports | `helm template \| kubeconform` green for all 8 |
-| Wave 3 | arrconf + configarr CronJob aliases + `values.schema.json` (generated + hand-tightened) | CronJob aliases render with correct schedule/securityContext |
-| Wave 4 | `chart-lint.yml` CI + Renovate `customManagers` update + `renovate-config-validator` gate | CI green on PR |
-| Wave 5 | `examples/values-prod.yaml` + README.md + CLAUDE.md refresh | REQ-readme-onboarding human review |
-| Wave 6 (cross-repo) | my-kluster PR: add `arr-stack-app.yaml`, delete 10 unit App files, delete `charts/configarr/` + `charts/arrconf/`. Manual cutover sequence (D-04-CUTOVER-02) | `argocd app wait arr-stack --health` |
-| Wave 7 (post-cutover) | Follow-up 1-liner PR re-enabling `automated.{selfHeal,prune}` + git tag `v0.1.0` on arr-stack | SC#1 verified: ArgoCD sync healthy, unit Apps gone |
-
----
-
-## Assumptions Log
-
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | Helm v4.1.4 binary = Helm 3.x CLI (app-template 5.0.0's "minimum Helm 3.18" constraint not yet applicable) | Standard Stack | If Helm 4.x is a new major series, Phase 4 may need to use app-template 5.0.0 instead; requires re-testing all aliases |
-| A2 | `_helpers.tpl` named templates from umbrella are accessible when rendering alias sub-charts | Architecture Patterns | If false, cannot share annotation templates; must inline all annotations per alias |
-| A3 | ArgoCD finalizer on deleted unit Applications does NOT delete K8s resources that are simultaneously adopted by `arr-stack` via ServerSideApply | Unknown #5 | If wrong, cutover causes a brief outage as resources are deleted+recreated |
-| A4 | flaresolverr and cleanuparr running images may be pre-release or nightly builds not matching any public semver tag | Running Image Digests | If wrong, the pre-plan checkpoint will find a semver match and simplify pin |
-| A5 | `losisin/helm-values-schema-json` GitHub Action tag `@v1` is stable for use in CI | Standard Stack | If breaking change in v1.x, pin to exact SHA |
-
----
-
-## Open Questions
-
-1. **argocd CLI availability on operator workstation**
-   - What we know: STATE.md documents that argocd CLI was unavailable during Phase 02.2; kubectl-on-Application was the fallback.
-   - What's unclear: Whether argocd CLI was installed since then.
-   - Recommendation: Planner documents BOTH paths (argocd CLI primary, kubectl fallback) for every cutover task that requires `argocd app diff` or `argocd app sync`.
-
-2. **`_helpers.tpl` cross-alias include resolution**
-   - What we know: Standard Helm umbrella `_helpers.tpl` templates are available within the parent chart's rendering scope.
-   - What's unclear: Whether app-template (as a dependency sub-chart) can call `include "arr-stack.oauth2ProxyAnnotations" .` from within its own template rendering.
-   - Recommendation: Test with a minimal 2-alias chart before committing the full values.yaml. If include doesn't resolve, inline all annotations (30 lines more but safe).
-
-3. **flaresolverr and cleanuparr current semver tags**
-   - What we know: Running digests confirmed; tag resolution failed for both images.
-   - What's unclear: Which semver tag matches the running image.
-   - Recommendation: Wave 0 pre-plan operator checkpoint task resolves this. Pin to `@sha256:<digest>` if no tag match found. Document for immediate Renovate bump.
-
-4. **ArgoCD `arr-stack-app.yaml` sourceRepos whitelist**
-   - What we know: The `selfhost-project` AppProject exists. ArgoCD apps currently pull from `bjw-s-labs.github.io` (Helm repo) and `github.com/tom333/my-kluster` (git).
-   - What's unclear: Whether `github.com/tom333/arr-stack.git` is in the AppProject's `sourceRepos:` whitelist.
-   - Recommendation: Planner includes a task to verify and update `argocd/argocd-appprojects/selfhost-project.yaml` if `arr-stack` repo is not already listed.
-
----
-
-## State of the Art
-
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| `helm-schema-gen` (karuppiah7890) | `losisin/helm-values-schema-json` | ~2023 (karuppiah7890 unmaintained) | Must use the alternative plugin |
-| app-template `cronJobConfig:` key | `cronjob:` key under controller | v3→v4 migration | Wrong key is silently ignored |
-| `shivjm/helm-kubeconform-action` v0.1.x | latest/v0.2.x | ongoing | Check action version at implementation time |
-| app-template v4.x | v5.0.0 released | 2025 | Min Helm 3.18; rawResources breaking change; not adopted in Phase 4 |
+**Note on `:latest` images:** Three apps use `:latest` tags (qbittorrent, cleanuparr, flaresolverr). Their digests are captured in `evidence/current-image-tags.txt`. Recommend pinning to those digests in values.yaml for reproducibility, while keeping renovate annotations for future updates. This is consistent with D-04-PIN-03.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `/tmp/app-template-test/app-template/charts/common/values.yaml` — pulled via `helm pull bjw-s-labs/app-template --version 4.6.2 --untar` — CronJob keys, envFrom syntax, persistence types
-- `helm search repo bjw-s-labs/app-template --versions` — confirmed 4.6.2 (latest stable v4.x) and 5.0.0 exist
-- Docker Hub API `registry.hub.docker.com/v2/repositories/linuxserver/qbittorrent/tags/` — confirmed qbittorrent `5.2.0` = running digest
-- GHCR API `ghcr.io/v2/flaresolverr/flaresolverr/tags/list` — latest semver is v3.4.6
-- GHCR API `ghcr.io/v2/cleanuparr/cleanuparr/tags/list` — latest semver is 2.3.3
-- `kubectl -n selfhost get pod -l app.kubernetes.io/name=<app>` — running image digests (live cluster)
-- `my-kluster/charts/{arrconf,configarr}/templates/cronjob.yaml` — production-validated CronJob specs
-- `my-kluster/argocd/argocd-apps/{sonarr,...}-app.yaml` — 10 unit App values blocks (byte-equivalence source)
+- `/tmp/app-template-5.0.0.tgz` (pulled via `helm pull oci://ghcr.io/bjw-s/helm/app-template --version 5.0.0`) — chart structure, values schema, CronJob key names, breaking changes
+- `evidence/pre-cutover-argocd/*.yaml` (10 files, committed 2a94257) — production state baseline for all 10 apps
+- `git show main:charts/arrconf/values.yaml` + `git show main:charts/arrconf/templates/cronjob.yaml` — arrconf production values
+- `git show main:charts/configarr/values.yaml` + `git show main:charts/configarr/templates/cronjob.yaml` — configarr production values
+- `kubectl get sa,svc,pvc -n selfhost` — live cluster state (SAs, Services, PVCs)
+- `/tmp/test-umbrella/` helm template tests — naming strategy validation (fullnameOverride vs nameOverride)
+- `spec.md §6.4, §9.2` — authoritative Renovate regex and arr-stack-app.yaml structure
+- `.planning/phases/04-umbrella-chart-migration-des-9-apps/04-CONTEXT.md` — locked decisions
 
 ### Secondary (MEDIUM confidence)
-- Context7 `/llmstxt/bjw-s-labs_github_io_helm-charts_llms_txt` — CronJob type, persistence configMap, defaultPodOptions, envFrom, persistence PVC
-- Context7 `/websites/renovatebot` — `customManagers` `matchStringsStrategy: combination` example
-- https://bjw-s-labs.github.io/helm-charts/docs/app-template/upgrades/4-to-5 — v4→v5 breaking changes (rawResources)
-- https://argo-cd.readthedocs.io/en/stable/proposals/server-side-apply/ — ServerSideApply field manager migration
-- https://github.com/karuppiah7890/helm-schema-gen — confirmed CURRENTLY NOT MAINTAINED
-- https://github.com/losisin/helm-values-schema-json — confirmed actively maintained
+- `04-01-DRIFT-NOTE.md` — diagnosis of 4.6.2 vs 5.0.0 drift (this document)
+- `git log main -- argocd/argocd-apps/ --oneline | head -5` on my-kluster — confirmed Renovate PR #1381
 
 ### Tertiary (LOW confidence — flagged in Assumptions Log)
-- ArgoCD finalizer behavior during simultaneous unit App deletion + umbrella adoption (A3) — WebSearch result, not verified against ArgoCD source code
-- `_helpers.tpl` cross-alias include resolution in umbrella context (A2) — standard Helm pattern, not tested in this session
+- losisin/helm-values-schema-json version (A1) — GitHub releases page not verified this session
+- configarr CronJob schedule (A2) — extracted from custom chart but not cross-checked with user
 
 ---
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack (app-template 4.6.2): HIGH — chart pulled and inspected
-- CronJob config keys: HIGH — verified from pulled chart artefact
-- Architecture (defaults merge via `_helpers.tpl`): MEDIUM — Helm behavior, partially assumed
-- Renovate customManagers regex: MEDIUM — official docs cited, not validated against live Renovate instance
-- ArgoCD cutover sequence: MEDIUM — based on docs + community patterns; finalizer race condition is LOW confidence
-- Running image digests: HIGH (qbittorrent confirmed), LOW (flaresolverr, cleanuparr — semver resolution incomplete)
+- Standard stack: HIGH — verified by pulling actual chart artefact; confirmed via live cluster state
+- Architecture: HIGH — validated via helm template tests on actual 5.0.0 chart
+- Per-app values: HIGH — extracted verbatim from evidence baselines captured from live cluster
+- CronJob keys: HIGH — verified from values.schema.json JSON extracted from common 5.0.0 chart
+- Pitfalls: HIGH — verified by helm template testing (nameOverride vs fullnameOverride)
+- Assumptions: LOW — 7 items flagged; see Assumptions Log
 
-**Research date:** 2026-05-12
-**Valid until:** 2026-08-12 (stable Helm/ArgoCD domain); Renovate regex validity 30 days; app-template 5.x adoption window open
+**Research date:** 2026-05-13
+**Valid until:** 2026-06-13 (stable chart — app-template 5.x; Renovate will surface any bumps)
+**Replaces:** Prior RESEARCH.md dated 2026-05-12 (assumed app-template 4.6.2 — incorrect)
