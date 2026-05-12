@@ -1,0 +1,9 @@
+lscr.io/linuxserver/qbittorrent:latest
+lscr.io/linuxserver/qbittorrent@sha256:2e0148428b6769e2ee1eb6781246b6fca4b70cd680edfcb16e7113d9d6cb1631
+---
+ghcr.io/flaresolverr/flaresolverr:latest
+ghcr.io/flaresolverr/flaresolverr@sha256:7962759d99d7e125e108e0f5e7f3cdbcd36161776d058d1d9b7153b92ef1af9e
+---
+ghcr.io/cleanuparr/cleanuparr:latest
+ghcr.io/cleanuparr/cleanuparr@sha256:9b8f7a5f740c6cdc8f799a1d4b367ea560c0ce60799100afc3e14b6e3468cb5e
+---

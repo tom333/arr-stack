@@ -1,0 +1,893 @@
+# ArgoCD Application source (Application CR spec):
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: applications:argoproj.io/Application:argocd/configarr
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"applications:argoproj.io/Application:argocd/configarr"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"configarr","namespace":"argocd"},"spec":{"destination":{"namespace":"selfhost","server":"https://kubernetes.default.svc"},"project":"selfhost-project","source":{"path":"charts/configarr","repoURL":"https://github.com/tom333/my-kluster.git","targetRevision":"HEAD"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=false","ServerSideApply=true"]}}}
+  creationTimestamp: "2026-05-07T04:16:21Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 2622
+  name: configarr
+  namespace: argocd
+  resourceVersion: "34046856"
+  uid: 2d446665-2aa9-4f78-b018-83f13e546e61
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    path: charts/configarr
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+    - ServerSideApply=true
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-05-07T04:19:27Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-05-07T04:16:24Z"
+    deployedAt: "2026-05-07T04:16:29Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 01dcd66f458c6ddf55f415cd2b4899725d8677a7
+    source:
+      path: charts/configarr
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-07T04:30:09Z"
+    deployedAt: "2026-05-07T04:30:09Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: f772e125185d36afad8e5277fb10286e1d3fccea
+    source:
+      path: charts/configarr
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-10T21:39:12Z"
+    deployedAt: "2026-05-10T21:39:13Z"
+    id: 2
+    initiatedBy:
+      automated: true
+    revision: d33a53bae42f5e2652d6abac101ab3b929eeaf03
+    source:
+      path: charts/configarr
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  operationState:
+    finishedAt: "2026-05-10T21:39:13Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        autoHealAttemptsCount: 1
+        prune: true
+        resources:
+        - group: batch
+          kind: CronJob
+          name: configarr
+        revision: d33a53bae42f5e2652d6abac101ab3b929eeaf03
+        source:
+          path: charts/configarr
+          repoURL: https://github.com/tom333/my-kluster.git
+          targetRevision: HEAD
+        syncOptions:
+        - CreateNamespace=false
+        - ServerSideApply=true
+    phase: Succeeded
+    startedAt: "2026-05-10T21:39:13Z"
+    syncResult:
+      resources:
+      - group: batch
+        hookPhase: Running
+        images:
+        - ghcr.io/raydak-labs/configarr:1.28.0
+        kind: CronJob
+        message: cronjob.batch/configarr serverside-applied
+        name: configarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: d33a53bae42f5e2652d6abac101ab3b929eeaf03
+      source:
+        path: charts/configarr
+        repoURL: https://github.com/tom333/my-kluster.git
+        targetRevision: HEAD
+  reconciledAt: "2026-05-12T20:17:32Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: ConfigMap
+    name: configarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: PersistentVolumeClaim
+    name: configarr-cache
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: batch
+    kind: CronJob
+    name: configarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    images:
+    - ghcr.io/raydak-labs/configarr:1.28.0
+  sync:
+    comparedTo:
+      destination:
+        namespace: selfhost
+        server: https://kubernetes.default.svc
+      source:
+        path: charts/configarr
+        repoURL: https://github.com/tom333/my-kluster.git
+        targetRevision: HEAD
+    revision: 845d34464d54fd9e2b319beac1ec201d0aeab83d
+    status: Synced
+---
+# Live cluster state for label app.kubernetes.io/instance=configarr:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 208ff799f4728a1ec08a6bcd08e7b5549ab55f0fe669f1a1c6b8f571d4591878
+    creationTimestamp: "2026-05-12T17:00:02Z"
+    generateName: configarr-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: configarr
+      app.kubernetes.io/name: configarr
+      batch.kubernetes.io/controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+      batch.kubernetes.io/job-name: configarr-29643420
+      controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+      job-name: configarr-29643420
+    name: configarr-29643420-h5fd8
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: configarr-29643420
+      uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+    resourceVersion: "34018127"
+    uid: c22ef694-5f25-4816-9ab3-bd3c63809870
+  spec:
+    containers:
+    - env:
+      - name: TZ
+        value: Europe/Paris
+      envFrom:
+      - secretRef:
+          name: configarr-env
+      image: ghcr.io/raydak-labs/configarr:1.28.0
+      imagePullPolicy: IfNotPresent
+      name: configarr
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      tty: true
+      volumeMounts:
+      - mountPath: /app/config/config.yml
+        name: config
+        subPath: config.yml
+      - mountPath: /app/repos
+        name: cache
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-8z2wp
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: configarr
+      name: config
+    - name: cache
+      persistentVolumeClaim:
+        claimName: configarr-cache
+    - name: kube-api-access-8z2wp
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:17Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:03Z"
+      reason: PodCompleted
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:16Z"
+      reason: PodCompleted
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:16Z"
+      reason: PodCompleted
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:03Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://e8f200a57526df5a44f5b8f03f2c610fa1d67c57df31f3781daa9b85909ef3bb
+      image: ghcr.io/raydak-labs/configarr:1.28.0
+      imageID: ghcr.io/raydak-labs/configarr@sha256:008d8659ff35f63fbcc20b860b33ba7cc49e8d7458a6ec446810ec4d783ef017
+      lastState: {}
+      name: configarr
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://e8f200a57526df5a44f5b8f03f2c610fa1d67c57df31f3781daa9b85909ef3bb
+          exitCode: 0
+          finishedAt: "2026-05-12T17:00:14Z"
+          reason: Completed
+          startedAt: "2026-05-12T17:00:10Z"
+      volumeMounts:
+      - mountPath: /app/config/config.yml
+        name: config
+      - mountPath: /app/repos
+        name: cache
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-8z2wp
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Succeeded
+    podIP: 10.1.28.170
+    podIPs:
+    - ip: 10.1.28.170
+    qosClass: Burstable
+    startTime: "2026-05-12T17:00:03Z"
+- apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: configarr:batch/CronJob:selfhost/configarr
+    creationTimestamp: "2026-05-07T04:16:29Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/instance: configarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: configarr
+      app.kubernetes.io/version: 1.16.0
+      helm.sh/chart: configarr-0.1.0
+    name: configarr
+    namespace: selfhost
+    resourceVersion: "34018135"
+    uid: bd7cb1fa-2e4d-4207-8d35-cd80c81ad4a2
+  spec:
+    concurrencyPolicy: Forbid
+    failedJobsHistoryLimit: 2
+    jobTemplate:
+      metadata:
+        creationTimestamp: null
+      spec:
+        template:
+          metadata:
+            annotations:
+              checksum/config: 208ff799f4728a1ec08a6bcd08e7b5549ab55f0fe669f1a1c6b8f571d4591878
+            creationTimestamp: null
+            labels:
+              app.kubernetes.io/instance: configarr
+              app.kubernetes.io/name: configarr
+          spec:
+            containers:
+            - env:
+              - name: TZ
+                value: Europe/Paris
+              envFrom:
+              - secretRef:
+                  name: configarr-env
+              image: ghcr.io/raydak-labs/configarr:1.28.0
+              imagePullPolicy: IfNotPresent
+              name: configarr
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              tty: true
+              volumeMounts:
+              - mountPath: /app/config/config.yml
+                name: config
+                subPath: config.yml
+              - mountPath: /app/repos
+                name: cache
+            dnsPolicy: ClusterFirst
+            restartPolicy: Never
+            schedulerName: default-scheduler
+            securityContext: {}
+            terminationGracePeriodSeconds: 30
+            volumes:
+            - configMap:
+                defaultMode: 420
+                name: configarr
+              name: config
+            - name: cache
+              persistentVolumeClaim:
+                claimName: configarr-cache
+    schedule: 0 */4 * * *
+    successfulJobsHistoryLimit: 1
+    suspend: false
+  status:
+    lastScheduleTime: "2026-05-12T17:00:00Z"
+    lastSuccessfulTime: "2026-05-12T17:00:18Z"
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    annotations:
+      batch.kubernetes.io/cronjob-scheduled-timestamp: "2026-05-12T17:00:00Z"
+    creationTimestamp: "2026-05-12T17:00:00Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: configarr
+      app.kubernetes.io/name: configarr
+      batch.kubernetes.io/controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+      batch.kubernetes.io/job-name: configarr-29643420
+      controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+      job-name: configarr-29643420
+    name: configarr-29643420
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CronJob
+      name: configarr
+      uid: bd7cb1fa-2e4d-4207-8d35-cd80c81ad4a2
+    resourceVersion: "34018129"
+    uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+  spec:
+    backoffLimit: 6
+    completionMode: NonIndexed
+    completions: 1
+    manualSelector: false
+    parallelism: 1
+    podReplacementPolicy: TerminatingOrFailed
+    selector:
+      matchLabels:
+        batch.kubernetes.io/controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+    suspend: false
+    template:
+      metadata:
+        annotations:
+          checksum/config: 208ff799f4728a1ec08a6bcd08e7b5549ab55f0fe669f1a1c6b8f571d4591878
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/instance: configarr
+          app.kubernetes.io/name: configarr
+          batch.kubernetes.io/controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+          batch.kubernetes.io/job-name: configarr-29643420
+          controller-uid: c67d9769-7d3c-452a-8ead-112c555a25d6
+          job-name: configarr-29643420
+      spec:
+        containers:
+        - env:
+          - name: TZ
+            value: Europe/Paris
+          envFrom:
+          - secretRef:
+              name: configarr-env
+          image: ghcr.io/raydak-labs/configarr:1.28.0
+          imagePullPolicy: IfNotPresent
+          name: configarr
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+          volumeMounts:
+          - mountPath: /app/config/config.yml
+            name: config
+            subPath: config.yml
+          - mountPath: /app/repos
+            name: cache
+        dnsPolicy: ClusterFirst
+        restartPolicy: Never
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: configarr
+          name: config
+        - name: cache
+          persistentVolumeClaim:
+            claimName: configarr-cache
+  status:
+    completionTime: "2026-05-12T17:00:18Z"
+    conditions:
+    - lastProbeTime: "2026-05-12T17:00:18Z"
+      lastTransitionTime: "2026-05-12T17:00:18Z"
+      message: Reached expected number of succeeded pods
+      reason: CompletionsReached
+      status: "True"
+      type: SuccessCriteriaMet
+    - lastProbeTime: "2026-05-12T17:00:19Z"
+      lastTransitionTime: "2026-05-12T17:00:19Z"
+      message: Reached expected number of succeeded pods
+      reason: CompletionsReached
+      status: "True"
+      type: Complete
+    ready: 0
+    startTime: "2026-05-12T17:00:00Z"
+    succeeded: 1
+    terminating: 0
+    uncountedTerminatedPods: {}
+- apiVersion: v1
+  data:
+    config.yml: |-
+      # ============================================================================
+      # Configarr — configuration as code
+      # ----------------------------------------------------------------------------
+      # Source de vérité unique pour la synchronisation TRaSH-Guides / custom
+      # formats sur Sonarr et Radarr (namespace selfhost).
+      #
+      # Stratégie : profil HD only (720p + 1080p), priorité aux fichiers les plus
+      # petits via mHD + x265. Pas de HDR, pas de 4K (à activer plus tard).
+      #
+      # Doc : https://configarr.de/docs/intro/
+      # ============================================================================
+
+      trashGuideUrl: https://github.com/TRaSH-Guides/Guides
+      recyclarrConfigUrl: https://github.com/recyclarr/config-templates
+
+      # ============================================================================
+      # Custom format definitions
+      # ============================================================================
+      customFormatDefinitions:
+        # ---------------------------------------------------------------------------
+        # Pistes françaises (préférées) — score positif.
+        # ---------------------------------------------------------------------------
+        - trash_id: fr-vff
+          trash_scores:
+            default: 150
+          name: "FR: VFF / TRUEFRENCH"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: VFF or TRUEFRENCH in release title
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: false
+              fields:
+                value: "\\b(VFF|TRUEFRENCH)\\b"
+
+        - trash_id: fr-vfi
+          trash_scores:
+            default: 150
+          name: "FR: VFI"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: VFI in release title
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: false
+              fields:
+                value: "\\bVFI\\b"
+
+        - trash_id: fr-vfq
+          trash_scores:
+            default: 150
+          name: "FR: VFQ"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: VFQ in release title
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: false
+              fields:
+                value: "\\bVFQ\\b"
+
+        - trash_id: fr-multi
+          trash_scores:
+            default: 100
+          name: "FR: MULTi"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: MULTi in release title
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: false
+              fields:
+                value: "\\bMULTI?\\b"
+
+        # ---------------------------------------------------------------------------
+        # Sous-titres uniquement (à interdire) — score rédhibitoire.
+        # ---------------------------------------------------------------------------
+        - trash_id: fr-vostfr
+          trash_scores:
+            default: -10000
+          name: "FR: VOSTFR (subs only)"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: VOSTFR in release title
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: false
+              fields:
+                value: "\\bVOSTFR\\b"
+
+        # ---------------------------------------------------------------------------
+        # mHD / MHD — encodes HD efficaces, fichiers les plus petits (priorité).
+        # ---------------------------------------------------------------------------
+        - trash_id: fr-mhd
+          trash_scores:
+            default: 1000
+          name: "mHD / MHD (small encode)"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: mHD or MHD in release title
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: false
+              fields:
+                value: "\\b(mHD|MHD)\\b"
+
+        # ---------------------------------------------------------------------------
+        # x265 / HEVC en HD (720p / 1080p) — bonus codec efficace.
+        # ---------------------------------------------------------------------------
+        - trash_id: fr-x265-hd
+          trash_scores:
+            default: 500
+          name: "x265 / HEVC (HD)"
+          includeCustomFormatWhenRenaming: false
+          specifications:
+            - name: x265 / HEVC codec
+              implementation: ReleaseTitleSpecification
+              negate: false
+              required: true
+              fields:
+                value: "\\b(x265|h\\.?265|hevc)\\b"
+            - name: Not 2160p
+              implementation: ResolutionSpecification
+              negate: true
+              required: true
+              fields:
+                value: 2160
+
+      # ============================================================================
+      # Sonarr — namespace selfhost
+      # ----------------------------------------------------------------------------
+      # Profil HD only (720p + 1080p), pas de 4K, pas de Remux, scoring agressif
+      # pour les encodes mHD x265.
+      # ============================================================================
+      sonarr:
+        main:
+          base_url: http://sonarr.selfhost.svc.cluster.local:8989
+          api_key: !env SONARR_API_KEY
+
+          media_naming:
+            series: default
+            season: default
+            episodes:
+              rename: true
+              standard: default
+              daily: default
+              anime: default
+
+          quality_definition:
+            type: series
+            # Plafonnement plus bas que TRaSH par défaut pour favoriser les encodes
+            # compressés. Valeurs en MB/min (normalisées par durée d'épisode).
+            qualities:
+              - quality: WEBDL-1080p
+                min: 2
+                preferred: 30
+                max: 60
+              - quality: WEBRip-1080p
+                min: 2
+                preferred: 30
+                max: 60
+              - quality: Bluray-1080p
+                min: 2
+                preferred: 50
+                max: 80
+              - quality: HDTV-1080p
+                min: 2
+                preferred: 25
+                max: 45
+              - quality: WEBDL-720p
+                min: 2
+                preferred: 20
+                max: 40
+              - quality: WEBRip-720p
+                min: 2
+                preferred: 20
+                max: 40
+              - quality: Bluray-720p
+                min: 2
+                preferred: 30
+                max: 50
+              - quality: HDTV-720p
+                min: 2
+                preferred: 15
+                max: 30
+
+          quality_profiles:
+            - name: MULTi.VF
+              reset_unmatched_scores:
+                enabled: true
+              upgrade:
+                allowed: true
+                until_quality: Bluray-1080p
+                until_score: 2000
+                min_format_score: 50
+              min_format_score: 0
+              quality_sort: top
+              qualities:
+                - name: Bluray-1080p
+                - name: WEB 1080p
+                  qualities:
+                    - WEBDL-1080p
+                    - WEBRip-1080p
+                - name: HDTV-1080p
+                - name: Bluray-720p
+                - name: WEB 720p
+                  qualities:
+                    - WEBDL-720p
+                    - WEBRip-720p
+                - name: HDTV-720p
+
+          custom_formats:
+            - trash_ids:
+                - fr-vff
+                - fr-vfi
+                - fr-vfq
+                - fr-multi
+              assign_scores_to:
+                - name: MULTi.VF
+
+            - trash_ids:
+                - fr-vostfr
+              assign_scores_to:
+                - name: MULTi.VF
+
+            - trash_ids:
+                - fr-mhd
+                - fr-x265-hd
+              assign_scores_to:
+                - name: MULTi.VF
+
+      # ============================================================================
+      # Radarr — namespace selfhost
+      # ----------------------------------------------------------------------------
+      # Mêmes principes que Sonarr : HD only, priorité mHD x265.
+      # ============================================================================
+      radarr:
+        main:
+          base_url: http://radarr.selfhost.svc.cluster.local:7878
+          api_key: !env RADARR_API_KEY
+
+          media_naming:
+            folder: default
+            movie:
+              rename: true
+              standard: default
+
+          quality_definition:
+            type: movie
+            qualities:
+              - quality: WEBDL-1080p
+                min: 2
+                preferred: 25
+                max: 50
+              - quality: WEBRip-1080p
+                min: 2
+                preferred: 25
+                max: 50
+              - quality: Bluray-1080p
+                min: 2
+                preferred: 40
+                max: 70
+              - quality: HDTV-1080p
+                min: 2
+                preferred: 20
+                max: 40
+              - quality: WEBDL-720p
+                min: 2
+                preferred: 15
+                max: 30
+              - quality: WEBRip-720p
+                min: 2
+                preferred: 15
+                max: 30
+              - quality: Bluray-720p
+                min: 2
+                preferred: 25
+                max: 40
+              - quality: HDTV-720p
+                min: 2
+                preferred: 12
+                max: 25
+
+          quality_profiles:
+            - name: MULTi.VF
+              reset_unmatched_scores:
+                enabled: true
+              upgrade:
+                allowed: true
+                until_quality: Bluray-1080p
+                until_score: 2000
+                min_format_score: 50
+              min_format_score: 0
+              quality_sort: top
+              qualities:
+                - name: Bluray-1080p
+                - name: WEB 1080p
+                  qualities:
+                    - WEBDL-1080p
+                    - WEBRip-1080p
+                - name: HDTV-1080p
+                - name: Bluray-720p
+                - name: WEB 720p
+                  qualities:
+                    - WEBDL-720p
+                    - WEBRip-720p
+                - name: HDTV-720p
+
+          custom_formats:
+            - trash_ids:
+                - fr-vff
+                - fr-vfi
+                - fr-vfq
+                - fr-multi
+              assign_scores_to:
+                - name: MULTi.VF
+
+            - trash_ids:
+                - fr-vostfr
+              assign_scores_to:
+                - name: MULTi.VF
+
+            - trash_ids:
+                - fr-mhd
+                - fr-x265-hd
+              assign_scores_to:
+                - name: MULTi.VF
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: configarr:/ConfigMap:selfhost/configarr
+    creationTimestamp: "2026-05-07T04:16:26Z"
+    labels:
+      app.kubernetes.io/instance: configarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: configarr
+      app.kubernetes.io/version: 1.16.0
+      helm.sh/chart: configarr-0.1.0
+    name: configarr
+    namespace: selfhost
+    resourceVersion: "32866180"
+    uid: 03b63108-a555-420b-bbf1-3198f632ef74
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: configarr:/PersistentVolumeClaim:selfhost/configarr-cache
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+      volume.kubernetes.io/selected-node: pc
+      volume.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+    creationTimestamp: "2026-05-07T04:16:27Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app.kubernetes.io/instance: configarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: configarr
+      app.kubernetes.io/version: 1.16.0
+      helm.sh/chart: configarr-0.1.0
+    name: configarr-cache
+    namespace: selfhost
+    resourceVersion: "32864615"
+    uid: b5710d65-b65e-457f-9a18-e88d50495adb
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: microk8s-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-b5710d65-b65e-457f-9a18-e88d50495adb
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""

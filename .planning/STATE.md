@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-12T09:23:17.120Z"
-last_activity: 2026-05-12 -- Phase 4 planning complete
+last_updated: "2026-05-13T07:30:00Z"
+last_activity: 2026-05-13 -- Phase 4 execution halted; app-template 4.6.2 -> 5.0.0 drift surfaced by ADR-6 baseline
 progress:
   total_phases: 11
   completed_phases: 6
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 03 — Étendre arrconf (Sonarr ext + Radarr + Prowlarr)
+**Current focus:** Phase 4 — umbrella-chart-migration-des-9-apps
 
 ## Current Position
 
-Phase: 03 — COMPLETE
-Plan: 2 of 6
+Phase: 4 (umbrella-chart-migration-des-9-apps) — HALTED (Wave 0 partial)
+Plan: 1 of 9 (Task 1.1 done; Task 1.2 deferred; Waves 1-7 blocked pending replan)
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-12 -- Phase 4 planning complete
+Last activity: 2026-05-13 -- Phase 4 execution halted; app-template 4.6.2 -> 5.0.0 drift surfaced by ADR-6 baseline. See `.planning/phases/04-umbrella-chart-migration-des-9-apps/04-01-DRIFT-NOTE.md`. Operator next: refresh my-kluster main + `/gsd-plan-phase 4 --research`.
 
 Progress: [██████████] 100%
 

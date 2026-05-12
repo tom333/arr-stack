@@ -1,0 +1,1262 @@
+# ArgoCD Application source (Application CR spec):
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: applications:argoproj.io/Application:argocd/prowlarr
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"applications:argoproj.io/Application:argocd/prowlarr"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"prowlarr","namespace":"argocd"},"spec":{"destination":{"namespace":"selfhost","server":"https://kubernetes.default.svc"},"project":"selfhost-project","source":{"chart":"app-template","helm":{"values":"controllers:\n  main:\n    containers:\n      main:\n        image:\n          repository: lscr.io/linuxserver/prowlarr\n          tag: 2.3.5\n        env:\n          TZ: \"Europe/Paris\"\n          PUID: \"1000\"\n          PGID: \"1000\"\nservice:\n  main:\n    controller: main\n    ports:\n      http:\n        port: 9696\ningress:\n  main:\n    className: nginx\n    annotations:\n      cert-manager.io/cluster-issuer: \"letsencrypt-prod\"\n      # nginx.ingress.kubernetes.io/auth-url: \"https://auth.tgu.ovh/oauth2/auth\"\n      # nginx.ingress.kubernetes.io/auth-signin: \"https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh\"\n    hosts:\n      - host: prowlarr.tgu.ovh\n        paths:\n          - path: /\n            pathType: Prefix\n            service:\n              identifier: main\n              port: http\n    tls:\n      - secretName: prowlarr-tls\n        hosts:\n          - prowlarr.tgu.ovh\npersistence:\n  config:\n    type: persistentVolumeClaim\n    accessMode: ReadWriteOnce\n    size: 1Gi\n    globalMounts:\n      - path: /config\n"},"repoURL":"https://bjw-s-labs.github.io/helm-charts","targetRevision":"5.0.0"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=false"]}}}
+  creationTimestamp: "2026-04-14T00:41:39Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 7988
+  name: prowlarr
+  namespace: argocd
+  resourceVersion: "34047117"
+  uid: 35a6a021-780f-4f58-a598-33b24a10ad1f
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    chart: app-template
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: lscr.io/linuxserver/prowlarr
+                  tag: 2.3.5
+                env:
+                  TZ: "Europe/Paris"
+                  PUID: "1000"
+                  PGID: "1000"
+        service:
+          main:
+            controller: main
+            ports:
+              http:
+                port: 9696
+        ingress:
+          main:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+              # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+            hosts:
+              - host: prowlarr.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: http
+            tls:
+              - secretName: prowlarr-tls
+                hosts:
+                  - prowlarr.tgu.ovh
+        persistence:
+          config:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 1Gi
+            globalMounts:
+              - path: /config
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    targetRevision: 5.0.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-05-12T03:00:27Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-04-14T00:41:44Z"
+    deployedAt: "2026-04-14T00:41:53Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/prowlarr
+                    tag: latest
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 9696
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+              hosts:
+                - host: prowlarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: prowlarr-tls
+                  hosts:
+                    - prowlarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 1Gi
+              globalMounts:
+                - path: /config
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-04-17T06:40:16Z"
+    deployedAt: "2026-04-17T06:40:19Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/prowlarr
+                    tag: 2.3.5.5327
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 9696
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+              hosts:
+                - host: prowlarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: prowlarr-tls
+                  hosts:
+                    - prowlarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 1Gi
+              globalMounts:
+                - path: /config
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-04-17T07:15:39Z"
+    deployedAt: "2026-04-17T07:15:41Z"
+    id: 2
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/prowlarr
+                    tag: 2.3.5
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 9696
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+              hosts:
+                - host: prowlarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: prowlarr-tls
+                  hosts:
+                    - prowlarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 1Gi
+              globalMounts:
+                - path: /config
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-05-07T08:32:44Z"
+    deployedAt: "2026-05-07T08:32:45Z"
+    id: 3
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/prowlarr
+                    tag: 2.3.5
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 9696
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+              hosts:
+                - host: prowlarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: prowlarr-tls
+                  hosts:
+                    - prowlarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 1Gi
+              globalMounts:
+                - path: /config
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-05-11T09:56:53Z"
+    deployedAt: "2026-05-11T09:57:01Z"
+    id: 4
+    initiatedBy:
+      automated: true
+    revision: 5.0.0
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/prowlarr
+                    tag: 2.3.5
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 9696
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+              hosts:
+                - host: prowlarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: prowlarr-tls
+                  hosts:
+                    - prowlarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 1Gi
+              globalMounts:
+                - path: /config
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 5.0.0
+  operationState:
+    finishedAt: "2026-05-11T09:57:02Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 5.0.0
+        source:
+          chart: app-template
+          helm:
+            values: |
+              controllers:
+                main:
+                  containers:
+                    main:
+                      image:
+                        repository: lscr.io/linuxserver/prowlarr
+                        tag: 2.3.5
+                      env:
+                        TZ: "Europe/Paris"
+                        PUID: "1000"
+                        PGID: "1000"
+              service:
+                main:
+                  controller: main
+                  ports:
+                    http:
+                      port: 9696
+              ingress:
+                main:
+                  className: nginx
+                  annotations:
+                    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                    # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                    # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+                  hosts:
+                    - host: prowlarr.tgu.ovh
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                          service:
+                            identifier: main
+                            port: http
+                  tls:
+                    - secretName: prowlarr-tls
+                      hosts:
+                        - prowlarr.tgu.ovh
+              persistence:
+                config:
+                  type: persistentVolumeClaim
+                  accessMode: ReadWriteOnce
+                  size: 1Gi
+                  globalMounts:
+                    - path: /config
+          repoURL: https://bjw-s-labs.github.io/helm-charts
+          targetRevision: 5.0.0
+        syncOptions:
+        - CreateNamespace=false
+    phase: Succeeded
+    startedAt: "2026-05-11T09:56:53Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: ServiceAccount
+        message: serviceaccount/prowlarr created
+        name: prowlarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: PersistentVolumeClaim
+        message: persistentvolumeclaim/prowlarr configured
+        name: prowlarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/prowlarr configured
+        name: prowlarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - lscr.io/linuxserver/prowlarr:2.3.5
+        kind: Deployment
+        message: deployment.apps/prowlarr configured
+        name: prowlarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: networking.k8s.io
+        hookPhase: Running
+        kind: Ingress
+        message: ingress.networking.k8s.io/prowlarr configured
+        name: prowlarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 5.0.0
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/prowlarr
+                      tag: 2.3.5
+                    env:
+                      TZ: "Europe/Paris"
+                      PUID: "1000"
+                      PGID: "1000"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 9696
+            ingress:
+              main:
+                className: nginx
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                  # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+                hosts:
+                  - host: prowlarr.tgu.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          identifier: main
+                          port: http
+                tls:
+                  - secretName: prowlarr-tls
+                    hosts:
+                      - prowlarr.tgu.ovh
+            persistence:
+              config:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 1Gi
+                globalMounts:
+                  - path: /config
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+  reconciledAt: "2026-05-12T20:19:22Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: PersistentVolumeClaim
+    name: prowlarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: Service
+    name: prowlarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: ServiceAccount
+    name: prowlarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: prowlarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: networking.k8s.io
+    kind: Ingress
+    name: prowlarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    externalURLs:
+    - https://prowlarr.tgu.ovh/
+    images:
+    - lscr.io/linuxserver/prowlarr:2.3.5
+  sync:
+    comparedTo:
+      destination:
+        namespace: selfhost
+        server: https://kubernetes.default.svc
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/prowlarr
+                      tag: 2.3.5
+                    env:
+                      TZ: "Europe/Paris"
+                      PUID: "1000"
+                      PGID: "1000"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 9696
+            ingress:
+              main:
+                className: nginx
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                  # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://prowlarr.tgu.ovh"
+                hosts:
+                  - host: prowlarr.tgu.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          identifier: main
+                          port: http
+                tls:
+                  - secretName: prowlarr-tls
+                    hosts:
+                      - prowlarr.tgu.ovh
+            persistence:
+              config:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 1Gi
+                globalMounts:
+                  - path: /config
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+    revision: 5.0.0
+    status: Synced
+---
+# Live cluster state for label app.kubernetes.io/instance=prowlarr:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2026-05-11T09:57:17Z"
+    generateName: prowlarr-664d7fd687-
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/name: prowlarr
+      pod-template-hash: 664d7fd687
+    name: prowlarr-664d7fd687-qh86h
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: prowlarr-664d7fd687
+      uid: 7b4d446a-8568-4771-9831-c8ba87bad48a
+    resourceVersion: "33897618"
+    uid: d5005c08-017a-49a5-9db5-2922c34fab3d
+  spec:
+    automountServiceAccountToken: false
+    containers:
+    - env:
+      - name: PGID
+        value: "1000"
+      - name: PUID
+        value: "1000"
+      - name: TZ
+        value: Europe/Paris
+      image: lscr.io/linuxserver/prowlarr:2.3.5
+      imagePullPolicy: Always
+      name: main
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /config
+        name: config
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: false
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: prowlarr
+    serviceAccountName: prowlarr
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: config
+      persistentVolumeClaim:
+        claimName: prowlarr
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:23Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:19Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:23Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:23Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:18Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://bae7c0e9e44a16b47240506752742f53d67257133276658473b0c48c0ae47e9c
+      image: lscr.io/linuxserver/prowlarr:2.3.5
+      imageID: lscr.io/linuxserver/prowlarr@sha256:4b52038b7b6452a20c145239fa07d8218d1541d736a96c43aa0a5f60141cab28
+      lastState: {}
+      name: main
+      ready: true
+      resources: {}
+      restartCount: 1
+      started: true
+      state:
+        running:
+          startedAt: "2026-05-12T03:00:21Z"
+      volumeMounts:
+      - mountPath: /config
+        name: config
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Running
+    podIP: 10.1.28.141
+    podIPs:
+    - ip: 10.1.28.141
+    qosClass: BestEffort
+    startTime: "2026-05-11T09:57:19Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:/Service:selfhost/prowlarr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"prowlarr:/Service:selfhost/prowlarr"},"labels":{"app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"prowlarr","app.kubernetes.io/service":"prowlarr","helm.sh/chart":"app-template-5.0.0"},"name":"prowlarr","namespace":"selfhost"},"spec":{"ports":[{"name":"http","port":9696,"protocol":"TCP","targetPort":9696}],"selector":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/name":"prowlarr"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-04-14T00:41:48Z"
+    labels:
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: prowlarr
+      app.kubernetes.io/service: prowlarr
+      helm.sh/chart: app-template-5.0.0
+    name: prowlarr
+    namespace: selfhost
+    resourceVersion: "33748734"
+    uid: 2bb8fff8-635b-42f5-9c48-dfd79ce947be
+  spec:
+    clusterIP: 10.152.183.224
+    clusterIPs:
+    - 10.152.183.224
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 9696
+      protocol: TCP
+      targetPort: 9696
+    selector:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/name: prowlarr
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:apps/Deployment:selfhost/prowlarr
+      deployment.kubernetes.io/revision: "4"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"prowlarr:apps/Deployment:selfhost/prowlarr"},"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"prowlarr","helm.sh/chart":"app-template-5.0.0"},"name":"prowlarr","namespace":"selfhost"},"spec":{"replicas":1,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/name":"prowlarr"}},"strategy":{"type":"Recreate"},"template":{"metadata":{"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/name":"prowlarr"}},"spec":{"automountServiceAccountToken":false,"containers":[{"env":[{"name":"PGID","value":"1000"},{"name":"PUID","value":"1000"},{"name":"TZ","value":"Europe/Paris"}],"image":"lscr.io/linuxserver/prowlarr:2.3.5","name":"main","volumeMounts":[{"mountPath":"/config","name":"config"}]}],"dnsPolicy":"ClusterFirst","enableServiceLinks":false,"hostIPC":false,"hostNetwork":false,"hostPID":false,"serviceAccountName":"prowlarr","volumes":[{"name":"config","persistentVolumeClaim":{"claimName":"prowlarr"}}]}}}}
+    creationTimestamp: "2026-04-14T00:41:50Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: prowlarr
+      helm.sh/chart: app-template-5.0.0
+    name: prowlarr
+    namespace: selfhost
+    resourceVersion: "33897632"
+    uid: 903ae5b2-235c-490c-9166-33988fb6821d
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: prowlarr
+        app.kubernetes.io/name: prowlarr
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: prowlarr
+          app.kubernetes.io/name: prowlarr
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/prowlarr:2.3.5
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: prowlarr
+        serviceAccountName: prowlarr
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-04-17T07:15:43Z"
+      lastUpdateTime: "2026-05-11T09:58:07Z"
+      message: ReplicaSet "prowlarr-664d7fd687" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-05-12T03:00:26Z"
+      lastUpdateTime: "2026-05-12T03:00:26Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 4
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:apps/Deployment:selfhost/prowlarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "4"
+    creationTimestamp: "2026-05-11T09:57:17Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/name: prowlarr
+      pod-template-hash: 664d7fd687
+    name: prowlarr-664d7fd687
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: prowlarr
+      uid: 903ae5b2-235c-490c-9166-33988fb6821d
+    resourceVersion: "33897625"
+    uid: 7b4d446a-8568-4771-9831-c8ba87bad48a
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: prowlarr
+        app.kubernetes.io/name: prowlarr
+        pod-template-hash: 664d7fd687
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: prowlarr
+          app.kubernetes.io/name: prowlarr
+          pod-template-hash: 664d7fd687
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/prowlarr:2.3.5
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: prowlarr
+        serviceAccountName: prowlarr
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:apps/Deployment:selfhost/prowlarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "3"
+    creationTimestamp: "2026-04-17T07:15:50Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/name: prowlarr
+      pod-template-hash: 7557b96556
+    name: prowlarr-7557b96556
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: prowlarr
+      uid: 903ae5b2-235c-490c-9166-33988fb6821d
+    resourceVersion: "33748906"
+    uid: 06e6f664-e584-49ad-8561-bb067f89a94a
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: prowlarr
+        app.kubernetes.io/name: prowlarr
+        pod-template-hash: 7557b96556
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: prowlarr
+          app.kubernetes.io/name: prowlarr
+          pod-template-hash: 7557b96556
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/prowlarr:2.3.5
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:apps/Deployment:selfhost/prowlarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2026-04-14T00:41:52Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/name: prowlarr
+      pod-template-hash: 7dcd58c9d7
+    name: prowlarr-7dcd58c9d7
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: prowlarr
+      uid: 903ae5b2-235c-490c-9166-33988fb6821d
+    resourceVersion: "29473369"
+    uid: 70954984-9532-4dbc-b5a2-6e589febb947
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: prowlarr
+        app.kubernetes.io/name: prowlarr
+        pod-template-hash: 7dcd58c9d7
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: prowlarr
+          app.kubernetes.io/name: prowlarr
+          pod-template-hash: 7dcd58c9d7
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/prowlarr:latest
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:apps/Deployment:selfhost/prowlarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "2"
+    creationTimestamp: "2026-04-17T06:40:41Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/name: prowlarr
+      pod-template-hash: 9b97d4c8f
+    name: prowlarr-9b97d4c8f
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: prowlarr
+      uid: 903ae5b2-235c-490c-9166-33988fb6821d
+    resourceVersion: "29478394"
+    uid: 32ed7f78-6ba2-46bc-b7ad-b9ebfddff582
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: prowlarr
+        app.kubernetes.io/name: prowlarr
+        pod-template-hash: 9b97d4c8f
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: prowlarr
+          app.kubernetes.io/name: prowlarr
+          pod-template-hash: 9b97d4c8f
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/prowlarr:2.3.5.5327
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:networking.k8s.io/Ingress:selfhost/prowlarr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"prowlarr:networking.k8s.io/Ingress:selfhost/prowlarr","cert-manager.io/cluster-issuer":"letsencrypt-prod"},"labels":{"app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"prowlarr","helm.sh/chart":"app-template-5.0.0"},"name":"prowlarr","namespace":"selfhost"},"spec":{"ingressClassName":"nginx","rules":[{"host":"prowlarr.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"prowlarr","port":{"number":9696}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["prowlarr.tgu.ovh"],"secretName":"prowlarr-tls"}]}}
+    creationTimestamp: "2026-04-14T00:41:53Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: prowlarr
+      helm.sh/chart: app-template-5.0.0
+    name: prowlarr
+    namespace: selfhost
+    resourceVersion: "33748839"
+    uid: 0b7f4439-c6e4-42b1-896b-8cabc2b7e45b
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: prowlarr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: prowlarr
+              port:
+                number: 9696
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - prowlarr.tgu.ovh
+      secretName: prowlarr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:/PersistentVolumeClaim:selfhost/prowlarr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"prowlarr:/PersistentVolumeClaim:selfhost/prowlarr"},"labels":{"app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"prowlarr","helm.sh/chart":"app-template-5.0.0"},"name":"prowlarr","namespace":"selfhost"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"1Gi"}}}}
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+      volume.kubernetes.io/selected-node: pc
+      volume.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+    creationTimestamp: "2026-04-14T00:41:48Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: prowlarr
+      helm.sh/chart: app-template-5.0.0
+    name: prowlarr
+    namespace: selfhost
+    resourceVersion: "33748718"
+    uid: 0bca50a9-d772-40d5-bba0-8814c0f31425
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: microk8s-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-0bca50a9-d772-40d5-bba0-8814c0f31425
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    phase: Bound
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: prowlarr:/ServiceAccount:selfhost/prowlarr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"prowlarr:/ServiceAccount:selfhost/prowlarr"},"labels":{"app.kubernetes.io/instance":"prowlarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"prowlarr","helm.sh/chart":"app-template-5.0.0"},"name":"prowlarr","namespace":"selfhost"}}
+    creationTimestamp: "2026-05-11T09:56:54Z"
+    labels:
+      app.kubernetes.io/instance: prowlarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: prowlarr
+      helm.sh/chart: app-template-5.0.0
+    name: prowlarr
+    namespace: selfhost
+    resourceVersion: "33748696"
+    uid: 08d5cdbe-60a2-446f-b573-2e6272eab447
+kind: List
+metadata:
+  resourceVersion: ""
