@@ -1,0 +1,20 @@
+# charts/arr-stack/values.yaml
+# Each top-level key matches a dependency alias in Chart.yaml.
+# Per-app bodies are populated by Plans 04-03 (sonarr/radarr/prowlarr/qbittorrent),
+# 04-04 (cleanuparr/seerr/flaresolverr/jellyfin), and 04-05 (arrconf/configarr).
+
+# Wave 2 (Plan 04-03) populates the next 4:
+sonarr: {}
+radarr: {}
+prowlarr: {}
+qbittorrent: {}
+
+# Wave 3 (Plan 04-04) populates the next 4:
+cleanuparr: {}
+seerr: {}
+flaresolverr: {}
+jellyfin: {}
+
+# Wave 4 (Plan 04-05) populates the next 2:
+arrconf: {}
+configarr: {}
