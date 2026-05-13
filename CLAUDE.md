@@ -15,59 +15,63 @@
 
 Le projet est consommé par le cluster `my-kluster` (sister repo) via une seule ArgoCD Application qui pull ce repo.
 
-**État actuel** : phase spec/bootstrap. Le code et le chart n'existent pas encore — voir [`spec.md`](./spec.md) §7 pour la roadmap par phases.
+**État actuel** : Phase 4 terminée — umbrella chart déployé, 1 ArgoCD Application, 9 apps en production. Voir [`spec.md`](./spec.md) §7 pour la roadmap.
 
 ---
 
-## Structure cible
+## Structure actuelle (post-Phase 4)
 
 ```
 arr-stack/
-├── spec.md                          # WHAT + WHY (lecture obligatoire)
+├── spec.md                          # WHAT + WHY
 ├── CLAUDE.md                        # ce fichier — HOW
 ├── README.md                        # entrée publique GitHub
 │
-├── tools/arrconf/                   # ★ script Python
-│   ├── pyproject.toml               # deps figées, ruff config, pytest config
-│   ├── Dockerfile                   # multi-stage, USER 1000:1000, ~80 MB cible
+├── tools/arrconf/                   # ★ script Python reconciler
+│   ├── pyproject.toml
+│   ├── Dockerfile                   # multi-stage, USER 1000:1000
 │   ├── arrconf/
 │   │   ├── __main__.py              # entrypoint CLI
-│   │   ├── config.py                # parsing YAML + validation pydantic
-│   │   ├── client_base.py           # ArrApiClient générique (auth, retry, pagination)
-│   │   ├── differ.py                # GET → diff → POST/PUT/DELETE générique
-│   │   ├── reconcilers/             # un fichier par app
-│   │   │   ├── sonarr.py
-│   │   │   ├── radarr.py
-│   │   │   └── ...
-│   │   └── resources/               # schémas pydantic par resource type
+│   │   ├── config.py
+│   │   ├── client_base.py           # ArrApiClient + _ArrV3Client mixin (ADR-8)
+│   │   ├── differ.py
+│   │   ├── merge.py                 # field-merge helpers (Phase 2.1 + 2.2)
+│   │   ├── reconcilers/{sonarr,radarr,prowlarr}.py
+│   │   └── resources/               # pydantic schémas par resource type
 │   └── tests/
-│       ├── conftest.py
-│       └── fixtures/                # JSON de réponses API mockées
 │
-├── charts/arr-stack/                # umbrella Helm chart
-│   ├── Chart.yaml                   # deps: app-template ×N (alias par service)
-│   ├── values.yaml                  # ★ annotations Renovate ici
-│   ├── values.schema.json           # validation des valeurs
+├── tools/scripts/                   # helper scripts (Phase 4)
+│   ├── check-renovate-annotations.sh
+│   └── byte-equivalence-diff.sh
+│
+├── charts/arr-stack/                # ★ umbrella Helm chart
+│   ├── Chart.yaml                   # 10 app-template@5.0.0 aliases
+│   ├── Chart.lock
+│   ├── values.yaml                  # ★ renovate annotations + tag pins
+│   ├── values.schema.json
 │   ├── files/
-│   │   ├── arrconf.yml              # config arrconf (mountée en ConfigMap)
-│   │   └── configarr.yml            # config configarr (idem)
+│   │   ├── arrconf.yml              # arrconf config (mounted ConfigMap)
+│   │   └── configarr.yml            # configarr config (idem)
 │   └── templates/
 │       ├── _helpers.tpl
-│       ├── arrconf-cronjob.yaml
 │       ├── arrconf-configmap.yaml
-│       ├── configarr-cronjob.yaml
 │       └── configarr-configmap.yaml
 │
 ├── examples/
-│   └── values-prod.yaml             # values utilisées par my-kluster
+│   └── values-prod.yaml             # = charts/arr-stack/values.yaml (D-04-VALUES-03)
 │
-├── .github/workflows/
-│   ├── arrconf-image.yml            # build + push GHCR
-│   ├── chart-lint.yml               # helm lint + kubeconform
-│   └── tests.yml                    # ruff + mypy + pytest
+├── schemas/
+│   └── arrconf-schema.json          # généré par `arrconf schema-gen`
 │
-└── renovate.json                    # customManagers pour values.yaml
+├── snapshots/                       # baselines ADR-6 + forensics
+│
+└── .github/workflows/
+    ├── arrconf-image.yml            # build + push GHCR
+    ├── chart-lint.yml               # helm lint + kubeconform + guards + auto-tag
+    └── tests.yml                    # ruff + mypy + pytest
 ```
+
+Note historique : la section précédente ("Structure cible") était anticipative et listait des templates custom pour les CronJobs arrconf et configarr. D-04-CRON-01 a tranché pour des aliases `bjw-s/app-template` uniformes, ce qui a éliminé ces templates custom et déplacé toute la logique CronJob dans `charts/arr-stack/values.yaml`. Seuls `arrconf-configmap.yaml` et `configarr-configmap.yaml` subsistent dans `templates/` (ConfigMaps pour les fichiers de config).
 
 ---
 
@@ -83,7 +87,7 @@ arr-stack/
 | Tests | `pytest` + `respx` (mock httpx) | Standard Python |
 | Lint/format | `ruff` | Rapide, suffisant |
 | Type check | `mypy` | Strict sur signatures publiques ; CI bloque |
-| Helm | Helm 3 + chart `bjw-s/app-template` en deps | Pattern déjà en place dans my-kluster |
+| Helm | Helm 3 (≥ 3.18 requis par app-template 5.0.0) + chart `bjw-s/app-template@5.0.0` en deps | Pattern déjà en place dans my-kluster (Renovate-suivi via `helmv3` manager). Phase 4 = adoption umbrella. |
 | Image | `ghcr.io/tom333/arr-stack-arrconf` (public) | Cluster pull anonyme, Renovate suit |
 | CI | GitHub Actions | Build image + lint + tests |
 | Release | tags semver `vX.Y.Z` (manuel ou release-please — à arbitrer Phase 0/1) | |
@@ -168,15 +172,27 @@ Sans ça, Renovate ne suit pas et les bumps deviennent manuels.
 dependencies:
   - name: app-template
     alias: sonarr
-    version: 4.6.2
+    version: 5.0.0
     repository: https://bjw-s-labs.github.io/helm-charts
   - name: app-template
     alias: radarr
-    version: 4.6.2
+    version: 5.0.0
     repository: https://bjw-s-labs.github.io/helm-charts
+  # ... (10 aliases au total dans Chart.yaml)
 ```
 
 Renovate suit la version d'app-template via le manager `helmv3`.
+
+**Workaround Helm 4 multi-alias (OBLIGATOIRE en local et en CI)** : Helm 4 ne duplique pas automatiquement le tgz pour les N aliases du même chart. Après `helm dependency build`, il faut unpacker :
+
+```bash
+tar -xzf charts/arr-stack/charts/app-template-5.0.0.tgz -C charts/arr-stack/charts/
+for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin arrconf configarr; do
+  [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
+done
+```
+
+Ce step est codifié dans `chart-lint.yml` (CI) et dans le README "Vérification locale".
 
 ### Templates custom
 
@@ -260,9 +276,10 @@ diff -r snapshots/baseline-2026-05-07/ snapshots/before-phase-3-2026-05-15/   # 
 
 ### Release
 
-À arbitrer Phase 0/1 (cf spec §10 Q4) :
-- Option simple : tags manuels après merge
-- Option propre : `release-please` (PR de release auto-générée)
+**Mécanisme actuel (Phase 4+)** : auto-tag via `mathieudutour/github-tag-action` dans `chart-lint.yml`. Sur chaque push vers `main`, le job `tag` crée automatiquement un tag patch `vX.Y.Z+1` basé sur le dernier tag. Tags manuels pour les sauts minor/major.
+
+- Renovate côté `my-kluster` détecte le nouveau tag et propose un bump de `targetRevision: vX.Y.Z`.
+- Merge → ArgoCD sync automatique (< 1 h).
 
 ### Déploiement (côté my-kluster)
 
@@ -319,13 +336,15 @@ Décision spec ADR-7 : **1 seule instance Sonarr et 1 seule Radarr**, différenc
 
 ---
 
-## Intégration avec my-kluster
+## Intégration avec my-kluster (post-Phase 4)
 
-- **Une seule** ArgoCD Application (`my-kluster/argocd/argocd-apps/arr-stack-app.yaml`) pointe vers ce repo, path `charts/arr-stack/`, valueFile `examples/values-prod.yaml`.
-- **Bootstrap secrets** restent dans `my-kluster/secrets/` (manuels, kubectl apply) jusqu'à migration ESO globale (TODO de my-kluster, hors scope arr-stack).
-- **Suppression dans my-kluster post-Phase 3** : 5 fichiers `argocd/argocd-apps/{sonarr,radarr,prowlarr,cleanuparr,configarr}-app.yaml` + `charts/configarr/` (déplacé ici).
+- **Une seule** ArgoCD Application (`my-kluster/argocd/argocd-apps/arr-stack-app.yaml`) pointe vers ce repo, `path: charts/arr-stack/`, `valueFile: examples/values-prod.yaml`.
+- **syncOptions** : `[CreateNamespace=true, ServerSideApply=true, Replace=true]`. `Replace=true` est REQUIS car la migration cutover change `app.kubernetes.io/instance` (immutable Deployment selector) — sans Replace, ArgoCD échoue avec `field is immutable`. Voir D-04-CUTOVER-05 dans la section "Decisions" de `.planning/phases/04-umbrella-chart-migration-des-9-apps/04-RESEARCH.md`.
+- **Suppression post-Phase-4** : 10 fichiers `argocd/argocd-apps/{sonarr,radarr,prowlarr,cleanuparr,qbittorrent,seerr,flaresolverr,jellyfin,arrconf,configarr}-app.yaml` + `charts/arrconf/` + `charts/configarr/` retirés de my-kluster dans la même PR atomique (D-04-CUTOVER-01).
+- **Bootstrap secrets** restent dans `my-kluster/secrets/` (`arrconf-env`, `configarr-env` — manuels, `kubectl apply`). Migration ESO globale = Phase 8 (post-MVP).
+- **Renovate côté my-kluster** suit `targetRevision: vX.Y.Z` dans `arr-stack-app.yaml` via le manager standard `argocd`. Bumps minor/patch automerge.
 
-Tout ce qui change dans le périmètre arr-stack se fait via PR sur **ce** repo. Toute modif côté my-kluster est limitée au bump `targetRevision` (auto par Renovate) ou à la gestion des secrets bootstrap.
+Tout changement de scope arr-stack passe par PR sur **ce** repo. Toute modif côté `my-kluster` est limitée au bump `targetRevision` (auto par Renovate) ou à la gestion des secrets bootstrap.
 
 ---
 
@@ -382,15 +401,17 @@ Ce projet utilise [get-shit-done](https://github.com/gsd-build/get-shit-done) po
 
 ---
 
-## Bootstrap (état actuel — 2026-05-07)
+## Historical bootstrap (Phase 0-3)
 
-Au moment où ce CLAUDE.md est écrit, le repo contient uniquement :
+> Note historique : cette section décrivait l'état du repo au moment du bootstrap (mai 2026, Phase 0). Conservée pour traçabilité ; la Phase 4 a opéré le cutover vers l'umbrella documenté ci-dessus dans "Structure actuelle". Pour l'état présent, lire les premières sections de ce fichier (Vue d'ensemble + Structure actuelle + Intégration avec my-kluster).
+
+Au moment où ce CLAUDE.md a été initialement écrit, le repo contenait uniquement :
 - `spec.md` (665 lignes — toute la spec)
 - `CLAUDE.md` (ce fichier)
 
-**Aucun code, aucun chart, aucune CI**. C'est l'état initial avant Phase 0.
+**Aucun code, aucun chart, aucune CI**. C'était l'état initial avant Phase 0.
 
-Pour démarrer Phase 0 :
+Pour démarrer Phase 0 (historique — déjà fait) :
 1. `gsd-import spec.md` (ou `gsd-ingest-docs`) → bootstrap `.planning/`
 2. `gsd-new-project` si on veut un cycle complet (PROJECT.md, ROADMAP.md, etc.)
 3. Premier `gsd-spec-phase` puis `gsd-plan-phase` sur la Phase 0 du spec
