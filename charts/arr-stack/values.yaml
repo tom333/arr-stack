@@ -4,8 +4,124 @@
 # 04-04 (cleanuparr/seerr/flaresolverr/jellyfin), and 04-05 (arrconf/configarr).
 
 # Wave 2 (Plan 04-03) populates the next 4:
-sonarr: {}
-radarr: {}
+sonarr:
+  global:
+    fullnameOverride: sonarr
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            # renovate: image=lscr.io/linuxserver/sonarr
+            repository: lscr.io/linuxserver/sonarr
+            tag: "4.0.17"
+          env:
+            TZ: "Europe/Paris"
+            PUID: "1000"
+            PGID: "1000"
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 8989
+  ingress:
+    main:
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+        nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://sonarr.tgu.ovh"
+      hosts:
+        - host: sonarr.tgu.ovh
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - secretName: sonarr-tls
+          hosts:
+            - sonarr.tgu.ovh
+  persistence:
+    config:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 2Gi
+      globalMounts:
+        - path: /config
+    torrents:
+      # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+      type: hostPath
+      hostPath: /opt/media-stack/torrents
+      hostPathType: DirectoryOrCreate
+      globalMounts:
+        - path: /data/torrents
+    media:
+      # NAS NFS — destination finale des séries
+      type: persistentVolumeClaim
+      existingClaim: media-nas-pvc
+      globalMounts:
+        - path: /media
+radarr:
+  global:
+    fullnameOverride: radarr
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            # renovate: image=lscr.io/linuxserver/radarr
+            repository: lscr.io/linuxserver/radarr
+            tag: "6.1.1"
+          env:
+            TZ: "Europe/Paris"
+            PUID: "1000"
+            PGID: "1000"
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 7878
+  ingress:
+    main:
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+        nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+      hosts:
+        - host: radarr.tgu.ovh
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - secretName: radarr-tls
+          hosts:
+            - radarr.tgu.ovh
+  persistence:
+    config:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 2Gi
+      globalMounts:
+        - path: /config
+    torrents:
+      type: hostPath
+      hostPath: /opt/media-stack/torrents
+      hostPathType: DirectoryOrCreate
+      globalMounts:
+        - path: /data/torrents
+    media:
+      type: persistentVolumeClaim
+      existingClaim: media-nas-pvc
+      globalMounts:
+        - path: /media
 prowlarr: {}
 qbittorrent: {}
 
