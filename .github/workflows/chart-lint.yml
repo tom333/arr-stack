@@ -103,8 +103,10 @@ jobs:
           total_matches = 0
           for mgr in managers:
               for pat in mgr.get('matchStrings', []):
-                  # Renovate uses (?<name>...) named-group syntax; Python supports it too
-                  matches = re.findall(pat, values)
+                  # Renovate uses JS-regex (?<name>...) named-group syntax; Python's re module
+                  # requires (?P<name>...) — convert on-the-fly for the local synthetic test.
+                  py_pat = re.sub(r'\(\?<(?P<n>[A-Za-z_][A-Za-z0-9_]*)>', r'(?P<\g<n>>', pat)
+                  matches = re.findall(py_pat, values)
                   total_matches += len(matches)
                   print(f'pattern matched {len(matches)} times: {pat!r}')
           if total_matches < 10:
