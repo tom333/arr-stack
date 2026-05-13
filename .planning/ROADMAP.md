@@ -160,16 +160,16 @@ Plans:
   4. Tags `:latest` pinnés sur des semver explicites pour qbittorrent, flaresolverr, cleanuparr ; toutes les images dans `values.yaml` ont leur annotation `# renovate: image=…`
   5. CI `chart-lint.yml` verte : `helm lint` + `helm template … | kubeconform -` + `values.yaml` parse contre `values.schema.json` (bloquant)
   6. README final permet onboard (clone → bootstrap secrets → premier deploy) en moins de 30 min, avec liens vers `spec.md` / `CLAUDE.md` / my-kluster
-**Plans**: 9 plans
-- [ ] 04-01-pre-cutover-baseline-PLAN.md — Wave 0 (operator): capture running image digests + ADR-6 ArgoCD manifest baseline + helper scripts (check-renovate-annotations.sh + byte-equivalence-diff.sh)
-- [ ] 04-02-chart-skeleton-PLAN.md — Wave 1: Chart.yaml (10 app-template aliases), Chart.lock, app-template-4.6.2.tgz, _helpers.tpl, 2 ConfigMap templates, files/ port
-- [ ] 04-03-media-aliases-arr-PLAN.md — Wave 2: sonarr + radarr + prowlarr + qbittorrent aliases (verbatim from my-kluster unit Apps + Renovate annotations; qbittorrent pinned to 5.2.0)
-- [ ] 04-04-media-aliases-misc-PLAN.md — Wave 3: cleanuparr + seerr + flaresolverr (no-ingress) + jellyfin (no-oauth2-proxy) aliases; cleanuparr + flaresolverr pinned
-- [ ] 04-05-cronjob-aliases-schema-PLAN.md — Wave 4: arrconf (cronjob:Forbid, runAsNonRoot, args sonarr,radarr,prowlarr) + configarr (tty:true, cache PVC) CronJob aliases + values.schema.json generation
-- [ ] 04-06-ci-renovate-PLAN.md — Wave 5: chart-lint.yml workflow (helm lint + kubeconform + losisin schema action + renovate-config-validator + annotation check + :latest guard) + renovate.json customManagers + packageRules + examples/values-prod.yaml
-- [ ] 04-07-docs-refresh-PLAN.md — Wave 5 (parallel with 04-06 per W1): README.md full rewrite (REQ-readme-onboarding < 30 min) + CLAUDE.md refresh (Structure actuelle, Intégration my-kluster, Historical bootstrap) + operator walkthrough checkpoint
-- [ ] 04-08-cutover-PLAN.md — Wave 6 (cross-repo; W1 reshuffle): local byte-equivalence diff vs Wave 0 baseline + cut release tag (auto-tag job per B3 Path A) + atomic my-kluster PR (add arr-stack-app.yaml WITHOUT automated:, delete 10 unit Apps + charts/{arrconf,configarr}/) + operator-driven argocd diff/sync/wait + ingress smoke + arrconf smoke
-- [ ] 04-09-post-cutover-PLAN.md — Wave 7 (cross-repo; W1 ripple): 1-line follow-up PR re-enabling automated.{selfHeal,prune} + SC#2 E2E evidence captured within 72 h hard gate (B4) — natural bump within 0–48 h OR D-04-PIN-04 Path B forced between 48–72 h
+**Plans**: 9 plans (replanned 2026-05-13 against app-template **5.0.0** baseline — prior 4.6.2 assumption invalidated by ADR-6 baseline capture at commit 2a94257)
+- [ ] 04-01-PLAN.md — Wave 0: verify intact ADR-6 baseline (already-committed at 2a94257) + author helper scripts (check-renovate-annotations.sh + byte-equivalence-diff.sh)
+- [ ] 04-02-PLAN.md — Wave 1: Chart.yaml (10 app-template@5.0.0 aliases) + Chart.lock + _helpers.tpl + 2 ConfigMap templates + files/ verbatim port
+- [ ] 04-03-PLAN.md — Wave 2: sonarr + radarr + prowlarr + qbittorrent aliases (verbatim helm.values port + fullnameOverride + Renovate annotations; qbittorrent pinned to 5.2.0)
+- [ ] 04-04-PLAN.md — Wave 3: cleanuparr (2.3.3) + seerr + flaresolverr (v3.4.6, no-ingress) + jellyfin (no-oauth2-proxy) aliases; closes the :latest invariant
+- [ ] 04-05-PLAN.md — Wave 4: arrconf + configarr app-template@5.0.0 CronJob aliases (cronjob: key — NOT cronJobConfig:; Forbid; configarr tty:true; existingClaim configarr-cache) + values.schema.json + examples/values-prod.yaml
+- [ ] 04-06-PLAN.md — Wave 5: chart-lint.yml (helm lint + kubeconform 1.33.0 + annotation/latest/cronJobConfig guards + Python regex synthetic test + renovate-config-validator + auto-tag B3) + renovate.json customManagers + packageRules
+- [ ] 04-07-PLAN.md — Wave 5 (parallel, no file overlap with 04-06): README.md full rewrite + CLAUDE.md refresh (Structure actuelle, Intégration my-kluster v5/Replace=true, Historical bootstrap) + operator walkthrough checkpoint (< 30 min onboarding)
+- [ ] 04-08-PLAN.md — Wave 6 (cross-repo): local byte-equivalence diff vs Wave 0 baseline + atomic my-kluster PR (add arr-stack-app.yaml with Replace=true, WITHOUT automated:, delete 10 unit Apps + charts/{arrconf,configarr}/) + operator kubectl-driven sync + 10-min soak + ingress smoke
+- [ ] 04-09-PLAN.md — Wave 7 (cross-repo): 1-line follow-up PR re-enabling automated.{selfHeal,prune} + SC#2 E2E evidence within 72h hard gate (B4) — natural bump 0–48h OR D-04-PIN-04 Path B forced 48–72h
 **UI hint**: yes
 **Open questions to resolve**: Q2 (multi-alias `bjw-s/app-template` syntaxe — arbitrage syntaxique uniquement ; ADR-2 a déjà tranché Option A)
 

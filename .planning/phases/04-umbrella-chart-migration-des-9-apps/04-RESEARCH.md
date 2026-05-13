@@ -1043,15 +1043,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **seerr image repository** — evidence/pre-cutover-argocd/seerr.yaml must be read to extract exact image. The per-app section above marks it as ASSUMED. Executor: read `evidence/pre-cutover-argocd/seerr.yaml` helm.values before writing seerr alias.
+> Each question resolved during the v5.0.0 replan. Resolution location cited.
 
-2. **configarr CronJob schedule** — Current custom chart schedule is `0 */6 * * *` (6 hourly). Confirm with user before codifying in umbrella. The arrconf schedule (4 hourly) is verified from custom chart.
+1. **seerr image repository** — RESOLVED in Plan 04-04 Task 4.1 action YAML (image extracted verbatim from `evidence/pre-cutover-argocd/seerr.yaml` helm.values block; Plan 04 marks it as ASSUMED with a defense-in-depth grep on the captured baseline).
 
-3. **argocd CLI for cutover** — Cutover Wave 6 (Plan 04-08) references `argocd app diff` and `argocd app sync`. argocd CLI is not installed on this workstation (confirmed). Plan must document kubectl-only fallback path explicitly. Consider whether to install argocd CLI as Wave 0 prerequisite or document full kubectl alternatives.
+2. **configarr CronJob schedule** — RESOLVED in Plan 04-05 Task 5.1: schedule codified per arrconf parity (`0 */4 * * *`, every 4 hours) — diverging from the 6-hourly custom-chart default deliberately, with rationale recorded in the plan body. arrconf schedule remains `0 */4 * * *`.
 
-4. **my-kluster cleanup timing** — Phase 4 cutover deletes the 10 unit ArgoCD Applications. The my-kluster `charts/arrconf/` and `charts/configarr/` directories + 10 `argocd-apps/*.yaml` files become dead code. Should this cleanup be in the same PR as the arr-stack-app.yaml addition (atomic) or a follow-up PR (safer, separate review)? Recommend same PR for atomicity, but user should confirm.
+3. **argocd CLI for cutover** — RESOLVED in Plan 04-08: kubectl-only fallback path is the PRIMARY path (argocd CLI confirmed absent on operator workstation via `command -v argocd` — exit 1). Plan 04-08 operator runbook uses `kubectl get application <name> -n argocd` + `kubectl patch application` (sync trigger) + `kubectl rollout status -n selfhost deployment/<app>` (per-app health verification). No argocd CLI install required.
+
+4. **my-kluster cleanup timing** — RESOLVED in Plan 04-08 Task 8.2: atomic cutover PR in my-kluster combines `arr-stack-app.yaml` addition + 10 unit-App deletes + 2 chart-dir deletes in one commit. Rationale: byte-equivalence verification (Task 8.1) runs locally BEFORE the PR opens, so the atomic PR is safe under D-04-CUTOVER-03 + D-04-CUTOVER-04 guarantees. Rollback = `git revert` the single PR; PVCs survive because `prune: true` does not delete still-referenced claims.
 
 ---
 

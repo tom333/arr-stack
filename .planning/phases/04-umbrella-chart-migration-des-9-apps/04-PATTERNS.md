@@ -88,11 +88,11 @@ kubeVersion: ">=1.28.0-0"
 dependencies:
   - name: app-template
     alias: sonarr
-    version: 4.6.2
+    version: 5.0.0
     repository: https://bjw-s-labs.github.io/helm-charts
   - name: app-template
     alias: radarr
-    version: 4.6.2
+    version: 5.0.0
     repository: https://bjw-s-labs.github.io/helm-charts
   # ... repeat for prowlarr, cleanuparr, qbittorrent, seerr, flaresolverr, jellyfin, arrconf, configarr
 ```
@@ -1046,7 +1046,8 @@ These are patterns present in the **analog** source that must NOT be copied to t
 | `automated: selfHeal/prune` in first sync | `configarr-app.yaml` (template) | OMIT for first merge; add back in Wave 7 |
 | `tag: latest` | `cleanuparr-app.yaml` line 25, `qbittorrent-app.yaml` line 25, `flaresolverr-app.yaml` line 25 | Pin to semver/digest from evidence/current-image-tags.txt |
 | `identifier: arrconf-env` | (none in codebase, potential error) | Use `name: arrconf-env` (external Secret, not app-template identifier) |
-| `helm.sh/chart` in byte-equivalence diff | unit App ArgoCD manifests | Exclude from diff (will change from `app-template-4.6.2` to `arr-stack-0.1.0`) |
+| `helm.sh/chart` in byte-equivalence diff | unit App ArgoCD manifests | Exclude from diff (will change from `app-template-5.0.0` to `arr-stack-0.1.0`) |
+| `app-template version pin` | prior PATTERNS read stale my-kluster local checkout | 5.0.0 across all 10 aliases (matches Renovate PR #1381 on my-kluster main; required for D-04-CUTOVER-03 byte-equivalence) — see 04-RESEARCH.md §"Standard Stack" and 04-01-DRIFT-NOTE.md |
 
 ---
 
