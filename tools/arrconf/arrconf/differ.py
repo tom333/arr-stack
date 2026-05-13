@@ -31,6 +31,22 @@ _READ_ONLY_FIELDS: set[str] = {
 # round-trip contract) can normalize cluster state in the same way before comparing.
 _REDACTED_VALUE = "***REDACTED***"
 
+# WR-01 (Phase 3 code review): Prowlarr / real *arr instances serialize credential
+# fields with the API mask ``"********"`` instead of the in-tree fixture sentinel
+# ``"***REDACTED***"``. Both must be stripped so the diff is value-blind for masked
+# credentials — otherwise every reconcile cycle plans a spurious UPDATE on Prowlarr
+# applications (cluster sends back ``"********"``, desired carries the real key,
+# diff flags ``fields`` as different → UPDATE), violating the CLAUDE.md "RÈGLE D'OR"
+# idempotence rule.
+_API_MASK_VALUES: frozenset[str] = frozenset({_REDACTED_VALUE, "********"})
+
+# v0.2.0 / WR-01 (02.2-REVIEW.md): module-level set so apiKey + token privacy
+# values (Phase 3 indexer / notification / Prowlarr application fields) get the
+# same omit-by-metadata protection as password / userName. Auditable in one place;
+# adding a new privacy value (e.g. "secret" if a future *arr version introduces it)
+# is a 1-line change here.
+_CREDENTIAL_PRIVACY_VALUES: frozenset[str] = frozenset({"password", "userName", "apiKey", "token"})
+
 
 class Action(Enum):
     """Reconciliation outcomes (D-04 / D-09 / D-11)."""
@@ -54,29 +70,78 @@ class PlannedAction[T: BaseModel]:
     diff_fields: list[str]
 
 
-def _strip_redacted_fields(dump: dict[str, Any]) -> dict[str, Any]:
+def _credential_field_names(*models: BaseModel) -> set[str]:
+    """Collect FieldKV.name entries with credential privacy across the given models.
+
+    WR-01 (Phase 3 code review): privacy is excluded from FieldKV dumps so the dump
+    on disk (YAML) loses it. On the cluster side, the GET response carries privacy
+    on every field. To make the diff symmetric for credential fields we union the
+    names from BOTH sides — if EITHER side flags a name as credential-privacy, we
+    strip it from BOTH sides of the diff.
+    """
+    names: set[str] = set()
+    for m in models:
+        for f in getattr(m, "fields", []) or []:
+            if getattr(f, "privacy", None) in _CREDENTIAL_PRIVACY_VALUES:
+                names.add(f.name)
+    return names
+
+
+def _strip_redacted_fields(
+    dump: dict[str, Any], credential_names: frozenset[str] | set[str] = frozenset()
+) -> dict[str, Any]:
     """Drop fields[] entries whose value is REDACTED — mirror of dump.py filter (D-36).
 
     Applied symmetrically on both sides of ``diff_models`` so the round-trip property
     (D-31/D-35/D-36) holds: dump emits without REDACTED, reload→reconcile compares
     cluster (post-strip) against desired (already post-strip from dump) → NO_OP.
+
+    WR-01 (Phase 3 code review): also strips entries with value ``"********"``
+    (the real production API mask used by Prowlarr / real *arr instances), and
+    strips entries by name when their backing FieldKV (on EITHER side of the diff)
+    has ``privacy in _CREDENTIAL_PRIVACY_VALUES`` — by metadata, not by value.
+    See _credential_field_names for why we union the names across both sides.
+
+    The actual credential is preserved on PUT by the omit-by-metadata branch in
+    ``merge_fields_for_put`` (D-02.2-AUTH-REGRESSION).
     """
     if "fields" not in dump:
         return dump
     dump = dict(dump)
-    dump["fields"] = [f for f in dump["fields"] if f.get("value") != _REDACTED_VALUE]
+    # WR-01: only string values can be API masks — non-string values (e.g. lists,
+    # ints, bools from select / numeric / checkbox fields) cannot be masks and
+    # must NOT be tested against a hashable frozenset (would raise TypeError on
+    # unhashable list values like syncCategories=[5000, 5010, ...]).
+    dump["fields"] = [
+        f
+        for f in dump["fields"]
+        if f.get("name") not in credential_names
+        and not (isinstance(f.get("value"), str) and f["value"] in _API_MASK_VALUES)
+    ]
     return dump
 
 
 def diff_models(a: BaseModel, b: BaseModel) -> list[str]:
     """Return sorted field names that differ (excluding D-21 read-only fields).
 
-    Both sides are normalized via ``_strip_redacted_fields`` (D-36) so cluster's
-    REDACTED ``fields[]`` entries — which the dump emitter omits — do not flag a
-    spurious UPDATE on round-trip.
+    Both sides are normalized via ``_strip_redacted_fields`` (D-36 / WR-01) so:
+      - cluster's REDACTED / masked ``fields[]`` entries do not flag a spurious
+        UPDATE on round-trip (D-36);
+      - credential-privacy fields (apiKey, password, token, userName) — flagged
+        by EITHER side's metadata — are stripped symmetrically so cluster (masked)
+        vs desired (real key) does not flag drift on every cycle.
+    The real credential is preserved on PUT by the omit-by-metadata branch in
+    ``merge_fields_for_put`` (D-02.2-AUTH-REGRESSION).
     """
-    a_dump = _strip_redacted_fields(a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
-    b_dump = _strip_redacted_fields(b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS))
+    credential_names = _credential_field_names(a, b)
+    a_dump = _strip_redacted_fields(
+        a.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS),
+        credential_names=credential_names,
+    )
+    b_dump = _strip_redacted_fields(
+        b.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS),
+        credential_names=credential_names,
+    )
     return sorted({k for k in (set(a_dump) | set(b_dump)) if a_dump.get(k) != b_dump.get(k)})
 
 
@@ -94,15 +159,63 @@ def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]
     Generic over ``T: BaseModel`` so Phase 3 Radarr/Prowlarr reconcilers can reuse it
     unchanged (D-33). Returns a dict ready for ``client.put(path, id=..., json=body)``;
     read-only fields (D-21) are excluded from the body, so callers must re-inject ``id``.
+
+    v0.1.5 / D-02.2-AUTH-REGRESSION (ADR-8.1 refinement): if the cluster-side
+    field metadata indicates a credential field (``privacy == "password"`` or
+    ``"userName"``), the entry is OMITTED from the merged body entirely instead
+    of being substituted with cluster's stored value. Sonarr's GET serializes
+    credential fields with the API mask ``"********"``; substituting that mask
+    into the PUT body (which v0.1.4's ``?forceSave=true`` then accepts verbatim)
+    would overwrite the real stored credential with the literal mask token —
+    the regression that triggered Plan 02.2 v0.1.5 hotfix. Sonarr preserves
+    stored values when fields are absent, so omission is safer than passthrough.
+    Emits ``merge_field_omitted_credential`` for cluster audit trails.
+
+    Ordering invariant (T-02.2-08-02): the omit-credential branch MUST execute
+    BEFORE the empty-value preserve-cluster branch in the per-field loop. The
+    BEHAVIORAL test test_merge_fields_omits_privacy_password_when_value_is_in_tree_redacted_mask
+    exercises a non-empty cluster value (``"***REDACTED***"``) that would
+    otherwise hit the substitute branch first if the ordering broke.
     """
     cur_dump = current.model_dump(exclude_none=True)
     des_dump = desired.model_dump(exclude_none=True, exclude=_READ_ONLY_FIELDS)
     cur_by_name = {f["name"]: f for f in cur_dump.get("fields", [])}
+    # v0.1.5 / D-02.2-AUTH-REGRESSION: build a parallel privacy lookup directly from
+    # the pydantic model instances. ``FieldKV.privacy`` is declared with ``exclude=True``
+    # (it is UI metadata not meant to round-trip into PUT bodies), so it does NOT appear
+    # in ``cur_dump`` — but it IS stored on the model and is the load-bearing signal for
+    # the omit-by-metadata strategy below. Reading it from ``current.fields`` keeps the
+    # fix minimal-surface and avoids changing the FieldKV exclude policy.
+    cur_privacy_by_name: dict[str, str | None] = {
+        f.name: f.privacy for f in getattr(current, "fields", [])
+    }
     merged_fields: list[dict[str, Any]] = []
     for des_f in des_dump.get("fields", []):
+        cur_f = cur_by_name.get(des_f["name"])
+        cur_privacy = cur_privacy_by_name.get(des_f["name"])
+        # v0.1.5 / D-02.2-AUTH-REGRESSION: omit credential fields (Option A).
+        # Sonarr preserves stored values when a field is absent from the PUT body —
+        # safer than substituting the API mask "********" via the merge_field_preserved
+        # branch below. Audit event payload is metadata-only ({name, privacy}); the
+        # field VALUE is never logged (T-02.2-08-01).
+        # CR-01 gap-closure (v0.1.6): hoist value check — only omit when desired has
+        # no value to contribute. Non-empty desired = user intends credential rotation;
+        # pass through so Sonarr applies the change. Empty desired = safe to omit.
         v = des_f.get("value")
+        if cur_privacy in _CREDENTIAL_PRIVACY_VALUES:
+            if v == "" or v is None:
+                # Desired is empty: safe to omit. Sonarr preserves stored value via absence.
+                log.info(
+                    "merge_field_omitted_credential",
+                    name=des_f["name"],
+                    privacy=cur_privacy,
+                )
+                continue
+            # Desired has a real value: user intends to update the credential.
+            # Pass through as-is (do NOT substitute cluster's masked value).
+            merged_fields.append(des_f)
+            continue
         if v == "" or v is None:
-            cur_f = cur_by_name.get(des_f["name"])
             if cur_f is not None and cur_f.get("value") not in ("", None):
                 merged = dict(des_f)
                 merged["value"] = cur_f["value"]
@@ -110,7 +223,14 @@ def merge_fields_for_put[T: BaseModel](current: T, desired: T) -> dict[str, Any]
                 merged_fields.append(merged)
                 continue
         merged_fields.append(des_f)
-    des_dump["fields"] = merged_fields
+    # WR-06 (Phase 3 code review): only set des_dump["fields"] when the input had
+    # a "fields" key. Pre-fix, this assignment was unconditional, so HostConfig
+    # (which has no fields[] attribute) ended up with des_dump["fields"] = [] in
+    # the PUT body. Radarr/Sonarr's /config/host endpoint likely ignores the spurious
+    # key today, but it pollutes audit logs and could regress on a future API version
+    # that validates payloads strictly.
+    if "fields" in des_dump or merged_fields:
+        des_dump["fields"] = merged_fields
     return des_dump
 
 

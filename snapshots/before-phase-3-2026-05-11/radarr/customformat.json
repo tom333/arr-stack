@@ -1,0 +1,268 @@
+[
+  {
+    "id": 1,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "FR: VFF / TRUEFRENCH",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\b(VFF|TRUEFRENCH)\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "VFF or TRUEFRENCH in release title",
+        "negate": false,
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "FR: VFI",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\bVFI\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "VFI in release title",
+        "negate": false,
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "FR: VFQ",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\bVFQ\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "VFQ in release title",
+        "negate": false,
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "FR: MULTi",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\bMULTI?\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "MULTi in release title",
+        "negate": false,
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "FR: VOSTFR (subs only)",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\bVOSTFR\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "VOSTFR in release title",
+        "negate": false,
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "x265 / HEVC (HD)",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\b(x265|h\\.?265|hevc)\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "x265 / HEVC codec",
+        "negate": false,
+        "required": true
+      },
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "isFloat": false,
+            "label": "Résolution",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "selectOptions": [
+              {
+                "dividerAfter": false,
+                "name": "Unknown",
+                "order": 0,
+                "value": 0
+              },
+              {
+                "dividerAfter": false,
+                "name": "R360p",
+                "order": 360,
+                "value": 360
+              },
+              {
+                "dividerAfter": false,
+                "name": "R480p",
+                "order": 480,
+                "value": 480
+              },
+              {
+                "dividerAfter": false,
+                "name": "R540p",
+                "order": 540,
+                "value": 540
+              },
+              {
+                "dividerAfter": false,
+                "name": "R576p",
+                "order": 576,
+                "value": 576
+              },
+              {
+                "dividerAfter": false,
+                "name": "R720p",
+                "order": 720,
+                "value": 720
+              },
+              {
+                "dividerAfter": false,
+                "name": "R1080p",
+                "order": 1080,
+                "value": 1080
+              },
+              {
+                "dividerAfter": false,
+                "name": "R2160p",
+                "order": 2160,
+                "value": 2160
+              }
+            ],
+            "type": "select",
+            "value": 2160
+          }
+        ],
+        "implementation": "ResolutionSpecification",
+        "implementationName": "Resolution",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "Not 2160p",
+        "negate": true,
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "includeCustomFormatWhenRenaming": false,
+    "name": "mHD / MHD (small encode)",
+    "specifications": [
+      {
+        "fields": [
+          {
+            "advanced": false,
+            "helpText": "Format personnalisé RegEx est insensible à la casse",
+            "isFloat": false,
+            "label": "Expression régulière",
+            "name": "value",
+            "order": 0,
+            "privacy": "normal",
+            "type": "textbox",
+            "value": "\\b(mHD|MHD)\\b"
+          }
+        ],
+        "implementation": "ReleaseTitleSpecification",
+        "implementationName": "Release Title",
+        "infoLink": "https://wiki.servarr.com/radarr/settings#custom-formats-2",
+        "name": "mHD or MHD in release title",
+        "negate": false,
+        "required": false
+      }
+    ]
+  }
+]

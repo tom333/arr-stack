@@ -1,0 +1,133 @@
+[
+  {
+    "configContract": "MediaBrowserSettings",
+    "fields": [
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Hôte",
+        "name": "host",
+        "order": 0,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": "jellyfin.selfhost.svc.cluster.local"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Port",
+        "name": "port",
+        "order": 1,
+        "privacy": "normal",
+        "type": "textbox",
+        "value": 8096
+      },
+      {
+        "advanced": false,
+        "helpText": "Se connecter à Emby/Jellyfin en HTTPS plutôt qu'en HTTP",
+        "isFloat": false,
+        "label": "Utiliser SSL",
+        "name": "useSsl",
+        "order": 2,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": true,
+        "helpText": "Ajoute un préfixe l'url de Emby/Jellyfin, comme http://[host]:[port]/[urlBase]/mediabrowser",
+        "isFloat": false,
+        "label": "URL de base",
+        "name": "urlBase",
+        "order": 3,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": false,
+        "isFloat": false,
+        "label": "Clé API",
+        "name": "apiKey",
+        "order": 4,
+        "privacy": "apiKey",
+        "type": "textbox",
+        "value": "********"
+      },
+      {
+        "advanced": false,
+        "helpText": "Demander à Emby d'envoyer des notifications aux fournisseurs configurés. Non supporté par Jellyfin.",
+        "isFloat": false,
+        "label": "Envoyer des notifications",
+        "name": "notify",
+        "order": 5,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "advanced": false,
+        "helpText": "Mise à jour de la bibliothèque en cas d'importation, de renommage ou de suppression",
+        "isFloat": false,
+        "label": "Mettre à jour la bibliothèque",
+        "name": "updateLibrary",
+        "order": 6,
+        "privacy": "normal",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin d'accès Sonarr, utilisé pour modifier les chemins d'accès aux séries lorsque Emby/Jellyfin voit l'emplacement du chemin d'accès à la bibliothèque différemment de Sonarr (Nécessite 'Mettre à jour la bibliothèque')",
+        "isFloat": false,
+        "label": "Mapper les chemins depuis",
+        "name": "mapFrom",
+        "order": 7,
+        "privacy": "normal",
+        "type": "textbox"
+      },
+      {
+        "advanced": true,
+        "helpText": "Chemin Emby/Jellyfin, utilisé pour modifier les chemins des séries quand Emby/Jellyfin voit un chemin d'emplacement de bibliothèque différemment de Sonarr (nécessite 'Mise à jour bibliothèque')",
+        "isFloat": false,
+        "label": "Mapper les chemins vers",
+        "name": "mapTo",
+        "order": 8,
+        "privacy": "normal",
+        "type": "textbox"
+      }
+    ],
+    "id": 1,
+    "implementation": "MediaBrowser",
+    "implementationName": "Emby / Jellyfin",
+    "includeHealthWarnings": false,
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#mediabrowser",
+    "name": "Emby / Jellyfin",
+    "onApplicationUpdate": true,
+    "onDownload": true,
+    "onEpisodeFileDelete": true,
+    "onEpisodeFileDeleteForUpgrade": true,
+    "onGrab": true,
+    "onHealthIssue": false,
+    "onHealthRestored": false,
+    "onImportComplete": true,
+    "onManualInteractionRequired": false,
+    "onRename": true,
+    "onSeriesAdd": true,
+    "onSeriesDelete": true,
+    "onUpgrade": true,
+    "supportsOnApplicationUpdate": true,
+    "supportsOnDownload": true,
+    "supportsOnEpisodeFileDelete": true,
+    "supportsOnEpisodeFileDeleteForUpgrade": true,
+    "supportsOnGrab": true,
+    "supportsOnHealthIssue": true,
+    "supportsOnHealthRestored": true,
+    "supportsOnImportComplete": true,
+    "supportsOnManualInteractionRequired": false,
+    "supportsOnRename": true,
+    "supportsOnSeriesAdd": true,
+    "supportsOnSeriesDelete": true,
+    "supportsOnUpgrade": true,
+    "tags": []
+  }
+]

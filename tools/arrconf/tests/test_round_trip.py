@@ -42,6 +42,10 @@ def test_round_trip_dump_apply_dry_run_is_noop(
     cluster_payload: list[dict] = [{**dc, "tags": [1]} for dc in sonarr_downloadclient_fixture]
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
     respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=cluster_payload))
+    # Phase 3 extension: reconcile_sonarr also reads these endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
     post_route = respx_mock.post("/downloadclient")
     # Use url__regex so the route matches BOTH the bare collection path AND
     # /downloadclient/{id}. The bare-URL `httpx.URL(...).join("")` form only
@@ -64,9 +68,8 @@ def test_round_trip_dump_apply_dry_run_is_noop(
 
     # Step 2: reload YAML → desired
     root = load_config(out)
-    assert root.apps.sonarr is not None
-    assert root.apps.sonarr.main is not None
-    instance = root.apps.sonarr.main
+    assert "main" in root.sonarr
+    instance = root.sonarr["main"]
 
     # Step 3: reconcile against same cluster state, dry_run=True
     client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
@@ -106,6 +109,10 @@ def test_round_trip_with_redacted_credentials_is_noop(
     cluster_payload: list[dict] = [{**dc, "tags": [1]} for dc in sonarr_downloadclient_fixture]
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=sonarr_tag_managed_fixture))
     respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=cluster_payload))
+    # Phase 3 extension: reconcile_sonarr also reads these endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
     post_route = respx_mock.post("/downloadclient")
     put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient(/\d+)?$")
     delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
@@ -120,9 +127,8 @@ def test_round_trip_with_redacted_credentials_is_noop(
     assert "***REDACTED***" not in dumped_text, "Dump filter (D-36) failed: REDACTED still in YAML"
 
     root = load_config(out)
-    assert root.apps.sonarr is not None
-    assert root.apps.sonarr.main is not None
-    instance = root.apps.sonarr.main
+    assert "main" in root.sonarr
+    instance = root.sonarr["main"]
 
     client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(client2, instance, dry_run=True)
@@ -145,8 +151,7 @@ def test_committed_baseline_yaml_loads() -> None:
     if not baseline.exists():
         pytest.skip("baseline-sonarr.yml not yet committed")
     root = load_config(baseline)
-    assert root.apps.sonarr is not None
-    assert root.apps.sonarr.main is not None
+    assert "main" in root.sonarr
     # First line is the modeline (D-16, Pitfall 5)
     first = baseline.read_text().splitlines()[0]
     assert first.startswith("# yaml-language-server: $schema="), first

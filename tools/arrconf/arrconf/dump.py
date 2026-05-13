@@ -51,29 +51,26 @@ def dump_sonarr(client: SonarrClient, output_path: Path) -> None:
     Output format (D-16 modeline as line 1)::
 
         # yaml-language-server: $schema=../schemas/arrconf-schema.json
-        apps:
-          sonarr:
-            main:
-              base_url: <derived from client>
-              download_clients:
-                prune: false
-                items:
-                  - name: ...
-                    ...
+        sonarr:
+          main:
+            base_url: <derived from client>
+            download_clients:
+              prune: false
+              items:
+                - name: ...
+                  ...
     """
     raw_dcs = client.get("/downloadclient")
     dcs = [DownloadClient.model_validate(x) for x in raw_dcs]
     items_dumped = [_drop_redacted_fields(dc.model_dump(exclude_none=True)) for dc in dcs]
     config_dict: dict[str, Any] = {
-        "apps": {
-            "sonarr": {
-                "main": {
-                    "base_url": client.base_url,
-                    "download_clients": {
-                        "prune": False,
-                        "items": items_dumped,
-                    },
-                }
+        "sonarr": {
+            "main": {
+                "base_url": client.base_url,
+                "download_clients": {
+                    "prune": False,
+                    "items": items_dumped,
+                },
             }
         }
     }

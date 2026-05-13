@@ -1,0 +1,55 @@
+=== Plan 02.2-11 Post-Merge Dispositive ===
+Timestamp:                 2026-05-10T00:00:00Z (recorded by executor 2026-05-10)
+
+ArgoCD Application (arrconf, ns=argocd):
+  status.sync.status:      Synced
+  status.health.status:    Healthy
+  status.sync.revision:    0b96f0a556f7411a1254303ec5674c589fd1b91f
+
+my-kluster main HEAD:      0b96f0a556f7411a1254303ec5674c589fd1b91f
+  commit subject:          "chore(deps): update ghcr.io/tom333/arr-stack-arrconf docker tag to v0.1.5 (#1372)"
+  author:                  renovate[bot]
+  merged at:               2026-05-09T20:23:22Z
+  PR number:               1372
+  PR file scope:           ["charts/arrconf/values.yaml"]
+  PR diff stat:            1 file changed, 1 insertion(+), 1 deletion(-)
+  source branch:           renovate/ghcr.io-tom333-arr-stack-arrconf-0.x
+  target branch:           main
+
+Atomic-diff invariant (T-02.2-11-01) — VERIFIED:
+  changedFiles == 1:                         YES
+  additions == 1:                            YES
+  deletions == 1:                            YES
+  files/arrconf.yml NOT touched:             YES
+  templates/cronjob.yaml NOT touched:        YES
+  Chart.yaml NOT touched:                    YES
+  Renovate annotation preserved:             YES (line above repository: still reads "# renovate: image=ghcr.io/tom333/arr-stack-arrconf")
+
+CronJob arrconf (ns=selfhost):
+  spec.jobTemplate...containers[0].image:    ghcr.io/tom333/arr-stack-arrconf:0.1.5
+  spec.suspend:                              true
+  spec.schedule:                              "0 */4 * * *"
+  spec.concurrencyPolicy:                    Forbid
+  status.lastScheduleTime:                   2026-05-09T01:00:00Z (pre-suspend; not advanced)
+
+Sequencing dispositive:
+  v0.1.5 image deployed:                     YES (live CronJob spec.image)
+  CronJob suspended (sequencing intact):     YES (T-02.2-11-02 ENFORCED)
+  No reconcile fires during merge window:    YES (lastScheduleTime pinned 2026-05-09T01:00:00Z)
+  Plan 12 next:                               operator UI password re-entry → unsuspend → credential-aware drift demo
+
+Stash invariance (T-02.2-11-05):
+  pre-Plan-11 stash count:                   2 (recorded in PROJECT/STATE notes since Phase 2 Wave 2)
+  post-Plan-11 stash count:                  2
+  invariant:                                 HELD
+
+DEVIATION: PR was opened+merged by Renovate (PR #1372) instead of the hotfix-branch
+manually authored by the executor. The cross-repo coupling artifact is the same
+(atomic 1-line bump 0.1.4 → 0.1.5 on charts/arrconf/values.yaml; same shape as Plan 05's
+PR #1371). All Plan 11 success_criteria are satisfied except "executor opens manual PR" —
+which is moot because the merged commit on origin/main is byte-identical to what the
+hotfix PR would have produced. Per Phase 02.2 P05 LEARNING ("Renovate is the safety net,
+not the trigger") — this time the safety net fired before the manual trigger reached its
+cluster. Recorded as deviation in 02.2-11-SUMMARY.md.
+
+This file is consumed by Plan 12 as anchor for the "before-unsuspend" baseline.

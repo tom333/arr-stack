@@ -1,0 +1,231 @@
+[
+  {
+    "enable": true,
+    "protocol": "torrent",
+    "priority": 1,
+    "removeCompletedDownloads": true,
+    "removeFailedDownloads": true,
+    "name": "qBittorrent",
+    "fields": [
+      {
+        "order": 0,
+        "name": "host",
+        "label": "Hôte",
+        "value": "qbittorrent.selfhost.svc.cluster.local",
+        "type": "textbox",
+        "advanced": false,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 1,
+        "name": "port",
+        "label": "Port",
+        "value": 8080,
+        "type": "textbox",
+        "advanced": false,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 2,
+        "name": "useSsl",
+        "label": "Utiliser SSL",
+        "helpText": "Utilisez une connexion sécurisée. Voir Options -> UI Web -> 'Utiliser HTTPS au lieu de HTTP' dans qBittorrent.",
+        "value": false,
+        "type": "checkbox",
+        "advanced": false,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 3,
+        "name": "urlBase",
+        "label": "URL de base",
+        "helpText": "Ajoute un préfixe à l'url qBittorrent, tel que http://[host]:[port]/[urlBase]/api",
+        "value": "",
+        "type": "textbox",
+        "advanced": true,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 4,
+        "name": "username",
+        "label": "Nom d'utilisateur",
+        "value": "moi",
+        "type": "textbox",
+        "advanced": false,
+        "privacy": "userName",
+        "isFloat": false
+      },
+      {
+        "order": 5,
+        "name": "password",
+        "label": "Mot de passe",
+        "value": "********",
+        "type": "password",
+        "advanced": false,
+        "privacy": "password",
+        "isFloat": false
+      },
+      {
+        "order": 6,
+        "name": "tvCategory",
+        "label": "Catégorie",
+        "helpText": "L'ajout d'une catégorie spécifique à Sonarr permet d'éviter les conflits avec des téléchargements sans rapport avec Sonarr. L'utilisation d'une catégorie est facultative, mais fortement recommandée.",
+        "value": "sonarr",
+        "type": "textbox",
+        "advanced": false,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 7,
+        "name": "tvImportedCategory",
+        "label": "Catégorie après l'importation",
+        "helpText": "Catégorie que Sonarr doit définir après avoir importé le téléchargement. Sonarr ne supprimera pas les torrents de cette catégorie même si l'ensemencement est terminé. Laisser vide pour conserver la même catégorie.",
+        "value": "",
+        "type": "textbox",
+        "advanced": true,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 8,
+        "name": "recentTvPriority",
+        "label": "Priorité récente",
+        "helpText": "Priorité à utiliser lors de la récupération des épisodes diffusés au cours des 14 derniers jours",
+        "value": 0,
+        "type": "select",
+        "advanced": false,
+        "selectOptions": [
+          {
+            "value": 0,
+            "name": "Last",
+            "order": 0
+          },
+          {
+            "value": 1,
+            "name": "First",
+            "order": 1
+          }
+        ],
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 9,
+        "name": "olderTvPriority",
+        "label": "Priorité plus ancienne",
+        "helpText": "Priorité à utiliser lors de la récupération des épisodes diffusés il y a plus de 14 jours",
+        "value": 0,
+        "type": "select",
+        "advanced": false,
+        "selectOptions": [
+          {
+            "value": 0,
+            "name": "Last",
+            "order": 0
+          },
+          {
+            "value": 1,
+            "name": "First",
+            "order": 1
+          }
+        ],
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 10,
+        "name": "initialState",
+        "label": "État initial",
+        "helpText": "État initial des torrents ajoutés à qBittorrent. Notez que les torrents forcés ne respectent pas les restrictions relatives aux seeds",
+        "value": 0,
+        "type": "select",
+        "advanced": false,
+        "selectOptions": [
+          {
+            "value": 0,
+            "name": "Démarré",
+            "order": 7,
+            "hint": "(0)"
+          },
+          {
+            "value": 1,
+            "name": "Force Started",
+            "order": 10,
+            "hint": "(1)"
+          },
+          {
+            "value": 2,
+            "name": "Stopped",
+            "order": 13,
+            "hint": "(2)"
+          }
+        ],
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 11,
+        "name": "sequentialOrder",
+        "label": "Ordre séquentiel",
+        "helpText": "Téléchargement dans l'ordre séquentiel (qBittorrent 4.1.0+)",
+        "value": false,
+        "type": "checkbox",
+        "advanced": false,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 12,
+        "name": "firstAndLast",
+        "label": "Premier et dernier premiers",
+        "helpText": "Télécharger d'abord le premier et le dernier morceau (qBittorrent 4.1.0+)",
+        "value": false,
+        "type": "checkbox",
+        "advanced": false,
+        "privacy": "normal",
+        "isFloat": false
+      },
+      {
+        "order": 13,
+        "name": "contentLayout",
+        "label": "Disposition du contenu",
+        "helpText": "Utiliser la disposition du contenu configurée par qBittorrent, la disposition originale du torrent ou toujours créer un sous-dossier (qBittorrent 4.3.2+)",
+        "value": 0,
+        "type": "select",
+        "advanced": false,
+        "selectOptions": [
+          {
+            "value": 0,
+            "name": "Default",
+            "order": 0
+          },
+          {
+            "value": 1,
+            "name": "Original",
+            "order": 1
+          },
+          {
+            "value": 2,
+            "name": "Subfolder",
+            "order": 2
+          }
+        ],
+        "privacy": "normal",
+        "isFloat": false
+      }
+    ],
+    "implementationName": "qBittorrent",
+    "implementation": "QBittorrent",
+    "configContract": "QBittorrentSettings",
+    "infoLink": "https://wiki.servarr.com/sonarr/supported#qbittorrent",
+    "tags": [
+      1
+    ],
+    "id": 1
+  }
+]

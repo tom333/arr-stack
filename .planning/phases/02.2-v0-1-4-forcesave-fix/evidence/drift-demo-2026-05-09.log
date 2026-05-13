@@ -1,0 +1,16 @@
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-09T06:02:39.837954Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields", "priority"], "event": "plan_action", "level": "info", "timestamp": "2026-05-09T06:02:39.840836Z"}
+{"name": "username", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T06:02:39.840947Z"}
+{"name": "password", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T06:02:39.840977Z"}
+{"path": "/downloadclient", "id": 1, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-09T06:02:39.841007Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-09T06:02:39.978972Z"}
+
+# === DRIFT-DEMO DISPOSITIVE COMPARISON (Phase 02.2 — FULLY AUTOMATED) ===
+# original_priority: 1
+# drifted_priority:  5
+# restored_priority: 1
+# match (restored == original): YES
+# manual_nudge_used: NO (vs Phase 2.1 which used a manual ?forceSave=true curl)
+# put_force_save_used events fired: 1
+# plan_action update events: 1
+# HTTP 400 events: 0

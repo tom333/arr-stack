@@ -1,0 +1,1160 @@
+# ArgoCD Application source (Application CR spec):
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: applications:argoproj.io/Application:argocd/jellyfin
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"applications:argoproj.io/Application:argocd/jellyfin"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"jellyfin","namespace":"argocd"},"spec":{"destination":{"namespace":"selfhost","server":"https://kubernetes.default.svc"},"project":"selfhost-project","source":{"chart":"app-template","helm":{"values":"controllers:\n  main:\n    containers:\n      main:\n        image:\n          repository: lscr.io/linuxserver/jellyfin\n          tag: 10.11.8\n        env:\n          TZ: \"Europe/Paris\"\n          PUID: \"1000\"\n          PGID: \"1000\"\nservice:\n  main:\n    controller: main\n    ports:\n      http:\n        port: 8096\ningress:\n  main:\n    className: nginx\n    annotations:\n      cert-manager.io/cluster-issuer: \"letsencrypt-prod\"\n      # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification\n      # ⚠️ Créer le compte admin immédiatement après le premier déploiement\n      nginx.ingress.kubernetes.io/proxy-body-size: \"0\"\n    hosts:\n      - host: jellyfin.tgu.ovh\n        paths:\n          - path: /\n            pathType: Prefix\n            service:\n              identifier: main\n              port: http\n    tls:\n      - secretName: jellyfin-tls\n        hosts:\n          - jellyfin.tgu.ovh\npersistence:\n  config:\n    # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)\n    type: persistentVolumeClaim\n    accessMode: ReadWriteOnce\n    size: 10Gi\n    globalMounts:\n      - path: /config\n  media:\n    # NAS NFS — bibliothèque partagée avec Radarr/Sonarr\n    type: persistentVolumeClaim\n    existingClaim: media-nas-pvc\n    globalMounts:\n      - path: /media\n"},"repoURL":"https://bjw-s-labs.github.io/helm-charts","targetRevision":"5.0.0"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=false"]}}}
+  creationTimestamp: "2026-04-14T00:41:42Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 7954
+  name: jellyfin
+  namespace: argocd
+  resourceVersion: "34047080"
+  uid: b2b1d416-05ae-49f1-b183-eeff31b9248a
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    chart: app-template
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: lscr.io/linuxserver/jellyfin
+                  tag: 10.11.8
+                env:
+                  TZ: "Europe/Paris"
+                  PUID: "1000"
+                  PGID: "1000"
+        service:
+          main:
+            controller: main
+            ports:
+              http:
+                port: 8096
+        ingress:
+          main:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+              # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+              nginx.ingress.kubernetes.io/proxy-body-size: "0"
+            hosts:
+              - host: jellyfin.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: http
+            tls:
+              - secretName: jellyfin-tls
+                hosts:
+                  - jellyfin.tgu.ovh
+        persistence:
+          config:
+            # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 10Gi
+            globalMounts:
+              - path: /config
+          media:
+            # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+            type: persistentVolumeClaim
+            existingClaim: media-nas-pvc
+            globalMounts:
+              - path: /media
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    targetRevision: 5.0.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-05-12T03:00:22Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-04-14T00:41:44Z"
+    deployedAt: "2026-04-14T00:41:52Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/jellyfin
+                    tag: latest
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 8096
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+                # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+                nginx.ingress.kubernetes.io/proxy-body-size: "0"
+              hosts:
+                - host: jellyfin.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: jellyfin-tls
+                  hosts:
+                    - jellyfin.tgu.ovh
+          persistence:
+            config:
+              # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 10Gi
+              globalMounts:
+                - path: /config
+            media:
+              # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+              type: persistentVolumeClaim
+              existingClaim: media-nas-pvc
+              globalMounts:
+                - path: /media
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-04-17T06:43:58Z"
+    deployedAt: "2026-04-17T06:44:01Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/jellyfin
+                    tag: 10.11.8
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 8096
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+                # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+                nginx.ingress.kubernetes.io/proxy-body-size: "0"
+              hosts:
+                - host: jellyfin.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: jellyfin-tls
+                  hosts:
+                    - jellyfin.tgu.ovh
+          persistence:
+            config:
+              # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 10Gi
+              globalMounts:
+                - path: /config
+            media:
+              # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+              type: persistentVolumeClaim
+              existingClaim: media-nas-pvc
+              globalMounts:
+                - path: /media
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-05-11T09:56:53Z"
+    deployedAt: "2026-05-11T09:56:59Z"
+    id: 2
+    initiatedBy:
+      automated: true
+    revision: 5.0.0
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/jellyfin
+                    tag: 10.11.8
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 8096
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+                # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+                nginx.ingress.kubernetes.io/proxy-body-size: "0"
+              hosts:
+                - host: jellyfin.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: jellyfin-tls
+                  hosts:
+                    - jellyfin.tgu.ovh
+          persistence:
+            config:
+              # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 10Gi
+              globalMounts:
+                - path: /config
+            media:
+              # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+              type: persistentVolumeClaim
+              existingClaim: media-nas-pvc
+              globalMounts:
+                - path: /media
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 5.0.0
+  operationState:
+    finishedAt: "2026-05-11T09:57:01Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 5.0.0
+        source:
+          chart: app-template
+          helm:
+            values: |
+              controllers:
+                main:
+                  containers:
+                    main:
+                      image:
+                        repository: lscr.io/linuxserver/jellyfin
+                        tag: 10.11.8
+                      env:
+                        TZ: "Europe/Paris"
+                        PUID: "1000"
+                        PGID: "1000"
+              service:
+                main:
+                  controller: main
+                  ports:
+                    http:
+                      port: 8096
+              ingress:
+                main:
+                  className: nginx
+                  annotations:
+                    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                    # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+                    # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+                    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                  hosts:
+                    - host: jellyfin.tgu.ovh
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                          service:
+                            identifier: main
+                            port: http
+                  tls:
+                    - secretName: jellyfin-tls
+                      hosts:
+                        - jellyfin.tgu.ovh
+              persistence:
+                config:
+                  # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+                  type: persistentVolumeClaim
+                  accessMode: ReadWriteOnce
+                  size: 10Gi
+                  globalMounts:
+                    - path: /config
+                media:
+                  # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+                  type: persistentVolumeClaim
+                  existingClaim: media-nas-pvc
+                  globalMounts:
+                    - path: /media
+          repoURL: https://bjw-s-labs.github.io/helm-charts
+          targetRevision: 5.0.0
+        syncOptions:
+        - CreateNamespace=false
+    phase: Succeeded
+    startedAt: "2026-05-11T09:56:53Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: ServiceAccount
+        message: serviceaccount/jellyfin created
+        name: jellyfin
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: PersistentVolumeClaim
+        message: persistentvolumeclaim/jellyfin configured
+        name: jellyfin
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/jellyfin configured
+        name: jellyfin
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - lscr.io/linuxserver/jellyfin:10.11.8
+        kind: Deployment
+        message: deployment.apps/jellyfin configured
+        name: jellyfin
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: networking.k8s.io
+        hookPhase: Running
+        kind: Ingress
+        message: ingress.networking.k8s.io/jellyfin configured
+        name: jellyfin
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 5.0.0
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/jellyfin
+                      tag: 10.11.8
+                    env:
+                      TZ: "Europe/Paris"
+                      PUID: "1000"
+                      PGID: "1000"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 8096
+            ingress:
+              main:
+                className: nginx
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+                  # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                hosts:
+                  - host: jellyfin.tgu.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          identifier: main
+                          port: http
+                tls:
+                  - secretName: jellyfin-tls
+                    hosts:
+                      - jellyfin.tgu.ovh
+            persistence:
+              config:
+                # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 10Gi
+                globalMounts:
+                  - path: /config
+              media:
+                # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+                type: persistentVolumeClaim
+                existingClaim: media-nas-pvc
+                globalMounts:
+                  - path: /media
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+  reconciledAt: "2026-05-12T20:19:08Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: PersistentVolumeClaim
+    name: jellyfin
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: Service
+    name: jellyfin
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: ServiceAccount
+    name: jellyfin
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: jellyfin
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: networking.k8s.io
+    kind: Ingress
+    name: jellyfin
+    namespace: selfhost
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    externalURLs:
+    - https://jellyfin.tgu.ovh/
+    images:
+    - lscr.io/linuxserver/jellyfin:10.11.8
+  sync:
+    comparedTo:
+      destination:
+        namespace: selfhost
+        server: https://kubernetes.default.svc
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/jellyfin
+                      tag: 10.11.8
+                    env:
+                      TZ: "Europe/Paris"
+                      PUID: "1000"
+                      PGID: "1000"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 8096
+            ingress:
+              main:
+                className: nginx
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+                  # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                hosts:
+                  - host: jellyfin.tgu.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          identifier: main
+                          port: http
+                tls:
+                  - secretName: jellyfin-tls
+                    hosts:
+                      - jellyfin.tgu.ovh
+            persistence:
+              config:
+                # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 10Gi
+                globalMounts:
+                  - path: /config
+              media:
+                # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+                type: persistentVolumeClaim
+                existingClaim: media-nas-pvc
+                globalMounts:
+                  - path: /media
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+    revision: 5.0.0
+    status: Synced
+---
+# Live cluster state for label app.kubernetes.io/instance=jellyfin:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2026-05-11T09:57:20Z"
+    generateName: jellyfin-d9ff84c99-
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/name: jellyfin
+      pod-template-hash: d9ff84c99
+    name: jellyfin-d9ff84c99-l6j6f
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: jellyfin-d9ff84c99
+      uid: 91f36cd1-ac61-4035-9720-9f042f2f86ea
+    resourceVersion: "33897577"
+    uid: 3a11aff4-dfdb-4451-afcf-ca1630bb03ae
+  spec:
+    automountServiceAccountToken: false
+    containers:
+    - env:
+      - name: PGID
+        value: "1000"
+      - name: PUID
+        value: "1000"
+      - name: TZ
+        value: Europe/Paris
+      image: lscr.io/linuxserver/jellyfin:10.11.8
+      imagePullPolicy: Always
+      name: main
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /config
+        name: config
+      - mountPath: /media
+        name: media
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: false
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: jellyfin
+    serviceAccountName: jellyfin
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: config
+      persistentVolumeClaim:
+        claimName: jellyfin
+    - name: media
+      persistentVolumeClaim:
+        claimName: media-nas-pvc
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:19Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:22Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:19Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:19Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:20Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://9988144f820c7f54efc2f1be65f03b5f522175e2fc24dec03a486d879dff2b43
+      image: lscr.io/linuxserver/jellyfin:10.11.8
+      imageID: lscr.io/linuxserver/jellyfin@sha256:0c7af94c048cd17f7438cd22c4d9c78d4c9c381d565352846aac847dd3cd74f4
+      lastState: {}
+      name: main
+      ready: true
+      resources: {}
+      restartCount: 1
+      started: true
+      state:
+        running:
+          startedAt: "2026-05-12T03:00:18Z"
+      volumeMounts:
+      - mountPath: /config
+        name: config
+      - mountPath: /media
+        name: media
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Running
+    podIP: 10.1.28.132
+    podIPs:
+    - ip: 10.1.28.132
+    qosClass: BestEffort
+    startTime: "2026-05-11T09:57:22Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:/Service:selfhost/jellyfin
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"jellyfin:/Service:selfhost/jellyfin"},"labels":{"app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"jellyfin","app.kubernetes.io/service":"jellyfin","helm.sh/chart":"app-template-5.0.0"},"name":"jellyfin","namespace":"selfhost"},"spec":{"ports":[{"name":"http","port":8096,"protocol":"TCP","targetPort":8096}],"selector":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/name":"jellyfin"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-04-14T00:41:48Z"
+    labels:
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: jellyfin
+      app.kubernetes.io/service: jellyfin
+      helm.sh/chart: app-template-5.0.0
+    name: jellyfin
+    namespace: selfhost
+    resourceVersion: "33748721"
+    uid: 2dfa5580-4b7e-4e7c-8e0b-f096b74427e1
+  spec:
+    clusterIP: 10.152.183.225
+    clusterIPs:
+    - 10.152.183.225
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8096
+      protocol: TCP
+      targetPort: 8096
+    selector:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/name: jellyfin
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:apps/Deployment:selfhost/jellyfin
+      deployment.kubernetes.io/revision: "3"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"jellyfin:apps/Deployment:selfhost/jellyfin"},"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"jellyfin","helm.sh/chart":"app-template-5.0.0"},"name":"jellyfin","namespace":"selfhost"},"spec":{"replicas":1,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/name":"jellyfin"}},"strategy":{"type":"Recreate"},"template":{"metadata":{"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/name":"jellyfin"}},"spec":{"automountServiceAccountToken":false,"containers":[{"env":[{"name":"PGID","value":"1000"},{"name":"PUID","value":"1000"},{"name":"TZ","value":"Europe/Paris"}],"image":"lscr.io/linuxserver/jellyfin:10.11.8","name":"main","volumeMounts":[{"mountPath":"/config","name":"config"},{"mountPath":"/media","name":"media"}]}],"dnsPolicy":"ClusterFirst","enableServiceLinks":false,"hostIPC":false,"hostNetwork":false,"hostPID":false,"serviceAccountName":"jellyfin","volumes":[{"name":"config","persistentVolumeClaim":{"claimName":"jellyfin"}},{"name":"media","persistentVolumeClaim":{"claimName":"media-nas-pvc"}}]}}}}
+    creationTimestamp: "2026-04-14T00:41:49Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: jellyfin
+      helm.sh/chart: app-template-5.0.0
+    name: jellyfin
+    namespace: selfhost
+    resourceVersion: "33897586"
+    uid: fd2709c6-c1cb-40d3-b0c6-38ebc3544410
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: jellyfin
+        app.kubernetes.io/name: jellyfin
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: jellyfin
+          app.kubernetes.io/name: jellyfin
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/jellyfin:10.11.8
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: jellyfin
+        serviceAccountName: jellyfin
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-04-14T00:41:49Z"
+      lastUpdateTime: "2026-05-11T09:58:12Z"
+      message: ReplicaSet "jellyfin-d9ff84c99" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-05-12T03:00:21Z"
+      lastUpdateTime: "2026-05-12T03:00:21Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 3
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:apps/Deployment:selfhost/jellyfin
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "2"
+    creationTimestamp: "2026-04-17T06:44:15Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/name: jellyfin
+      pod-template-hash: 556dcc5d6d
+    name: jellyfin-556dcc5d6d
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: jellyfin
+      uid: fd2709c6-c1cb-40d3-b0c6-38ebc3544410
+    resourceVersion: "33748871"
+    uid: f2af4b7f-c548-41db-b4d1-74ef900535a2
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: jellyfin
+        app.kubernetes.io/name: jellyfin
+        pod-template-hash: 556dcc5d6d
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: jellyfin
+          app.kubernetes.io/name: jellyfin
+          pod-template-hash: 556dcc5d6d
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/jellyfin:10.11.8
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:apps/Deployment:selfhost/jellyfin
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2026-04-14T00:41:49Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/name: jellyfin
+      pod-template-hash: 6c8d4c8c74
+    name: jellyfin-6c8d4c8c74
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: jellyfin
+      uid: fd2709c6-c1cb-40d3-b0c6-38ebc3544410
+    resourceVersion: "29473974"
+    uid: d3bd2a45-7087-47dd-bbc4-d738536990fd
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: jellyfin
+        app.kubernetes.io/name: jellyfin
+        pod-template-hash: 6c8d4c8c74
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: jellyfin
+          app.kubernetes.io/name: jellyfin
+          pod-template-hash: 6c8d4c8c74
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/jellyfin:latest
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:apps/Deployment:selfhost/jellyfin
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "3"
+    creationTimestamp: "2026-05-11T09:57:19Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/name: jellyfin
+      pod-template-hash: d9ff84c99
+    name: jellyfin-d9ff84c99
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: jellyfin
+      uid: fd2709c6-c1cb-40d3-b0c6-38ebc3544410
+    resourceVersion: "33897581"
+    uid: 91f36cd1-ac61-4035-9720-9f042f2f86ea
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: jellyfin
+        app.kubernetes.io/name: jellyfin
+        pod-template-hash: d9ff84c99
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: jellyfin
+          app.kubernetes.io/name: jellyfin
+          pod-template-hash: d9ff84c99
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/jellyfin:10.11.8
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: jellyfin
+        serviceAccountName: jellyfin
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:networking.k8s.io/Ingress:selfhost/jellyfin
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"jellyfin:networking.k8s.io/Ingress:selfhost/jellyfin","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/proxy-body-size":"0"},"labels":{"app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"jellyfin","helm.sh/chart":"app-template-5.0.0"},"name":"jellyfin","namespace":"selfhost"},"spec":{"ingressClassName":"nginx","rules":[{"host":"jellyfin.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"jellyfin","port":{"number":8096}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["jellyfin.tgu.ovh"],"secretName":"jellyfin-tls"}]}}
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    creationTimestamp: "2026-04-14T00:41:50Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: jellyfin
+      helm.sh/chart: app-template-5.0.0
+    name: jellyfin
+    namespace: selfhost
+    resourceVersion: "33748774"
+    uid: 15c95c58-aff8-4f28-9998-bf4449efd82a
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: jellyfin.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: jellyfin
+              port:
+                number: 8096
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - jellyfin.tgu.ovh
+      secretName: jellyfin-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:/PersistentVolumeClaim:selfhost/jellyfin
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"jellyfin:/PersistentVolumeClaim:selfhost/jellyfin"},"labels":{"app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"jellyfin","helm.sh/chart":"app-template-5.0.0"},"name":"jellyfin","namespace":"selfhost"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"10Gi"}}}}
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+      volume.kubernetes.io/selected-node: pc
+      volume.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+    creationTimestamp: "2026-04-14T00:41:46Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: jellyfin
+      helm.sh/chart: app-template-5.0.0
+    name: jellyfin
+    namespace: selfhost
+    resourceVersion: "33748709"
+    uid: 94626ad5-6833-40eb-85d8-144505549c06
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: microk8s-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-94626ad5-6833-40eb-85d8-144505549c06
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    phase: Bound
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: jellyfin:/ServiceAccount:selfhost/jellyfin
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"jellyfin:/ServiceAccount:selfhost/jellyfin"},"labels":{"app.kubernetes.io/instance":"jellyfin","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"jellyfin","helm.sh/chart":"app-template-5.0.0"},"name":"jellyfin","namespace":"selfhost"}}
+    creationTimestamp: "2026-05-11T09:56:54Z"
+    labels:
+      app.kubernetes.io/instance: jellyfin
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: jellyfin
+      helm.sh/chart: app-template-5.0.0
+    name: jellyfin
+    namespace: selfhost
+    resourceVersion: "33748690"
+    uid: aebaf32e-8a6e-432c-adee-e20b1c1510ca
+kind: List
+metadata:
+  resourceVersion: ""

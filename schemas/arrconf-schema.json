@@ -1,22 +1,73 @@
 {
   "$defs": {
-    "AppsConfig": {
+    "AppEntry": {
       "additionalProperties": false,
-      "description": "Top-level apps config \u2014 one block per *arr family member.",
+      "description": "A single Prowlarr application connection (D-03-03).\n\nEncodes the declarative YAML model: one entry per Sonarr/Radarr instance\nthat Prowlarr should sync to. The reconciler (Plan 05) resolves\n``api_key_env`` via ``os.environ`` at runtime \u2014 the API key value itself\nNEVER appears in this YAML.",
       "properties": {
-        "sonarr": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SonarrConfig"
-            },
-            {
-              "type": "null"
-            }
+        "api_key_env": {
+          "description": "Name of the environment variable holding the target's API key.",
+          "title": "Api Key Env",
+          "type": "string"
+        },
+        "base_url": {
+          "description": "HTTP URL Prowlarr uses to reach the target (e.g. http://sonarr.svc:8989).",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "name": {
+          "description": "Display name of the connection in Prowlarr (match key, D-03-03).",
+          "title": "Name",
+          "type": "string"
+        },
+        "sync_level": {
+          "default": "fullSync",
+          "description": "Prowlarr syncLevel (mirror of the field in /api/v1/applications).",
+          "enum": [
+            "fullSync",
+            "addOnly",
+            "disabled"
           ],
-          "default": null
+          "title": "Sync Level",
+          "type": "string"
+        },
+        "type": {
+          "description": "Target *arr family member type.",
+          "enum": [
+            "sonarr",
+            "radarr"
+          ],
+          "title": "Type",
+          "type": "string"
         }
       },
-      "title": "AppsConfig",
+      "required": [
+        "name",
+        "type",
+        "base_url",
+        "api_key_env"
+      ],
+      "title": "AppEntry",
+      "type": "object"
+    },
+    "AppsSection": {
+      "additionalProperties": false,
+      "description": "Prowlarr app-sync section (D-03-02 \u2014 only resource type Prowlarr reconciles).",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/AppEntry"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in prune (D-04).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "AppsSection",
       "type": "object"
     },
     "DownloadClient": {
@@ -308,28 +359,446 @@
       "title": "FieldKV",
       "type": "object"
     },
-    "SonarrConfig": {
+    "HostConfigSection": {
       "additionalProperties": false,
-      "description": "Sonarr config block (single instance per ADR-7).",
+      "description": "Opt-in host_config reconciliation (D-03-04).\n\n``enable`` defaults to ``False`` \u2014 the reconciler logs ``host_config_reconcile_skipped``\nand returns without calling GET /config/host. This prevents an accidental\nYAML typo from locking arrconf out of the app via authenticationRequired\nmisconfiguration. To activate host_config reconciliation, set\n``host_config: { enable: true }`` explicitly in the YAML config.\n\nOnly the safe-to-reconcile subset of host_config fields is modeled \u2014 the\nfull HostConfig model (Plan 01) has more fields but they are either\nserver-derived or credential-sensitive (apiKey / password) and excluded\nwith ``exclude=True`` on the resource model.",
       "properties": {
-        "main": {
+        "authenticationMethod": {
           "anyOf": [
             {
-              "$ref": "#/$defs/SonarrInstance"
+              "type": "string"
             },
             {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Sonarr/Radarr authentication method (e.g. 'forms', 'basic', 'none').",
+          "title": "Authenticationmethod"
+        },
+        "authenticationRequired": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sonarr/Radarr auth requirement (e.g. 'enabled', 'disabledForLocalAddresses').",
+          "title": "Authenticationrequired"
+        },
+        "enable": {
+          "default": false,
+          "description": "Opt-in flag \u2014 host_config reconcile is skipped unless this is True (D-03-04).",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "instanceName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Display name of the instance.",
+          "title": "Instancename"
+        },
+        "urlBase": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "URL base path (e.g. '/sonarr').",
+          "title": "Urlbase"
         }
       },
-      "title": "SonarrConfig",
+      "title": "HostConfigSection",
+      "type": "object"
+    },
+    "Indexer": {
+      "additionalProperties": true,
+      "description": "A Sonarr/Radarr indexer entry (created by Prowlarr sync, not by arrconf directly).\n\nPhase 3 reconciles indexers for sync alignment only (D-03-02: arrconf does\nnot manage indexer definitions \u2014 Prowlarr does). The standard diff/PUT\npattern still applies: cluster state is compared against YAML desired\nstate, with WR-01 credential safety on the apiKey field.",
+      "properties": {
+        "configContract": {
+          "description": "Sonarr/Radarr config contract.",
+          "title": "Configcontract",
+          "type": "string"
+        },
+        "downloadClientId": {
+          "default": 0,
+          "title": "Downloadclientid",
+          "type": "integer"
+        },
+        "enable": {
+          "default": true,
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "enableAutomaticSearch": {
+          "default": true,
+          "title": "Enableautomaticsearch",
+          "type": "boolean"
+        },
+        "enableInteractiveSearch": {
+          "default": true,
+          "title": "Enableinteractivesearch",
+          "type": "boolean"
+        },
+        "enableRss": {
+          "default": true,
+          "title": "Enablerss",
+          "type": "boolean"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/FieldKV"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "implementation": {
+          "description": "Sonarr/Radarr implementation class.",
+          "title": "Implementation",
+          "type": "string"
+        },
+        "implementationName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementationname"
+        },
+        "infoLink": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Infolink"
+        },
+        "name": {
+          "description": "Display name (matching key, must be unique).",
+          "title": "Name",
+          "type": "string"
+        },
+        "priority": {
+          "default": 25,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "tags": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "implementation",
+        "configContract"
+      ],
+      "title": "Indexer",
+      "type": "object"
+    },
+    "IndexersSection": {
+      "additionalProperties": false,
+      "description": "A list of indexers with opt-in prune (D-04).",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Indexer"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in prune (D-04).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "IndexersSection",
+      "type": "object"
+    },
+    "Notification": {
+      "additionalProperties": true,
+      "description": "A Sonarr/Radarr notification entry (Discord, Slack, webhook, custom script, ...).\n\nMatched by ``name`` (D-20). ``on*`` event flags differ between Sonarr and\nRadarr \u2014 captured via extra=\"allow\" so the same Notification class works\nfor both apps without app-specific subclassing.",
+      "properties": {
+        "configContract": {
+          "title": "Configcontract",
+          "type": "string"
+        },
+        "enable": {
+          "default": true,
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/FieldKV"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "implementation": {
+          "title": "Implementation",
+          "type": "string"
+        },
+        "implementationName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementationname"
+        },
+        "includeHealthWarnings": {
+          "default": false,
+          "title": "Includehealthwarnings",
+          "type": "boolean"
+        },
+        "infoLink": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Infolink"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "implementation",
+        "configContract"
+      ],
+      "title": "Notification",
+      "type": "object"
+    },
+    "NotificationsSection": {
+      "additionalProperties": false,
+      "description": "A list of notifications with opt-in prune (D-04).",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Notification"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in prune (D-04).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "NotificationsSection",
+      "type": "object"
+    },
+    "ProwlarrInstance": {
+      "additionalProperties": false,
+      "description": "A single Prowlarr instance (Phase 3, D-03-02 \u2014 app sync only).\n\nIndexer definitions (the catalog of newsnab / torznab endpoints) remain\nmanaged in the Prowlarr UI \u2014 they are out of Phase 3 scope.",
+      "properties": {
+        "apps": {
+          "$ref": "#/$defs/AppsSection"
+        },
+        "base_url": {
+          "description": "Prowlarr base URL e.g. http://prowlarr.svc:9696",
+          "title": "Base Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_url"
+      ],
+      "title": "ProwlarrInstance",
+      "type": "object"
+    },
+    "RadarrInstance": {
+      "additionalProperties": false,
+      "description": "A single Radarr instance (Phase 3, D-03-01 \u2014 full parity with SonarrInstance).\n\nIdentical section list to SonarrInstance \u2014 Radarr's v3 API exposes the\nsame resource types with the same shapes. The reconciler (Plan 04) is a\nparallel implementation; the YAML schema is intentionally aligned.",
+      "properties": {
+        "base_url": {
+          "description": "Radarr base URL e.g. http://radarr.svc:7878",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "download_clients": {
+          "$ref": "#/$defs/DownloadClientsSection"
+        },
+        "host_config": {
+          "$ref": "#/$defs/HostConfigSection"
+        },
+        "indexers": {
+          "$ref": "#/$defs/IndexersSection"
+        },
+        "notifications": {
+          "$ref": "#/$defs/NotificationsSection"
+        },
+        "root_folders": {
+          "$ref": "#/$defs/RootFoldersSection"
+        }
+      },
+      "required": [
+        "base_url"
+      ],
+      "title": "RadarrInstance",
+      "type": "object"
+    },
+    "RootFolder": {
+      "additionalProperties": true,
+      "description": "A Sonarr/Radarr root folder. ``path`` is the stable identity (D-03-01).",
+      "properties": {
+        "accessible": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accessible"
+        },
+        "freeSpace": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Freespace"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "path": {
+          "description": "Filesystem path (match key for reconcile()).",
+          "title": "Path",
+          "type": "string"
+        },
+        "unmappedFolders": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unmappedfolders"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "RootFolder",
+      "type": "object"
+    },
+    "RootFoldersSection": {
+      "additionalProperties": false,
+      "description": "A list of root folders with opt-in prune (D-04).\n\nSonarr/Radarr have NO PUT endpoint for root folders \u2014 path changes produce\nDELETE + ADD via the differ (RESEARCH.md Pitfall 1).",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/RootFolder"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in prune (D-04).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "RootFoldersSection",
       "type": "object"
     },
     "SonarrInstance": {
       "additionalProperties": false,
-      "description": "A single Sonarr instance (Phase 1 supports only ``main`` per ADR-7).",
+      "description": "A single Sonarr instance (Phase 3 extends Phase 1's download_clients-only scope).\n\nResource section order is alphabetical for readability \u2014 runtime\nreconcile ordering is enforced by the reconciler itself (Plan 03).",
       "properties": {
         "base_url": {
           "description": "Sonarr base URL e.g. http://sonarr.svc:8989",
@@ -338,6 +807,18 @@
         },
         "download_clients": {
           "$ref": "#/$defs/DownloadClientsSection"
+        },
+        "host_config": {
+          "$ref": "#/$defs/HostConfigSection"
+        },
+        "indexers": {
+          "$ref": "#/$defs/IndexersSection"
+        },
+        "notifications": {
+          "$ref": "#/$defs/NotificationsSection"
+        },
+        "root_folders": {
+          "$ref": "#/$defs/RootFoldersSection"
         }
       },
       "required": [
@@ -349,10 +830,28 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).",
+  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).",
   "properties": {
-    "apps": {
-      "$ref": "#/$defs/AppsConfig"
+    "prowlarr": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ProwlarrInstance"
+      },
+      "title": "Prowlarr",
+      "type": "object"
+    },
+    "radarr": {
+      "additionalProperties": {
+        "$ref": "#/$defs/RadarrInstance"
+      },
+      "title": "Radarr",
+      "type": "object"
+    },
+    "sonarr": {
+      "additionalProperties": {
+        "$ref": "#/$defs/SonarrInstance"
+      },
+      "title": "Sonarr",
+      "type": "object"
     }
   },
   "title": "RootConfig",

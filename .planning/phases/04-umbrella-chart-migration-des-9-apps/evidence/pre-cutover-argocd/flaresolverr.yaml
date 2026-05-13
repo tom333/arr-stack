@@ -1,0 +1,646 @@
+# ArgoCD Application source (Application CR spec):
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: applications:argoproj.io/Application:argocd/flaresolverr
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"applications:argoproj.io/Application:argocd/flaresolverr"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"flaresolverr","namespace":"argocd"},"spec":{"destination":{"namespace":"selfhost","server":"https://kubernetes.default.svc"},"project":"selfhost-project","source":{"chart":"app-template","helm":{"values":"controllers:\n  main:\n    containers:\n      main:\n        image:\n          repository: ghcr.io/flaresolverr/flaresolverr\n          tag: latest\n        env:\n          TZ: \"Europe/Paris\"\n          LOG_LEVEL: \"info\"\nservice:\n  main:\n    controller: main\n    ports:\n      http:\n        port: 8191\n# Pas d'ingress : accès interne uniquement\n# URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191\n"},"repoURL":"https://bjw-s-labs.github.io/helm-charts","targetRevision":"5.0.0"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=false"]}}}
+  creationTimestamp: "2026-04-14T00:41:39Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 7982
+  name: flaresolverr
+  namespace: argocd
+  resourceVersion: "34046812"
+  uid: d2aa2787-3519-498e-b4aa-9a146d849c96
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    chart: app-template
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/flaresolverr/flaresolverr
+                  tag: latest
+                env:
+                  TZ: "Europe/Paris"
+                  LOG_LEVEL: "info"
+        service:
+          main:
+            controller: main
+            ports:
+              http:
+                port: 8191
+        # Pas d'ingress : accès interne uniquement
+        # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    targetRevision: 5.0.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-05-12T03:00:18Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-04-14T00:41:45Z"
+    deployedAt: "2026-04-14T00:41:49Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: ghcr.io/flaresolverr/flaresolverr
+                    tag: latest
+                  env:
+                    TZ: "Europe/Paris"
+                    LOG_LEVEL: "info"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 8191
+          # Pas d'ingress : accès interne uniquement
+          # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-05-11T09:56:53Z"
+    deployedAt: "2026-05-11T09:56:58Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: 5.0.0
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: ghcr.io/flaresolverr/flaresolverr
+                    tag: latest
+                  env:
+                    TZ: "Europe/Paris"
+                    LOG_LEVEL: "info"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 8191
+          # Pas d'ingress : accès interne uniquement
+          # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 5.0.0
+  operationState:
+    finishedAt: "2026-05-11T09:56:58Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 5.0.0
+        source:
+          chart: app-template
+          helm:
+            values: |
+              controllers:
+                main:
+                  containers:
+                    main:
+                      image:
+                        repository: ghcr.io/flaresolverr/flaresolverr
+                        tag: latest
+                      env:
+                        TZ: "Europe/Paris"
+                        LOG_LEVEL: "info"
+              service:
+                main:
+                  controller: main
+                  ports:
+                    http:
+                      port: 8191
+              # Pas d'ingress : accès interne uniquement
+              # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+          repoURL: https://bjw-s-labs.github.io/helm-charts
+          targetRevision: 5.0.0
+        syncOptions:
+        - CreateNamespace=false
+    phase: Succeeded
+    startedAt: "2026-05-11T09:56:53Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: ServiceAccount
+        message: serviceaccount/flaresolverr created
+        name: flaresolverr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/flaresolverr configured
+        name: flaresolverr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - ghcr.io/flaresolverr/flaresolverr:latest
+        kind: Deployment
+        message: deployment.apps/flaresolverr configured
+        name: flaresolverr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 5.0.0
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/flaresolverr/flaresolverr
+                      tag: latest
+                    env:
+                      TZ: "Europe/Paris"
+                      LOG_LEVEL: "info"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 8191
+            # Pas d'ingress : accès interne uniquement
+            # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+  reconciledAt: "2026-05-12T20:17:15Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: Service
+    name: flaresolverr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: ServiceAccount
+    name: flaresolverr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: flaresolverr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    images:
+    - ghcr.io/flaresolverr/flaresolverr:latest
+  sync:
+    comparedTo:
+      destination:
+        namespace: selfhost
+        server: https://kubernetes.default.svc
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/flaresolverr/flaresolverr
+                      tag: latest
+                    env:
+                      TZ: "Europe/Paris"
+                      LOG_LEVEL: "info"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 8191
+            # Pas d'ingress : accès interne uniquement
+            # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+    revision: 5.0.0
+    status: Synced
+---
+# Live cluster state for label app.kubernetes.io/instance=flaresolverr:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2026-05-11T09:57:09Z"
+    generateName: flaresolverr-78c859dc75-
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/name: flaresolverr
+      pod-template-hash: 78c859dc75
+    name: flaresolverr-78c859dc75-z4nkn
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: flaresolverr-78c859dc75
+      uid: 17353f36-9b0c-4e17-8de8-9400b8fe9448
+    resourceVersion: "33897549"
+    uid: a9fa5b68-8dbe-4117-98fb-0db4d0282e4b
+  spec:
+    automountServiceAccountToken: false
+    containers:
+    - env:
+      - name: LOG_LEVEL
+        value: info
+      - name: TZ
+        value: Europe/Paris
+      image: ghcr.io/flaresolverr/flaresolverr:latest
+      imagePullPolicy: Always
+      name: main
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: false
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: flaresolverr
+    serviceAccountName: flaresolverr
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:14Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:10Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:14Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:14Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:10Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://314a44b3e70add3bdd97386be264b1c2b545f0d5511ea5028b8af7cb150952a4
+      image: ghcr.io/flaresolverr/flaresolverr:latest
+      imageID: ghcr.io/flaresolverr/flaresolverr@sha256:7962759d99d7e125e108e0f5e7f3cdbcd36161776d058d1d9b7153b92ef1af9e
+      lastState: {}
+      name: main
+      ready: true
+      resources: {}
+      restartCount: 1
+      started: true
+      state:
+        running:
+          startedAt: "2026-05-12T03:00:12Z"
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Running
+    podIP: 10.1.28.98
+    podIPs:
+    - ip: 10.1.28.98
+    qosClass: BestEffort
+    startTime: "2026-05-11T09:57:10Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: flaresolverr:/Service:selfhost/flaresolverr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"flaresolverr:/Service:selfhost/flaresolverr"},"labels":{"app.kubernetes.io/instance":"flaresolverr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"flaresolverr","app.kubernetes.io/service":"flaresolverr","helm.sh/chart":"app-template-5.0.0"},"name":"flaresolverr","namespace":"selfhost"},"spec":{"ports":[{"name":"http","port":8191,"protocol":"TCP","targetPort":8191}],"selector":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"flaresolverr","app.kubernetes.io/name":"flaresolverr"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-04-14T00:41:48Z"
+    labels:
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: flaresolverr
+      app.kubernetes.io/service: flaresolverr
+      helm.sh/chart: app-template-5.0.0
+    name: flaresolverr
+    namespace: selfhost
+    resourceVersion: "33748714"
+    uid: 43b1bd71-e377-425f-8f92-00776e09b22c
+  spec:
+    clusterIP: 10.152.183.65
+    clusterIPs:
+    - 10.152.183.65
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8191
+      protocol: TCP
+      targetPort: 8191
+    selector:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/name: flaresolverr
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: flaresolverr:apps/Deployment:selfhost/flaresolverr
+      deployment.kubernetes.io/revision: "2"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"flaresolverr:apps/Deployment:selfhost/flaresolverr"},"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"flaresolverr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"flaresolverr","helm.sh/chart":"app-template-5.0.0"},"name":"flaresolverr","namespace":"selfhost"},"spec":{"replicas":1,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"flaresolverr","app.kubernetes.io/name":"flaresolverr"}},"strategy":{"type":"Recreate"},"template":{"metadata":{"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"flaresolverr","app.kubernetes.io/name":"flaresolverr"}},"spec":{"automountServiceAccountToken":false,"containers":[{"env":[{"name":"LOG_LEVEL","value":"info"},{"name":"TZ","value":"Europe/Paris"}],"image":"ghcr.io/flaresolverr/flaresolverr:latest","name":"main"}],"dnsPolicy":"ClusterFirst","enableServiceLinks":false,"hostIPC":false,"hostNetwork":false,"hostPID":false,"serviceAccountName":"flaresolverr"}}}}
+    creationTimestamp: "2026-04-14T00:41:49Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: flaresolverr
+      helm.sh/chart: app-template-5.0.0
+    name: flaresolverr
+    namespace: selfhost
+    resourceVersion: "33897556"
+    uid: 55877911-cdf6-4c10-beed-ea143ce18331
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: flaresolverr
+        app.kubernetes.io/name: flaresolverr
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: flaresolverr
+          app.kubernetes.io/name: flaresolverr
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: LOG_LEVEL
+            value: info
+          - name: TZ
+            value: Europe/Paris
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: flaresolverr
+        serviceAccountName: flaresolverr
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-04-14T00:41:49Z"
+      lastUpdateTime: "2026-05-11T09:57:48Z"
+      message: ReplicaSet "flaresolverr-78c859dc75" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-05-12T03:00:16Z"
+      lastUpdateTime: "2026-05-12T03:00:16Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: flaresolverr:apps/Deployment:selfhost/flaresolverr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2026-04-14T00:41:49Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/name: flaresolverr
+      pod-template-hash: 6b9b59d884
+    name: flaresolverr-6b9b59d884
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: flaresolverr
+      uid: 55877911-cdf6-4c10-beed-ea143ce18331
+    resourceVersion: "33748885"
+    uid: 07063875-5053-4569-abeb-a9262dc0682f
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: flaresolverr
+        app.kubernetes.io/name: flaresolverr
+        pod-template-hash: 6b9b59d884
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: flaresolverr
+          app.kubernetes.io/name: flaresolverr
+          pod-template-hash: 6b9b59d884
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: LOG_LEVEL
+            value: info
+          - name: TZ
+            value: Europe/Paris
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: flaresolverr:apps/Deployment:selfhost/flaresolverr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "2"
+    creationTimestamp: "2026-05-11T09:57:08Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/name: flaresolverr
+      pod-template-hash: 78c859dc75
+    name: flaresolverr-78c859dc75
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: flaresolverr
+      uid: 55877911-cdf6-4c10-beed-ea143ce18331
+    resourceVersion: "33897553"
+    uid: 17353f36-9b0c-4e17-8de8-9400b8fe9448
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: flaresolverr
+        app.kubernetes.io/name: flaresolverr
+        pod-template-hash: 78c859dc75
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: flaresolverr
+          app.kubernetes.io/name: flaresolverr
+          pod-template-hash: 78c859dc75
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: LOG_LEVEL
+            value: info
+          - name: TZ
+            value: Europe/Paris
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: flaresolverr
+        serviceAccountName: flaresolverr
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: flaresolverr:/ServiceAccount:selfhost/flaresolverr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"flaresolverr:/ServiceAccount:selfhost/flaresolverr"},"labels":{"app.kubernetes.io/instance":"flaresolverr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"flaresolverr","helm.sh/chart":"app-template-5.0.0"},"name":"flaresolverr","namespace":"selfhost"}}
+    creationTimestamp: "2026-05-11T09:56:54Z"
+    labels:
+      app.kubernetes.io/instance: flaresolverr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: flaresolverr
+      helm.sh/chart: app-template-5.0.0
+    name: flaresolverr
+    namespace: selfhost
+    resourceVersion: "33748691"
+    uid: 8dc4f0cd-ad50-43e2-a2ca-f8634534b687
+kind: List
+metadata:
+  resourceVersion: ""

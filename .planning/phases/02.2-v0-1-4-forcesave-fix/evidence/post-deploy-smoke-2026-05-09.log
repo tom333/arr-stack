@@ -1,0 +1,6 @@
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-09T05:55:17.708249Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-09T05:55:17.711632Z"}
+{"name": "username", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T05:55:17.711729Z"}
+{"name": "password", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-09T05:55:17.711756Z"}
+{"path": "/downloadclient", "id": 1, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-09T05:55:17.711789Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-09T05:55:17.751154Z"}

@@ -1,0 +1,10 @@
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-08T21:34:49.908601Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields", "tags"], "event": "plan_action", "level": "info", "timestamp": "2026-05-08T21:34:49.911658Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-08T21:34:50.322028Z"}
+
+# === Post-PR4-hotfix smoke (arrconf-pr4-smoke-1778280503, 2026-05-09T09:48:36+11:00) ===
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-08T22:48:30.431548Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-08T22:48:30.434329Z"}
+{"name": "username", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-08T22:48:30.434422Z"}
+{"name": "password", "event": "merge_field_preserved", "level": "info", "timestamp": "2026-05-08T22:48:30.434449Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-08T22:48:30.439377Z"}

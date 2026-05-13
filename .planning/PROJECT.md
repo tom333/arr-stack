@@ -16,7 +16,7 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — projet en phase de spec, code/chart à produire)
+- [x] **REQ-drift-detection** — Drift UI détecté et corrigé au prochain run d'arrconf. Validated in Phase 02.2: fully-automated priority restore + credential survival (composite dispositive: `merge_field_omitted_credential ≥ 1`, `sonarr_qbit_test_http_status=200`, `manual_nudge_used=NO`). v0.1.6.
 
 ### Active
 
@@ -157,4 +157,4 @@ Frontière dure dérivée de **ADR-5**. Les ✅ sont obligatoires, les ❌ inter
 | App sync Prowlarr | ❌ | ✅ |
 
 ---
-*Last updated: 2026-05-07 after gsd-import / new-project-from-ingest bootstrap*
+*Last updated: 2026-05-10 after Phase 02.2 (v0.1.5/v0.1.6 hotfix — CR-01 gap closed, REQ-drift-detection validated)*

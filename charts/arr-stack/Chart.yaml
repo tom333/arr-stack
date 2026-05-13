@@ -1,0 +1,49 @@
+apiVersion: v2
+name: arr-stack
+description: Helm umbrella chart for the arr-stack self-hosted media stack
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.28.0-0"
+
+dependencies:
+  - name: app-template
+    alias: sonarr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: radarr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: prowlarr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: cleanuparr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: qbittorrent
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: seerr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: flaresolverr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: jellyfin
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: arrconf
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: configarr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts

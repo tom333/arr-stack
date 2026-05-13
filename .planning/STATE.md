@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.2.0
-milestone_name: milestone
-status: executing
-stopped_at: Phase 02.1 context gathered
-last_updated: "2026-05-08T09:23:58.180Z"
-last_activity: 2026-05-08 -- Phase 2.1 execution started
+milestone: v0.2.0
+milestone_name: forceSave fix
+status: Phase 03 complete
+stopped_at: Phase 4 context gathered
+last_updated: "2026-05-13T07:45:00Z"
+last_activity: 2026-05-13 -- Phase 4 autonomous waves 0-5 complete; chart content-complete + CI wired; pending operator gates: 04-07 walkthrough, 04-08 cutover, 04-09 post-cutover
 progress:
-  total_phases: 10
-  completed_phases: 3
-  total_plans: 15
-  completed_plans: 11
-  percent: 73
+  total_phases: 11
+  completed_phases: 6
+  total_plans: 43
+  completed_plans: 34
+  percent: 79
 ---
 
 # Project State
@@ -21,16 +21,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 2.1 — field-merge-fix
+**Current focus:** Phase 4 — umbrella-chart-migration-des-9-apps
 
 ## Current Position
 
-Phase: 2.1 (field-merge-fix) — EXECUTING
-Plan: 1 of 4
-Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3
-Last activity: 2026-05-08 -- Phase 2.1 execution started
+Phase: 4 (umbrella-chart-migration-des-9-apps) — EXECUTING (6.5/9 plans complete; pending operator gates for 04-07.3, 04-08, 04-09)
+Plans complete: 04-01 (Wave 0 baseline+scripts), 04-02 (chart skeleton), 04-03 (sonarr/radarr/prowlarr/qbittorrent aliases), 04-04 (cleanuparr/seerr/flaresolverr/jellyfin aliases — :latest invariant closed), 04-05 (arrconf+configarr CronJobs + values.schema.json + examples/values-prod.yaml), 04-06 (chart-lint.yml CI workflow + renovate.json customManagers + auto-tag job), 04-07 partial (Tasks 7.1+7.2 README+CLAUDE.md rewrites committed)
+Pending operator gates:
+  - 04-07 Task 7.3 — operator timed walkthrough of README onboarding (<30 min budget per REQ-readme-onboarding)
+  - 04-08 (Wave 6) — cross-repo cutover PR in my-kluster + kubectl-driven sync (argocd CLI absent)
+  - 04-09 (Wave 7) — re-enable automated.{selfHeal,prune} + SC#2 Renovate E2E evidence within 72h M1/M2/M3 gate
+Chart state: 8 Deployments + 8 Services + 7 Ingresses + 7 PVCs + 2 CronJobs + 2 ConfigMaps + 10 ServiceAccounts render cleanly; helm lint passes; render snapshot committed at `.planning/phases/04-umbrella-chart-migration-des-9-apps/evidence/umbrella-render.yaml`
+Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
+Last activity: 2026-05-13 -- Phase 4 autonomous waves complete; operator handoff for waves 6-7 cutover
 
-Progress: [██████████] 100% (5/5 plans executed; 1 plan partial — 02-05)
+Progress: [██████████] 100%
+
+### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
+
+Sonarr's "Test" button on the qBit downloadclient returns 401/403 after v0.1.4 reconcile. Forensic shows the v0.1.4 `?forceSave=true` PUT bypassed Sonarr's pre-save validation and stored the API mask `"********"` (preserved by Phase 2.1 `merge_fields_for_put` helper) as the literal password value. ADR-8 accepted-risk realized in production. CronJob `arrconf` SUSPENDED at 2026-05-09T06:48:11Z. Recovery artifacts:
+
+- `snapshots/forensic-phase2.2-auth-regression-2026-05-09T0648/` (Sonarr 17 JSON + qBittorrent 8 files, redacted, anti-leak clean)
+- `.planning/phases/02.2-v0-1-4-forcesave-fix/evidence/forensic-credentials-diff-2026-05-09T0651.txt` (DISPOSITIVE: GET-side diff is EMPTY — proves the GET cannot detect the regression)
+- `.planning/phases/02.2-v0-1-4-forcesave-fix/evidence/forensic-cronjob-logs-2026-05-09T0652.log` (compiled smoke + drift logs showing `merge_field_preserved` + `put_force_save_used` + `apply_complete` chain)
+- Plan 06 SUMMARY §"Operator Visual Gate FAILED" + `deferred-items.md` D-02.2-AUTH-REGRESSION
+
+**Required next action:** route to `/gsd-plan-phase 02.2 --gaps` (or equivalent) to scope a hotfix plan that ships v0.1.5 with credential-aware merge (Option A omit / Option B mask-detect / Option C scope-forceSave), operator-driven Sonarr UI password re-entry, behavioral W-04 dispositive (Sonarr Test API HTTP 200), and re-run of Task 6.4.
 
 ### Phase 2 final state
 
@@ -45,8 +61,8 @@ Progress: [██████████] 100% (5/5 plans executed; 1 plan part
 - #1 baseline snapshot ✅
 - #2 CronJob exists with envFrom secret ✅
 - #3 dry-run = zero writes ✅
-- #4 download_client managed by arrconf ⚠️ PARTIAL (tag created, not attached)
-- #5 drift detection ⏭️ UNTESTED (deferred to Phase 2.1)
+- #4 download_client managed by arrconf ✅ SATISFIED (tag attached via Plan 02.1-03 PR3 + Plan 02.1-04 Task 4.1 snapshot — `tags: [1]` confirmed in post-phase2.1-2026-05-09/sonarr/downloadclient.json + Sonarr API)
+- #5 drift detection ✅ SATISFIED (detection ✅ — Plan 02.1-04 Task 4.2 captured `plan_action action=update` event + W-04 dispositive `RESTORED_PRIORITY == ORIGINAL_PRIORITY` confirmed + W-01 forensic snapshot present; automated correction blocked by D-02.1-06 — fix shipping in v0.1.4 via `?forceSave=true`)
 
 ### Wave 1 deliverables (committed in arr-stack)
 
@@ -144,7 +160,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 16
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -153,6 +169,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 0 | 3 | - | - |
+| 02.2 | 13 | - | - |
 
 **Recent Trend:**
 
@@ -160,8 +177,19 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 02.2 P01 | 6 | 1 tasks | 26 files |
+| Phase 02.2 P02 | 4 | 2 tasks | 2 files |
+| Phase 02.2 P03 | 1 | 1 tasks | 1 files |
+| Phase 02.2 P04 | 5 | 2 tasks | 0 files |
+| Phase 02.2 P05 | 130 | 2 tasks | 0 files (cross-repo: my-kluster PR #1371 +1/-1) |
+| Phase 02.2 P06 | 13min | 3 tasks | 44 files |
+| Phase 03 P06 | 20 | 4 tasks | 4 files |
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 02.2 inserted after Phase 2.1: v0.1.4 forceSave fix — D-02.1-06 closure (URGENT)
 
 ### Decisions
 
@@ -176,6 +204,21 @@ Quick reference:
 - **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming)
 - **ADR-6** Snapshot baseline avant toute écriture
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
+- [Phase ?]: Phase 2.1 qBit auth workaround replayed cleanly for Phase 02.2
+- [Phase ?]: Option (b) _ArrV3Client mixin chosen over class flag (a) and direct override (c) — explicit type hierarchy surfaces *arr v3 scope at the type level, qBit/Jellyfin inherit from ArrApiClient directly (D-02.2-02 implementation choice)
+- [Phase ?]: URL-params assertion idiom (request.url.params[key]) introduced in test_reconcilers_sonarr.py — first in-tree usage; Phase 3 RadarrClient/ProwlarrClient regression contract follows this shape
+- [Phase ?]: PUT URL respx regex must permit optional query string (regex \d+(?:\?.*)?\$) — Phase 02.2 GREEN required relaxing 2 existing UPDATE-test regexes; documented as future-proof pattern for any *arr v3 PUT route
+- [Phase 02.2 P03]: ADR-8 added to spec.md §11 — "arrconf is a trusted controller — bypasses *arr UI-grade pre-save validation via ?forceSave=true on UPDATE PUTs" (D-02.2-04 closed); Conséquences explicitly scopes qBittorrent (Phase 5) + Jellyfin (Phase 7) OUT of forceSave; bidirectional traceability ADR ↔ `_ArrV3Client.put()` ↔ D-02.1-06 ↔ commit 4a24c5f (Plan 02 GREEN); ADRs 1-7 not renumbered (append-only convention)
+- [Phase ?]: Plan 02.2-04: v0.1.4 annotated tag (object 7abc581 → commit 7e5770d) cut + pushed; CI run 25590328939 succeeded in 31s; ghcr.io/tom333/arr-stack-arrconf:0.1.4 (digest sha256:1e7e60c4...d6054a, ~146 MiB, USER 1000:1000) verified anonymously pullable; D-37 atomic-tag pattern observed; Plan 05 my-kluster chart bump unblocked
+- [Phase ?]: Plan 02.2-04: GHCR anonymous manifest probe must include OCI index Accept type (application/vnd.oci.image.index.v1+json) — single-platform builds wrap in 1-entry index; legacy Docker manifest.v2-only Accept returns 404. Pattern updated for Phase 3 release verification.
+- [Phase 02.2 P05]: my-kluster PR #1371 merged (merge commit bba9010636ec24c97e2419138e5974fe25a357d5, 2026-05-09T05:37:20Z) with atomic 1-line diff (charts/arrconf/values.yaml: tag "0.1.3"→"0.1.4"); ArgoCD selfHeal Synced+Healthy on revision matching merge commit SHA; live CronJob image=ghcr.io/tom333/arr-stack-arrconf:0.1.4 (DISPOSITIVE); CronJob unsuspended; hotfix-window discipline observed (suspend at 03:31:29Z → unsuspend at ~05:38Z, ~2h6m, 0 fires). Phase 2.1 PR4 hotfix decision honored (placeholders STAY — files/arrconf.yml NOT in PR file scope). Plan 06 unblocked.
+- [Phase 02.2 P05]: argocd CLI may be unavailable on operator workstation — kubectl-on-Application equivalent path is dispositive (`kubectl get application arrconf -n argocd -o jsonpath='{.status.sync.status} {.status.health.status} rev={.status.sync.revision}'`). Pattern recorded for future hotfix plans.
+- [Phase 02.2 P05]: PR merge style (squash vs merge-commit) is operator choice — both honored as non-deviation as long as +1/-1 file scope and PR title-in-commit-message audit anchor preserved.
+- [Phase 02.2]: drift-demo runbook FULLY AUTOMATED dispositive captured (RESTORED_PRIORITY=1 == ORIGINAL_PRIORITY=1, no operator nudge); REQ-drift-detection correction half SATISFIED CLEANLY; D-02.1-06 architectural finding LOCKED SHUT — differential proof against Phase 2.1 closure recorded as 'manual_nudge_used: NO' in evidence/drift-demo-2026-05-09.log DISPOSITIVE COMPARISON block
+- [Phase 02.2]: rtk token-saving CLI shim filters bare curl/jq/grep output (substitutes TypeScript-style schema or strips hex) — 'rtk proxy <cmd>' bypass is the documented escape hatch — pattern recorded for all future cluster-validation phases that capture raw API responses
+- [Phase 02.2 P06 RECOVERY]: ADR-8's accepted bypass risk realized in production — v0.1.4 `?forceSave=true` PUT + Phase 2.1 `merge_fields_for_put` helper combine to silently overwrite `privacy=password` fields with the API mask `"********"`. Detection requires BEHAVIORAL test (Sonarr Test API HTTP 200), NOT snapshot diff (GET-side serialization makes the regression invisible). Pattern recorded for v0.1.5 hotfix planning + Phase 3 prerequisite update — every reconciler that touches credential-bearing fields MUST include a post-PUT behavioral assertion in its W-04 dispositive contract.
+- [Phase 02.2 P06 RECOVERY]: `mv` is interactively-aliased on this workstation — rtk-proxied `jq | mv` patterns require explicit `mv -f` (or `\mv`) to bypass the prompt; without `-f` the .tmp output sits next to the original and the redaction silently fails the audit. Pattern recorded for all future per-snapshot redaction code paths.
+- [Phase 03 P06]: v0.2.0 annotated tag cut + CI run 25660722478 triggered; ghcr.io/tom333/arr-stack-arrconf:0.2.0 build in progress; Task 6.5 operator checkpoint to verify anonymous pullability pending (D-37 atomic-tag pattern; OCI-index manifest probe per Plan 02.2-04 lesson); Phase 4 (umbrella chart) unblocked pending Task 6.5 approval.
 
 ### Pending Todos
 
@@ -189,7 +232,9 @@ None yet — projet vient d'être bootstrappé. Ouvertes mais non décidées : 1
 
 ### Blockers/Concerns
 
-None yet. Risque suivi à anticiper :
+- **D-02.2-AUTH-REGRESSION (HIGH, 2026-05-09T06:48:11Z)** — Plan 02.2-06 visual gate failed: Sonarr "Test" on qBit downloadclient returns 401/403; v0.1.4 `?forceSave=true` PUT stored API mask `"********"` as literal password (ADR-8 accepted-risk realized). CronJob `arrconf` SUSPENDED. Phase 02.2 cannot close until v0.1.5 hotfix ships + operator-driven cluster recovery + behavioral W-04 dispositive re-run. See deferred-items.md D-02.2-AUTH-REGRESSION for full required-action checklist.
+
+Risque suivi à anticiper :
 
 - **Q1 bloquante Phase 6** : si Seerr v3.2.0 a divergé de l'API Overseerr/Jellyseerr sur les endpoints critiques, Phase 6 doit être réévaluée (test à faire dès qu'on commence la phase, pas au milieu).
 
@@ -203,6 +248,24 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-08T08:45:29.823Z
-Stopped at: Phase 02.1 context gathered
-Resume file: .planning/phases/02.1-field-merge-fix/02.1-CONTEXT.md
+Last session: 2026-05-12T06:05:18.818Z
+Stopped at: Phase 4 context gathered
+Resume file: .planning/phases/04-umbrella-chart-migration-des-9-apps/04-CONTEXT.md
+Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
+
+### Phase 2.1 plan summary
+
+- Plan 02.1-01 ✅ Pre-fix snapshot baseline (snapshots/before-phase-2.1-2026-05-08/, 26 files, anti-leak audit clean) — commit 45e2f88
+- Plan 02.1-02 ✅ Code change (merge_fields_for_put helper + sonarr UPDATE wiring + dump REDACTED filter, 60 tests green, 97.92% coverage)
+- Plan 02.1-03 ✅ Release v0.1.3 + my-kluster PR3 + PR4 hotfix + post-PR4 smoke dispositive (merge_field_preserved fires for username + password)
+- Plan 02.1-04 ✅ Closure: post-phase2.1 snapshot (tag attached) + drift demo (detection logged, correction via forceSave=true manual nudge) + UAT #3 closed
+
+### Carry-forward to Phase 3
+
+- D-02.1-06 (NEW): merge_fields_for_put preserves Sonarr API-mask `********` for password, blocking PUT pre-save validation when any real field changes. Fix: add `?forceSave=true` to client.put() in UPDATE branch (v0.1.4). See deferred-items.md.
+- D-02.1-05 (carry-forward): merge_fields_for_put doesn't backfill cluster-only fields. Mitigated by retaining placeholders in arrconf.yml.
+- D-02.1-01..D-02.1-04 (Wave 1 deferred): snapshot.sh redaction gaps + qBit cluster recovery + arrconf-env QBT credentials gap.
+
+### NOTE TO ORCHESTRATOR
+
+This worktree commits the STATE.md update for traceability, but the worktree-merge logic restores main's STATE.md on merge. The orchestrator MUST re-apply this STATE.md content (or selected diffs) to main after merging this worktree. The diff is captured in the Plan 02.1-04 SUMMARY for re-application.

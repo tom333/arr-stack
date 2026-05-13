@@ -13,6 +13,18 @@ import pytest
 import respx
 
 from arrconf.exceptions import ScopeViolationError
+from arrconf.resources.radarr import (
+    custom_format as radarr_custom_format,
+)
+from arrconf.resources.radarr import (
+    media_naming as radarr_media_naming,
+)
+from arrconf.resources.radarr import (
+    quality_definition as radarr_quality_definition,
+)
+from arrconf.resources.radarr import (
+    quality_profile as radarr_quality_profile,
+)
 from arrconf.resources.sonarr import (
     custom_format,
     media_naming,
@@ -21,10 +33,16 @@ from arrconf.resources.sonarr import (
 )
 
 FRONTIERE_MODULES: list[ModuleType] = [
+    # Sonarr frontière (REQ-configarr-coexistence — original):
     quality_profile,
     custom_format,
     quality_definition,
     media_naming,
+    # Radarr frontière (REQ-configarr-coexistence — Phase 3 / D-03-01):
+    radarr_quality_profile,
+    radarr_custom_format,
+    radarr_quality_definition,
+    radarr_media_naming,
 ]
 
 

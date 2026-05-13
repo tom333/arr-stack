@@ -1,0 +1,42 @@
+# === POST-RECOVERY SMOKE COMPOSITE DISPOSITIVE (Plan 02.2-12, Task 12.3) ===
+# timestamp: 2026-05-10T03:20:00Z
+# job_name: arrconf-smoke-20260510141835
+# pod_name: arrconf-smoke-20260510141835-t5cx9
+# cronjob_unsuspended_at: 2026-05-10T03:18:00Z (before job creation)
+# job_started: 2026-05-10T03:18:35Z
+# job_completed: 2026-05-10T03:19:09Z
+# job_status: succeeded=1 (Complete)
+#
+# === RAW SMOKE POD LOG ===
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-10T03:19:02.924263Z"}
+{"action": "update", "name": "qBittorrent", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-10T03:19:02.952999Z"}
+{"name": "username", "privacy": "userName", "event": "merge_field_omitted_credential", "level": "info", "timestamp": "2026-05-10T03:19:02.953097Z"}
+{"name": "password", "privacy": "password", "event": "merge_field_omitted_credential", "level": "info", "timestamp": "2026-05-10T03:19:02.953124Z"}
+{"path": "/downloadclient", "id": 1, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-10T03:19:02.953158Z"}
+{"app": "sonarr", "actions": ["update:qBittorrent"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-10T03:19:04.143516Z"}
+#
+# === COMPOSITE DISPOSITIVE VERIFICATION ===
+# signal_1: merge_field_omitted_credential count = 2 (for username + password) — REQUIREMENT: >= 1 — PASSED (SUFFICIENT PROOF that v0.1.5 differ.py code is engaged)
+# signal_2: merge_field_preserved for name in {password, username} count = 0 — REQUIREMENT: == 0 — PASSED (wrong-branch NOT taken)
+# signal_3_pre_smoke: sonarr_qbit_test_http_status = 200, isValid = true (see cluster-recovery-2026-05-10.log)
+# signal_3_post_smoke: sonarr_qbit_test_http_status = 200, isValid = true — REQUIREMENT: HTTP 200 + isValid:true — PASSED (defense-in-depth)
+#
+# POST-SMOKE TEST API (POST /api/v3/downloadclient/testall):
+# [{"id": 1, "isValid": true, "validationFailures": []}]
+# HTTP status: 200
+#
+# put_force_save_used events: 1 (HTTP-layer intact from Plan 02.2-02)
+# plan_action update events: 1 (diff_fields: ["fields"] — credential-containing fields only)
+# HTTP 400 events: 0 (zero errors)
+# apply_complete events: 1 (actions: ["update:qBittorrent"])
+#
+# === CONCLUSION ===
+# ALL THREE COMPOSITE SIGNALS MET:
+#   [1] merge_field_omitted_credential >= 1: YES (2 events — username + password OMITTED from PUT body)
+#   [2] merge_field_preserved for credentials == 0: YES (the wrong branch did not fire)
+#   [3] Test API HTTP 200 + isValid:true pre AND post smoke: YES (credentials not corrupted)
+#
+# v0.1.5 credential-aware merge (Option A — omit by privacy metadata) is CONFIRMED OPERATIONAL in cluster.
+# D-02.2-AUTH-REGRESSION required-action #5 (re-run W-04 dispositive WITH credential check): SATISFIED
+#
+# CronJob arrconf remains UNSUSPENDED for drift demo (Task 12.4).

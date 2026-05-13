@@ -1,0 +1,1672 @@
+---
+# Source: arr-stack/charts/arrconf/templates/common.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arrconf
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: arrconf-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/cleanuparr/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cleanuparr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: cleanuparr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/configarr/templates/common.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: configarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: configarr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/flaresolverr/templates/common.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flaresolverr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: flaresolverr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/jellyfin/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jellyfin
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: jellyfin-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/prowlarr/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prowlarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: prowlarr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/qbittorrent/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qbittorrent
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: qbittorrent-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/radarr/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: radarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: radarr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/seerr/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: seerr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: seerr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/charts/sonarr/templates/common.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sonarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: sonarr-5.0.0
+  namespace: selfhost
+---
+# Source: arr-stack/templates/arrconf-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arrconf-config
+  namespace: selfhost
+  labels:
+    helm.sh/chart: arr-stack-0.1.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: arr-stack
+data:
+  arrconf.yml: |
+    apps:
+      sonarr:
+        main:
+          base_url: http://sonarr.selfhost.svc.cluster.local:8989
+          download_clients:
+            prune: false
+            items:
+              - name: qBittorrent
+                enable: true
+                protocol: torrent
+                priority: 1
+                implementation: QBittorrent
+                configContract: QBittorrentSettings
+                fields:
+                  - name: host
+                    value: qbittorrent.selfhost.svc.cluster.local
+                  - name: port
+                    value: 8080
+                  - name: useSsl
+                    value: false
+                  - name: urlBase
+                    value: ''
+                  - name: username
+                    value: ''
+                  - name: password
+                    value: ''
+                  - name: tvCategory
+                    value: sonarr
+                  - name: tvImportedCategory
+                    value: ''
+                  - name: recentTvPriority
+                    value: 0
+                  - name: olderTvPriority
+                    value: 0
+                  - name: initialState
+                    value: 0
+                  - name: sequentialOrder
+                    value: false
+                  - name: firstAndLast
+                    value: false
+                  - name: contentLayout
+                    value: 0
+                tags: []
+                removeCompletedDownloads: true
+                removeFailedDownloads: true
+---
+# Source: arr-stack/templates/configarr-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configarr-config
+  namespace: selfhost
+  labels:
+    helm.sh/chart: arr-stack-0.1.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: arr-stack
+data:
+  config.yml: |
+    # ============================================================================
+    # Configarr — configuration as code
+    # ----------------------------------------------------------------------------
+    # Source de vérité unique pour la synchronisation TRaSH-Guides / custom
+    # formats sur Sonarr et Radarr (namespace selfhost).
+    #
+    # Stratégie : profil HD only (720p + 1080p), priorité aux fichiers les plus
+    # petits via mHD + x265. Pas de HDR, pas de 4K (à activer plus tard).
+    #
+    # Doc : https://configarr.de/docs/intro/
+    # ============================================================================
+    
+    trashGuideUrl: https://github.com/TRaSH-Guides/Guides
+    recyclarrConfigUrl: https://github.com/recyclarr/config-templates
+    
+    # ============================================================================
+    # Custom format definitions
+    # ============================================================================
+    customFormatDefinitions:
+      # ---------------------------------------------------------------------------
+      # Pistes françaises (préférées) — score positif.
+      # ---------------------------------------------------------------------------
+      - trash_id: fr-vff
+        trash_scores:
+          default: 150
+        name: "FR: VFF / TRUEFRENCH"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: VFF or TRUEFRENCH in release title
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: false
+            fields:
+              value: "\\b(VFF|TRUEFRENCH)\\b"
+    
+      - trash_id: fr-vfi
+        trash_scores:
+          default: 150
+        name: "FR: VFI"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: VFI in release title
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: false
+            fields:
+              value: "\\bVFI\\b"
+    
+      - trash_id: fr-vfq
+        trash_scores:
+          default: 150
+        name: "FR: VFQ"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: VFQ in release title
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: false
+            fields:
+              value: "\\bVFQ\\b"
+    
+      - trash_id: fr-multi
+        trash_scores:
+          default: 100
+        name: "FR: MULTi"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: MULTi in release title
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: false
+            fields:
+              value: "\\bMULTI?\\b"
+    
+      # ---------------------------------------------------------------------------
+      # Sous-titres uniquement (à interdire) — score rédhibitoire.
+      # ---------------------------------------------------------------------------
+      - trash_id: fr-vostfr
+        trash_scores:
+          default: -10000
+        name: "FR: VOSTFR (subs only)"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: VOSTFR in release title
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: false
+            fields:
+              value: "\\bVOSTFR\\b"
+    
+      # ---------------------------------------------------------------------------
+      # mHD / MHD — encodes HD efficaces, fichiers les plus petits (priorité).
+      # ---------------------------------------------------------------------------
+      - trash_id: fr-mhd
+        trash_scores:
+          default: 1000
+        name: "mHD / MHD (small encode)"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: mHD or MHD in release title
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: false
+            fields:
+              value: "\\b(mHD|MHD)\\b"
+    
+      # ---------------------------------------------------------------------------
+      # x265 / HEVC en HD (720p / 1080p) — bonus codec efficace.
+      # ---------------------------------------------------------------------------
+      - trash_id: fr-x265-hd
+        trash_scores:
+          default: 500
+        name: "x265 / HEVC (HD)"
+        includeCustomFormatWhenRenaming: false
+        specifications:
+          - name: x265 / HEVC codec
+            implementation: ReleaseTitleSpecification
+            negate: false
+            required: true
+            fields:
+              value: "\\b(x265|h\\.?265|hevc)\\b"
+          - name: Not 2160p
+            implementation: ResolutionSpecification
+            negate: true
+            required: true
+            fields:
+              value: 2160
+    
+    # ============================================================================
+    # Sonarr — namespace selfhost
+    # ----------------------------------------------------------------------------
+    # Profil HD only (720p + 1080p), pas de 4K, pas de Remux, scoring agressif
+    # pour les encodes mHD x265.
+    # ============================================================================
+    sonarr:
+      main:
+        base_url: http://sonarr.selfhost.svc.cluster.local:8989
+        api_key: !env SONARR_API_KEY
+    
+        media_naming:
+          series: default
+          season: default
+          episodes:
+            rename: true
+            standard: default
+            daily: default
+            anime: default
+    
+        quality_definition:
+          type: series
+          # Plafonnement plus bas que TRaSH par défaut pour favoriser les encodes
+          # compressés. Valeurs en MB/min (normalisées par durée d'épisode).
+          qualities:
+            - quality: WEBDL-1080p
+              min: 2
+              preferred: 30
+              max: 60
+            - quality: WEBRip-1080p
+              min: 2
+              preferred: 30
+              max: 60
+            - quality: Bluray-1080p
+              min: 2
+              preferred: 50
+              max: 80
+            - quality: HDTV-1080p
+              min: 2
+              preferred: 25
+              max: 45
+            - quality: WEBDL-720p
+              min: 2
+              preferred: 20
+              max: 40
+            - quality: WEBRip-720p
+              min: 2
+              preferred: 20
+              max: 40
+            - quality: Bluray-720p
+              min: 2
+              preferred: 30
+              max: 50
+            - quality: HDTV-720p
+              min: 2
+              preferred: 15
+              max: 30
+    
+        quality_profiles:
+          - name: MULTi.VF
+            reset_unmatched_scores:
+              enabled: true
+            upgrade:
+              allowed: true
+              until_quality: Bluray-1080p
+              until_score: 2000
+              min_format_score: 50
+            min_format_score: 0
+            quality_sort: top
+            qualities:
+              - name: Bluray-1080p
+              - name: WEB 1080p
+                qualities:
+                  - WEBDL-1080p
+                  - WEBRip-1080p
+              - name: HDTV-1080p
+              - name: Bluray-720p
+              - name: WEB 720p
+                qualities:
+                  - WEBDL-720p
+                  - WEBRip-720p
+              - name: HDTV-720p
+    
+        custom_formats:
+          - trash_ids:
+              - fr-vff
+              - fr-vfi
+              - fr-vfq
+              - fr-multi
+            assign_scores_to:
+              - name: MULTi.VF
+    
+          - trash_ids:
+              - fr-vostfr
+            assign_scores_to:
+              - name: MULTi.VF
+    
+          - trash_ids:
+              - fr-mhd
+              - fr-x265-hd
+            assign_scores_to:
+              - name: MULTi.VF
+    
+    # ============================================================================
+    # Radarr — namespace selfhost
+    # ----------------------------------------------------------------------------
+    # Mêmes principes que Sonarr : HD only, priorité mHD x265.
+    # ============================================================================
+    radarr:
+      main:
+        base_url: http://radarr.selfhost.svc.cluster.local:7878
+        api_key: !env RADARR_API_KEY
+    
+        media_naming:
+          folder: default
+          movie:
+            rename: true
+            standard: default
+    
+        quality_definition:
+          type: movie
+          qualities:
+            - quality: WEBDL-1080p
+              min: 2
+              preferred: 25
+              max: 50
+            - quality: WEBRip-1080p
+              min: 2
+              preferred: 25
+              max: 50
+            - quality: Bluray-1080p
+              min: 2
+              preferred: 40
+              max: 70
+            - quality: HDTV-1080p
+              min: 2
+              preferred: 20
+              max: 40
+            - quality: WEBDL-720p
+              min: 2
+              preferred: 15
+              max: 30
+            - quality: WEBRip-720p
+              min: 2
+              preferred: 15
+              max: 30
+            - quality: Bluray-720p
+              min: 2
+              preferred: 25
+              max: 40
+            - quality: HDTV-720p
+              min: 2
+              preferred: 12
+              max: 25
+    
+        quality_profiles:
+          - name: MULTi.VF
+            reset_unmatched_scores:
+              enabled: true
+            upgrade:
+              allowed: true
+              until_quality: Bluray-1080p
+              until_score: 2000
+              min_format_score: 50
+            min_format_score: 0
+            quality_sort: top
+            qualities:
+              - name: Bluray-1080p
+              - name: WEB 1080p
+                qualities:
+                  - WEBDL-1080p
+                  - WEBRip-1080p
+              - name: HDTV-1080p
+              - name: Bluray-720p
+              - name: WEB 720p
+                qualities:
+                  - WEBDL-720p
+                  - WEBRip-720p
+              - name: HDTV-720p
+    
+        custom_formats:
+          - trash_ids:
+              - fr-vff
+              - fr-vfi
+              - fr-vfq
+              - fr-multi
+            assign_scores_to:
+              - name: MULTi.VF
+    
+          - trash_ids:
+              - fr-vostfr
+            assign_scores_to:
+              - name: MULTi.VF
+    
+          - trash_ids:
+              - fr-mhd
+              - fr-x265-hd
+            assign_scores_to:
+              - name: MULTi.VF
+---
+# Source: arr-stack/charts/cleanuparr/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: cleanuparr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: cleanuparr-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "1Gi"
+---
+# Source: arr-stack/charts/jellyfin/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: jellyfin
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: jellyfin-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"
+---
+# Source: arr-stack/charts/prowlarr/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: prowlarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: prowlarr-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "1Gi"
+---
+# Source: arr-stack/charts/qbittorrent/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: qbittorrent
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: qbittorrent-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "1Gi"
+---
+# Source: arr-stack/charts/radarr/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: radarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: radarr-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "2Gi"
+---
+# Source: arr-stack/charts/seerr/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: seerr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: seerr-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "2Gi"
+---
+# Source: arr-stack/charts/sonarr/templates/common.yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sonarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: sonarr-5.0.0
+  namespace: selfhost
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "2Gi"
+---
+# Source: arr-stack/charts/cleanuparr/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: cleanuparr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: cleanuparr
+    helm.sh/chart: cleanuparr-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11011
+      targetPort: 11011
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/flaresolverr/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: flaresolverr
+    helm.sh/chart: flaresolverr-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8191
+      targetPort: 8191
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/jellyfin/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: jellyfin
+    helm.sh/chart: jellyfin-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8096
+      targetPort: 8096
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/prowlarr/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: prowlarr
+    helm.sh/chart: prowlarr-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9696
+      targetPort: 9696
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/qbittorrent/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: qbittorrent
+    helm.sh/chart: qbittorrent-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/radarr/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: radarr
+    helm.sh/chart: radarr-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 7878
+      targetPort: 7878
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/seerr/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: seerr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: seerr
+    helm.sh/chart: seerr-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5055
+      targetPort: 5055
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/sonarr/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    app.kubernetes.io/service: sonarr
+    helm.sh/chart: sonarr-5.0.0
+  namespace: selfhost
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8989
+      targetPort: 8989
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/name: arr-stack
+---
+# Source: arr-stack/charts/cleanuparr/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cleanuparr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: cleanuparr-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: TZ
+            value: Europe/Paris
+          image: ghcr.io/cleanuparr/cleanuparr:2.3.3
+          name: main
+          volumeMounts:
+          - mountPath: /config
+            name: config
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: cleanuparr
+---
+# Source: arr-stack/charts/flaresolverr/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: flaresolverr-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: LOG_LEVEL
+            value: info
+          - name: TZ
+            value: Europe/Paris
+          image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
+          name: main
+---
+# Source: arr-stack/charts/jellyfin/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: jellyfin-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/jellyfin:10.11.8
+          name: main
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+---
+# Source: arr-stack/charts/prowlarr/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: prowlarr-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/prowlarr:2.3.5
+          name: main
+          volumeMounts:
+          - mountPath: /config
+            name: config
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr
+---
+# Source: arr-stack/charts/qbittorrent/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: qbittorrent-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          - name: WEBUI_PORT
+            value: "8080"
+          image: lscr.io/linuxserver/qbittorrent:5.2.0
+          name: main
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /data
+            name: torrents
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbittorrent
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+---
+# Source: arr-stack/charts/radarr/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: radarr-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/radarr:6.1.1
+          name: main
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+          - mountPath: /data/torrents
+            name: torrents
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+---
+# Source: arr-stack/charts/seerr/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seerr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: seerr-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: TZ
+            value: Europe/Paris
+          image: ghcr.io/seerr-team/seerr:v3.2.0
+          name: main
+          volumeMounts:
+          - mountPath: /app/config
+            name: config
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: seerr
+---
+# Source: arr-stack/charts/sonarr/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: sonarr-5.0.0
+  namespace: selfhost
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/name: arr-stack
+      app.kubernetes.io/instance: arr-stack
+  template:
+    metadata:
+      labels: 
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: arr-stack
+        app.kubernetes.io/name: arr-stack
+    spec: 
+      enableServiceLinks: false
+      serviceAccountName: arr-stack
+      automountServiceAccountToken: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      containers: 
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/sonarr:4.0.17
+          name: main
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+          - mountPath: /data/torrents
+            name: torrents
+      volumes: 
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+---
+# Source: arr-stack/charts/arrconf/templates/common.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: arrconf
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: arrconf-5.0.0
+  namespace: selfhost
+spec:
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  schedule: "0 */4 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 6
+      template:
+        metadata:
+          labels: 
+            app.kubernetes.io/controller: main
+            app.kubernetes.io/instance: arr-stack
+            app.kubernetes.io/name: arr-stack
+        spec: 
+          enableServiceLinks: false
+          serviceAccountName: arr-stack
+          automountServiceAccountToken: false
+          securityContext: 
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+          hostIPC: false
+          hostNetwork: false
+          hostPID: false
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          containers: 
+            - args:
+              - --config
+              - /app/config/arrconf.yml
+              - apply
+              - --apps
+              - sonarr,radarr,prowlarr
+              env:
+              - name: ARRCONF_DRY_RUN
+                value: "false"
+              - name: ARRCONF_LOG_LEVEL
+                value: INFO
+              - name: TZ
+                value: Europe/Paris
+              envFrom:
+              - secretRef:
+                  name: arrconf-env
+              image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+              imagePullPolicy: IfNotPresent
+              name: main
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+              volumeMounts:
+              - mountPath: /app/config/arrconf.yml
+                name: config
+                readOnly: true
+                subPath: arrconf.yml
+          volumes: 
+            - configMap:
+                name: arrconf-config
+              name: config
+---
+# Source: arr-stack/charts/configarr/templates/common.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: configarr
+  labels:
+    app.kubernetes.io/controller: main
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: configarr-5.0.0
+  namespace: selfhost
+spec:
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 30
+  schedule: "0 */4 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 6
+      template:
+        metadata:
+          labels: 
+            app.kubernetes.io/controller: main
+            app.kubernetes.io/instance: arr-stack
+            app.kubernetes.io/name: arr-stack
+        spec: 
+          enableServiceLinks: false
+          serviceAccountName: arr-stack
+          automountServiceAccountToken: false
+          hostIPC: false
+          hostNetwork: false
+          hostPID: false
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          containers: 
+            - env:
+              - name: TZ
+                value: Europe/Paris
+              envFrom:
+              - secretRef:
+                  name: configarr-env
+              image: ghcr.io/raydak-labs/configarr:1.28.0
+              imagePullPolicy: IfNotPresent
+              name: main
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+              tty: true
+              volumeMounts:
+              - mountPath: /app/repos
+                name: cache
+              - mountPath: /app/config/config.yml
+                name: config
+                readOnly: true
+                subPath: config.yml
+          volumes: 
+            - name: cache
+              persistentVolumeClaim:
+                claimName: configarr-cache
+            - configMap:
+                name: configarr-config
+              name: config
+---
+# Source: arr-stack/charts/cleanuparr/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cleanuparr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: cleanuparr-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://cleanuparr.tgu.ovh
+    nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "cleanuparr.tgu.ovh"
+      secretName: "cleanuparr-tls"
+  rules:
+    - host: "cleanuparr.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: cleanuparr
+                port:
+                  number: 11011
+---
+# Source: arr-stack/charts/jellyfin/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: jellyfin-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "jellyfin.tgu.ovh"
+      secretName: "jellyfin-tls"
+  rules:
+    - host: "jellyfin.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyfin
+                port:
+                  number: 8096
+---
+# Source: arr-stack/charts/prowlarr/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prowlarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: prowlarr-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "prowlarr.tgu.ovh"
+      secretName: "prowlarr-tls"
+  rules:
+    - host: "prowlarr.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: prowlarr
+                port:
+                  number: 9696
+---
+# Source: arr-stack/charts/qbittorrent/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: qbittorrent-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://qbittorrent.tgu.ovh
+    nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "qbittorrent.tgu.ovh"
+      secretName: "qbittorrent-tls"
+  rules:
+    - host: "qbittorrent.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  number: 8080
+---
+# Source: arr-stack/charts/radarr/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: radarr-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh
+    nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "radarr.tgu.ovh"
+      secretName: "radarr-tls"
+  rules:
+    - host: "radarr.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: radarr
+                port:
+                  number: 7878
+---
+# Source: arr-stack/charts/seerr/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: seerr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: seerr-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://seerr.tgu.ovh
+    nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "seerr.tgu.ovh"
+      secretName: "seerr-tls"
+  rules:
+    - host: "seerr.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: seerr
+                port:
+                  number: 5055
+---
+# Source: arr-stack/charts/sonarr/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr
+  labels:
+    app.kubernetes.io/instance: arr-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: arr-stack
+    helm.sh/chart: sonarr-5.0.0
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://sonarr.tgu.ovh
+    nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+  namespace: selfhost
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "sonarr.tgu.ovh"
+      secretName: "sonarr-tls"
+  rules:
+    - host: "sonarr.tgu.ovh"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr
+                port:
+                  number: 8989

@@ -98,8 +98,66 @@ class ArrApiClient:
         self._request("DELETE", f"{path}/{id}", **kwargs)
 
 
-class SonarrClient(ArrApiClient):
+class _ArrV3Client(ArrApiClient):
+    """Common base for *arr v3 REST clients (Sonarr/Radarr/Prowlarr).
+
+    Always sends ``forceSave=true`` on UPDATE PUTs (D-02.2-01 / ADR-8).
+    arrconf is the trusted controller — Sonarr's UI-grade pre-save validation
+    (which re-authenticates against masked passwords) is a tax with no signal
+    value in our context.
+
+    Phase 3's RadarrClient and ProwlarrClient inherit from this class and
+    receive the forceSave behavior by construction (zero per-reconciler
+    discipline burden — D-02.2-02).
+    """
+
+    def put(self, path: str, id: int, json: Any, **kwargs: Any) -> Any:
+        """HTTP PUT /{path}/{id} with ``forceSave=true`` always set.
+
+        Caller-supplied ``params=`` wins on conflicts (uses ``setdefault``).
+        Emits ``put_force_save_used`` log event for cluster audit trails.
+        """
+        params = dict(kwargs.pop("params", None) or {})
+        params.setdefault("forceSave", "true")
+        kwargs["params"] = params
+        log.info("put_force_save_used", path=path, id=id)
+        return self._request("PUT", f"{path}/{id}", json=json, **kwargs).json()
+
+
+class SonarrClient(_ArrV3Client):
     """Sonarr REST client."""
 
     api_path = "/api/v3"  # D-03: Sonarr v4+ only — no multi-version dispatch in Phase 1
     name = "sonarr"
+
+
+class RadarrClient(_ArrV3Client):
+    """Radarr REST client (Phase 3, D-03-01).
+
+    Inherits forceSave=true behavior on UPDATE PUTs from _ArrV3Client
+    (D-02.2-01 / ADR-8). Same /api/v3 path as Sonarr — Radarr's v3 API is
+    structurally identical for the resource types Phase 3 covers
+    (download_clients, indexers, notifications, root_folders, host_config).
+    """
+
+    api_path = "/api/v3"
+    name = "radarr"
+
+
+class ProwlarrClient(_ArrV3Client):
+    """Prowlarr REST client (Phase 3, D-03-02).
+
+    Prowlarr uses /api/v1 — NOT /api/v3. This api_path override is critical
+    (Pitfall 3 in RESEARCH.md): inheriting the default /api/v3 would 404 on
+    every Prowlarr endpoint. The reconciler tests in Plan 05 assert the
+    actual httpx URL contains "/api/v1/applications".
+
+    Phase 3 scope is the ``applications`` endpoint only (D-03-02). forceSave
+    is inherited from _ArrV3Client for any future UPDATE PUT (applications
+    UPDATE qualifies — the Prowlarr UI also has pre-save auth re-validation
+    against synced *arr instances which arrconf bypasses as the trusted
+    controller, same rationale as ADR-8).
+    """
+
+    api_path = "/api/v1"
+    name = "prowlarr"

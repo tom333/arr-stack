@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configarr-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "arr-stack.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    {{- .Files.Get "files/configarr.yml" | nindent 4 }}

@@ -15,8 +15,9 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] **Phase 0: Bootstrap repo + snapshot raw** - Capture lossless de l'existant (Bash) + scaffolding repo + Renovate initial (completed 2026-05-07)
 - [x] **Phase 1: arrconf POC + JSON Schema** - Squelette Python, CI image GHCR, sous-commandes `dump`/`diff`/`apply`/`schema-gen`, 1 reconciler bout-en-bout (Sonarr download_clients) avec autocomplétion VS Code (completed 2026-05-08, 3 human-UAT items pending in 01-HUMAN-UAT.md)
 - [x] **Phase 2: Validation cluster** - Premier déploiement arrconf en CronJob `selfhost` (`ARRCONF_DRY_RUN=true` au 1er run), bascule en apply après validation des logs, drift detection prouvée — completed 2026-05-08 with **partial success criteria** (success #1-#3 ✅; #4 PARTIAL — arrconf-managed tag created in Sonarr but PUT downloadclient blocked by Phase 1 design issue: empty username/password in YAML overwrites real qBit credentials, Sonarr 400; #5 UNTESTED — drift demo deferred). CronJob currently suspended in cluster pending Phase 2.1/3 fix. See `.planning/phases/02-arrconf-cluster-validation/02-05-SUMMARY.md`.
-- [ ] **Phase 2.1: Field-merge fix for sensitive YAML values** - Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so PUT body preserves cluster-stored field values when YAML value is `""` or for well-known sensitive field names. Re-run Plan 02-05 Tasks 5.1c + 5.2 (drift demo) for closure. Closes Phase 1 HUMAN-UAT #3.
-- [ ] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 fix)
+- [x] **Phase 2.1: Field-merge fix for sensitive YAML values** - Modify `tools/arrconf/arrconf/reconcilers/sonarr.py` (and possibly `differ.py`) so PUT body preserves cluster-stored field values when YAML value is `""` or for well-known sensitive field names. Re-run Plan 02-05 Tasks 5.1c + 5.2 (drift demo) for closure. Closes Phase 1 HUMAN-UAT #3. (completed 2026-05-09)
+- [x] **Phase 2.2: v0.1.4 forceSave fix (INSERTED)** - Add `?forceSave=true` query param to arrconf's UPDATE-branch PUT in `client_base.py` / `reconcilers/sonarr.py` so Sonarr does not re-validate the API-mask `"********"` against qBit on every real field change. Closes D-02.1-06 architectural finding from Phase 2.1 — required prerequisite before Phase 3 (Radarr/Prowlarr) automated drift correction. (completed 2026-05-10 — v0.1.5+v0.1.6, D-02.2-AUTH-REGRESSION closed, REQ-drift-detection validated)
+- [x] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 + 2.2 fix) (completed 2026-05-11)
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
 - [ ] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants
 - [ ] **Phase 6: Reconciler Seerr** - Validation Q1 (compat API Seerr vs Overseerr/Jellyseerr) + Q10 (routing tags), reconciler `seerr.py` (services connectés, users, requests config)
@@ -93,9 +94,39 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 **Plans**: 4 plans
 - [x] 02.1-01-PLAN.md — Wave 1: Pre-fix snapshot (sonarr+qbittorrent baseline before code change, ADR-6)
 - [x] 02.1-02-PLAN.md — Wave 2: Implement merge_fields_for_put + dump REDACTED filter + tests (D-31/D-32/D-33/D-35/D-36)
-- [ ] 02.1-03-PLAN.md — Wave 3: Release v0.1.3 + PR3 in my-kluster + post-deploy smoke job (D-36/D-37)
-- [ ] 02.1-04-PLAN.md — Wave 4: Re-execute Plan 02-05 Tasks 5.1c + 5.2 + close HUMAN-UAT #3 + STATE.md update (D-34)
+- [x] 02.1-03-PLAN.md — Wave 3: Release v0.1.3 + PR3 in my-kluster + post-deploy smoke job (D-36/D-37)
+- [x] 02.1-04-PLAN.md — Wave 4: Re-execute Plan 02-05 Tasks 5.1c + 5.2 + close HUMAN-UAT #3 + STATE.md update (D-34)
 **Open questions to resolve**: (none — D-31..D-37 tranchés en discuss-phase 2026-05-08)
+
+### Phase 02.2: v0.1.4 forceSave fix (INSERTED)
+
+**Goal:** Ship `v0.1.4` of arrconf adding `?forceSave=true` to every UPDATE PUT for *arr v3 clients (Sonarr/Radarr/Prowlarr) via a new `_ArrV3Client(ArrApiClient)` intermediate class in `tools/arrconf/arrconf/client_base.py`. Closes the architectural finding D-02.1-06 from Phase 2.1: Sonarr's `merge_fields_for_put` faithfully preserves the API mask `********` for `privacy=password` fields; without `forceSave=true`, Sonarr's pre-save validation re-authenticates against the literal `********` and rejects the PUT with HTTP 400 on any real-change PUT. Add ADR-8 to `spec.md` §11 documenting the trusted-controller stance. Cut `v0.1.4` annotated tag → CI builds GHCR image → atomic single-line PR in my-kluster bumping `image.tag: 0.1.3 → 0.1.4`. Re-execute Phase 2.1's drift demo runbook FULLY AUTOMATED (no operator manual `?forceSave=true` curl nudge) — the differential against Phase 2.1's closure is the dispositive proof that v0.1.4 closes the correction half of REQ-drift-detection cleanly. Required prerequisite before Phase 3 (Radarr/Prowlarr automated drift correction would face the identical 400 failure mode).
+
+**Requirements**: REQ-drift-detection (correction half — closes cleanly here via fully-automated reconcile, replacing Phase 2.1's manual-nudge closure)
+
+**Depends on:** Phase 2.1
+
+**Plans:** 13/13 plans complete
+
+> **RESOLVED (2026-05-10):** D-02.2-AUTH-REGRESSION closed. v0.1.5 (omit-by-privacy strategy) + v0.1.6 (CR-01 rotation guard) shipped and deployed. Composite dispositive satisfied: `merge_field_omitted_credential ≥ 1`, `sonarr_qbit_test_http_status=200`, `manual_nudge_used=NO`. CronJob unsuspended. REQ-drift-detection FINAL closure.
+
+Plans:
+- [x] 02.2-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (sonarr + qbittorrent, ADR-6 discipline; redaction workaround for D-02.1-01/-02)
+- [x] 02.2-02-PLAN.md — Wave 2: TDD RED+GREEN — _ArrV3Client mixin + put_force_save_used event + 3 tests (UPDATE positive + ADD/DELETE defensive negative)
+- [x] 02.2-03-PLAN.md — Wave 2: ADR-8 in spec.md §11 — trusted-controller stance documenting forceSave bypass (parallel to Plan 02)
+- [x] 02.2-04-PLAN.md — Wave 3: Release v0.1.4 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag pattern)
+- [x] 02.2-05-PLAN.md — Wave 4: my-kluster PR — image.tag bump 0.1.3 → 0.1.4 (suspend CronJob during merge window; placeholders STAY per Phase 2.1 PR4)
+- [x] 02.2-06-PLAN.md — Wave 5: Cluster smoke + drift demo FULLY AUTOMATED — **INCOMPLETE / FAILED at Task 6.4 visual gate (operator UAT)**. Tasks 6.1–6.3 automated dispositives PASSED (priority restored, `put_force_save_used` emitted, no HTTP 400, `manual_nudge_used: NO`); Task 6.4 detected the credential-side regression that priority-only checks could not surface. CronJob suspended; D-02.2-AUTH-REGRESSION opened.
+- [x] 02.2-07-PLAN.md — Wave 6 (gap-closure): Pre-hotfix forensic snapshot baseline (ADR-6) + TDD RED test reproducing the credential-mask regression in tools/arrconf/tests/test_differ.py
+- [x] 02.2-08-PLAN.md — Wave 7 (gap-closure): TDD GREEN — Option A omit-by-privacy-metadata in differ.py:merge_fields_for_put + new merge_field_omitted_credential audit event + integration-test rewrite
+- [x] 02.2-09-PLAN.md — Wave 7 (gap-closure, parallel to 08): ADR-8.1 refinement appended to spec.md §11 — documents v0.1.5 mitigation as append-only sub-section under existing ADR-8
+- [x] 02.2-10-PLAN.md — Wave 8 (gap-closure): Release v0.1.5 — annotated tag + CI build + GHCR public anon-pull verify (D-37 atomic single-tag, mirrors Plan 04)
+- [x] 02.2-11-PLAN.md — Wave 9 (gap-closure): my-kluster PR — image.tag bump 0.1.4 → 0.1.5; CronJob STAYS suspended through merge window (Plan 12 owns unsuspend)
+- [x] 02.2-12-PLAN.md — Wave 10 (gap-closure): Cluster recovery checkpoint (operator UI password re-entry) + behavioral credential dispositive (Sonarr Test API HTTP 200) + CronJob unsuspend + credential-aware drift demo + Plan 06 Task 6.4 visual gate re-opened/closed → REQ-drift-detection FINAL closure
+- [x] 02.2-13-PLAN.md — Gap-closure (CR-01): Guard omit-credential branch in differ.py for non-empty rotation values + 20th differ test + v0.1.6 tag + GHCR CI → VERIFICATION.md 10/10 passed
+
+**Cross-cutting constraints:**
+- charts/arrconf/templates/cronjob.yaml is UNCHANGED
 
 ### Phase 3: Étendre arrconf
 **Goal**: Étendre arrconf pour couvrir tous les types de ressources transverses des *arr (indexers, notifications, root_folders, tags, host_config) et ajouter les apps Radarr et Prowlarr (avec app sync Prowlarr → Sonarr/Radarr). Frontière configarr respectée.
@@ -108,7 +139,14 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   4. arrconf lève `ScopeViolationError` si un test ou config tente d'écrire sur `quality_profiles` / `custom_formats` / `quality_definitions` / `media_naming` (frontière ADR-5 codée en dur)
   5. App sync Prowlarr → Sonarr/Radarr fonctionnel et réconciliable depuis le YAML
   6. VS Code propose les nouveaux champs (indexers, notifications, etc.) automatiquement après régénération du JSON Schema (CI bloque si oublié)
-**Plans**: TBD
+**Plans**: 6 plans
+- [x] 03-01-PLAN.md — Wave 1: Foundation — WR-01 frozenset + IN-02 import + 5 resource models (Indexer/Notification/RootFolder/HostConfig + Prowlarr Application) + RadarrClient + ProwlarrClient + pyproject coverage source expansion
+- [x] 03-02-PLAN.md — Wave 2: Config restructure (monolithic RootConfig D-03-05 — flat sonarr/radarr/prowlarr top-level + 6 section models + AppEntry D-03-03) + caller migration (__main__/diff_cmd/dump/test_round_trip to root.sonarr["main"] path) + 4 Radarr frontière modules (REQ-configarr-coexistence) + test_scope_violation extension + test_config rewrite
+- [x] 03-03-PLAN.md — Wave 3 (parallel): Sonarr reconciler extension — indexers + notifications + root_folders + host_config (opt-in D-03-04) + 9 new tests + 4 sanitized fixtures
+- [x] 03-04-PLAN.md — Wave 3 (parallel): Radarr reconciler — full-parity mirror of extended Sonarr (D-03-01) + 11+ new tests + 6 sanitized fixtures + scope-guard smoke
+- [x] 03-05-PLAN.md — Wave 3 (parallel): Prowlarr reconciler — app sync only (D-03-02) + AppEntry env resolution + 7 new tests + 1 sanitized fixture + /api/v1 verification (Pitfall 3)
+- [x] 03-06-PLAN.md — Wave 4: Pre-deploy snapshot baseline (ADR-6) + __main__/diff_cmd caller wiring for Radarr/Prowlarr + JSON Schema regeneration + test_schema_gen re-enabled + v0.2.0 release tag + GHCR anon-pull verification
+
 **Open questions to resolve**: (Q6 finalisée si pas tranchée Phase 1)
 
 ### Phase 4: Umbrella chart + migration des 9 apps
@@ -122,7 +160,16 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   4. Tags `:latest` pinnés sur des semver explicites pour qbittorrent, flaresolverr, cleanuparr ; toutes les images dans `values.yaml` ont leur annotation `# renovate: image=…`
   5. CI `chart-lint.yml` verte : `helm lint` + `helm template … | kubeconform -` + `values.yaml` parse contre `values.schema.json` (bloquant)
   6. README final permet onboard (clone → bootstrap secrets → premier deploy) en moins de 30 min, avec liens vers `spec.md` / `CLAUDE.md` / my-kluster
-**Plans**: TBD
+**Plans**: 9 plans (replanned 2026-05-13 against app-template **5.0.0** baseline — prior 4.6.2 assumption invalidated by ADR-6 baseline capture at commit 2a94257)
+- [ ] 04-01-PLAN.md — Wave 0: verify intact ADR-6 baseline (already-committed at 2a94257) + author helper scripts (check-renovate-annotations.sh + byte-equivalence-diff.sh)
+- [ ] 04-02-PLAN.md — Wave 1: Chart.yaml (10 app-template@5.0.0 aliases) + Chart.lock + _helpers.tpl + 2 ConfigMap templates + files/ verbatim port
+- [ ] 04-03-PLAN.md — Wave 2: sonarr + radarr + prowlarr + qbittorrent aliases (verbatim helm.values port + fullnameOverride + Renovate annotations; qbittorrent pinned to 5.2.0)
+- [ ] 04-04-PLAN.md — Wave 3: cleanuparr (2.3.3) + seerr + flaresolverr (v3.4.6, no-ingress) + jellyfin (no-oauth2-proxy) aliases; closes the :latest invariant
+- [ ] 04-05-PLAN.md — Wave 4: arrconf + configarr app-template@5.0.0 CronJob aliases (cronjob: key — NOT cronJobConfig:; Forbid; configarr tty:true; existingClaim configarr-cache) + values.schema.json + examples/values-prod.yaml
+- [ ] 04-06-PLAN.md — Wave 5: chart-lint.yml (helm lint + kubeconform 1.33.0 + annotation/latest/cronJobConfig guards + Python regex synthetic test + renovate-config-validator + auto-tag B3) + renovate.json customManagers + packageRules
+- [ ] 04-07-PLAN.md — Wave 5 (parallel, no file overlap with 04-06): README.md full rewrite + CLAUDE.md refresh (Structure actuelle, Intégration my-kluster v5/Replace=true, Historical bootstrap) + operator walkthrough checkpoint (< 30 min onboarding)
+- [ ] 04-08-PLAN.md — Wave 6 (cross-repo): local byte-equivalence diff vs Wave 0 baseline + atomic my-kluster PR (add arr-stack-app.yaml with Replace=true, WITHOUT automated:, delete 10 unit Apps + charts/{arrconf,configarr}/) + operator kubectl-driven sync + 10-min soak + ingress smoke
+- [ ] 04-09-PLAN.md — Wave 7 (cross-repo): 1-line follow-up PR re-enabling automated.{selfHeal,prune} + SC#2 E2E evidence within 72h hard gate (B4) — natural bump 0–48h OR D-04-PIN-04 Path B forced 48–72h
 **UI hint**: yes
 **Open questions to resolve**: Q2 (multi-alias `bjw-s/app-template` syntaxe — arbitrage syntaxique uniquement ; ADR-2 a déjà tranché Option A)
 
@@ -192,8 +239,9 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 0. Bootstrap repo + snapshot raw | 3/3 | Complete    | 2026-05-07 |
 | 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
 | 2. Validation cluster | 0/TBD | Not started | - |
-| 2.1. Field-merge fix for sensitive YAML values | 2/4 | In Progress|  |
-| 3. Étendre arrconf | 0/TBD | Not started | - |
+| 2.1. Field-merge fix for sensitive YAML values | 4/4 | Complete   | 2026-05-09 |
+| 2.2. v0.1.4 forceSave fix (INSERTED) | 5/6 | In progress | - |
+| 3. Étendre arrconf | 6/6 | Complete   | 2026-05-11 |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/TBD | Not started | - |
 | 6. Reconciler Seerr | 0/TBD | Not started | - |

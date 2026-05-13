@@ -1,0 +1,3290 @@
+# ArgoCD Application source (Application CR spec):
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: applications:argoproj.io/Application:argocd/arrconf
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"applications:argoproj.io/Application:argocd/arrconf"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"arrconf","namespace":"argocd"},"spec":{"destination":{"namespace":"selfhost","server":"https://kubernetes.default.svc"},"project":"selfhost-project","source":{"path":"charts/arrconf","repoURL":"https://github.com/tom333/my-kluster.git","targetRevision":"HEAD"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=false","ServerSideApply=true"]}}}
+  creationTimestamp: "2026-05-08T06:58:11Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 2174
+  name: arrconf
+  namespace: argocd
+  resourceVersion: "34046866"
+  uid: b58be485-2d6c-413a-a99a-c8de5abdb4dd
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    path: charts/arrconf
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+    - ServerSideApply=true
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-05-12T17:11:29Z"
+    status: Degraded
+  history:
+  - deployStartedAt: "2026-05-08T06:58:15Z"
+    deployedAt: "2026-05-08T06:58:15Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 87e3b4f554491b0608a486340c4318c945ee337f
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-08T07:19:01Z"
+    deployedAt: "2026-05-08T07:19:02Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: 9e1a4802af59d0b7f09b62f28f373cb7f7f9ce7e
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-08T07:52:19Z"
+    deployedAt: "2026-05-08T07:52:20Z"
+    id: 2
+    initiatedBy:
+      automated: true
+    revision: bd98bfac01e5ef3ce604451d8938bff875cb25b2
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-08T21:29:09Z"
+    deployedAt: "2026-05-08T21:29:10Z"
+    id: 3
+    initiatedBy:
+      automated: true
+    revision: 66cb619af5e26e2f582edfea6e072d3bccd0651f
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-08T22:27:35Z"
+    deployedAt: "2026-05-08T22:27:38Z"
+    id: 4
+    initiatedBy:
+      automated: true
+    revision: 1fce260d5c0901b61043156749f22cc9498b46ed
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-09T05:38:16Z"
+    deployedAt: "2026-05-09T05:38:17Z"
+    id: 5
+    initiatedBy:
+      automated: true
+    revision: bba9010636ec24c97e2419138e5974fe25a357d5
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-09T20:26:03Z"
+    deployedAt: "2026-05-09T20:26:03Z"
+    id: 6
+    initiatedBy:
+      automated: true
+    revision: 0b96f0a556f7411a1254303ec5674c589fd1b91f
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-10T12:36:44Z"
+    deployedAt: "2026-05-10T12:36:46Z"
+    id: 7
+    initiatedBy:
+      automated: true
+    revision: 9edfd577ceb99884a22fc2a6c51731fd6d6d35ce
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  - deployStartedAt: "2026-05-11T13:48:36Z"
+    deployedAt: "2026-05-11T13:48:39Z"
+    id: 8
+    initiatedBy:
+      automated: true
+    revision: 16ecd11e5dbb06c8af1c26a38d9f34ab72a513b2
+    source:
+      path: charts/arrconf
+      repoURL: https://github.com/tom333/my-kluster.git
+      targetRevision: HEAD
+  operationState:
+    finishedAt: "2026-05-11T13:48:39Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 16ecd11e5dbb06c8af1c26a38d9f34ab72a513b2
+        source:
+          path: charts/arrconf
+          repoURL: https://github.com/tom333/my-kluster.git
+          targetRevision: HEAD
+        syncOptions:
+        - CreateNamespace=false
+        - ServerSideApply=true
+    phase: Succeeded
+    startedAt: "2026-05-11T13:48:36Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: ConfigMap
+        message: configmap/arrconf serverside-applied
+        name: arrconf
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: batch
+        hookPhase: Running
+        images:
+        - ghcr.io/tom333/arr-stack-arrconf:0.2.1
+        kind: CronJob
+        message: cronjob.batch/arrconf serverside-applied
+        name: arrconf
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 16ecd11e5dbb06c8af1c26a38d9f34ab72a513b2
+      source:
+        path: charts/arrconf
+        repoURL: https://github.com/tom333/my-kluster.git
+        targetRevision: HEAD
+  reconciledAt: "2026-05-12T20:17:37Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: ConfigMap
+    name: arrconf
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: batch
+    kind: CronJob
+    name: arrconf
+    namespace: selfhost
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    images:
+    - ghcr.io/tom333/arr-stack-arrconf:0.1.6
+    - ghcr.io/tom333/arr-stack-arrconf:0.2.1
+  sync:
+    comparedTo:
+      destination:
+        namespace: selfhost
+        server: https://kubernetes.default.svc
+      source:
+        path: charts/arrconf
+        repoURL: https://github.com/tom333/my-kluster.git
+        targetRevision: HEAD
+    revision: 845d34464d54fd9e2b319beac1ec201d0aeab83d
+    status: Synced
+---
+# Live cluster state for label app.kubernetes.io/instance=arrconf:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-11T13:00:00Z"
+    generateName: arrconf-29641740-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+      batch.kubernetes.io/job-name: arrconf-29641740
+      controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+      job-name: arrconf-29641740
+    name: arrconf-29641740-786j4
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29641740
+      uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+    resourceVersion: "33896513"
+    uid: a77f3487-db6c-4e1a-b552-efbdfff953b4
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.1.6
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-jxrj8
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-jxrj8
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T13:00:23Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T13:00:02Z"
+      reason: PodCompleted
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T13:00:21Z"
+      reason: PodCompleted
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T13:00:21Z"
+      reason: PodCompleted
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T13:00:01Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://c7d65ccbf811467ed335ae6a94249bce428143f8fc51b937c1935b178545d7b4
+      image: ghcr.io/tom333/arr-stack-arrconf:0.1.6
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:e2d2e8821579a7c9e5871f240d8d4ed20c39a2b45d09388eeb71e34db2f67bc7
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://c7d65ccbf811467ed335ae6a94249bce428143f8fc51b937c1935b178545d7b4
+          exitCode: 0
+          finishedAt: "2026-05-11T13:00:19Z"
+          reason: Completed
+          startedAt: "2026-05-11T13:00:09Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-jxrj8
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Succeeded
+    qosClass: Burstable
+    startTime: "2026-05-11T13:00:02Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:00:47Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-2g7n6
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33983305"
+    uid: e6982227-ce85-4b3f-8b9c-f906120dab5c
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-ggpkn
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-ggpkn
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:59Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:48Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:57Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:57Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:47Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://ff1ee290fb8dbfaa38ea8b432ce3129139d36a6954d0fe1ab8f736593917d3f1
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://ff1ee290fb8dbfaa38ea8b432ce3129139d36a6954d0fe1ab8f736593917d3f1
+          exitCode: 2
+          finishedAt: "2026-05-12T13:00:55Z"
+          reason: Error
+          startedAt: "2026-05-12T13:00:53Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-ggpkn
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.164
+    podIPs:
+    - ip: 10.1.28.164
+    qosClass: Burstable
+    startTime: "2026-05-12T13:00:48Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:11:16Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-4srkq
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33984895"
+    uid: 71260327-d7a0-4151-a5bb-4570f2c80472
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-9dtcx
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-9dtcx
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:11:27Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:11:17Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:11:25Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:11:25Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:11:16Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://107ebd8b65f45eae839be26989f540526d3eef607056c8f96e568ada09b14652
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://107ebd8b65f45eae839be26989f540526d3eef607056c8f96e568ada09b14652
+          exitCode: 2
+          finishedAt: "2026-05-12T13:11:23Z"
+          reason: Error
+          startedAt: "2026-05-12T13:11:20Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-9dtcx
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.168
+    podIPs:
+    - ip: 10.1.28.168
+    qosClass: Burstable
+    startTime: "2026-05-12T13:11:17Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:05:50Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-clrzb
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33984083"
+    uid: 37a7e9c3-3fcb-4379-8d1c-66c349a352c4
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-zgdlz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-zgdlz
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:05:59Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:05:51Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:05:57Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:05:57Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:05:50Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://8071b5ecec8f08b022a394790cad104515821d979e6877bebb67f7438478d5a1
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://8071b5ecec8f08b022a394790cad104515821d979e6877bebb67f7438478d5a1
+          exitCode: 2
+          finishedAt: "2026-05-12T13:05:56Z"
+          reason: Error
+          startedAt: "2026-05-12T13:05:55Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-zgdlz
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.167
+    podIPs:
+    - ip: 10.1.28.167
+    qosClass: Burstable
+    startTime: "2026-05-12T13:05:51Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:00:01Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-ffvjc
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33983171"
+    uid: 828c474f-e89e-4429-ab68-be337c442e95
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-nnw67
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-nnw67
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:13Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:01Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:11Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:11Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:01Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://014d970ac2f591c4df43169c71eca83011427c5704a82cf3ad5ce7419dc0ee46
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://014d970ac2f591c4df43169c71eca83011427c5704a82cf3ad5ce7419dc0ee46
+          exitCode: 2
+          finishedAt: "2026-05-12T13:00:11Z"
+          reason: Error
+          startedAt: "2026-05-12T13:00:09Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-nnw67
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.162
+    podIPs:
+    - ip: 10.1.28.162
+    qosClass: Burstable
+    startTime: "2026-05-12T13:00:01Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:03:03Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-fkltz
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33983660"
+    uid: 2af810ab-1bf6-437f-8eb1-c64836955a16
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-wddm6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-wddm6
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:03:13Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:03:03Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:03:12Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:03:12Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:03:03Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://69e57e5cb4803b54980aa0e038f9d38eaa0ab212756eebdf745ea8fef37b0c83
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://69e57e5cb4803b54980aa0e038f9d38eaa0ab212756eebdf745ea8fef37b0c83
+          exitCode: 2
+          finishedAt: "2026-05-12T13:03:10Z"
+          reason: Error
+          startedAt: "2026-05-12T13:03:08Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-wddm6
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.166
+    podIPs:
+    - ip: 10.1.28.166
+    qosClass: Burstable
+    startTime: "2026-05-12T13:03:03Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:00:21Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-lqv42
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33983229"
+    uid: 5068a7df-1f54-491b-9541-45824672ff20
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-dszkz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-dszkz
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:32Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:22Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:29Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:29Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:00:21Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://1d70fbbf3d736f019b53297088b23cfe06be2341952196a9b6aa546386d292c5
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://1d70fbbf3d736f019b53297088b23cfe06be2341952196a9b6aa546386d292c5
+          exitCode: 2
+          finishedAt: "2026-05-12T13:00:27Z"
+          reason: Error
+          startedAt: "2026-05-12T13:00:26Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-dszkz
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.163
+    podIPs:
+    - ip: 10.1.28.163
+    qosClass: Burstable
+    startTime: "2026-05-12T13:00:22Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T13:01:35Z"
+    generateName: arrconf-29643180-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180-nqzqb
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643180
+      uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    resourceVersion: "33983440"
+    uid: 300fef20-e880-4028-9c9e-b538e48d9b0e
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-f4ffz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-f4ffz
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:01:46Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:01:37Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:01:44Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:01:44Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T13:01:35Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://4b14fc3c69e4bd141dd35d3f84cb037ba5607810c11c93010ba19d98741f21d1
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://4b14fc3c69e4bd141dd35d3f84cb037ba5607810c11c93010ba19d98741f21d1
+          exitCode: 2
+          finishedAt: "2026-05-12T13:01:43Z"
+          reason: Error
+          startedAt: "2026-05-12T13:01:41Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-f4ffz
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.165
+    podIPs:
+    - ip: 10.1.28.165
+    qosClass: Burstable
+    startTime: "2026-05-12T13:01:37Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:00:48Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-2krdb
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34018267"
+    uid: 6db4f24c-df05-4d56-aa5d-beb489eb7a7d
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-w7qgc
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-w7qgc
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:01:00Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:48Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:58Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:58Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:48Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://22afaa5500632b5d00df4daa9fb7073adcd5a71783969ab0dee805359a50747c
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://22afaa5500632b5d00df4daa9fb7073adcd5a71783969ab0dee805359a50747c
+          exitCode: 2
+          finishedAt: "2026-05-12T17:00:55Z"
+          reason: Error
+          startedAt: "2026-05-12T17:00:53Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-w7qgc
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.172
+    podIPs:
+    - ip: 10.1.28.172
+    qosClass: Burstable
+    startTime: "2026-05-12T17:00:48Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:03:01Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-67746
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34018617"
+    uid: 7e3c6486-7cb5-4708-a5ea-4c538249b14d
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-brtzw
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-brtzw
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:03:12Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:03:02Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:03:10Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:03:10Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:03:01Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://167f91bf1eb07a4679492b7e31c83e924fb462deb61f1d64e15aa78fa41332c1
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://167f91bf1eb07a4679492b7e31c83e924fb462deb61f1d64e15aa78fa41332c1
+          exitCode: 2
+          finishedAt: "2026-05-12T17:03:08Z"
+          reason: Error
+          startedAt: "2026-05-12T17:03:06Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-brtzw
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.174
+    podIPs:
+    - ip: 10.1.28.174
+    qosClass: Burstable
+    startTime: "2026-05-12T17:03:02Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:00:02Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-86782
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34018116"
+    uid: 1ab6403e-62b9-400e-b6be-a2ad2db61454
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-m6qsg
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-m6qsg
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:14Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:03Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:13Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:13Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:03Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://7996d034da6e162e3095804ee60e526f56ee828b255caa27e11863523f805d52
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://7996d034da6e162e3095804ee60e526f56ee828b255caa27e11863523f805d52
+          exitCode: 2
+          finishedAt: "2026-05-12T17:00:11Z"
+          reason: Error
+          startedAt: "2026-05-12T17:00:09Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-m6qsg
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.169
+    podIPs:
+    - ip: 10.1.28.169
+    qosClass: Burstable
+    startTime: "2026-05-12T17:00:03Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:05:48Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-cltks
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34019042"
+    uid: 291e71b7-7dff-4b4b-8f51-b332b642ef2b
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-rx8vc
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-rx8vc
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:05:59Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:05:48Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:05:57Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:05:57Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:05:48Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://9509b2d2df88a4b3c6d5f5af2bf2632655ba376dedba9608a7c81586ae35430e
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://9509b2d2df88a4b3c6d5f5af2bf2632655ba376dedba9608a7c81586ae35430e
+          exitCode: 2
+          finishedAt: "2026-05-12T17:05:56Z"
+          reason: Error
+          startedAt: "2026-05-12T17:05:53Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-rx8vc
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.175
+    podIPs:
+    - ip: 10.1.28.175
+    qosClass: Burstable
+    startTime: "2026-05-12T17:05:48Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:01:35Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-j6gfm
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34018393"
+    uid: 748c12e1-a25d-4d2a-bb9e-6b08b6752179
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-jjrk7
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-jjrk7
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:01:45Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:01:36Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:01:44Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:01:44Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:01:35Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://c5af61ce96f7c2aa0f2eb1995f253a267e171ab2868992bf5bd4d9545f5fa09e
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://c5af61ce96f7c2aa0f2eb1995f253a267e171ab2868992bf5bd4d9545f5fa09e
+          exitCode: 2
+          finishedAt: "2026-05-12T17:01:41Z"
+          reason: Error
+          startedAt: "2026-05-12T17:01:39Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-jjrk7
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.173
+    podIPs:
+    - ip: 10.1.28.173
+    qosClass: Burstable
+    startTime: "2026-05-12T17:01:36Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:00:21Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-pcqj4
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34018182"
+    uid: c18b78d1-e571-4f50-99f2-0e6e3912492e
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-kfbsc
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-kfbsc
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:32Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:21Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:31Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:31Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:00:21Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://a5a53a68513289cb725385964acf79eb47c1a6fe8bc917eb7cf68c619fd10078
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://a5a53a68513289cb725385964acf79eb47c1a6fe8bc917eb7cf68c619fd10078
+          exitCode: 2
+          finishedAt: "2026-05-12T17:00:28Z"
+          reason: Error
+          startedAt: "2026-05-12T17:00:26Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-kfbsc
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.171
+    podIPs:
+    - ip: 10.1.28.171
+    qosClass: Burstable
+    startTime: "2026-05-12T17:00:21Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+    creationTimestamp: "2026-05-12T17:11:16Z"
+    generateName: arrconf-29643420-
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420-zj5nm
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: arrconf-29643420
+      uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    resourceVersion: "34019854"
+    uid: f6674677-6de7-4f9b-92d1-2d68b6c211d4
+  spec:
+    containers:
+    - args:
+      - --config
+      - /app/config/arrconf.yml
+      - apply
+      - --apps
+      - sonarr
+      env:
+      - name: TZ
+        value: Europe/Paris
+      - name: ARRCONF_DRY_RUN
+        value: "false"
+      envFrom:
+      - secretRef:
+          name: arrconf-env
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imagePullPolicy: IfNotPresent
+      name: arrconf
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+        subPath: arrconf.yml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-qrld8
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext:
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: arrconf
+      name: config
+    - name: kube-api-access-qrld8
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:11:26Z"
+      status: "False"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:11:16Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:11:25Z"
+      reason: PodFailed
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:11:25Z"
+      reason: PodFailed
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T17:11:16Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 50m
+        memory: 128Mi
+      containerID: containerd://dbeb02fb86106a187629518a151a305d144f2f0711c071bd864ed6af0f5e2f05
+      image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+      imageID: ghcr.io/tom333/arr-stack-arrconf@sha256:efa49c77415a3ecdc3ba8bd467ed9dae0acc06613ab3397fb40f6359a7e0f236
+      lastState: {}
+      name: arrconf
+      ready: false
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: containerd://dbeb02fb86106a187629518a151a305d144f2f0711c071bd864ed6af0f5e2f05
+          exitCode: 2
+          finishedAt: "2026-05-12T17:11:23Z"
+          reason: Error
+          startedAt: "2026-05-12T17:11:20Z"
+      volumeMounts:
+      - mountPath: /app/config/arrconf.yml
+        name: config
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-qrld8
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Failed
+    podIP: 10.1.28.176
+    podIPs:
+    - ip: 10.1.28.176
+    qosClass: Burstable
+    startTime: "2026-05-12T17:11:16Z"
+- apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arrconf:batch/CronJob:selfhost/arrconf
+    creationTimestamp: "2026-05-08T06:58:15Z"
+    generation: 17
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: arrconf
+      app.kubernetes.io/version: 0.1.2
+      helm.sh/chart: arrconf-0.1.2
+    name: arrconf
+    namespace: selfhost
+    resourceVersion: "34019861"
+    uid: 25e06b97-3b13-4f42-ad91-435c418bb61d
+  spec:
+    concurrencyPolicy: Forbid
+    failedJobsHistoryLimit: 2
+    jobTemplate:
+      metadata:
+        creationTimestamp: null
+      spec:
+        template:
+          metadata:
+            annotations:
+              checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+            creationTimestamp: null
+            labels:
+              app.kubernetes.io/instance: arrconf
+              app.kubernetes.io/name: arrconf
+          spec:
+            containers:
+            - args:
+              - --config
+              - /app/config/arrconf.yml
+              - apply
+              - --apps
+              - sonarr
+              env:
+              - name: TZ
+                value: Europe/Paris
+              - name: ARRCONF_DRY_RUN
+                value: "false"
+              envFrom:
+              - secretRef:
+                  name: arrconf-env
+              image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+              imagePullPolicy: IfNotPresent
+              name: arrconf
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+              - mountPath: /app/config/arrconf.yml
+                name: config
+                subPath: arrconf.yml
+            dnsPolicy: ClusterFirst
+            restartPolicy: Never
+            schedulerName: default-scheduler
+            securityContext:
+              runAsGroup: 1000
+              runAsNonRoot: true
+              runAsUser: 1000
+            terminationGracePeriodSeconds: 30
+            volumes:
+            - configMap:
+                defaultMode: 420
+                name: arrconf
+              name: config
+    schedule: 0 */4 * * *
+    startingDeadlineSeconds: 600
+    successfulJobsHistoryLimit: 1
+    suspend: false
+  status:
+    lastScheduleTime: "2026-05-12T17:00:00Z"
+    lastSuccessfulTime: "2026-05-11T13:00:25Z"
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    annotations:
+      batch.kubernetes.io/cronjob-scheduled-timestamp: "2026-05-11T13:00:00Z"
+    creationTimestamp: "2026-05-11T13:00:00Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+      batch.kubernetes.io/job-name: arrconf-29641740
+      controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+      job-name: arrconf-29641740
+    name: arrconf-29641740
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CronJob
+      name: arrconf
+      uid: 25e06b97-3b13-4f42-ad91-435c418bb61d
+    resourceVersion: "33775690"
+    uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+  spec:
+    backoffLimit: 6
+    completionMode: NonIndexed
+    completions: 1
+    manualSelector: false
+    parallelism: 1
+    podReplacementPolicy: TerminatingOrFailed
+    selector:
+      matchLabels:
+        batch.kubernetes.io/controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+    suspend: false
+    template:
+      metadata:
+        annotations:
+          checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/instance: arrconf
+          app.kubernetes.io/name: arrconf
+          batch.kubernetes.io/controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+          batch.kubernetes.io/job-name: arrconf-29641740
+          controller-uid: e6172ab9-e84c-479a-8dff-fdc280b030ee
+          job-name: arrconf-29641740
+      spec:
+        containers:
+        - args:
+          - --config
+          - /app/config/arrconf.yml
+          - apply
+          - --apps
+          - sonarr
+          env:
+          - name: TZ
+            value: Europe/Paris
+          - name: ARRCONF_DRY_RUN
+            value: "false"
+          envFrom:
+          - secretRef:
+              name: arrconf-env
+          image: ghcr.io/tom333/arr-stack-arrconf:0.1.6
+          imagePullPolicy: IfNotPresent
+          name: arrconf
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /app/config/arrconf.yml
+            name: config
+            subPath: arrconf.yml
+        dnsPolicy: ClusterFirst
+        restartPolicy: Never
+        schedulerName: default-scheduler
+        securityContext:
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: arrconf
+          name: config
+  status:
+    completionTime: "2026-05-11T13:00:25Z"
+    conditions:
+    - lastProbeTime: "2026-05-11T13:00:25Z"
+      lastTransitionTime: "2026-05-11T13:00:25Z"
+      message: Reached expected number of succeeded pods
+      reason: CompletionsReached
+      status: "True"
+      type: SuccessCriteriaMet
+    - lastProbeTime: "2026-05-11T13:00:26Z"
+      lastTransitionTime: "2026-05-11T13:00:26Z"
+      message: Reached expected number of succeeded pods
+      reason: CompletionsReached
+      status: "True"
+      type: Complete
+    ready: 0
+    startTime: "2026-05-11T13:00:00Z"
+    succeeded: 1
+    terminating: 0
+    uncountedTerminatedPods: {}
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    annotations:
+      batch.kubernetes.io/cronjob-scheduled-timestamp: "2026-05-12T13:00:00Z"
+    creationTimestamp: "2026-05-12T13:00:00Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      batch.kubernetes.io/job-name: arrconf-29643180
+      controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+      job-name: arrconf-29643180
+    name: arrconf-29643180
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CronJob
+      name: arrconf
+      uid: 25e06b97-3b13-4f42-ad91-435c418bb61d
+    resourceVersion: "33984897"
+    uid: c669e649-d621-41b4-84d1-51b25ca0daec
+  spec:
+    backoffLimit: 6
+    completionMode: NonIndexed
+    completions: 1
+    manualSelector: false
+    parallelism: 1
+    podReplacementPolicy: TerminatingOrFailed
+    selector:
+      matchLabels:
+        batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+    suspend: false
+    template:
+      metadata:
+        annotations:
+          checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/instance: arrconf
+          app.kubernetes.io/name: arrconf
+          batch.kubernetes.io/controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+          batch.kubernetes.io/job-name: arrconf-29643180
+          controller-uid: c669e649-d621-41b4-84d1-51b25ca0daec
+          job-name: arrconf-29643180
+      spec:
+        containers:
+        - args:
+          - --config
+          - /app/config/arrconf.yml
+          - apply
+          - --apps
+          - sonarr
+          env:
+          - name: TZ
+            value: Europe/Paris
+          - name: ARRCONF_DRY_RUN
+            value: "false"
+          envFrom:
+          - secretRef:
+              name: arrconf-env
+          image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+          imagePullPolicy: IfNotPresent
+          name: arrconf
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /app/config/arrconf.yml
+            name: config
+            subPath: arrconf.yml
+        dnsPolicy: ClusterFirst
+        restartPolicy: Never
+        schedulerName: default-scheduler
+        securityContext:
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: arrconf
+          name: config
+  status:
+    conditions:
+    - lastProbeTime: "2026-05-12T13:11:30Z"
+      lastTransitionTime: "2026-05-12T13:11:30Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: FailureTarget
+    - lastProbeTime: "2026-05-12T13:11:30Z"
+      lastTransitionTime: "2026-05-12T13:11:30Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: Failed
+    failed: 7
+    ready: 0
+    startTime: "2026-05-12T13:00:00Z"
+    terminating: 0
+    uncountedTerminatedPods: {}
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    annotations:
+      batch.kubernetes.io/cronjob-scheduled-timestamp: "2026-05-12T17:00:00Z"
+    creationTimestamp: "2026-05-12T17:00:00Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/name: arrconf
+      batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      batch.kubernetes.io/job-name: arrconf-29643420
+      controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+      job-name: arrconf-29643420
+    name: arrconf-29643420
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CronJob
+      name: arrconf
+      uid: 25e06b97-3b13-4f42-ad91-435c418bb61d
+    resourceVersion: "34019857"
+    uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+  spec:
+    backoffLimit: 6
+    completionMode: NonIndexed
+    completions: 1
+    manualSelector: false
+    parallelism: 1
+    podReplacementPolicy: TerminatingOrFailed
+    selector:
+      matchLabels:
+        batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+    suspend: false
+    template:
+      metadata:
+        annotations:
+          checksum/config: 84ea9806aefb7ed1ea7fff650e8166df24efc50927fd3c7ca05cb41a5194d766
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/instance: arrconf
+          app.kubernetes.io/name: arrconf
+          batch.kubernetes.io/controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+          batch.kubernetes.io/job-name: arrconf-29643420
+          controller-uid: a4d52a75-eee3-4a55-bd4a-502534a4d452
+          job-name: arrconf-29643420
+      spec:
+        containers:
+        - args:
+          - --config
+          - /app/config/arrconf.yml
+          - apply
+          - --apps
+          - sonarr
+          env:
+          - name: TZ
+            value: Europe/Paris
+          - name: ARRCONF_DRY_RUN
+            value: "false"
+          envFrom:
+          - secretRef:
+              name: arrconf-env
+          image: ghcr.io/tom333/arr-stack-arrconf:0.2.1
+          imagePullPolicy: IfNotPresent
+          name: arrconf
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /app/config/arrconf.yml
+            name: config
+            subPath: arrconf.yml
+        dnsPolicy: ClusterFirst
+        restartPolicy: Never
+        schedulerName: default-scheduler
+        securityContext:
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: arrconf
+          name: config
+  status:
+    conditions:
+    - lastProbeTime: "2026-05-12T17:11:27Z"
+      lastTransitionTime: "2026-05-12T17:11:27Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: FailureTarget
+    - lastProbeTime: "2026-05-12T17:11:27Z"
+      lastTransitionTime: "2026-05-12T17:11:27Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: Failed
+    failed: 7
+    ready: 0
+    startTime: "2026-05-12T17:00:00Z"
+    terminating: 0
+    uncountedTerminatedPods: {}
+- apiVersion: v1
+  data:
+    arrconf.yml: |-
+      apps:
+        sonarr:
+          main:
+            base_url: http://sonarr.selfhost.svc.cluster.local:8989
+            download_clients:
+              prune: false
+              items:
+                - name: qBittorrent
+                  enable: true
+                  protocol: torrent
+                  priority: 1
+                  implementation: QBittorrent
+                  configContract: QBittorrentSettings
+                  fields:
+                    - name: host
+                      value: qbittorrent.selfhost.svc.cluster.local
+                    - name: port
+                      value: 8080
+                    - name: useSsl
+                      value: false
+                    - name: urlBase
+                      value: ''
+                    - name: username
+                      value: ''
+                    - name: password
+                      value: ''
+                    - name: tvCategory
+                      value: sonarr
+                    - name: tvImportedCategory
+                      value: ''
+                    - name: recentTvPriority
+                      value: 0
+                    - name: olderTvPriority
+                      value: 0
+                    - name: initialState
+                      value: 0
+                    - name: sequentialOrder
+                      value: false
+                    - name: firstAndLast
+                      value: false
+                    - name: contentLayout
+                      value: 0
+                  tags: []
+                  removeCompletedDownloads: true
+                  removeFailedDownloads: true
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arrconf:/ConfigMap:selfhost/arrconf
+    creationTimestamp: "2026-05-08T06:58:15Z"
+    labels:
+      app.kubernetes.io/instance: arrconf
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: arrconf
+      app.kubernetes.io/version: 0.1.2
+      helm.sh/chart: arrconf-0.1.2
+    name: arrconf
+    namespace: selfhost
+    resourceVersion: "33230602"
+    uid: b93e04f6-ed82-44dc-958c-15d44255c6a8
+kind: List
+metadata:
+  resourceVersion: ""

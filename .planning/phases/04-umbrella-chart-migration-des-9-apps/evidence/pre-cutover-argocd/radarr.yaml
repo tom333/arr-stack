@@ -1,0 +1,1228 @@
+# ArgoCD Application source (Application CR spec):
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: applications:argoproj.io/Application:argocd/radarr
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"applications:argoproj.io/Application:argocd/radarr"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"radarr","namespace":"argocd"},"spec":{"destination":{"namespace":"selfhost","server":"https://kubernetes.default.svc"},"project":"selfhost-project","source":{"chart":"app-template","helm":{"values":"controllers:\n  main:\n    containers:\n      main:\n        image:\n          repository: lscr.io/linuxserver/radarr\n          tag: 6.1.1\n        env:\n          TZ: \"Europe/Paris\"\n          PUID: \"1000\"\n          PGID: \"1000\"\nservice:\n  main:\n    controller: main\n    ports:\n      http:\n        port: 7878\ningress:\n  main:\n    className: nginx\n    annotations:\n      cert-manager.io/cluster-issuer: \"letsencrypt-prod\"\n      nginx.ingress.kubernetes.io/auth-url: \"https://auth.tgu.ovh/oauth2/auth\"\n      nginx.ingress.kubernetes.io/auth-signin: \"https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh\"\n    hosts:\n      - host: radarr.tgu.ovh\n        paths:\n          - path: /\n            pathType: Prefix\n            service:\n              identifier: main\n              port: http\n    tls:\n      - secretName: radarr-tls\n        hosts:\n          - radarr.tgu.ovh\npersistence:\n  config:\n    type: persistentVolumeClaim\n    accessMode: ReadWriteOnce\n    size: 2Gi\n    globalMounts:\n      - path: /config\n  torrents:\n    # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés\n    type: hostPath\n    hostPath: /opt/media-stack/torrents\n    hostPathType: DirectoryOrCreate\n    globalMounts:\n      - path: /data/torrents\n  media:\n    # NAS NFS — destination finale des films\n    type: persistentVolumeClaim\n    existingClaim: media-nas-pvc\n    globalMounts:\n      - path: /media\n"},"repoURL":"https://bjw-s-labs.github.io/helm-charts","targetRevision":"5.0.0"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=false"]}}}
+  creationTimestamp: "2026-04-14T00:41:40Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 7927
+  name: radarr
+  namespace: argocd
+  resourceVersion: "34046841"
+  uid: 71c9c73d-c952-4bd5-9d1b-14d2a5aa28af
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    chart: app-template
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: lscr.io/linuxserver/radarr
+                  tag: 6.1.1
+                env:
+                  TZ: "Europe/Paris"
+                  PUID: "1000"
+                  PGID: "1000"
+        service:
+          main:
+            controller: main
+            ports:
+              http:
+                port: 7878
+        ingress:
+          main:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+              nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+            hosts:
+              - host: radarr.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: http
+            tls:
+              - secretName: radarr-tls
+                hosts:
+                  - radarr.tgu.ovh
+        persistence:
+          config:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 2Gi
+            globalMounts:
+              - path: /config
+          torrents:
+            # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+            type: hostPath
+            hostPath: /opt/media-stack/torrents
+            hostPathType: DirectoryOrCreate
+            globalMounts:
+              - path: /data/torrents
+          media:
+            # NAS NFS — destination finale des films
+            type: persistentVolumeClaim
+            existingClaim: media-nas-pvc
+            globalMounts:
+              - path: /media
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    targetRevision: 5.0.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-05-11T09:58:17Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-04-14T00:41:44Z"
+    deployedAt: "2026-04-14T00:41:53Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/radarr
+                    tag: latest
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 7878
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+              hosts:
+                - host: radarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: radarr-tls
+                  hosts:
+                    - radarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 2Gi
+              globalMounts:
+                - path: /config
+            torrents:
+              # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+              type: hostPath
+              hostPath: /opt/media-stack/torrents
+              hostPathType: DirectoryOrCreate
+              globalMounts:
+                - path: /data/torrents
+            media:
+              # NAS NFS — destination finale des films
+              type: persistentVolumeClaim
+              existingClaim: media-nas-pvc
+              globalMounts:
+                - path: /media
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-04-17T06:40:18Z"
+    deployedAt: "2026-04-17T06:40:21Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: 4.6.2
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/radarr
+                    tag: 6.1.1
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 7878
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+              hosts:
+                - host: radarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: radarr-tls
+                  hosts:
+                    - radarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 2Gi
+              globalMounts:
+                - path: /config
+            torrents:
+              # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+              type: hostPath
+              hostPath: /opt/media-stack/torrents
+              hostPathType: DirectoryOrCreate
+              globalMounts:
+                - path: /data/torrents
+            media:
+              # NAS NFS — destination finale des films
+              type: persistentVolumeClaim
+              existingClaim: media-nas-pvc
+              globalMounts:
+                - path: /media
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.6.2
+  - deployStartedAt: "2026-05-11T09:56:53Z"
+    deployedAt: "2026-05-11T09:57:01Z"
+    id: 2
+    initiatedBy:
+      automated: true
+    revision: 5.0.0
+    source:
+      chart: app-template
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: lscr.io/linuxserver/radarr
+                    tag: 6.1.1
+                  env:
+                    TZ: "Europe/Paris"
+                    PUID: "1000"
+                    PGID: "1000"
+          service:
+            main:
+              controller: main
+              ports:
+                http:
+                  port: 7878
+          ingress:
+            main:
+              className: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+              hosts:
+                - host: radarr.tgu.ovh
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+              tls:
+                - secretName: radarr-tls
+                  hosts:
+                    - radarr.tgu.ovh
+          persistence:
+            config:
+              type: persistentVolumeClaim
+              accessMode: ReadWriteOnce
+              size: 2Gi
+              globalMounts:
+                - path: /config
+            torrents:
+              # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+              type: hostPath
+              hostPath: /opt/media-stack/torrents
+              hostPathType: DirectoryOrCreate
+              globalMounts:
+                - path: /data/torrents
+            media:
+              # NAS NFS — destination finale des films
+              type: persistentVolumeClaim
+              existingClaim: media-nas-pvc
+              globalMounts:
+                - path: /media
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 5.0.0
+  operationState:
+    finishedAt: "2026-05-11T09:57:02Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 5.0.0
+        source:
+          chart: app-template
+          helm:
+            values: |
+              controllers:
+                main:
+                  containers:
+                    main:
+                      image:
+                        repository: lscr.io/linuxserver/radarr
+                        tag: 6.1.1
+                      env:
+                        TZ: "Europe/Paris"
+                        PUID: "1000"
+                        PGID: "1000"
+              service:
+                main:
+                  controller: main
+                  ports:
+                    http:
+                      port: 7878
+              ingress:
+                main:
+                  className: nginx
+                  annotations:
+                    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                    nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                    nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+                  hosts:
+                    - host: radarr.tgu.ovh
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                          service:
+                            identifier: main
+                            port: http
+                  tls:
+                    - secretName: radarr-tls
+                      hosts:
+                        - radarr.tgu.ovh
+              persistence:
+                config:
+                  type: persistentVolumeClaim
+                  accessMode: ReadWriteOnce
+                  size: 2Gi
+                  globalMounts:
+                    - path: /config
+                torrents:
+                  # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+                  type: hostPath
+                  hostPath: /opt/media-stack/torrents
+                  hostPathType: DirectoryOrCreate
+                  globalMounts:
+                    - path: /data/torrents
+                media:
+                  # NAS NFS — destination finale des films
+                  type: persistentVolumeClaim
+                  existingClaim: media-nas-pvc
+                  globalMounts:
+                    - path: /media
+          repoURL: https://bjw-s-labs.github.io/helm-charts
+          targetRevision: 5.0.0
+        syncOptions:
+        - CreateNamespace=false
+    phase: Succeeded
+    startedAt: "2026-05-11T09:56:53Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: ServiceAccount
+        message: serviceaccount/radarr created
+        name: radarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: PersistentVolumeClaim
+        message: persistentvolumeclaim/radarr configured
+        name: radarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/radarr configured
+        name: radarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - lscr.io/linuxserver/radarr:6.1.1
+        kind: Deployment
+        message: deployment.apps/radarr configured
+        name: radarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: networking.k8s.io
+        hookPhase: Running
+        kind: Ingress
+        message: ingress.networking.k8s.io/radarr configured
+        name: radarr
+        namespace: selfhost
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 5.0.0
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/radarr
+                      tag: 6.1.1
+                    env:
+                      TZ: "Europe/Paris"
+                      PUID: "1000"
+                      PGID: "1000"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 7878
+            ingress:
+              main:
+                className: nginx
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                  nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+                hosts:
+                  - host: radarr.tgu.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          identifier: main
+                          port: http
+                tls:
+                  - secretName: radarr-tls
+                    hosts:
+                      - radarr.tgu.ovh
+            persistence:
+              config:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 2Gi
+                globalMounts:
+                  - path: /config
+              torrents:
+                # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+                type: hostPath
+                hostPath: /opt/media-stack/torrents
+                hostPathType: DirectoryOrCreate
+                globalMounts:
+                  - path: /data/torrents
+              media:
+                # NAS NFS — destination finale des films
+                type: persistentVolumeClaim
+                existingClaim: media-nas-pvc
+                globalMounts:
+                  - path: /media
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+  reconciledAt: "2026-05-12T20:17:27Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: PersistentVolumeClaim
+    name: radarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: Service
+    name: radarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - kind: ServiceAccount
+    name: radarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: radarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  - group: networking.k8s.io
+    kind: Ingress
+    name: radarr
+    namespace: selfhost
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    externalURLs:
+    - https://radarr.tgu.ovh/
+    images:
+    - lscr.io/linuxserver/radarr:6.1.1
+  sync:
+    comparedTo:
+      destination:
+        namespace: selfhost
+        server: https://kubernetes.default.svc
+      source:
+        chart: app-template
+        helm:
+          values: |
+            controllers:
+              main:
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/radarr
+                      tag: 6.1.1
+                    env:
+                      TZ: "Europe/Paris"
+                      PUID: "1000"
+                      PGID: "1000"
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 7878
+            ingress:
+              main:
+                className: nginx
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+                  nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh"
+                hosts:
+                  - host: radarr.tgu.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          identifier: main
+                          port: http
+                tls:
+                  - secretName: radarr-tls
+                    hosts:
+                      - radarr.tgu.ovh
+            persistence:
+              config:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 2Gi
+                globalMounts:
+                  - path: /config
+              torrents:
+                # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+                type: hostPath
+                hostPath: /opt/media-stack/torrents
+                hostPathType: DirectoryOrCreate
+                globalMounts:
+                  - path: /data/torrents
+              media:
+                # NAS NFS — destination finale des films
+                type: persistentVolumeClaim
+                existingClaim: media-nas-pvc
+                globalMounts:
+                  - path: /media
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        targetRevision: 5.0.0
+    revision: 5.0.0
+    status: Synced
+---
+# Live cluster state for label app.kubernetes.io/instance=radarr:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2026-05-11T09:57:24Z"
+    generateName: radarr-cfc75cdbf-
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/name: radarr
+      pod-template-hash: cfc75cdbf
+    name: radarr-cfc75cdbf-v7qvg
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: radarr-cfc75cdbf
+      uid: 48282136-e319-414b-8300-60cea6dff0d1
+    resourceVersion: "33897494"
+    uid: edd52e81-5287-44d1-ab97-7f24a35066b9
+  spec:
+    automountServiceAccountToken: false
+    containers:
+    - env:
+      - name: PGID
+        value: "1000"
+      - name: PUID
+        value: "1000"
+      - name: TZ
+        value: Europe/Paris
+      image: lscr.io/linuxserver/radarr:6.1.1
+      imagePullPolicy: Always
+      name: main
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /config
+        name: config
+      - mountPath: /media
+        name: media
+      - mountPath: /data/torrents
+        name: torrents
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: false
+    nodeName: pc
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: radarr
+    serviceAccountName: radarr
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: config
+      persistentVolumeClaim:
+        claimName: radarr
+    - name: media
+      persistentVolumeClaim:
+        claimName: media-nas-pvc
+    - hostPath:
+        path: /opt/media-stack/torrents
+        type: DirectoryOrCreate
+      name: torrents
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:08Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:28Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:08Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-12T03:00:08Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2026-05-11T09:57:25Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://c166f514bde545cce28a9576988c0f3ae14823c96a8f88042421bc3069e897b6
+      image: lscr.io/linuxserver/radarr:6.1.1
+      imageID: lscr.io/linuxserver/radarr@sha256:15417a594ebda4c660a9fa9748e7199d33e2d17b31bbc5ad7ba2e86f0b414763
+      lastState: {}
+      name: main
+      ready: true
+      resources: {}
+      restartCount: 1
+      started: true
+      state:
+        running:
+          startedAt: "2026-05-12T03:00:07Z"
+      volumeMounts:
+      - mountPath: /config
+        name: config
+      - mountPath: /media
+        name: media
+      - mountPath: /data/torrents
+        name: torrents
+    hostIP: 192.168.88.250
+    hostIPs:
+    - ip: 192.168.88.250
+    phase: Running
+    podIP: 10.1.28.131
+    podIPs:
+    - ip: 10.1.28.131
+    qosClass: BestEffort
+    startTime: "2026-05-11T09:57:28Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:/Service:selfhost/radarr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"radarr:/Service:selfhost/radarr"},"labels":{"app.kubernetes.io/instance":"radarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"radarr","app.kubernetes.io/service":"radarr","helm.sh/chart":"app-template-5.0.0"},"name":"radarr","namespace":"selfhost"},"spec":{"ports":[{"name":"http","port":7878,"protocol":"TCP","targetPort":7878}],"selector":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"radarr","app.kubernetes.io/name":"radarr"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-04-14T00:41:48Z"
+    labels:
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: radarr
+      app.kubernetes.io/service: radarr
+      helm.sh/chart: app-template-5.0.0
+    name: radarr
+    namespace: selfhost
+    resourceVersion: "33748736"
+    uid: f3cfa16a-580b-4769-b6fc-e2c981f806e1
+  spec:
+    clusterIP: 10.152.183.173
+    clusterIPs:
+    - 10.152.183.173
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 7878
+      protocol: TCP
+      targetPort: 7878
+    selector:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/name: radarr
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:apps/Deployment:selfhost/radarr
+      deployment.kubernetes.io/revision: "3"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"radarr:apps/Deployment:selfhost/radarr"},"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"radarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"radarr","helm.sh/chart":"app-template-5.0.0"},"name":"radarr","namespace":"selfhost"},"spec":{"replicas":1,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"radarr","app.kubernetes.io/name":"radarr"}},"strategy":{"type":"Recreate"},"template":{"metadata":{"labels":{"app.kubernetes.io/controller":"main","app.kubernetes.io/instance":"radarr","app.kubernetes.io/name":"radarr"}},"spec":{"automountServiceAccountToken":false,"containers":[{"env":[{"name":"PGID","value":"1000"},{"name":"PUID","value":"1000"},{"name":"TZ","value":"Europe/Paris"}],"image":"lscr.io/linuxserver/radarr:6.1.1","name":"main","volumeMounts":[{"mountPath":"/config","name":"config"},{"mountPath":"/media","name":"media"},{"mountPath":"/data/torrents","name":"torrents"}]}],"dnsPolicy":"ClusterFirst","enableServiceLinks":false,"hostIPC":false,"hostNetwork":false,"hostPID":false,"serviceAccountName":"radarr","volumes":[{"name":"config","persistentVolumeClaim":{"claimName":"radarr"}},{"name":"media","persistentVolumeClaim":{"claimName":"media-nas-pvc"}},{"hostPath":{"path":"/opt/media-stack/torrents","type":"DirectoryOrCreate"},"name":"torrents"}]}}}}
+    creationTimestamp: "2026-04-14T00:41:50Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: radarr
+      helm.sh/chart: app-template-5.0.0
+    name: radarr
+    namespace: selfhost
+    resourceVersion: "33897502"
+    uid: 69e2c775-4db4-4557-b383-7cbef07bb688
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: radarr
+        app.kubernetes.io/name: radarr
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: radarr
+          app.kubernetes.io/name: radarr
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/radarr:6.1.1
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+          - mountPath: /data/torrents
+            name: torrents
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: radarr
+        serviceAccountName: radarr
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-04-14T00:41:52Z"
+      lastUpdateTime: "2026-05-11T09:58:16Z"
+      message: ReplicaSet "radarr-cfc75cdbf" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-05-12T03:00:09Z"
+      lastUpdateTime: "2026-05-12T03:00:09Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 3
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:apps/Deployment:selfhost/radarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "2"
+    creationTimestamp: "2026-04-17T06:40:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/name: radarr
+      pod-template-hash: 664856f5cd
+    name: radarr-664856f5cd
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: radarr
+      uid: 69e2c775-4db4-4557-b383-7cbef07bb688
+    resourceVersion: "33748951"
+    uid: bb2fcb0f-a13b-49f4-893a-fb5d67810ce2
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: radarr
+        app.kubernetes.io/name: radarr
+        pod-template-hash: 664856f5cd
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: radarr
+          app.kubernetes.io/name: radarr
+          pod-template-hash: 664856f5cd
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/radarr:6.1.1
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+          - mountPath: /data/torrents
+            name: torrents
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:apps/Deployment:selfhost/radarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2026-04-14T00:41:52Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/name: radarr
+      pod-template-hash: 6c9fd8fb99
+    name: radarr-6c9fd8fb99
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: radarr
+      uid: 69e2c775-4db4-4557-b383-7cbef07bb688
+    resourceVersion: "29473396"
+    uid: b8fd5342-e146-42a7-8a4e-e50e47d903e0
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: radarr
+        app.kubernetes.io/name: radarr
+        pod-template-hash: 6c9fd8fb99
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: radarr
+          app.kubernetes.io/name: radarr
+          pod-template-hash: 6c9fd8fb99
+      spec:
+        automountServiceAccountToken: true
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/radarr:latest
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+          - mountPath: /data/torrents
+            name: torrents
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: default
+        serviceAccountName: default
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:apps/Deployment:selfhost/radarr
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "1"
+      deployment.kubernetes.io/revision: "3"
+    creationTimestamp: "2026-05-11T09:57:23Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/controller: main
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/name: radarr
+      pod-template-hash: cfc75cdbf
+    name: radarr-cfc75cdbf
+    namespace: selfhost
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: radarr
+      uid: 69e2c775-4db4-4557-b383-7cbef07bb688
+    resourceVersion: "33897499"
+    uid: 48282136-e319-414b-8300-60cea6dff0d1
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/controller: main
+        app.kubernetes.io/instance: radarr
+        app.kubernetes.io/name: radarr
+        pod-template-hash: cfc75cdbf
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/controller: main
+          app.kubernetes.io/instance: radarr
+          app.kubernetes.io/name: radarr
+          pod-template-hash: cfc75cdbf
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: PGID
+            value: "1000"
+          - name: PUID
+            value: "1000"
+          - name: TZ
+            value: Europe/Paris
+          image: lscr.io/linuxserver/radarr:6.1.1
+          imagePullPolicy: Always
+          name: main
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /media
+            name: media
+          - mountPath: /data/torrents
+            name: torrents
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: false
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: radarr
+        serviceAccountName: radarr
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
+        - hostPath:
+            path: /opt/media-stack/torrents
+            type: DirectoryOrCreate
+          name: torrents
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:networking.k8s.io/Ingress:selfhost/radarr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"radarr:networking.k8s.io/Ingress:selfhost/radarr","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/auth-signin":"https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh","nginx.ingress.kubernetes.io/auth-url":"https://auth.tgu.ovh/oauth2/auth"},"labels":{"app.kubernetes.io/instance":"radarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"radarr","helm.sh/chart":"app-template-5.0.0"},"name":"radarr","namespace":"selfhost"},"spec":{"ingressClassName":"nginx","rules":[{"host":"radarr.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"radarr","port":{"number":7878}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["radarr.tgu.ovh"],"secretName":"radarr-tls"}]}}
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-04-14T00:41:53Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: radarr
+      helm.sh/chart: app-template-5.0.0
+    name: radarr
+    namespace: selfhost
+    resourceVersion: "33748823"
+    uid: bfbd6dcd-b856-4ebf-b4ae-717cbd9167dc
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: radarr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: radarr
+              port:
+                number: 7878
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - radarr.tgu.ovh
+      secretName: radarr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:/PersistentVolumeClaim:selfhost/radarr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"radarr:/PersistentVolumeClaim:selfhost/radarr"},"labels":{"app.kubernetes.io/instance":"radarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"radarr","helm.sh/chart":"app-template-5.0.0"},"name":"radarr","namespace":"selfhost"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"2Gi"}}}}
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+      volume.kubernetes.io/selected-node: pc
+      volume.kubernetes.io/storage-provisioner: microk8s.io/hostpath
+    creationTimestamp: "2026-04-14T00:41:47Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: radarr
+      helm.sh/chart: app-template-5.0.0
+    name: radarr
+    namespace: selfhost
+    resourceVersion: "33748717"
+    uid: 030fa76b-2cce-4d34-ae9d-f401ee03462e
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+    storageClassName: microk8s-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-030fa76b-2cce-4d34-ae9d-f401ee03462e
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 2Gi
+    phase: Bound
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: radarr:/ServiceAccount:selfhost/radarr
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"radarr:/ServiceAccount:selfhost/radarr"},"labels":{"app.kubernetes.io/instance":"radarr","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"radarr","helm.sh/chart":"app-template-5.0.0"},"name":"radarr","namespace":"selfhost"}}
+    creationTimestamp: "2026-05-11T09:56:54Z"
+    labels:
+      app.kubernetes.io/instance: radarr
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: radarr
+      helm.sh/chart: app-template-5.0.0
+    name: radarr
+    namespace: selfhost
+    resourceVersion: "33748692"
+    uid: 738aa1d4-4be5-4c66-9de3-8d4da40e41af
+kind: List
+metadata:
+  resourceVersion: ""

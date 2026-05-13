@@ -876,6 +876,71 @@ Conservation dans `my-kluster` :
 **Alternatives rejetées** :
 - **Multi-instance** (sonarr-tv, sonarr-anime, sonarr-family + radarr-movies, radarr-anime, radarr-family) : coût ressource × 3 et complexité GitOps significative pour un bénéfice d'isolation marginal en homelab. À reconsidérer uniquement si la BDD unique sature ou si Q10 conclut que Seerr ne peut pas router par tag.
 
+### ADR-8 — arrconf is a trusted controller — bypasses *arr UI-grade pre-save validation
+
+**Contexte** : Sonarr (et par extension Radarr/Prowlarr en *arr v3+) effectue une pré-validation côté serveur sur tout PUT modifiant une ressource avec credentials (download_client.password, indexer.apiKey, etc.). Cette pré-validation est conçue pour rattraper les misconfigs UI : elle re-authentifie contre le service externe (qBittorrent, indexer) en utilisant la valeur littérale du champ. Côté arrconf, le helper `merge_fields_for_put` (Phase 2.1, D-31) préserve le mask `********` pour les champs `privacy=password` parce que arrconf YAML ne porte jamais de vrai secret (CLAUDE.md "Variables d'environnement"). Résultat : le PUT atomique d'arrconf échoue en 400 dès qu'un champ top-level change vraiment, parce que Sonarr essaie d'auth qBit avec `********` comme mot de passe.
+
+**Décision** : tout client *arr v3 d'arrconf (Sonarr, Radarr, Prowlarr) envoie systématiquement `?forceSave=true` sur les PUT UPDATE. Cela demande à Sonarr de skipper la pré-validation et d'écrire la ressource telle quelle. arrconf est un **trusted controller** — le scénario que la pré-validation protège (humain qui se trompe via UI) ne s'applique pas. L'implémentation vit au layer HTTP client (`_ArrV3Client.put()` dans `tools/arrconf/arrconf/client_base.py`) — Phase 3's `RadarrClient` et `ProwlarrClient` héritent par construction.
+
+**Raisons** :
+- arrconf a déjà décidé qu'un changement réel est nécessaire via son propre `diff` (idempotence golden rule, CLAUDE.md)
+- Le body PUT est construit pour préserver les credentials du cluster par design (D-31/D-32 — value-based merge contract de Phase 2.1)
+- Le pre-save validation Sonarr est une pré-validation UX pour utilisateurs humains ; arrconf n'est pas un humain
+- Sans `forceSave=true`, la moitié correction de REQ-drift-detection est inatteignable sans intervention opérateur manuelle (constaté Phase 2.1 W-04 dispositive — D-02.1-06)
+- Centraliser au layer HTTP client (D-02.2-02) plutôt qu'au layer reconciler évite le mode d'échec "j'ai oublié le kwarg" pour Phase 3+
+
+**Conséquences** :
+- Un nouveau log event `put_force_save_used` (event=info, payload `{path, id}`) est émis à chaque UPDATE PUT — auditable côté cluster JSON logs aux côtés de `merge_field_preserved` et `plan_action`
+- Phase 3 Radarr/Prowlarr héritent par construction du comportement (intermediate class `_ArrV3Client`) — pas de discipline contributeur
+- qBittorrent (Phase 5) et Jellyfin (Phase 7) ont des sémantiques PUT différentes ; ils restent **OUT OF SCOPE** de `forceSave` (leur classe parent reste `ArrApiClient` directement, pas `_ArrV3Client`)
+- Si Sonarr introduit un jour un check pre-save vraiment utile, arrconf le skippera. Trade-off acceptable : les checks utiles seraient une régression upstream, pas une feature ; on les détectera par la perte d'idempotence (qui resterait visible dans les logs `plan_action`)
+- Le trigger est l'action (UPDATE), pas le contenu du body — ADD (POST) et DELETE ne portent pas `forceSave`
+
+**Alternatives rejetées** :
+- **Trigger conditionnel sur mask dans body** (Option B de D-02.1-06) : ajoute un body scan + maintenance d'un alphabet de mask Sonarr (`********`, `***REDACTED***`, autres ?) — coût de maintenance inutile pour un gain de sécurité négligeable (la pré-validation étant inutile dans le contexte arrconf de toute façon)
+- **Trigger conditionnel sur événements `merge_field_preserved` émis** : couple le layer HTTP au layer merge — inversion de responsabilité
+- **Override au layer reconciler `_execute`** : crée une discipline par-reconciler ("n'oublie pas `params={"forceSave": "true"}`") — exactement le mode d'échec qu'on veut éviter pour Phase 3
+- **Class flag `force_save_on_put: bool`** sur `ArrApiClient` (Option a) : plus court mais inverse le défaut — qBit/Jellyfin doivent se rappeler de remettre `False`. Le sous-typage explicite (`_ArrV3Client`) est plus auto-documenté pour Phase 5/7 contributeurs
+
+#### ADR-8.1 — Refinement (v0.1.5) — omit-by-privacy-metadata for credential fields
+
+**Contexte (réalisation du risque accepté ADR-8)** : la "Conséquences" d'ADR-8 anticipait *« si Sonarr introduit un jour un check pre-save vraiment utile, arrconf le skippera »*. Ce cas s'est produit en production le 2026-05-09 (Plan 02.2-06 visual UAT FAILED). Le pre-save check que Sonarr fait pour les champs `privacy=password|userName` EST utile : il re-authentifie contre le service externe (qBit, indexer) avec la valeur littérale du champ. v0.1.4 (`?forceSave=true`) bypassait ce check. Combiné avec le helper Phase 2.1 `merge_fields_for_put` qui préserve la valeur cluster (qui pour `privacy=password` EST le mask `"********"` côté GET Sonarr), résultat : la mask littérale `"********"` était écrite comme valeur réelle du champ password, écrasant le credential. Sonarr's GET continuait à sérialiser `"********"` (indissociable d'un mask normal), rendant la régression invisible aux snapshot diffs. Détection uniquement comportementale (bouton "Test" de l'UI Sonarr → 401/403 contre qBit).
+
+Référence d'incident : `.planning/phases/02.2-v0-1-4-forcesave-fix/deferred-items.md` §D-02.2-AUTH-REGRESSION + `.planning/phases/02.2-v0-1-4-forcesave-fix/02.2-06-SUMMARY.md` §"Operator Visual Gate FAILED".
+
+**Décision (raffinement, append-only — ADR-8 reste tel quel)** : ajouter une protection au layer **merge** (pas au layer HTTP — ADR-8 reste valide pour les champs non-credential). Dans `differ.py:merge_fields_for_put`, si le champ cluster a `privacy in ("password", "userName")`, **OMETTRE** l'entrée du body PUT entièrement. Sonarr préserve la valeur stockée quand un champ est absent du body — c'est le comportement sûr pour les credentials. Émettre un événement structuré `merge_field_omitted_credential` (payload `{name, privacy}` — métadonnées seulement, jamais de valeur) pour audit cluster. Implémentation Plan 02.2-08 (commit `fix(02.2-08): omit privacy=password|userName entries from merge_fields_for_put PUT body (GREEN)`).
+
+Stratégie retenue : **Option A (omit-by-privacy-metadata)** parmi les trois envisagées dans `deferred-items.md` §D-02.2-AUTH-REGRESSION. Les deux autres ont été rejetées (voir §Alternatives rejetées 8.1 ci-dessous).
+
+**Raisons** :
+- **Cohésion** : le fix vit dans la même fonction (`merge_fields_for_put`) que le bug. Pas de nouveau module, pas de couplage HTTP↔merge.
+- **Surface minimale** : ~10 lignes ajoutées dans `differ.py`. La logique force_save (D-02.2-02 / Plan 02 / `_ArrV3Client.put()`) reste inchangée.
+- **Métadonnée fiable** : Sonarr's GET retourne `privacy: "password"` / `privacy: "userName"` pour chaque champ credential — contrat stable Sonarr v3 (vérifié dans `tools/arrconf/tests/fixtures/sonarr/downloadclient.json` L53/L63 + en cluster).
+- **Sémantique Sonarr documentée** : un champ absent du body PUT préserve la valeur stockée. Mêmes garanties que `forceSave=true` exploite pour les champs non-credential, mais pour les credentials l'absence est l'opération correcte (pas le passthrough).
+- **Auditable** : `merge_field_omitted_credential` apparaît dans les logs JSON du CronJob aux côtés de `merge_field_preserved` et `put_force_save_used`.
+
+**Conséquences (stance à deux couches — defense-in-depth)** :
+- **Couche HTTP (ADR-8 / `_ArrV3Client.put()` / Plan 02)** : `?forceSave=true` reste actif sur tous les UPDATE PUT *arr v3. Inchangé. Couvre la correction automatique des drifts non-credential (priority, host, port, urlBase, tvCategory, etc.).
+- **Couche merge (ADR-8.1 / `merge_fields_for_put` / Plan 08)** : les champs `privacy=password|userName` sont absents du body PUT. Couvre le cas où le body ne peut pas être valide par construction (mask Sonarr non utilisable comme credential).
+- Les deux couches sont **indépendantes et complémentaires** : retirer l'une ré-ouvre une classe de régression. ADR-8 sans ADR-8.1 → la régression D-02.2-AUTH-REGRESSION (production 2026-05-09, Plan 06 SUMMARY §"Operator Visual Gate FAILED"). ADR-8.1 sans ADR-8 → la régression D-02.1-06 (HTTP 400 sur tout UPDATE avec mask en body, Phase 2.1).
+- **qBittorrent (Phase 5) et Jellyfin (Phase 7) restent OUT OF SCOPE des deux couches**. Leurs classes-clients n'héritent ni d'ADR-8 (`_ArrV3Client.put()` non applicable — sémantiques PUT différentes) ni d'ADR-8.1 (le helper `merge_fields_for_put` est utilisé uniquement par les reconcilers `*arr v3`, pas par les reconcilers `qBittorrent`/`Jellyfin` qui auront leurs propres patterns de body-construction quand ces phases atterriront).
+- **`merge_field_preserved` (Phase 2.1, D-31/D-32) reste valide pour les champs non-credential** : si YAML est vide et cluster a une valeur non-mask (e.g. `tvCategory="sonarr"`), l'helper substitue. Le test `test_merge_fields_preserves_non_credential_empty_yaml_passthrough` (Plan 07) garde-foule cette invariant.
+- Trade-off : la stratégie traite `privacy=userName` uniformément avec `privacy=password` — même quand la valeur cluster userName est une chaîne réelle (`"admin"`). Symétrie architecturale intentionnelle : le credential est la paire (username, password) ; l'omission de l'un sans l'autre serait incohérente. La discipline env-only-secret (CLAUDE.md "Variables d'environnement") garantit que YAML ne porte jamais ni l'un ni l'autre, donc la ré-saisie opérateur côté UI Sonarr couvre les deux d'un coup.
+
+**Contrats de test (verrous régression)** :
+- `tools/arrconf/tests/test_differ.py::test_merge_fields_omits_privacy_password_when_value_is_api_mask` — exerce le mask littéral production `"********"` (Plan 07 RED → Plan 08 GREEN)
+- `tools/arrconf/tests/test_differ.py::test_merge_fields_omits_privacy_password_when_value_is_in_tree_redacted_mask` — exerce le mask de fixture `"***REDACTED***"` (Plan 07 RED → Plan 08 GREEN). Le test passant exclusivement par les **métadonnées privacy** (et pas un alphabet de mask) prouve que la stratégie n'est pas Option B (mask-token detect, rejetée).
+- `tools/arrconf/tests/test_differ.py::test_merge_fields_preserves_non_credential_empty_yaml_passthrough` — garde-fou : Phase 2.1 D-31/D-32 reste valide pour les champs non-credential.
+- `tools/arrconf/tests/test_differ.py::test_merge_field_omitted_credential_event_payload_excludes_value` — T-02.2-08-01 : aucune valeur credential dans les logs.
+- `tools/arrconf/tests/test_reconcilers_sonarr.py::test_update_omits_privacy_credential_fields_from_put_body` — contrat intégration au layer reconciler (renommé depuis `test_update_preserves_redacted_credentials_in_put_body` qui asserrait l'ancien comportement Phase 2.1 maintenant intentionnellement inversé).
+- Plan 02's `test_update_passes_forceSave_query_param` + ADD/DELETE négatifs — ADR-8 stance préservée, vérifiable indépendamment.
+
+**Alternatives rejetées (8.1)** :
+- **Option B (détection mask-token dans body)** : maintenir un alphabet de tokens (`"********"`, `null`, formes futures Sonarr ?). Générique mais fragile — le moindre changement Sonarr de mask invalide la protection. Rejetée pour la même raison qu'ADR-8 a rejeté Option B (D-02.1-06) : couplage à un littéral non-stable.
+- **Option C (drop forceSave conditionnellement)** : garder le mask dans le body mais retirer `?forceSave=true` quand le body contient un mask connu. Sonarr's pre-save validation rejetterait alors avec HTTP 400 — ré-introduisant la régression D-02.1-06 que Plan 02 a fermée. Reverts à un modèle "manual nudge" pour les credentials → REQ-drift-detection redeviendrait opérateur-dépendante. Rejetée : perte d'acquis architectural pour un gain de detection-loud-failure marginal.
+- **Override au layer reconciler `_execute`** : dupliquer la logique d'omission dans chaque reconciler (Sonarr, Phase 3 Radarr, Prowlarr). Mêmes raisons qu'ADR-8 D-02.2-02 : "discipline par-reconciler" est exactement le mode d'échec qu'on évite.
+- **Suppression de `merge_field_preserved` entirely** : reverts D-31/D-32, casse les champs YAML vides non-credential. Hors-scope (régresse Phase 2.1 contracts).
+
 ---
 
 ## 12. Références
