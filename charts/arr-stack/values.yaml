@@ -396,5 +396,56 @@ jellyfin:
         - path: /media
 
 # Wave 4 (Plan 04-05) populates the next 2:
-arrconf: {}
+arrconf:
+  global:
+    fullnameOverride: arrconf
+  controllers:
+    main:
+      type: cronjob
+      cronjob:
+        schedule: "0 */4 * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistory: 1
+        failedJobsHistory: 2
+        startingDeadlineSeconds: 600
+      pod:
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/tom333/arr-stack-arrconf
+            repository: ghcr.io/tom333/arr-stack-arrconf
+            tag: "0.2.1"
+            pullPolicy: IfNotPresent
+          args:
+            - "--config"
+            - "/app/config/arrconf.yml"
+            - "apply"
+            - "--apps"
+            - "sonarr,radarr,prowlarr"   # D-04-CRON-03: Phase 4 expands beyond production's sonarr-only
+          env:
+            TZ: "Europe/Paris"
+            ARRCONF_DRY_RUN: "false"
+            ARRCONF_LOG_LEVEL: INFO
+          envFrom:
+            - secretRef:
+                name: arrconf-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  persistence:
+    config:
+      type: configMap
+      name: arrconf-config
+      globalMounts:
+        - path: /app/config/arrconf.yml
+          subPath: arrconf.yml
+          readOnly: true
 configarr: {}
