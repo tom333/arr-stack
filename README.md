@@ -1,28 +1,194 @@
 # arr-stack
 
-Plateforme média fully-as-code (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin) déployée sur le cluster MicroK8s personnel `my-kluster`.
+> Plateforme média fully-as-code (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin + arrconf + configarr) déployée sur le cluster MicroK8s personnel `my-kluster`.
 
-> **Statut** : en cours de bootstrap (Phase 0). Le code arrconf et le chart umbrella n'existent pas encore — voir [`spec.md`](./spec.md) §7 pour la roadmap complète en 9 phases.
+**Statut** : Phase 4 terminée — 1 chart Helm umbrella déploie les 9 apps (8 médias + 2 CronJobs arrconf/configarr) via une seule ArgoCD Application côté `my-kluster`. Roadmap complète : voir [`spec.md`](./spec.md) §7.
 
-## Documentation
+## Vue d'ensemble
 
-- [`spec.md`](./spec.md) — quoi et pourquoi (architecture, ADRs, phases, frontières)
-- [`CLAUDE.md`](./CLAUDE.md) — comment (conventions, workflows, garde-fous)
-- [`tools/snapshot/README.md`](./tools/snapshot/README.md) — comment relancer un snapshot raw avant un test risqué
-- [`.planning/`](./.planning/) — pilotage GSD (PROJECT.md, ROADMAP.md, REQUIREMENTS.md, ADRs)
+arr-stack est structuré autour de deux composants :
 
-## Snapshot rapide
+1. **`tools/arrconf/`** — script Python (CronJob in-cluster, toutes les 4 h) qui réconcilie la configuration des apps *arr et apparentées (Sonarr, Radarr, Prowlarr) depuis des fichiers YAML vers leurs APIs REST. Idempotent, diff-before-PUT, `prune: false` par défaut. Couverture Phase 4 : Sonarr, Radarr, Prowlarr (download clients, root folders, notifications, tags, indexers).
 
-Avant tout test risqué (nouveau reconciler, montée de version, debug), capturer l'état actuel des APIs avec un snapshot raw :
+2. **`charts/arr-stack/`** — chart Helm umbrella qui empaquette toute la stack (8 apps médias + arrconf + configarr = 10 aliases `bjw-s/app-template@5.0.0`) en un déploiement atomique versionné, consommé par une seule ArgoCD Application côté `my-kluster`.
+
+La séparation de responsabilités avec **configarr** est stricte : configarr gère quality profiles / custom formats / quality definitions / media naming (TRaSH-Guides), arrconf gère tout le reste. Voir [`CLAUDE.md`](./CLAUDE.md) "Frontière arrconf / configarr".
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│              ce repo (arr-stack)        │
+│                                         │
+│  charts/arr-stack/                      │
+│    Chart.yaml  ← 10 app-template 5.0.0 │
+│    values.yaml ← renovate annotations  │
+│    files/arrconf.yml + configarr.yml   │
+└────────────────┬────────────────────────┘
+                 │ git pull
+                 ▼
+┌─────────────────────────────────────────┐
+│  my-kluster / ArgoCD                    │
+│                                         │
+│  argocd-apps/arr-stack-app.yaml         │
+│    path: charts/arr-stack/              │
+│    targetRevision: vX.Y.Z              │
+│    syncOptions: [ServerSideApply=true,  │
+│                  Replace=true]          │
+└────────────────┬────────────────────────┘
+                 │ sync
+                 ▼
+┌─────────────────────────────────────────┐
+│  cluster MicroK8s — namespace selfhost  │
+│                                         │
+│  8 Deployments (sonarr radarr prowlarr  │
+│    qbittorrent cleanuparr seerr         │
+│    flaresolverr jellyfin)               │
+│  2 CronJobs (arrconf configarr)        │
+│  2 ConfigMaps + 10 ServiceAccounts     │
+└─────────────────────────────────────────┘
+```
+
+**Flux Renovate** : bump image dans `values.yaml` → CI `chart-lint.yml` (lint + kubeconform + guards) → auto-merge minor/patch → auto-tag `vX.Y.Z` → Renovate côté `my-kluster` propose un bump de `targetRevision` → merge → ArgoCD sync (< 1 h end-to-end).
+
+**Note `Replace=true`** : requis car la migration cutover change `app.kubernetes.io/instance` (selector Deployment immuable). Kubernetes rejette un patch sur ce label ; Replace supprime et recrée. Résultat : bref redémarrage de pod au cutover uniquement. Voir [`CLAUDE.md`](./CLAUDE.md) "Intégration avec my-kluster".
+
+## Stack technique
+
+| Composant | Technologie | Version | Rôle |
+|-----------|-------------|---------|------|
+| Umbrella chart | [bjw-s/app-template](https://github.com/bjw-s-labs/helm-charts) | 5.0.0 | 10 aliases (8 médias + arrconf + configarr) |
+| Reconciler Python | arrconf (ce repo) | v0.2.x | Sonarr / Radarr / Prowlarr |
+| Quality profiles | [configarr](https://configarr.de/docs/intro/) | 1.28.x | TRaSH-Guides custom formats |
+| CI | GitHub Actions | — | `chart-lint.yml` + `arrconf-image.yml` + `tests.yml` |
+| Image arrconf | GHCR public | `ghcr.io/tom333/arr-stack-arrconf` | anonymous-pullable |
+| Renovate | self-hosted via my-kluster | — | suit `customManagers` regex sur `values.yaml` |
+| ArgoCD | côté my-kluster | — | une seule App `arr-stack` |
+| Cluster | MicroK8s | 1.33.x | namespace `selfhost` |
+| Helm | Helm 4.x (≥ 3.18 requis par app-template 5.0.0) | 4.1.4 | umbrella packaging |
+| Python | Python 3.13 + httpx + pydantic v2 + ruyaml | 3.13 | arrconf reconciler |
+
+## Déploiement
+
+### Pré-requis
+
+- Cluster `my-kluster` opérationnel avec ArgoCD installé et `selfhost-project` créé
+- Secrets `arrconf-env` + `configarr-env` appliqués dans le namespace `selfhost` (cf `my-kluster/secrets/`)
+- PVCs existants pour les 8 apps + `configarr-cache` (déjà présents si migration depuis l'état pré-Phase 4)
+
+### Vérification locale du chart
+
+```bash
+# Cloner ce repo
+git clone https://github.com/tom333/arr-stack.git
+cd arr-stack
+
+# Ajouter le repo Helm bjw-s-labs
+helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts
+
+# Télécharger les dépendances
+helm dependency build charts/arr-stack/
+
+# Workaround Helm 4 multi-alias (nécessaire car 10 aliases du même chart)
+tar -xzf charts/arr-stack/charts/app-template-5.0.0.tgz -C charts/arr-stack/charts/
+for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin arrconf configarr; do
+  [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
+done
+
+# Linter
+helm lint charts/arr-stack/ -f examples/values-prod.yaml
+
+# Template de vérification
+helm template arr-stack charts/arr-stack/ -f examples/values-prod.yaml | head -50
+```
+
+### Premier déploiement (via my-kluster)
+
+1. Appliquer les secrets bootstrap dans le cluster :
+   ```bash
+   kubectl apply -f my-kluster/secrets/arrconf-secret.yaml
+   kubectl apply -f my-kluster/secrets/configarr-secret.yaml
+   ```
+   Ces fichiers sont gitignorés dans `my-kluster` — les copier localement depuis le coffre-fort avant `kubectl apply`.
+
+2. Merger la PR qui ajoute `argocd/argocd-apps/arr-stack-app.yaml` dans `my-kluster`. ArgoCD synchronise automatiquement.
+
+3. **AUCUN `helm install` direct depuis ce repo** — toujours via my-kluster + ArgoCD. Voir [`CLAUDE.md`](./CLAUDE.md) "Ce que tu NE dois PAS faire".
+
+### Mise à jour d'image (flux Renovate normal)
+
+1. Renovate ouvre une PR sur ce repo (`values.yaml` : `tag: X.Y.Z` → `X.Y.Z+1`)
+2. CI `chart-lint.yml` : helm lint + kubeconform + 5 guards + renovate-config-validator
+3. Auto-merge si minor/patch (gate manuel sur majors)
+4. Auto-tag patch sur push-to-main (`mathieudutour/github-tag-action`)
+5. Renovate côté `my-kluster` détecte le nouveau tag, propose un bump de `targetRevision: vX.Y.Z`
+6. Merge côté `my-kluster` → ArgoCD sync (< 1 h)
+7. CronJob arrconf/configarr run dans le créneau suivant (max 4 h)
+
+## Operator runbook
+
+### Snapshot avant un test risqué (toujours en premier)
 
 ```bash
 # 1. Lancer les port-forwards dans un terminal séparé (voir tools/snapshot/README.md)
-# 2. Exporter les API keys dans l'env (voir tools/snapshot/README.md)
+# 2. Exporter les API keys dans l'env
 # 3. Lancer le snapshot
 ./tools/snapshot/snapshot.sh
+# Ou pour une seule app :
+./tools/snapshot/snapshot.sh --apps sonarr
 ```
 
-Output : `snapshots/baseline-YYYY-MM-DD/<app>/<resource>.json`. Tous les snapshots sont versionnés Git (lossless, pas de secret après audit, taille négligeable). Voir [ADR-6](./spec.md#adr-6).
+Output : `snapshots/baseline-YYYY-MM-DD/<app>/<resource>.json`. Tous les snapshots sont versionnés Git (lossless, pas de secret, taille négligeable). Voir [ADR-6](./spec.md#adr-6).
+
+### Forcer un run arrconf
+
+```bash
+# Créer un job manuel depuis le CronJob (utile pour valider une nouvelle config)
+kubectl -n selfhost create job --from=cronjob/arrconf arrconf-manual-$(date +%s)
+kubectl -n selfhost logs -f job/arrconf-manual-<timestamp>
+```
+
+### Diagnostiquer un drift de config
+
+```bash
+# Diff via arrconf (format lisible)
+arrconf diff --apps sonarr,radarr,prowlarr
+
+# Diff raw (JSON) entre deux snapshots
+./tools/snapshot/snapshot.sh --output snapshots/forensic-$(date +%FT%H%M)/
+diff -r snapshots/baseline-<date>/ snapshots/forensic-<date>/
+```
+
+### Rollback du cutover (si regression post-Phase 4)
+
+```bash
+# Côté my-kluster : git revert la PR qui ajoutait arr-stack-app.yaml
+# ArgoCD restore les Applications individuelles
+# Les PVCs survivent (Retain policy + existingClaim discipline)
+# Voir spec.md D-04-CUTOVER-04 pour le détail
+```
+
+## Onboarding (< 30 min)
+
+Pour un autre dev (ou toi-dans-3-mois) qui découvre le projet :
+
+1. **Lire ce fichier** (5 min) — aperçu architecture + flux Renovate
+2. **Lire [`spec.md`](./spec.md) §§1-6** (10 min) — quoi/pourquoi, ADRs, frontières
+3. **Lire [`CLAUDE.md`](./CLAUDE.md)** sections "Vue d'ensemble", "Conventions Helm", "Ce que tu NE dois PAS faire" (10 min)
+4. **Cloner + lint** : étapes "Vérification locale du chart" ci-dessus (5 min)
+5. Optionnel : `arrconf dump --apps sonarr` contre une instance Sonarr en port-forward (format YAML arrconf)
+
+Total cible : 25-30 min sans toucher au cluster.
+
+## Documentation
+
+- [`spec.md`](./spec.md) — quoi et pourquoi (architecture, ADRs 1-8, phases 0-8, frontières)
+- [`CLAUDE.md`](./CLAUDE.md) — comment (conventions, workflows, garde-fous)
+- [`.planning/`](./.planning/) — pilotage GSD (PROJECT.md, ROADMAP.md, REQUIREMENTS.md, phases/)
+- [`tools/snapshot/README.md`](./tools/snapshot/README.md) — snapshot raw avant un test risqué (ADR-6)
+- [`tools/arrconf/`](./tools/arrconf/) — code Python du reconciler
+- [`charts/arr-stack/`](./charts/arr-stack/) — chart Helm umbrella (10 aliases app-template 5.0.0)
+- [`my-kluster`](https://github.com/tom333/my-kluster) — repo cluster (`argocd/argocd-apps/arr-stack-app.yaml` pointe ici)
 
 ## Licence
 
