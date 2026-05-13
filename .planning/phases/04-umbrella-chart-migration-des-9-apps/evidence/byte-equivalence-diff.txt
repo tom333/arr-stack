@@ -1,0 +1,151 @@
+Comparing .planning/phases/04-umbrella-chart-migration-des-9-apps/evidence/umbrella-render.yaml against .planning/phases/04-umbrella-chart-migration-des-9-apps/evidence/pre-cutover-argocd/...
+1,2c1,12
+< configmap/arrconf-config created (dry run)
+< configmap/configarr-config created (dry run)
+---
+> application.argoproj.io/arrconf configured (dry run)
+> application.argoproj.io/cleanuparr configured (dry run)
+> application.argoproj.io/configarr configured (dry run)
+> application.argoproj.io/flaresolverr configured (dry run)
+> application.argoproj.io/jellyfin configured (dry run)
+> application.argoproj.io/prowlarr configured (dry run)
+> application.argoproj.io/qbittorrent configured (dry run)
+> application.argoproj.io/radarr configured (dry run)
+> application.argoproj.io/seerr configured (dry run)
+> application.argoproj.io/sonarr configured (dry run)
+> configmap/arrconf configured (dry run)
+> configmap/configarr configured (dry run)
+19a30,33
+> job.batch/arrconf-29641740 configured (dry run)
+> job.batch/arrconf-29643180 created (dry run)
+> job.batch/arrconf-29643420 created (dry run)
+> job.batch/configarr-29643420 created (dry run)
+20a35
+> persistentvolumeclaim/configarr-cache configured (dry run)
+26a42,89
+> pod/arrconf-29641740-786j4 configured (dry run)
+> pod/arrconf-29643180-2g7n6 created (dry run)
+> pod/arrconf-29643180-4srkq created (dry run)
+> pod/arrconf-29643180-clrzb created (dry run)
+> pod/arrconf-29643180-ffvjc created (dry run)
+> pod/arrconf-29643180-fkltz created (dry run)
+> pod/arrconf-29643180-lqv42 created (dry run)
+> pod/arrconf-29643180-nqzqb created (dry run)
+> pod/arrconf-29643420-2krdb created (dry run)
+> pod/arrconf-29643420-67746 created (dry run)
+> pod/arrconf-29643420-86782 created (dry run)
+> pod/arrconf-29643420-cltks created (dry run)
+> pod/arrconf-29643420-j6gfm created (dry run)
+> pod/arrconf-29643420-pcqj4 created (dry run)
+> pod/arrconf-29643420-zj5nm created (dry run)
+> pod/cleanuparr-5cd9d7f8c8-p88vh configured (dry run)
+> pod/configarr-29643420-h5fd8 created (dry run)
+> pod/flaresolverr-78c859dc75-z4nkn configured (dry run)
+> pod/jellyfin-d9ff84c99-l6j6f configured (dry run)
+> pod/prowlarr-664d7fd687-qh86h configured (dry run)
+> pod/qbittorrent-79fb4fd5f8-ch7qt configured (dry run)
+> pod/radarr-cfc75cdbf-v7qvg configured (dry run)
+> pod/seerr-785f4bcb84-rcrp4 configured (dry run)
+> pod/sonarr-f5cc9576c-5zztp configured (dry run)
+> replicaset.apps/cleanuparr-57b668886 configured (dry run)
+> replicaset.apps/cleanuparr-5cd9d7f8c8 configured (dry run)
+> replicaset.apps/cleanuparr-654c755875 configured (dry run)
+> replicaset.apps/flaresolverr-6b9b59d884 configured (dry run)
+> replicaset.apps/flaresolverr-78c859dc75 configured (dry run)
+> replicaset.apps/jellyfin-556dcc5d6d configured (dry run)
+> replicaset.apps/jellyfin-6c8d4c8c74 configured (dry run)
+> replicaset.apps/jellyfin-d9ff84c99 configured (dry run)
+> replicaset.apps/prowlarr-664d7fd687 configured (dry run)
+> replicaset.apps/prowlarr-7557b96556 configured (dry run)
+> replicaset.apps/prowlarr-7dcd58c9d7 configured (dry run)
+> replicaset.apps/prowlarr-9b97d4c8f configured (dry run)
+> replicaset.apps/qbittorrent-68b7cc9949 configured (dry run)
+> replicaset.apps/qbittorrent-79fb4fd5f8 configured (dry run)
+> replicaset.apps/radarr-664856f5cd configured (dry run)
+> replicaset.apps/radarr-6c9fd8fb99 configured (dry run)
+> replicaset.apps/radarr-cfc75cdbf configured (dry run)
+> replicaset.apps/seerr-66b5fbd5c7 configured (dry run)
+> replicaset.apps/seerr-6f4b849dbc configured (dry run)
+> replicaset.apps/seerr-785f4bcb84 configured (dry run)
+> replicaset.apps/seerr-7dfb69d447 configured (dry run)
+> replicaset.apps/sonarr-67fff9667b configured (dry run)
+> replicaset.apps/sonarr-86b69c695c configured (dry run)
+> replicaset.apps/sonarr-f5cc9576c configured (dry run)
+35d97
+< serviceaccount/arrconf created (dry run)
+37d98
+< serviceaccount/configarr created (dry run)
+DIFF DETECTED -- review above before proceeding with cutover
+
+=== CUTOVER DIFF CLASSIFICATION ===
+
+APPROVED (D-04-CUTOVER-04 — label relabeling at release rename):
+  - app.kubernetes.io/instance: <app> → arr-stack (10 occurrences — all umbrella resources)
+  - app.kubernetes.io/name: <app> → <app> (preserved by fullnameOverride per RESEARCH §"Standard Stack"; ServiceAccount names like sonarr/radarr/jellyfin remain identical)
+  - helm.sh/chart: app-template-5.0.0 (IDENTICAL — production already on 5.0.0 since 2026-05-11 my-kluster PR #1381)
+
+APPROVED (D-04-CRON-03 deliberate functional change):
+  - arrconf args: ["--config", "/app/config/arrconf.yml", "apply", "--apps", "sonarr,radarr,prowlarr"]
+    (was: ["--config", "/app/config/arrconf.yml", "apply", "--apps", "sonarr"] per Phase 3 hotfix)
+  - This is the Phase 4 functional expansion: arrconf now reconciles 3 apps instead of 1.
+
+APPROVED (D-04-PIN-01 image pinning, semantically identical via digest match):
+  - qbittorrent: lscr.io/linuxserver/qbittorrent:latest → 5.2.0
+    (running digest 2e014842… matches Docker Hub v5.2.0 tag — confirmed RESEARCH §"Running Image Digests")
+  - cleanuparr: ghcr.io/cleanuparr/cleanuparr:latest → 2.3.3
+    (running digest 9b8f7a5f… per Wave 0 evidence)
+  - flaresolverr: ghcr.io/flaresolverr/flaresolverr:latest → v3.4.6
+    (running digest 7962759d… per Wave 0 evidence)
+
+APPROVED (orchestration replacement — ArgoCD Application boundary shifts):
+  - DELETIONS: 10 unit ArgoCD Applications (sonarr/radarr/prowlarr/cleanuparr/qbittorrent/seerr/flaresolverr/jellyfin/arrconf/configarr) → replaced by 1 umbrella `arr-stack-app.yaml`.
+  - DELETIONS: transient ArgoCD-spawned `job.batch/arrconf-*`, `job.batch/configarr-*`, all `pod/*-*`, all `replicaset.apps/*` — these are not chart-managed; they regenerate from the umbrella's Deployments + CronJobs.
+  - Note: arrconf has 14 failed Pod restarts visible in baseline (cronjob retry loop) — these are pre-existing Phase 02.2 forensic noise, not Phase 4 artifacts. They'll naturally GC after the umbrella sync.
+
+APPROVED (ConfigMap rename — new umbrella naming convention, content identical):
+  - arrconf → arrconf-config (rename only; files/arrconf.yml content byte-equivalent per Plan 04-02 verbatim port)
+  - configarr → configarr-config (same)
+  - CronJobs in umbrella reference the new names via persistence.config — internally consistent.
+  - Old ConfigMaps will be pruned by ArgoCD when the 10 unit Apps are deleted.
+
+APPROVED (existingClaim preserves cluster-level resources):
+  - persistentvolumeclaim/configarr-cache — umbrella references via `existingClaim: configarr-cache`; the PVC itself stays put. Listed as ">" only because kubectl apply --dry-run treats it as "configured" (no-op modification).
+  - persistentvolumeclaim/media-nas-pvc, hostPath /opt/media-stack/torrents — not chart-managed; cluster-level resources unchanged.
+
+UNEXPECTED:
+  (none — the diff is entirely composed of approved categories above)
+
+=== CHART-MANAGED OBJECT NAME PARITY ===
+
+Name-level parity verified for all chart-managed object kinds (no DELETIONs of in-scope K8s objects expected at cutover):
+  - Deployments: 8 (sonarr/radarr/prowlarr/qbittorrent/cleanuparr/seerr/flaresolverr/jellyfin) — names match baseline 1:1 thanks to fullnameOverride
+  - Services: 8 — names match (DNS preserved)
+  - Ingresses: 7 (flaresolverr excluded per RESEARCH §"Per-App Values Blocks") — names match
+  - PVCs: 7 — names match (config PVCs per app; media-nas-pvc existingClaim)
+  - CronJobs: 2 (arrconf, configarr) — names match
+  - ConfigMaps: 2 — RENAMED with -config suffix (approved above)
+  - ServiceAccounts: 10 (one per alias including arrconf/configarr — app-template 5.0.0 default behavior; new umbrella adds 2 SAs not present in current baseline, which only has SAs for the 8 Deployment-based apps via app-template defaultPodOptions)
+
+The 2 NEW ServiceAccounts (arrconf, configarr — visible as "< serviceaccount/arrconf created (dry run)" in the diff) are EXPECTED: the custom my-kluster/charts/arrconf and charts/configarr did NOT emit ServiceAccounts (they ran as default SA in the namespace); the v5.0.0 app-template alias DOES emit a per-alias SA by default. Both are harmless — automountServiceAccountToken: false on both, no RoleBindings.
+
+=== CONTENT-LEVEL DIFF (deferred, see note) ===
+
+The byte-equivalence-diff.sh helper compares OBJECT NAMES via `kubectl apply --dry-run` (name-level confirmation only — does not compare object SPECS). For the cutover decision, this is sufficient because:
+  - The 8 media-app aliases lift `helm.values:` verbatim from my-kluster main's `argocd/argocd-apps/<app>-app.yaml` (which is what ArgoCD currently renders).
+  - app-template 5.0.0 is unchanged at chart-version level between production and umbrella.
+  - The only deliberate spec-level diffs are the label rename + image pin (both classified APPROVED above).
+
+A deeper spec-level diff (e.g., `helm template … | kubectl diff -f -`) requires live cluster access AND ServerSideApply field-manager configured — typically run at cutover-time, not pre-cutover. Plan 04-08 Task 8.3 covers the live diff at the moment of operator sync.
+
+=== VERDICT: PROCEED ===
+
+All diffs accounted for under D-04-CUTOVER-04 approved categories or D-04-CRON-03 / D-04-PIN-01 deliberate changes.
+No unexpected entries.
+Chart-managed object name parity verified.
+Brief pod restarts (5–10 s per app) expected due to:
+  (a) Replace=true syncOption + selector relabeling (app.kubernetes.io/instance change),
+  (b) image tag swap (latest → pinned semver) for qbittorrent/cleanuparr/flaresolverr.
+
+Operator may proceed to Plan 04-08 Task 8.2 (atomic cross-repo PR in my-kluster).
+
+--- Diff classified at: 2026-05-14 ---
