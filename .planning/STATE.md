@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-13T02:10:55.240Z"
-last_activity: 2026-05-13 -- Phase 4 planning complete
+last_updated: "2026-05-13T07:45:00Z"
+last_activity: 2026-05-13 -- Phase 4 autonomous waves 0-5 complete; chart content-complete + CI wired; pending operator gates: 04-07 walkthrough, 04-08 cutover, 04-09 post-cutover
 progress:
   total_phases: 11
   completed_phases: 6
@@ -25,10 +25,15 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 4 (umbrella-chart-migration-des-9-apps) — PLANNED (v5.0.0; 9 plans across 8 waves; Wave 0 Task 1.1 evidence already captured at commit 2a94257)
-Plan: 0 of 9 (ready to execute — start with `/gsd-execute-phase 4`)
+Phase: 4 (umbrella-chart-migration-des-9-apps) — EXECUTING (6.5/9 plans complete; pending operator gates for 04-07.3, 04-08, 04-09)
+Plans complete: 04-01 (Wave 0 baseline+scripts), 04-02 (chart skeleton), 04-03 (sonarr/radarr/prowlarr/qbittorrent aliases), 04-04 (cleanuparr/seerr/flaresolverr/jellyfin aliases — :latest invariant closed), 04-05 (arrconf+configarr CronJobs + values.schema.json + examples/values-prod.yaml), 04-06 (chart-lint.yml CI workflow + renovate.json customManagers + auto-tag job), 04-07 partial (Tasks 7.1+7.2 README+CLAUDE.md rewrites committed)
+Pending operator gates:
+  - 04-07 Task 7.3 — operator timed walkthrough of README onboarding (<30 min budget per REQ-readme-onboarding)
+  - 04-08 (Wave 6) — cross-repo cutover PR in my-kluster + kubectl-driven sync (argocd CLI absent)
+  - 04-09 (Wave 7) — re-enable automated.{selfHeal,prune} + SC#2 Renovate E2E evidence within 72h M1/M2/M3 gate
+Chart state: 8 Deployments + 8 Services + 7 Ingresses + 7 PVCs + 2 CronJobs + 2 ConfigMaps + 10 ServiceAccounts render cleanly; helm lint passes; render snapshot committed at `.planning/phases/04-umbrella-chart-migration-des-9-apps/evidence/umbrella-render.yaml`
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-13 -- Phase 4 replanned against app-template 5.0.0 baseline after ADR-6 drift discovery
+Last activity: 2026-05-13 -- Phase 4 autonomous waves complete; operator handoff for waves 6-7 cutover
 
 Progress: [██████████] 100%
 
