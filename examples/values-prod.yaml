@@ -1,3 +1,7 @@
+# examples/values-prod.yaml
+# This file is the production values reference for my-kluster's arr-stack-app.yaml.
+# It is a content-copy of charts/arr-stack/values.yaml (D-04-VALUES-03).
+# Keep them in sync; CI does NOT auto-validate divergence in Phase 4 (deferred to a follow-up).
 # charts/arr-stack/values.yaml
 # Each top-level key matches a dependency alias in Chart.yaml.
 # Per-app bodies are populated by Plans 04-03 (sonarr/radarr/prowlarr/qbittorrent),
