@@ -113,9 +113,18 @@ jobs:
           print(f'OK: {total_matches} image matches (>= 10 required)')
           PY
 
+      - name: Set up Node 22 (renovate-config-validator requires node ^20.15 || ^22.11)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Validate renovate.json
         run: |
-          npx --yes renovate-config-validator renovate.json
+          # `renovate-config-validator` is a binary shipped inside the `renovate` package
+          # (not its own npm package on npmjs.com — see Renovate docs §"Config Validation").
+          # Install renovate globally first, then run the bundled validator.
+          npm install -g renovate@39
+          renovate-config-validator renovate.json
 
   tag:
     needs: lint
