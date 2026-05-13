@@ -448,4 +448,47 @@ arrconf:
         - path: /app/config/arrconf.yml
           subPath: arrconf.yml
           readOnly: true
-configarr: {}
+configarr:
+  global:
+    fullnameOverride: configarr
+  controllers:
+    main:
+      type: cronjob
+      cronjob:
+        schedule: "0 */4 * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistory: 1
+        failedJobsHistory: 2
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/raydak-labs/configarr
+            repository: ghcr.io/raydak-labs/configarr
+            tag: "1.28.0"
+            pullPolicy: IfNotPresent
+          tty: true  # D-04-CRON-04 MANDATORY (npm process exits without TTY)
+          env:
+            TZ: "Europe/Paris"
+          envFrom:
+            - secretRef:
+                name: configarr-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  persistence:
+    config:
+      type: configMap
+      name: configarr-config
+      globalMounts:
+        - path: /app/config/config.yml
+          subPath: config.yml
+          readOnly: true
+    cache:
+      type: persistentVolumeClaim
+      existingClaim: configarr-cache
+      globalMounts:
+        - path: /app/repos
