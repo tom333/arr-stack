@@ -1,4 +1,39 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"]
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^charts/arr-stack/values\\.yaml$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*image=(?P<depName>[^\\s]+)\\s*\\n\\s*repository:\\s*[^\\s]+\\s*\\n\\s*tag:\\s*\"?(?P<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Automerge minor/patch image bumps tracked by customManagers",
+      "matchManagers": ["custom.regex"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Automerge minor/patch app-template (Chart.yaml) bumps",
+      "matchManagers": ["helmv3"],
+      "matchPackageNames": ["app-template"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Gate major bumps for manual review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
 }
