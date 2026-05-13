@@ -28,9 +28,9 @@ build/
 .coverage.*
 htmlcov/
 
-# Helm artifacts (anticipation Phase 4)
+# Helm artifacts — charts/ subdir (downloaded dependencies, not committed)
 charts/*/charts/
-charts/*/Chart.lock
+# Note: Chart.lock IS committed (pinned dep digests for ArgoCD + CI reproducibility)
 
 # CRITIQUE : NE PAS ignorer snapshots/ — versionnés Git par ADR-6
 # (pas de pattern snapshots/ ici — c'est volontaire, voir CLAUDE.md "ne pas faire")
