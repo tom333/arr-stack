@@ -28,9 +28,13 @@ build/
 .coverage.*
 htmlcov/
 
-# Helm artifacts — charts/ subdir (downloaded dependencies, not committed)
-charts/*/charts/
+# Helm artifacts — only ignore the downloaded tarballs.
+# The unpacked dependency directories (e.g. charts/arr-stack/charts/app-template/) ARE committed
+# because ArgoCD's helm template does not run `helm dependency build` on the source revision, and
+# Helm 4 has a multi-alias-of-same-chart regression (helm/helm#12748) that requires the chart be
+# present as a directory, not a tarball. See README.md "Vérification locale du chart".
 # Note: Chart.lock IS committed (pinned dep digests for ArgoCD + CI reproducibility)
+charts/*/charts/*.tgz
 
 # CRITIQUE : NE PAS ignorer snapshots/ — versionnés Git par ADR-6
 # (pas de pattern snapshots/ ici — c'est volontaire, voir CLAUDE.md "ne pas faire")
