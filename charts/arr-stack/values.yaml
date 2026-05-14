@@ -6,7 +6,10 @@
 # Wave 2 (Plan 04-03) populates the next 4:
 sonarr:
   global:
+    nameOverride: sonarr
     fullnameOverride: sonarr
+  serviceAccount:
+    sonarr: {}
   controllers:
     main:
       containers:
@@ -66,7 +69,10 @@ sonarr:
         - path: /media
 radarr:
   global:
+    nameOverride: radarr
     fullnameOverride: radarr
+  serviceAccount:
+    radarr: {}
   controllers:
     main:
       containers:
@@ -124,7 +130,10 @@ radarr:
         - path: /media
 prowlarr:
   global:
+    nameOverride: prowlarr
     fullnameOverride: prowlarr
+  serviceAccount:
+    prowlarr: {}
   controllers:
     main:
       containers:
@@ -171,7 +180,10 @@ prowlarr:
         - path: /config
 qbittorrent:
   global:
+    nameOverride: qbittorrent
     fullnameOverride: qbittorrent
+  serviceAccount:
+    qbittorrent: {}
   controllers:
     main:
       containers:
@@ -229,7 +241,10 @@ qbittorrent:
 # Wave 3 (Plan 04-04) populates the next 4:
 cleanuparr:
   global:
+    nameOverride: cleanuparr
     fullnameOverride: cleanuparr
+  serviceAccount:
+    cleanuparr: {}
   controllers:
     main:
       containers:
@@ -274,7 +289,10 @@ cleanuparr:
         - path: /config
 seerr:
   global:
+    nameOverride: seerr
     fullnameOverride: seerr
+  serviceAccount:
+    seerr: {}
   controllers:
     main:
       containers:
@@ -319,7 +337,10 @@ seerr:
         - path: /app/config
 flaresolverr:
   global:
+    nameOverride: flaresolverr
     fullnameOverride: flaresolverr
+  serviceAccount:
+    flaresolverr: {}
   controllers:
     main:
       containers:
@@ -341,7 +362,10 @@ flaresolverr:
   # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
 jellyfin:
   global:
+    nameOverride: jellyfin
     fullnameOverride: jellyfin
+  serviceAccount:
+    jellyfin: {}
   controllers:
     main:
       containers:
@@ -398,7 +422,10 @@ jellyfin:
 # Wave 4 (Plan 04-05) populates the next 2:
 arrconf:
   global:
+    nameOverride: arrconf
     fullnameOverride: arrconf
+  serviceAccount:
+    arrconf: {}
   controllers:
     main:
       type: cronjob
@@ -450,7 +477,10 @@ arrconf:
           readOnly: true
 configarr:
   global:
+    nameOverride: configarr
     fullnameOverride: configarr
+  serviceAccount:
+    configarr: {}
   controllers:
     main:
       type: cronjob
