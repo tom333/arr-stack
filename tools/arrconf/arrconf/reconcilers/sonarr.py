@@ -389,9 +389,7 @@ def _reconcile_remote_path_mappings(
         for k, cur in cur_by_key.items():
             if k not in des_by_key:
                 if dry_run:
-                    log.info(
-                        "dry_run_skip", action="delete", resource="rpm", key=str(k)
-                    )
+                    log.info("dry_run_skip", action="delete", resource="rpm", key=str(k))
                 else:
                     assert cur.id is not None
                     client.delete(REMOTE_PATH_MAPPING_PATH, id=cur.id)

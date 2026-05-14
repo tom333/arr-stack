@@ -196,9 +196,7 @@ def test_remote_path_mappings_does_not_touch_quality_endpoints(
         tags=tags_fixture,
         series=[],  # no series → no series_tags work
     )
-    respx_mock.post("/remotepathmapping").mock(
-        return_value=httpx.Response(201, json={"id": 10})
-    )
+    respx_mock.post("/remotepathmapping").mock(return_value=httpx.Response(201, json={"id": 10}))
 
     desired_rpm = RemotePathMapping(
         host="qbittorrent.selfhost.svc.cluster.local",

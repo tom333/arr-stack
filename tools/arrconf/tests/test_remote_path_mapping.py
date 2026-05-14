@@ -127,9 +127,9 @@ def test_rpm_delete_plus_add_on_localpath_change(
         calls_order.append("POST")
         return httpx.Response(201, json={"id": 6})
 
-    respx_mock.delete(
-        url__regex=r"^http://sonarr\.test/api/v3/remotepathmapping/\d+$"
-    ).mock(side_effect=_on_delete)
+    respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/remotepathmapping/\d+$").mock(
+        side_effect=_on_delete
+    )
     respx_mock.post("/remotepathmapping").mock(side_effect=_on_post)
 
     desired = [
@@ -201,9 +201,7 @@ def test_rpm_match_by_host_and_remote_path_tuple(
     )
 
     # YAML keeps only the A entry; B entry is orphaned in cluster.
-    desired = [
-        RemotePathMapping(host="host-a", remotePath="/x/", localPath="/local-a/")
-    ]
+    desired = [RemotePathMapping(host="host-a", remotePath="/x/", localPath="/local-a/")]
 
     # --- prune=False: B entry NOT deleted ---
     instance_no_prune = SonarrInstance(
@@ -233,9 +231,7 @@ def test_rpm_prune_true_deletes_orphan(
     ).mock(return_value=httpx.Response(200))
 
     # YAML keeps only the A entry; B entry is orphaned in cluster.
-    desired = [
-        RemotePathMapping(host="host-a", remotePath="/x/", localPath="/local-a/")
-    ]
+    desired = [RemotePathMapping(host="host-a", remotePath="/x/", localPath="/local-a/")]
     instance_prune = SonarrInstance(
         base_url=BASE_URL,
         remote_path_mappings=RemotePathMappingsSection(prune=True, items=desired),

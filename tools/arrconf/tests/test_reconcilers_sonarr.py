@@ -753,21 +753,26 @@ def test_split_three_tags_three_root_folders_three_download_clients(
     tv_id, anime_id, family_id = 2, 3, 4
 
     # /tag: GET returns managed tag; POST creates each new tag in sequence.
-    tag_responses = iter([
-        httpx.Response(201, json={"id": tv_id, "label": "tv"}),
-        httpx.Response(201, json={"id": anime_id, "label": "anime"}),
-        httpx.Response(201, json={"id": family_id, "label": "family"}),
-    ])
+    tag_responses = iter(
+        [
+            httpx.Response(201, json={"id": tv_id, "label": "tv"}),
+            httpx.Response(201, json={"id": anime_id, "label": "anime"}),
+            httpx.Response(201, json={"id": family_id, "label": "family"}),
+        ]
+    )
     respx_mock.get("/tag").mock(
         side_effect=[
             httpx.Response(200, json=[managed_tag]),  # _ensure_managed_tag
             httpx.Response(200, json=[managed_tag]),  # _reconcile_tags (before)
-            httpx.Response(200, json=[  # _reconcile_tags (after re-fetch)
-                managed_tag,
-                {"id": tv_id, "label": "tv"},
-                {"id": anime_id, "label": "anime"},
-                {"id": family_id, "label": "family"},
-            ]),
+            httpx.Response(
+                200,
+                json=[  # _reconcile_tags (after re-fetch)
+                    managed_tag,
+                    {"id": tv_id, "label": "tv"},
+                    {"id": anime_id, "label": "anime"},
+                    {"id": family_id, "label": "family"},
+                ],
+            ),
         ]
     )
     respx_mock.post("/tag").mock(side_effect=lambda r: next(tag_responses))
@@ -818,14 +823,16 @@ def test_split_three_tags_three_root_folders_three_download_clients(
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        tags=TagsSection(items=[
-            TagItem(label="tv"), TagItem(label="anime"), TagItem(label="family")
-        ]),
-        root_folders=RootFoldersSection(items=[
-            RootFolder(path="/media/series"),
-            RootFolder(path="/media/anime"),
-            RootFolder(path="/media/family"),
-        ]),
+        tags=TagsSection(
+            items=[TagItem(label="tv"), TagItem(label="anime"), TagItem(label="family")]
+        ),
+        root_folders=RootFoldersSection(
+            items=[
+                RootFolder(path="/media/series"),
+                RootFolder(path="/media/anime"),
+                RootFolder(path="/media/family"),
+            ]
+        ),
         download_clients=DownloadClientsSection(items=[tv_dc, anime_dc, family_dc]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
@@ -833,14 +840,14 @@ def test_split_three_tags_three_root_folders_three_download_clients(
 
     # 3 tag POSTs (tv, anime, family).
     tag_posts = [
-        c for c in respx_mock.calls
-        if c.request.method == "POST" and "/tag" in c.request.url.path
+        c for c in respx_mock.calls if c.request.method == "POST" and "/tag" in c.request.url.path
     ]
     assert len(tag_posts) == 3, f"Expected 3 tag POSTs, got {len(tag_posts)}"
 
     # 3 root folder POSTs.
     rf_posts = [
-        c for c in respx_mock.calls
+        c
+        for c in respx_mock.calls
         if c.request.method == "POST" and "/rootfolder" in c.request.url.path
     ]
     assert len(rf_posts) == 3, f"Expected 3 rootfolder POSTs, got {len(rf_posts)}"
@@ -888,13 +895,12 @@ def test_reconcile_order(
     with structlog.testing.capture_logs() as cap_logs:
         reconcile_sonarr(client, instance, dry_run=False)
 
-    step_events = [
-        e for e in cap_logs if e.get("event") == "step_begin" and "step_index" in e
-    ]
+    step_events = [e for e in cap_logs if e.get("event") == "step_begin" and "step_index" in e]
 
     if not step_events:
         # Fallback: parse JSON lines from stdout (works when logger is cached).
         import json as _json
+
         captured = capsys.readouterr()
         for line in captured.out.splitlines():
             line = line.strip()
@@ -933,8 +939,7 @@ def test_reconcile_order(
         "series_tags",
     ]
     assert step_names == canonical_order, (
-        f"D-05-ORDER-01 violated! Expected step order:\n  {canonical_order}\n"
-        f"Got:\n  {step_names}"
+        f"D-05-ORDER-01 violated! Expected step order:\n  {canonical_order}\nGot:\n  {step_names}"
     )
 
 

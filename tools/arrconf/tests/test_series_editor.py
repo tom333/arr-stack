@@ -67,9 +67,7 @@ def test_series_editor_adds_default_tag_to_untagged_series(
         tags=tags_fixture,
         series=sonarr_series_with_no_tags_fixture,
     )
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     instance = SonarrInstance(
         base_url=BASE_URL,
@@ -152,9 +150,7 @@ def test_series_editor_preserves_existing_manual_tags(
         tags=tags_fixture,
         series=series_mixed,
     )
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     instance = SonarrInstance(
         base_url=BASE_URL,
@@ -197,9 +193,7 @@ def test_series_editor_does_not_move_files(
     )
     respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     instance = SonarrInstance(
         base_url=BASE_URL,
