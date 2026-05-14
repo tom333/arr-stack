@@ -47,13 +47,16 @@ def _mock_base_gets(
     rootfolders: list[dict[str, Any]] | None = None,
     downloadclients: list[dict[str, Any]] | None = None,
     notifications: list[dict[str, Any]] | None = None,
+    remotepathmappings: list[dict[str, Any]] | None = None,
+    series: list[dict[str, Any]] | None = None,
 ) -> None:
     """Mock the GET endpoints that the extended reconciler always touches.
 
-    The Phase-3 reconciler calls GET /indexer, /rootfolder, /downloadclient,
-    /notification in every run. Tests that focus on download_clients only must
-    still mock all four endpoints to avoid AllMockedAssertionError from respx.
-    Defaults to empty lists for endpoints the test does not care about.
+    The Phase-5 reconciler calls GET /tag (multiple times), /indexer, /rootfolder,
+    /downloadclient, /notification, /remotepathmapping, /series in every run.
+    Tests that focus on a specific resource must still mock all endpoints to avoid
+    AllMockedAssertionError from respx. Defaults to empty lists for endpoints the
+    test does not care about.
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=tag_fixture))
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=indexers or []))
@@ -62,6 +65,10 @@ def _mock_base_gets(
         return_value=httpx.Response(200, json=downloadclients or [])
     )
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    respx_mock.get("/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=remotepathmappings or [])
+    )
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=series or []))
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
@@ -465,12 +472,17 @@ def _mock_phase3_gets(
     rootfolders: list[dict[str, Any]] | None = None,
     downloadclients: list[dict[str, Any]] | None = None,
     hostconfig: dict[str, Any] | None = None,
+    remotepathmappings: list[dict[str, Any]] | None = None,
+    series: list[dict[str, Any]] | None = None,
 ) -> None:
     """Mock every GET endpoint the extended reconciler touches.
 
     Defaults to empty lists for list resources. host_config GET is only
     mocked if `hostconfig` is provided — tests for the skipped branch should
     NOT pass a hostconfig fixture so respx records 0 calls.
+
+    Phase-5 additions: /remotepathmapping and /series are always mocked (default
+    empty) because the Phase-5 reconciler calls these in every run.
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=tag_fixture))
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=indexers or []))
@@ -479,6 +491,10 @@ def _mock_phase3_gets(
         return_value=httpx.Response(200, json=downloadclients or [])
     )
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    respx_mock.get("/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=remotepathmappings or [])
+    )
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=series or []))
     if hostconfig is not None:
         respx_mock.get("/config/host").mock(return_value=httpx.Response(200, json=hostconfig))
 
