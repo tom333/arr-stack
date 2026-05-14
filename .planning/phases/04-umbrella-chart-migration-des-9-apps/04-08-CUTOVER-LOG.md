@@ -1,8 +1,20 @@
-# Phase 4 cutover log + halt note
+# Phase 4 cutover log + resolution
 
-**Status: HALTED — internal traffic broken, browser-facing seemingly OK**
+**Status (final): RESOLVED — cutover fully functional on v0.2.6**
 
-**Date**: 2026-05-14 (cutover executed in two sessions ending here)
+**Date**: 2026-05-14 (cutover executed in three sessions: initial v0.2.2 cutover, multi-version fix series v0.2.3..v0.2.5, then chart refactor v0.2.6 + Plan 04-09 Task 9.1)
+
+## Final state (v0.2.6, automated re-enabled)
+
+- arr-stack ArgoCD App: Synced + Healthy at `targetRevision: v0.2.6`, `automated: {prune: true, selfHeal: true}`
+- All 8 Deployments READY 1/1 (37 min uptime at resolution time, single pod per app)
+- All 8 Service EndpointSlices: 1 endpoint each (per-alias selector working)
+- All 8 Deployment `serviceAccountName` values match per-alias ServiceAccount metadata.name
+- prowlarr.tgu.ovh: 10/10 retries return 200
+- CronJobs arrconf + configarr scheduled `0 */4 * * *`, last ran 19 min ago
+- `applications` parent App `automated:` re-enabled (was manually suspended during cutover surgery)
+- Manual `arr-stack` ServiceAccount in `selfhost` deleted (no longer referenced)
+- v0.3.0-class chart fix shipped as patch tag v0.2.6 (commit `d205336`) — auto-tag mechanism kept the chosen versioning scheme
 
 ## What's live in the cluster right now
 
@@ -91,39 +103,54 @@ Pinned to 2.3.3 from running digest, but `:latest` had silently advanced to 2.9.
 | v0.2.3 | `5bc0b0d` | Vendor unpacked app-template (Helm 4 fix, PR #2) |
 | v0.2.4 | `fbe84cc` | cleanuparr 2.3.3 → 2.9.6 in values.yaml (PR #3) |
 | v0.2.5 | `2947c43` | Sync examples/values-prod.yaml (PR #4) |
+| v0.2.6 | `d205336` | Per-alias `global.nameOverride` + per-alias `serviceAccount.<alias>: {}` (PR #5) — closes Bug 1 + Bug 2 |
 
 my-kluster cutover commits (squash-merged on origin/main):
 - `0eb8c2db` — atomic cutover: add `arr-stack-app.yaml`, delete 10 unit Apps + 2 chart dirs (PR #1387)
 - `de93ec5e` — bump targetRevision v0.2.2 → v0.2.3 (PR #1388)
 - `566ba6a0` — bump v0.2.3 → v0.2.4 + accidental README/beszel WIP (PR #1389; postmortem in this file)
-- `a8e0973e` (squashed into `bump-arr-stack-v0.2.5` merge) — bump v0.2.4 → v0.2.5 (PR #1390)
+- `a8e0973e` (squashed) — bump v0.2.4 → v0.2.5 (PR #1390)
+- `ec36d878` (squashed) — bump v0.2.5 → v0.2.6 (PR #1392) — picks up the chart bug fixes
+- `enable-arr-stack-automated` (squashed) — re-enable `automated: {prune: true, selfHeal: true}` per D-04-CUTOVER-02 follow-up (PR #1393) — Plan 04-09 Task 9.1
 
-## Operator-side state changes still in effect (need follow-up)
+## Operator-side state changes (RESOLVED)
 
-1. **`applications` parent App `automated:` suspended.** I manually removed `syncPolicy.automated` so that prune wouldn't cascade-delete K8s resources at cutover. Needs re-enabling (`kubectl patch application applications -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'`) once the chart bugs are fixed and we're confident steady-state is desired. This SHOULD be done by re-applying the my-kluster source-of-truth which still has `automated:` on `applications-app.yaml` — but ArgoCD selfHeal will then try to roll back our manual patch on `applications`. Specifically: `kubectl annotate application applications -n argocd argocd.argoproj.io/refresh=hard --overwrite` followed by trusting selfHeal to reconcile.
+1. **`applications` parent App `automated:` re-enabled** — restored to `{prune: true, selfHeal: true}` after the chart fix landed and arr-stack stabilized. The manual `kubectl patch` was idempotent with the source-of-truth, so no extra reconcile churn observed.
 
-2. **`arr-stack` App `automated:` omitted by design** (D-04-CUTOVER-02). Plan 04-09 Task 9.1 re-adds it via a one-line my-kluster PR. NOT done yet — withheld until Bug 1 + Bug 2 are properly fixed.
+2. **`arr-stack` App `automated:` re-enabled** via PR #1393 (Plan 04-09 Task 9.1). Both parent + child Apps now self-heal autonomously.
 
-3. **`arr-stack` ServiceAccount in `selfhost`** — manually created, no chart owns it. Will be a stray resource until either the chart fix lands (deletes the manual SA and replaces with per-alias ones) or the chart is rolled back.
+3. **Manual `arr-stack` ServiceAccount in `selfhost` — DELETED** (`kubectl -n selfhost delete sa arr-stack`). The per-alias SAs (sonarr, radarr, prowlarr, qbittorrent, cleanuparr, seerr, flaresolverr, jellyfin, arrconf, configarr) created by the v0.2.6 chart are the only SAs in the namespace owned by arr-stack now.
 
-4. **All 10 K8s resources were orphaned then adopted** — the `Replace=true + Force=true` sync recreated all Deployments cleanly. PVCs (sonarr, radarr, prowlarr, qbittorrent, cleanuparr, seerr, jellyfin config + media-nas-pvc + configarr-cache) were not disturbed.
+4. **All 10 K8s resources were orphaned then adopted** (Bug-2-workaround era) — the `Replace=true + Force=true` sync recreated Deployments. PVCs (sonarr, radarr, prowlarr, qbittorrent, cleanuparr, seerr, jellyfin config + media-nas-pvc + configarr-cache) were never disturbed throughout the v0.2.2 → v0.2.6 sequence.
 
-## Recommended next steps
+5. **v0.2.6 Force=true sync replaced Deployments AGAIN** to apply the new selectors + per-alias SA refs. ~5–10 s downtime per app (within the D-04-CUTOVER-02 budget). All 8 apps healthy at +37 min uptime by end of session.
 
-1. **Don't continue using inter-app features** (Sonarr's "Test" on the qBit/Prowlarr indexer download client, etc.) — they will misroute 87.5% of the time. Browse-only usage is OK.
-2. **Plan a Phase 4.1 / v0.3.0 release** with:
-   - Sub-chart-level `nameOverride: <alias>` + `fullnameOverride: <alias>` for all 10 aliases (NOT under `global:`)
-   - Verify Service selectors match exactly one Deployment per alias
-   - Verify rendered Deployment `spec.template.spec.serviceAccountName` matches the per-alias ServiceAccount metadata.name
-   - Remove the manually-created `arr-stack` ServiceAccount once the chart starts emitting matching values
-   - Smoke check: `kubectl exec deploy/sonarr -- curl -sS http://prowlarr:9696/api/v1/system/status` returns the right system info (proves the per-alias Service selector is correct)
-3. **`examples/values-prod.yaml` → symlink** to prevent drift (Bug 5 follow-up).
-4. **Plan 04-09 Tasks 9.1 + 9.2** stay PENDING until v0.3.0 lands.
-5. **Plan 04-07 Task 7.3** (operator-timed README walkthrough) — independent of the chart bugs; still useful to verify REQ-readme-onboarding < 30 min budget.
+## Resolution (what shipped to fix Bug 1 + Bug 2)
+
+The original hypothesis in this log ("use sub-chart-level `nameOverride`/`fullnameOverride` NOT under `global:`") was WRONG. The actual fix:
+
+- **Bug 1**: keep `global.fullnameOverride: <alias>` under each alias block AND ADD `global.nameOverride: <alias>` alongside it. The app-template chart's `templates/common.yaml` has a hardcoded defaulter that fills `global.nameOverride` with `.Release.Name` whenever the user doesn't provide one. Providing it explicitly per alias block (under the alias's `global:`) prevents the defaulter from firing inside that sub-chart's render context.
+
+- **Bug 2**: explicitly declare `serviceAccount.<alias>: {}` (an empty map) under each alias block. The chart's `values/_init.tpl` auto-injects a `serviceAccount.<.Release.Name>: {}` entry if the user provides none; the SA-name helper then uses the IDENTIFIER (key) — which was `.Release.Name` = `arr-stack` — instead of the resolved SA resource name. Providing the identifier ourselves makes it match the alias.
+
+Both fixes are in PR #5 (commit `9745d5a`, squash `d205336`, tag `v0.2.6`).
+
+## Still-pending items
+
+- **Plan 04-09 Task 9.2** — SC#2 72h M1/M2/M3 watch (passive). Operator observes the first Renovate-driven image bump landing end-to-end (arr-stack Renovate PR → my-kluster `targetRevision` PR → ArgoCD sync) within 72h. Fallback: at T+48h, force a `cleanuparr` patch downgrade to trigger Renovate (per D-04-PIN-04 Path B).
+- **Plan 04-07 Task 7.3** — operator-timed README walkthrough (REQ-readme-onboarding < 30 min). Independent of the chart fixes.
+- **Bug 5 follow-up TODO**: replace `examples/values-prod.yaml` with a SYMLINK to `../charts/arr-stack/values.yaml` so they cannot drift again. Helm and ArgoCD both honor symlinks at chart-source level.
+
+## Recommended next steps for the operator
+
+1. **Watch the next Renovate run** for the first natural image bump. If qBittorrent/Sonarr/Radarr/etc. ship a new tag, Renovate will open a PR against arr-stack `values.yaml`, the chart-lint workflow validates it, auto-merge merges it, the auto-tag job creates `v0.2.7`, then Renovate detects the new tag and opens a my-kluster `targetRevision` bump PR. End-to-end timing should be < 1h (Renovate's default scan cycle).
+2. **Optional Phase 4.5**: implement the `examples/values-prod.yaml` symlink to harden against Bug 5 recurrence.
+3. **Inter-app smoke check**: open Sonarr UI, settings → indexers, click "Test" against the Prowlarr-managed indexer (e.g. Jackett / rarbg). Now that Bug 1 is fixed, this should succeed reliably instead of intermittently.
+4. **arrconf next run** (every 4h via CronJob) — should run cleanly with both sonarr/radarr/prowlarr reconciled per the Phase 3 + Phase 4 boundary. Watch logs the first time.
 
 ## Provenance
 
-- Cutover sessions: 2026-05-13 (initial PR #1 + cutover discovery) + 2026-05-14 (this session, sequential bug fixes through v0.2.5).
-- Total release tags shipped during cutover: 4 (v0.2.2..v0.2.5).
-- Total cross-repo PRs: 4 on arr-stack, 4 on my-kluster.
-- Plans 04-01..04-07 + Plan 04-08 Tasks 8.1+8.2 are COMPLETE. Plan 04-08 Task 8.3 is **PARTIAL** — operator-driven sync executed, but discovered Bug 1 + Bug 2 above. Plans 04-09 PENDING.
+- Cutover sessions: 2026-05-13 (initial PR #1 + cutover discovery) + 2026-05-14 (sequential bug fixes through v0.2.5 + chart refactor v0.2.6 + Plan 04-09 Task 9.1).
+- Total release tags shipped during cutover: 5 (v0.2.2..v0.2.6).
+- Total cross-repo PRs: 5 on arr-stack (#1..#5), 6 on my-kluster (#1387..#1390, #1392, #1393).
+- Plans 04-01..04-08 are COMPLETE. Plan 04-09 Task 9.1 is COMPLETE (`automated:` re-enabled). Plan 04-09 Task 9.2 (passive 72h SC#2 watch) is observation-mode. Plan 04-07 Task 7.3 (operator README walkthrough timing) remains independent.
