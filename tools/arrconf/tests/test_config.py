@@ -134,8 +134,6 @@ def test_app_entry_rejects_invalid_sync_level(tmp_path: Path) -> None:
 
 def test_load_config_with_qbittorrent_main_section(tmp_path: Path) -> None:
     """Phase 5 D-05-QBT-02: qbittorrent.main block parses to QbittorrentInstance."""
-    from pydantic import ValidationError
-
     cfg = tmp_path / "cfg.yml"
     cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
     result = load_config(cfg)
@@ -157,8 +155,7 @@ def test_load_config_qbittorrent_prune_defaults_to_false(tmp_path: Path) -> None
     """Phase 5 R-04 mitigation: categories.prune is False by default (never auto-delete)."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
-        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n"
-        "    categories:\n      items: []\n"
+        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n    categories:\n      items: []\n"
     )
     result = load_config(cfg)
     assert result.qbittorrent["main"].categories.prune is False
@@ -168,8 +165,6 @@ def test_load_config_qbittorrent_preferences_extra_forbid_rejects_unknown_key(
     tmp_path: Path,
 ) -> None:
     """Phase 5 T-05-CONTENT: extra=forbid on QbitPreferences rejects unknown keys."""
-    from pydantic import ValidationError
-
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n"
