@@ -1,10 +1,24 @@
+# yaml-language-server: $schema=../../../schemas/arrconf-schema.json
+
 sonarr:
   main:
     base_url: http://sonarr.selfhost.svc.cluster.local:8989
+    tags:
+      prune: false
+      items:
+        - label: tv
+        - label: anime
+        - label: family
+    root_folders:
+      prune: false
+      items:
+        - path: /media/series
+        - path: /media/anime
+        - path: /media/family
     download_clients:
       prune: false
       items:
-        - name: qBittorrent
+        - name: qBittorrent - TV
           enable: true
           protocol: torrent
           priority: 1
@@ -24,7 +38,7 @@ sonarr:
             - name: password
               value: ''
             - name: tvCategory
-              value: sonarr
+              value: sonarr-tv
             - name: tvImportedCategory
               value: ''
             - name: recentTvPriority
@@ -39,6 +53,289 @@ sonarr:
               value: false
             - name: contentLayout
               value: 0
-          tags: []
+          tag_labels: [tv]
           removeCompletedDownloads: true
           removeFailedDownloads: true
+        - name: qBittorrent - Anime
+          enable: true
+          protocol: torrent
+          priority: 1
+          implementation: QBittorrent
+          configContract: QBittorrentSettings
+          fields:
+            - name: host
+              value: qbittorrent.selfhost.svc.cluster.local
+            - name: port
+              value: 8080
+            - name: useSsl
+              value: false
+            - name: urlBase
+              value: ''
+            - name: username
+              value: ''
+            - name: password
+              value: ''
+            - name: tvCategory
+              value: sonarr-anime
+            - name: tvImportedCategory
+              value: ''
+            - name: recentTvPriority
+              value: 0
+            - name: olderTvPriority
+              value: 0
+            - name: initialState
+              value: 0
+            - name: sequentialOrder
+              value: false
+            - name: firstAndLast
+              value: false
+            - name: contentLayout
+              value: 0
+          tag_labels: [anime]
+          removeCompletedDownloads: true
+          removeFailedDownloads: true
+        - name: qBittorrent - Family
+          enable: true
+          protocol: torrent
+          priority: 1
+          implementation: QBittorrent
+          configContract: QBittorrentSettings
+          fields:
+            - name: host
+              value: qbittorrent.selfhost.svc.cluster.local
+            - name: port
+              value: 8080
+            - name: useSsl
+              value: false
+            - name: urlBase
+              value: ''
+            - name: username
+              value: ''
+            - name: password
+              value: ''
+            - name: tvCategory
+              value: sonarr-family
+            - name: tvImportedCategory
+              value: ''
+            - name: recentTvPriority
+              value: 0
+            - name: olderTvPriority
+              value: 0
+            - name: initialState
+              value: 0
+            - name: sequentialOrder
+              value: false
+            - name: firstAndLast
+              value: false
+            - name: contentLayout
+              value: 0
+          tag_labels: [family]
+          removeCompletedDownloads: true
+          removeFailedDownloads: true
+    remote_path_mappings:
+      prune: false
+      items:
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/complete/
+          localPath: /data/torrents/complete/
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/series/
+          localPath: /data/torrents/series/
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/anime/
+          localPath: /data/torrents/anime/
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/family/
+          localPath: /data/torrents/family/
+    series_tags:
+      enable: true
+      default_tag: tv
+
+radarr:
+  main:
+    base_url: http://radarr.selfhost.svc.cluster.local:7878
+    tags:
+      prune: false
+      items:
+        - label: movies
+        - label: anime
+        - label: family
+    root_folders:
+      prune: false
+      items:
+        - path: /media/films
+        - path: /media/films-anime
+        - path: /media/films-family
+    download_clients:
+      prune: false
+      items:
+        - name: qBittorrent - Movies
+          enable: true
+          protocol: torrent
+          priority: 1
+          implementation: QBittorrent
+          configContract: QBittorrentSettings
+          fields:
+            - name: host
+              value: qbittorrent.selfhost.svc.cluster.local
+            - name: port
+              value: 8080
+            - name: useSsl
+              value: false
+            - name: urlBase
+              value: ''
+            - name: username
+              value: ''
+            - name: password
+              value: ''
+            - name: movieCategory
+              value: radarr-movies
+            - name: movieImportedCategory
+              value: ''
+            - name: recentMoviePriority
+              value: 0
+            - name: olderMoviePriority
+              value: 0
+            - name: initialState
+              value: 0
+            - name: sequentialOrder
+              value: false
+            - name: firstAndLast
+              value: false
+            - name: contentLayout
+              value: 0
+          tag_labels: [movies]
+          removeCompletedDownloads: true
+          removeFailedDownloads: true
+        - name: qBittorrent - Anime
+          enable: true
+          protocol: torrent
+          priority: 1
+          implementation: QBittorrent
+          configContract: QBittorrentSettings
+          fields:
+            - name: host
+              value: qbittorrent.selfhost.svc.cluster.local
+            - name: port
+              value: 8080
+            - name: useSsl
+              value: false
+            - name: urlBase
+              value: ''
+            - name: username
+              value: ''
+            - name: password
+              value: ''
+            - name: movieCategory
+              value: radarr-anime
+            - name: movieImportedCategory
+              value: ''
+            - name: recentMoviePriority
+              value: 0
+            - name: olderMoviePriority
+              value: 0
+            - name: initialState
+              value: 0
+            - name: sequentialOrder
+              value: false
+            - name: firstAndLast
+              value: false
+            - name: contentLayout
+              value: 0
+          tag_labels: [anime]
+          removeCompletedDownloads: true
+          removeFailedDownloads: true
+        - name: qBittorrent - Family
+          enable: true
+          protocol: torrent
+          priority: 1
+          implementation: QBittorrent
+          configContract: QBittorrentSettings
+          fields:
+            - name: host
+              value: qbittorrent.selfhost.svc.cluster.local
+            - name: port
+              value: 8080
+            - name: useSsl
+              value: false
+            - name: urlBase
+              value: ''
+            - name: username
+              value: ''
+            - name: password
+              value: ''
+            - name: movieCategory
+              value: radarr-family
+            - name: movieImportedCategory
+              value: ''
+            - name: recentMoviePriority
+              value: 0
+            - name: olderMoviePriority
+              value: 0
+            - name: initialState
+              value: 0
+            - name: sequentialOrder
+              value: false
+            - name: firstAndLast
+              value: false
+            - name: contentLayout
+              value: 0
+          tag_labels: [family]
+          removeCompletedDownloads: true
+          removeFailedDownloads: true
+    remote_path_mappings:
+      prune: false
+      items:
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/complete/
+          localPath: /data/torrents/complete/
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/films/
+          localPath: /data/torrents/films/
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/films-anime/
+          localPath: /data/torrents/films-anime/
+        - host: qbittorrent.selfhost.svc.cluster.local
+          remotePath: /data/films-family/
+          localPath: /data/torrents/films-family/
+    movie_tags:
+      enable: true
+      default_tag: movies
+
+prowlarr:
+  main:
+    base_url: http://prowlarr.selfhost.svc.cluster.local:9696
+    apps:
+      prune: false
+      items:
+        - name: Sonarr
+          type: sonarr
+          base_url: http://sonarr.selfhost.svc.cluster.local:8989
+          api_key_env: SONARR_API_KEY
+          sync_level: fullSync
+        - name: Radarr
+          type: radarr
+          base_url: http://radarr.selfhost.svc.cluster.local:7878
+          api_key_env: RADARR_API_KEY
+          sync_level: fullSync
+
+qbittorrent:
+  main:
+    base_url: http://qbittorrent.selfhost.svc.cluster.local:8080
+    categories:
+      prune: false
+      items:
+        - name: sonarr-tv
+          savePath: /data/series
+        - name: sonarr-anime
+          savePath: /data/anime
+        - name: sonarr-family
+          savePath: /data/family
+        - name: radarr-movies
+          savePath: /data/films
+        - name: radarr-anime
+          savePath: /data/films-anime
+        - name: radarr-family
+          savePath: /data/films-family
+    preferences:
+      enable: false
