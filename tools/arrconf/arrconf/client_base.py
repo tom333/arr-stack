@@ -164,12 +164,114 @@ class ProwlarrClient(_ArrV3Client):
 
 
 class QbittorrentClient:
-    """qBittorrent cookie-auth REST client — Phase 5, D-05-QBT-01.
+    """qBittorrent WebUI API v2 client (D-05-QBT-01 — cookie auth).
 
-    Plan 02 stub: Plan 04 (qbittorrent reconciler) replaces this with the
-    full implementation (login, get, post_form, close/context-manager).
+    Diverges from ArrApiClient: qBit uses session cookie auth (POST
+    /auth/login returns Set-Cookie SID), not X-Api-Key. api_path is
+    /api/v2. Phase 5 surface: categories CRUD + preferences allowlist
+    (D-05-QBT-02). No torrent-level management.
+
+    NOT a subclass of ArrApiClient — auth lifecycle is too divergent
+    (runtime login, not static dict). NOT a subclass of _ArrV3Client —
+    qBit lacks the forceSave concept.
+
+    The class structurally mirrors ArrApiClient.get/post/delete but is
+    a sibling type. Phase 7 (Jellyfin) may introduce a third auth
+    pattern; generalize then if a clean abstraction emerges.
     """
 
-    def __init__(self, base_url: str, username: str, password: str) -> None:
-        """Stub constructor — Plan 04 wires the real login + cookie-auth impl."""
-        raise NotImplementedError("QbittorrentClient wired in Plan 04")
+    api_path: str = "/api/v2"
+    name: str = "qbittorrent"
+
+    def __init__(
+        self,
+        base_url: str,
+        username: str,
+        password: str,
+        *,
+        timeout: httpx.Timeout | None = None,
+    ) -> None:
+        """Login to qBittorrent and construct a long-lived authenticated client.
+
+        Performs POST /api/v2/auth/login with form-encoded credentials and the
+        Referer header (Pitfall 1 — qBit CSRF protection rejects requests
+        without Referer). Extracts the SID cookie and builds a long-lived
+        httpx.Client carrying that cookie + Referer on all subsequent calls.
+
+        Raises AuthError on HTTP != 200, body != 'Ok.', or missing SID cookie.
+        The password is NEVER logged or included in exception messages.
+        """
+        self.base_url = base_url.rstrip("/")
+        self._timeout = timeout or httpx.Timeout(
+            connect=5.0, read=30.0, write=10.0, pool=5.0
+        )
+        # Step 1: dedicated short-lived client for the login POST
+        login_url = f"{self.base_url}{self.api_path}/auth/login"
+        with httpx.Client(timeout=self._timeout) as login_client:
+            r = login_client.post(
+                login_url,
+                data={"username": username, "password": password},
+                headers={"Referer": self.base_url},  # Pitfall 1
+            )
+        if r.status_code != 200 or r.text != "Ok.":
+            # NEVER log the password. Truncate body to 80 chars.
+            raise AuthError(
+                f"qbittorrent: login failed (HTTP {r.status_code} "
+                f"body={r.text[:80]!r})"
+            )
+        sid = r.cookies.get("SID")
+        if not sid:
+            raise AuthError(
+                "qbittorrent: login succeeded but no SID cookie returned"
+            )
+        # Step 2: long-lived client with cookie + Referer pre-loaded
+        self._client = httpx.Client(
+            base_url=f"{self.base_url}{self.api_path}",
+            cookies={"SID": sid},
+            headers={"Referer": self.base_url},
+            timeout=self._timeout,
+        )
+        log.info("qbittorrent_login_ok", base_url=self.base_url)
+
+    def close(self) -> None:
+        """Close the underlying httpx client."""
+        self._client.close()
+
+    def __enter__(self) -> QbittorrentClient:
+        """Enter context manager; returns self."""
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        """Exit context manager; closes the underlying httpx client."""
+        self.close()
+
+    def get(self, path: str, **kwargs: Any) -> Any:
+        """HTTP GET — returns parsed JSON when content-type is JSON, text otherwise."""
+        r = self._client.get(path, **kwargs)
+        if r.status_code == 403:
+            raise AuthError(
+                f"qbittorrent: HTTP 403 on GET {path} — SID expired "
+                "or whitelist mismatch"
+            )
+        r.raise_for_status()
+        ctype = r.headers.get("content-type", "")
+        return r.json() if "application/json" in ctype else r.text
+
+    def post_form(self, path: str, data: dict[str, str]) -> None:
+        """POST form-encoded — qBit's categories + preferences API style.
+
+        Returns None on 200. Raises AuthError on 403 (SID expired).
+        Raises ApiClientError on 409 (invalid value in form body — Pitfall 4).
+        Raises httpx.HTTPStatusError via raise_for_status() for other 4xx/5xx.
+        """
+        from arrconf.exceptions import ApiClientError
+
+        r = self._client.post(path, data=data)
+        if r.status_code == 403:
+            raise AuthError(f"qbittorrent: HTTP 403 on POST {path}")
+        if r.status_code == 409:
+            raise ApiClientError(
+                f"qbittorrent: HTTP 409 on POST {path} "
+                f"(invalid value in form body)"
+            )
+        r.raise_for_status()
