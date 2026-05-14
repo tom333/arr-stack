@@ -47,11 +47,14 @@ from arrconf.config import (
 )
 from arrconf.differ import Action, PlannedAction, diff_models, merge_fields_for_put, reconcile
 from arrconf.exceptions import ReconcileError
+from arrconf.reconcilers._shared import (
+    _reconcile_remote_path_mappings,
+    _resolve_download_client_tag_labels,
+)
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.host_config import HostConfig
 from arrconf.resources.sonarr.indexer import Indexer
 from arrconf.resources.sonarr.notification import Notification
-from arrconf.resources.sonarr.remote_path_mapping import RemotePathMapping
 from arrconf.resources.sonarr.root_folder import RootFolder
 from arrconf.resources.sonarr.tag import Tag
 
@@ -67,7 +70,6 @@ HOST_CONFIG_PATH = "/config/host"
 TAG_PATH = "/tag"
 SERIES_PATH = "/series"
 SERIES_EDITOR_PATH = "/series/editor"
-REMOTE_PATH_MAPPING_PATH = "/remotepathmapping"
 
 
 @dataclass
@@ -293,113 +295,9 @@ def _reconcile_tags(
     return [Tag.model_validate(t) for t in raw_after]
 
 
-def _resolve_download_client_tag_labels(
-    items: list[DownloadClient],
-    all_tags: list[Tag],
-) -> list[DownloadClient]:
-    """Resolve label-based tags in DownloadClient.tag_labels to integer IDs.
-
-    The YAML operator declares tag routing via ``tag_labels: [tv]`` (human-
-    readable label names). This helper resolves each label to its Sonarr-assigned
-    integer id using the post-reconcile ``all_tags`` list (step 2 of D-05-ORDER-01).
-
-    Raises ReconcileError if a declared label has no matching tag — the operator
-    must add the label to instance.tags.items so it is created in step 2 first.
-
-    Returns new DownloadClient instances (immutable copy via model_copy) with
-    resolved integer ids appended to the existing ``tags`` list.
-    """
-    label_to_id: dict[str, int] = {}
-    for t in all_tags:
-        if t.id is not None:
-            label_to_id[t.label] = t.id
-
-    resolved: list[DownloadClient] = []
-    for dc in items:
-        if not dc.tag_labels:
-            resolved.append(dc)
-            continue
-        resolved_ids = list(dc.tags)
-        for label in dc.tag_labels:
-            if label not in label_to_id:
-                raise ReconcileError(
-                    f"download_client '{dc.name}': tag label '{label}' not found in Sonarr — "
-                    "declare it in instance.tags.items so it is reconciled first (D-05-ORDER-01)"
-                )
-            tag_id = label_to_id[label]
-            if tag_id not in resolved_ids:
-                resolved_ids.append(tag_id)
-        resolved.append(dc.model_copy(update={"tags": resolved_ids}))
-    return resolved
-
-
-def _reconcile_remote_path_mappings(
-    client: SonarrClient,
-    items: list[RemotePathMapping],
-    prune: bool,
-    dry_run: bool,
-) -> list[str]:
-    """Reconcile remote path mappings via composite-key matching (D-05-PATHMAP-01).
-
-    The Sonarr/Radarr API has NO PUT endpoint for remote path mappings — updates
-    are performed as DELETE (by id) then POST (RESEARCH Pattern 6 + Pitfall 1).
-
-    Match key is the composite tuple (host, remotePath). localPath changes
-    produce DELETE+ADD; key changes are treated as separate (different) entries.
-
-    Pitfall 6: both remotePath AND localPath MUST end with '/' in the YAML.
-    This reconciler does NOT auto-append slashes — YAML is the operator's
-    responsibility. The smoke test (test_rpm_trailing_slash_invariant) documents
-    the gap; Plan 07 enforces trailing slashes via chart-side YAML review.
-    """
-    raw = client.get(REMOTE_PATH_MAPPING_PATH)
-    current = [RemotePathMapping.model_validate(x) for x in raw]
-    cur_by_key: dict[tuple[str, str], RemotePathMapping] = {
-        (c.host, c.remotePath): c for c in current
-    }
-    des_by_key: dict[tuple[str, str], RemotePathMapping] = {
-        (d.host, d.remotePath): d for d in items
-    }
-    actions: list[str] = []
-
-    for k, des in des_by_key.items():
-        cur = cur_by_key.get(k)
-        if cur is None:
-            if dry_run:
-                log.info("dry_run_skip", action="add", resource="rpm", key=str(k))
-            else:
-                client.post(REMOTE_PATH_MAPPING_PATH, json=des.model_dump(exclude_none=True))
-            actions.append(f"add:{k[0]}|{k[1]}")
-        elif cur.localPath != des.localPath:
-            # No PUT endpoint — DELETE current then ADD desired (Pattern 6).
-            if dry_run:
-                log.info(
-                    "dry_run_skip",
-                    action="update_via_delete_add",
-                    resource="rpm",
-                    key=str(k),
-                )
-            else:
-                assert cur.id is not None
-                client.delete(REMOTE_PATH_MAPPING_PATH, id=cur.id)
-                client.post(REMOTE_PATH_MAPPING_PATH, json=des.model_dump(exclude_none=True))
-            actions.append(f"update:{k[0]}|{k[1]}")
-
-    if prune:
-        for k, cur in cur_by_key.items():
-            if k not in des_by_key:
-                if dry_run:
-                    log.info("dry_run_skip", action="delete", resource="rpm", key=str(k))
-                else:
-                    assert cur.id is not None
-                    client.delete(REMOTE_PATH_MAPPING_PATH, id=cur.id)
-                actions.append(f"delete:{k[0]}|{k[1]}")
-    else:
-        for k in cur_by_key:
-            if k not in des_by_key:
-                log.info("prune_skip", resource="rpm", key=str(k))
-
-    return actions
+# _resolve_download_client_tag_labels and _reconcile_remote_path_mappings are
+# imported from arrconf.reconcilers._shared — shared byte-equivalent implementations
+# used by both Sonarr and Radarr (PATTERNS line 391, Plan 06 extraction).
 
 
 def _reconcile_series_tags(

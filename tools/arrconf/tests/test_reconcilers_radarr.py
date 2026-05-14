@@ -63,8 +63,14 @@ def _mock_radarr_gets(
     downloadclients: list[dict[str, Any]] | None = None,
     notifications: list[dict[str, Any]] | None = None,
     hostconfig: dict[str, Any] | None = None,
+    remotepathmappings: list[dict[str, Any]] | None = None,
+    movies: list[dict[str, Any]] | None = None,
 ) -> None:
-    """Mock every GET endpoint reconcile_radarr touches."""
+    """Mock every GET endpoint reconcile_radarr touches.
+
+    Phase-5 additions: /remotepathmapping and /movie are always mocked (default
+    empty) because the Phase-5 reconciler calls these in every run.
+    """
     respx_mock.get("/tag").mock(
         return_value=httpx.Response(
             200, json=tag if tag is not None else _load("tag_with_arrconf_managed.json")
@@ -76,6 +82,10 @@ def _mock_radarr_gets(
         return_value=httpx.Response(200, json=downloadclients or [])
     )
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    respx_mock.get("/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=remotepathmappings or [])
+    )
+    respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=movies or []))
     if hostconfig is not None:
         respx_mock.get("/config/host").mock(return_value=httpx.Response(200, json=hostconfig))
 
