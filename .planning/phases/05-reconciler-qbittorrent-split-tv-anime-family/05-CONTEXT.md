@@ -15,22 +15,22 @@ Add the qBittorrent reconciler (`tools/arrconf/arrconf/reconcilers/qbittorrent.p
   - **Resources managed**: `categories` (6 entries with distinct `save_paths`), `preferences` (settings — at minimum: `max_active_downloads`, `max_active_uploads`, `temp_path`, `category_changed_tmm_enabled`, `torrent_changed_tmm_enabled`).
   - YAML schema follows arrconf v0.2.1 flat-root convention (D-03-05): `qbittorrent.main: { base_url, categories: { ... }, preferences: { ... } }` under root key `qbittorrent`. NO `apps:` wrapper (Phase 4 UAT Test 7 lesson).
   - `prune: false` default (CLAUDE.md "no automatic delete unless opt-in").
-  - 6 categories declared (paths reflect live cluster root folders — see D-05-PATHS-01):
+  - 6 categories declared:
     - `sonarr-tv` → `/data/series`
     - `sonarr-anime` → `/data/anime`
     - `sonarr-family` → `/data/family`
-    - `radarr-movies` → `/data/films` (matches live `/media/films` root folder)
-    - `radarr-anime` → `/data/films-anime`
-    - `radarr-family` → `/data/films-family`
+    - `radarr-movies` → `/data/movies`
+    - `radarr-anime` → `/data/movies-anime`
+    - `radarr-family` → `/data/movies-family`
 
 - **Split tv/anime/family for Sonarr `main` (3 tags + 3 root folders + 3 download clients):**
   - Tags: `tv`, `anime`, `family`
-  - Root folders: `/media/series` (existing — keeps current data per D-05-PATHS-01), `/media/anime` (new), `/media/family` (new)
+  - Root folders: `/media/series` (existing — keeps current data), `/media/anime`, `/media/family`
   - Download clients: 3 entries each pointing at the same qBit host but with distinct `category` field (`sonarr-tv`, `sonarr-anime`, `sonarr-family`) AND `tags:` list referencing the matching Sonarr tag. Sonarr routes new series to the matching download client based on the series' tag.
 
 - **Split for Radarr `main` (parallel structure):**
-  - Tags: `movies` / `anime` / `family` (per D-05-SPLIT-02 — Radarr's default tag is `movies` to match qBit category `radarr-movies`).
-  - Root folders: `/media/films` (existing — KEEPS current data per D-05-PATHS-01), `/media/films-anime` (new), `/media/films-family` (new)
+  - Tags: `tv` (actually used as `movies` per qBit category name, but in Radarr the tag is for organisation — see naming Q below), `anime`, `family`. **Note**: roadmap says 3 tags on Radarr `main` matching the 3 categories — but the Radarr tag name should be `movies` not `tv` (qBit category is `radarr-movies`, so Radarr's default tag should be `movies` for clarity). Researcher confirms with a quick `kubectl exec deploy/radarr -- curl ... /api/v3/tag` check on current state.
+  - Root folders: `/media/movies` (existing), `/media/movies-anime`, `/media/movies-family`
   - Download clients: 3 entries with `category` = `radarr-movies` / `radarr-anime` / `radarr-family` and matching `tags:`
 
 - **configarr update**:
@@ -113,27 +113,6 @@ Add the qBittorrent reconciler (`tools/arrconf/arrconf/reconcilers/qbittorrent.p
 ### Pre-deploy safety
 
 - **D-05-SNAPSHOT-01: ADR-6 re-snapshot before any apply-mode write to qBittorrent.** `tools/snapshot/snapshot.sh --output snapshots/before-phase-5-$(date +%F)/ --apps sonarr,radarr,qbittorrent` (or kubectl-fallback equivalent). Committed to repo as evidence per CLAUDE.md Discipline section.
-
-### Live-state alignment
-
-- **D-05-PATHS-01: Radarr root folder stays `/media/films` (live cluster reality).** Researcher discovered the existing Radarr instance points at `/media/films` (with 11 movies), not `/media/movies` as the initial CONTEXT.md draft assumed. Phase 5 keeps `/media/films` unchanged and aligns qBit category `radarr-movies` save_path with the hostPath subdir `/data/films`. New anime/family root folders mirror this base: `/media/films-anime` and `/media/films-family` (qBit: `/data/films-anime`, `/data/films-family`). Asymmetric naming (`sonarr-tv → /data/series`, `radarr-movies → /data/films`) is intentional — the qBit category name follows the *arr instance + tag; the save_path follows the live hostPath subdir.
-
-### Path Mappings (NEW resource type — research finding)
-
-- **D-05-PATHMAP-01: arrconf manages Sonarr/Radarr Remote Path Mappings declaratively.** Researcher confirmed qBit mounts `/opt/media-stack/torrents` at `/data` but Sonarr/Radarr mount the same hostPath at `/data/torrents` — divergent container views require Path Mappings (`/api/v3/remotepathmapping`). The existing single mapping (`/data/complete/ → /data/torrents/complete/`) does NOT cover any of the 6 new split categories. Phase 5 adds Path Mapping management to the sonarr + radarr reconcilers (one mapping per split category per *arr instance), reconciled idempotently like tags / root folders. Scope: arrconf gains a new resource type `remote_path_mappings` with `(host, remote_path, local_path)` tuple matching for idempotence.
-
-### Secrets bootstrap
-
-- **D-05-BOOTSTRAP-01: belt-and-suspenders for env-var bootstrap.** Researcher confirmed `arrconf-env` Secret currently has only `SONARR_API_KEY`. Phase 5 requires `RADARR_API_KEY`, `PROWLARR_API_KEY`, `QBT_USER`, `QBT_PASS` to be added by the operator (manual `kubectl apply` against `my-kluster/secrets/arrconf-secret.yaml`, gitignored, ESO deferred to Phase 8). The plan therefore includes BOTH:
-  1. A **`checkpoint:human-action`** Wave 0 task that documents the exact required keys + a stub-Secret payload for the operator, gating the cluster-apply waves until confirmed.
-  2. A **fail-fast startup check** in arrconf (`__main__.py` boot path) that validates the presence of every env-var required by the apps in `--apps` and exits with code 2 (config error per CLAUDE.md) listing the missing keys — so a future CronJob run can't silently degrade if the Secret reverts.
-
-### Sonarr tag-routing ordering invariant (research finding)
-
-- **D-05-ORDER-01: reconcile order = tags → root_folders → remote_path_mappings → download_clients → series_tags (D-05-MIG-01 retroactive).** Researcher noted Sonarr falls back to UNTAGGED download clients when a series has no matching tag (Sonarr issue #7474). Two consequences:
-  - Reconciliation MUST create tags BEFORE download clients (download client `tags:` field stores tag IDs that don't exist yet otherwise).
-  - Retroactive `series_tags` (D-05-MIG-01) MUST run AFTER download_clients are in place — otherwise a series tagged `tv` could route to a still-untagged catch-all download client and land in the wrong save_path. The plan must encode this ordering explicitly inside `reconcile_sonarr` / `reconcile_radarr` (sequential, not parallel sub-reconcilers).
-  - No untagged catch-all download client is added (researcher recommendation). D-05-MIG-01 retroactive tagging eliminates the untagged-series fallback hole.
 
 ### Claude's discretion (downstream agents decide)
 
@@ -245,4 +224,3 @@ Add the qBittorrent reconciler (`tools/arrconf/arrconf/reconcilers/qbittorrent.p
 
 *Phase: 05-reconciler-qbittorrent-split-tv-anime-family*
 *Context gathered: 2026-05-14 via 3 locked decisions (D-05-MIG-01, D-05-FAM-01, D-05-ARGS-01) + ROADMAP scope*
-*Updated 2026-05-14 (post-research): added D-05-PATHS-01, D-05-PATHMAP-01, D-05-BOOTSTRAP-01, D-05-ORDER-01 reflecting live cluster state + new resource type discovery.*
