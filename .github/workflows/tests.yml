@@ -61,9 +61,13 @@ jobs:
         run: |
           # Look for plausible API keys / passwords / tokens in test fixtures.
           # Allowed: ***REDACTED***, test-api-key-..., empty strings.
-          if grep -rEn '(api[_-]?key|password|token)["'\'']?\s*[:=]\s*["'\''][A-Za-z0-9]{20,}["'\'']' tools/arrconf/tests/fixtures/ 2>/dev/null \
+          # NB: `if pipeline | head -20; then` is always true (head exits 0 on empty
+          # input), so capture the filtered matches and check non-emptiness.
+          MATCHES=$(grep -rEn '(api[_-]?key|password|token)["'\'']?\s*[:=]\s*["'\''][A-Za-z0-9]{20,}["'\'']' tools/arrconf/tests/fixtures/ 2>/dev/null \
             | grep -vE '(REDACTED|test-api-key-|""'\'')' \
-            | head -20; then
+            || true)
+          if [ -n "$MATCHES" ]; then
+            echo "$MATCHES" | head -20
             echo "::error::Potential real secret found in tests/fixtures/. Sanitize before commit (D-22, T-01-07)."
             exit 1
           fi
