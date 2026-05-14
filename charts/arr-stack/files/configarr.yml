@@ -7,6 +7,11 @@
 # Stratégie : profil HD only (720p + 1080p), priorité aux fichiers les plus
 # petits via mHD + x265. Pas de HDR, pas de 4K (à activer plus tard).
 #
+# Phase 5 (D-05-CONFIGARR-01 + D-05-FAM-01): 3 quality profiles per instance
+# (MULTi.VF unchanged + Anime new + Family new). Family is a byte-equivalent
+# clone of MULTi.VF. VOSTFR gets explicit per-profile scores (Q5 resolution):
+# MULTi.VF=-10000, Anime=+50, Family=-10000.
+#
 # Doc : https://configarr.de/docs/intro/
 # ============================================================================
 
@@ -131,6 +136,7 @@ customFormatDefinitions:
 # ----------------------------------------------------------------------------
 # Profil HD only (720p + 1080p), pas de 4K, pas de Remux, scoring agressif
 # pour les encodes mHD x265.
+# Phase 5: 3 profiles (MULTi.VF + Anime + Family). D-05-CONFIGARR-01 + D-05-FAM-01.
 # ============================================================================
 sonarr:
   main:
@@ -208,6 +214,56 @@ sonarr:
               - WEBDL-720p
               - WEBRip-720p
           - name: HDTV-720p
+      - name: Anime
+        # D-05-CONFIGARR-02: Anime profile — HD scope same as MULTi.VF.
+        # VOSTFR is allowed (+50) for anime (fansubs are common + quality).
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 2000
+          min_format_score: 50
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+          - name: HDTV-720p
+      - name: Family
+        # D-05-FAM-01: byte-equivalent clone of MULTi.VF.
+        # Differentiation is path/tag-only, not quality semantics.
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 2000
+          min_format_score: 50
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+          - name: HDTV-720p
 
     custom_formats:
       - trash_ids:
@@ -217,22 +273,32 @@ sonarr:
           - fr-multi
         assign_scores_to:
           - name: MULTi.VF
+          - name: Anime
+          - name: Family
 
       - trash_ids:
           - fr-vostfr
         assign_scores_to:
           - name: MULTi.VF
+            score: -10000
+          - name: Anime
+            score: 50
+          - name: Family
+            score: -10000
 
       - trash_ids:
           - fr-mhd
           - fr-x265-hd
         assign_scores_to:
           - name: MULTi.VF
+          - name: Anime
+          - name: Family
 
 # ============================================================================
 # Radarr — namespace selfhost
 # ----------------------------------------------------------------------------
 # Mêmes principes que Sonarr : HD only, priorité mHD x265.
+# Phase 5: 3 profiles (MULTi.VF + Anime + Family). D-05-CONFIGARR-01 + D-05-FAM-01.
 # ============================================================================
 radarr:
   main:
@@ -305,6 +371,57 @@ radarr:
               - WEBDL-720p
               - WEBRip-720p
           - name: HDTV-720p
+      - name: Anime
+        # D-05-CONFIGARR-02: Anime profile for Radarr — hand-rolled (no Radarr French
+        # Anime TRaSH template available per Q9/A6). Same HD scope as MULTi.VF.
+        # VOSTFR allowed (+50) for anime films.
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 2000
+          min_format_score: 50
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+          - name: HDTV-720p
+      - name: Family
+        # D-05-FAM-01: byte-equivalent clone of MULTi.VF.
+        # Differentiation is path/tag-only, not quality semantics.
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 2000
+          min_format_score: 50
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+          - name: HDTV-720p
 
     custom_formats:
       - trash_ids:
@@ -314,14 +431,23 @@ radarr:
           - fr-multi
         assign_scores_to:
           - name: MULTi.VF
+          - name: Anime
+          - name: Family
 
       - trash_ids:
           - fr-vostfr
         assign_scores_to:
           - name: MULTi.VF
+            score: -10000
+          - name: Anime
+            score: 50
+          - name: Family
+            score: -10000
 
       - trash_ids:
           - fr-mhd
           - fr-x265-hd
         assign_scores_to:
           - name: MULTi.VF
+          - name: Anime
+          - name: Family
