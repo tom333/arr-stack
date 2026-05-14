@@ -51,6 +51,13 @@ strict = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
 
+# Phase 5 Plan 02: qbittorrent reconciler + client not yet wired (Plan 04).
+# Remove this override when Plan 04 adds arrconf/reconcilers/qbittorrent.py
+# and the QbittorrentClient class to client_base.py.
+[[tool.mypy.overrides]]
+module = ["arrconf.reconcilers.qbittorrent"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 addopts = "-v --strict-markers"
 testpaths = ["tests"]

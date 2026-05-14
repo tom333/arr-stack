@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import structlog
 
-from arrconf.client_base import ProwlarrClient, RadarrClient, SonarrClient
+from arrconf.client_base import ProwlarrClient, QbittorrentClient, RadarrClient, SonarrClient
 from arrconf.config import RootConfig
 from arrconf.differ import Action
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -73,3 +73,13 @@ def diff_prowlarr(client: ProwlarrClient, root_config: RootConfig) -> int:
     for p in non_noop:
         log.info("drift", action=p.action.value, name=p.name, diff_fields=p.diff_fields)
     return 3
+
+
+def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
+    """Run qBittorrent reconcile in dry-run mode — Phase 5 Plan 02 stub.
+
+    Plan 04 (qbittorrent reconciler) replaces this with the full
+    implementation. Until then, callers reaching this path get exit 1
+    (reconciler not wired) rather than a crash.
+    """
+    raise NotImplementedError("diff_qbittorrent wired in Plan 04")

@@ -161,3 +161,15 @@ class ProwlarrClient(_ArrV3Client):
 
     api_path = "/api/v1"
     name = "prowlarr"
+
+
+class QbittorrentClient:
+    """qBittorrent cookie-auth REST client — Phase 5, D-05-QBT-01.
+
+    Plan 02 stub: Plan 04 (qbittorrent reconciler) replaces this with the
+    full implementation (login, get, post_form, close/context-manager).
+    """
+
+    def __init__(self, base_url: str, username: str, password: str) -> None:
+        """Stub constructor — Plan 04 wires the real login + cookie-auth impl."""
+        raise NotImplementedError("QbittorrentClient wired in Plan 04")
