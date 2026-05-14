@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-13T07:45:00Z"
-last_activity: 2026-05-13 -- Phase 4 autonomous waves 0-5 complete; chart content-complete + CI wired; pending operator gates: 04-07 walkthrough, 04-08 cutover, 04-09 post-cutover
+last_updated: "2026-05-14T13:55:00Z"
+last_activity: 2026-05-14 -- Phase 4 cutover executed v0.2.2->v0.2.5; HALTED on chart Service-selector bug (BLOCKING for inter-app traffic). See `.planning/phases/04-umbrella-chart-migration-des-9-apps/04-08-CUTOVER-LOG.md` for full diagnosis. v0.3.0 needed.
 progress:
   total_phases: 11
   completed_phases: 6
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 4 (umbrella-chart-migration-des-9-apps) — EXECUTING (6.5/9 plans complete; pending operator gates for 04-07.3, 04-08, 04-09)
+Phase: 4 (umbrella-chart-migration-des-9-apps) — HALTED post-cutover with BLOCKING chart bug (Service selector too broad). Cluster is in mixed state — see 04-08-CUTOVER-LOG.md. Next: v0.3.0 chart refactor (sub-chart `nameOverride`/`fullnameOverride` per alias).
 Plans complete: 04-01 (Wave 0 baseline+scripts), 04-02 (chart skeleton), 04-03 (sonarr/radarr/prowlarr/qbittorrent aliases), 04-04 (cleanuparr/seerr/flaresolverr/jellyfin aliases — :latest invariant closed), 04-05 (arrconf+configarr CronJobs + values.schema.json + examples/values-prod.yaml), 04-06 (chart-lint.yml CI workflow + renovate.json customManagers + auto-tag job), 04-07 partial (Tasks 7.1+7.2 README+CLAUDE.md rewrites committed)
 Pending operator gates:
   - 04-07 Task 7.3 — operator timed walkthrough of README onboarding (<30 min budget per REQ-readme-onboarding)
