@@ -237,7 +237,7 @@ cleanuparr:
           image:
             # renovate: image=ghcr.io/cleanuparr/cleanuparr
             repository: ghcr.io/cleanuparr/cleanuparr
-            tag: "2.3.3"  # pinned per D-04-PIN-01 from evidence/current-image-tags.txt digest sha256:9b8f7a5f... (was: latest)
+            tag: "2.9.6"  # current cleanuparr release. The pre-cutover `:latest` had silently advanced through 2.3 -> 2.4 -> 2.9 (Renovate-driven upstream); the on-disk SQLite at /config was migrated by 2.9.x. The original v0.2.2 pin to 2.3.3 (from evidence/current-image-tags.txt digest sha256:9b8f7a5f...) downgraded the binary and broke startup with `SQLite Error: no such column: g.search_delay`. See Plan 04-08 cutover postmortem.
           env:
             TZ: "Europe/Paris"
   service:
