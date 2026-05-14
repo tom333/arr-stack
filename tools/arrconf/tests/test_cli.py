@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import httpx
@@ -13,19 +14,31 @@ from arrconf.__main__ import app
 
 runner = CliRunner()
 
+# Rich-based typer help output interleaves ANSI color codes through flag names
+# (e.g. "--dry-run" renders as "-\x1b[0m\x1b[1;36m-dry\x1b[0m\x1b[1;36m-run"),
+# breaking naive substring checks in CI environments where rich force-detects
+# color (CI=true / GITHUB_ACTIONS=true). Strip ANSI before asserting on flag text.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _strip_ansi(s: str) -> str:
+    return _ANSI_RE.sub("", s)
+
 
 def test_help_lists_four_subcommands() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
+    plain = _strip_ansi(result.stdout)
     for cmd in ["apply", "dump", "diff", "schema-gen"]:
-        assert cmd in result.stdout, f"Missing subcommand {cmd} in --help output"
+        assert cmd in plain, f"Missing subcommand {cmd} in --help output"
 
 
 def test_apply_help_shows_dry_run_flag() -> None:
     result = runner.invoke(app, ["apply", "--help"])
     assert result.exit_code == 0
-    assert "--dry-run" in result.stdout
-    assert "--apps" in result.stdout
+    plain = _strip_ansi(result.stdout)
+    assert "--dry-run" in plain
+    assert "--apps" in plain
 
 
 def test_apply_missing_config_returns_exit_2(tmp_path: Path) -> None:
