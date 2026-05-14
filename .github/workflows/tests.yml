@@ -52,8 +52,8 @@ jobs:
         run: |
           cd tools/arrconf
           uv run arrconf schema-gen --output ../../schemas/arrconf-schema.json
-          cd ..
-          git diff --exit-code schemas/arrconf-schema.json \
+          cd ../..
+          git diff --exit-code -- schemas/arrconf-schema.json \
             || (echo "::error::schemas/arrconf-schema.json drift — run 'cd tools/arrconf && uv run arrconf schema-gen --output ../../schemas/arrconf-schema.json' and commit"; exit 1)
 
       - name: Audit fixtures for non-redacted secrets (T-01-07)
