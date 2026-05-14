@@ -262,7 +262,7 @@ snapshot_qbittorrent() {
       -o /dev/null \
       "${base_url}/api/v2/auth/login" || echo "000")
 
-    if [[ "$http_code" != "200" ]]; then
+    if [[ "$http_code" != "200" && "$http_code" != "204" ]]; then
       warn "qbittorrent : login failed (HTTP ${http_code}) — vérifier QBT_USER/PASS et port-forward"
       return 1
     fi
