@@ -236,8 +236,16 @@
           "title": "Removefaileddownloads",
           "type": "boolean"
         },
+        "tag_labels": {
+          "description": "Human-readable tag labels (e.g. ['tv', 'anime']). The reconciler resolves these to integer IDs in instance.tags after the tags-reconcile step (D-05-ORDER-01). Excluded from API diff/dump \u2014 never sent to Sonarr.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tag Labels",
+          "type": "array"
+        },
         "tags": {
-          "description": "Tag IDs (resolved from `tags:` names by reconciler).",
+          "description": "Tag IDs \u2014 set by the reconciler after label\u2192id resolution.",
           "items": {
             "type": "integer"
           },

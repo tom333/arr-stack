@@ -46,6 +46,9 @@ def test_round_trip_dump_apply_dry_run_is_noop(
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 5 extension: reconcile_sonarr now also reads remotepathmapping and series.
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
     post_route = respx_mock.post("/downloadclient")
     # Use url__regex so the route matches BOTH the bare collection path AND
     # /downloadclient/{id}. The bare-URL `httpx.URL(...).join("")` form only
@@ -113,6 +116,9 @@ def test_round_trip_with_redacted_credentials_is_noop(
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 5 extension: reconcile_sonarr now also reads remotepathmapping and series.
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
     post_route = respx_mock.post("/downloadclient")
     put_route = respx_mock.put(url__regex=r"^http://sonarr\.test/api/v3/downloadclient(/\d+)?$")
     delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")

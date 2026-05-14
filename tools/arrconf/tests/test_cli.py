@@ -259,6 +259,9 @@ def test_diff_returns_3_on_drift(
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 5 extension: reconcile_sonarr now also reads remotepathmapping and series.
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
