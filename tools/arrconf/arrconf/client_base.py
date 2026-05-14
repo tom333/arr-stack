@@ -202,9 +202,7 @@ class QbittorrentClient:
         The password is NEVER logged or included in exception messages.
         """
         self.base_url = base_url.rstrip("/")
-        self._timeout = timeout or httpx.Timeout(
-            connect=5.0, read=30.0, write=10.0, pool=5.0
-        )
+        self._timeout = timeout or httpx.Timeout(connect=5.0, read=30.0, write=10.0, pool=5.0)
         # Step 1: dedicated short-lived client for the login POST
         login_url = f"{self.base_url}{self.api_path}/auth/login"
         with httpx.Client(timeout=self._timeout) as login_client:
@@ -216,14 +214,11 @@ class QbittorrentClient:
         if r.status_code != 200 or r.text != "Ok.":
             # NEVER log the password. Truncate body to 80 chars.
             raise AuthError(
-                f"qbittorrent: login failed (HTTP {r.status_code} "
-                f"body={r.text[:80]!r})"
+                f"qbittorrent: login failed (HTTP {r.status_code} body={r.text[:80]!r})"
             )
         sid = r.cookies.get("SID")
         if not sid:
-            raise AuthError(
-                "qbittorrent: login succeeded but no SID cookie returned"
-            )
+            raise AuthError("qbittorrent: login succeeded but no SID cookie returned")
         # Step 2: long-lived client with cookie + Referer pre-loaded
         self._client = httpx.Client(
             base_url=f"{self.base_url}{self.api_path}",
@@ -250,8 +245,7 @@ class QbittorrentClient:
         r = self._client.get(path, **kwargs)
         if r.status_code == 403:
             raise AuthError(
-                f"qbittorrent: HTTP 403 on GET {path} — SID expired "
-                "or whitelist mismatch"
+                f"qbittorrent: HTTP 403 on GET {path} — SID expired or whitelist mismatch"
             )
         r.raise_for_status()
         ctype = r.headers.get("content-type", "")
@@ -271,7 +265,6 @@ class QbittorrentClient:
             raise AuthError(f"qbittorrent: HTTP 403 on POST {path}")
         if r.status_code == 409:
             raise ApiClientError(
-                f"qbittorrent: HTTP 409 on POST {path} "
-                f"(invalid value in form body)"
+                f"qbittorrent: HTTP 409 on POST {path} (invalid value in form body)"
             )
         r.raise_for_status()

@@ -143,10 +143,10 @@ def _reconcile_categories(
                 actions_taken.append(f"update:{p.name}")
 
         elif p.action == Action.DELETE:
+            # Standard DELETE path — not reached for qBit categories because
+            # differ.reconcile() emits PRUNE_PROTECTED when managed_tag_id=None.
+            # Kept for completeness; unreachable in normal qBit usage.
             assert p.current is not None
-            # Only reached when prune=True AND managed_tag check passes.
-            # For qBit (no managed tags), DELETE is issued whenever prune=True
-            # and the category is not in the desired list.
             log.info("plan_action", action="delete", name=p.name)
             if dry_run:
                 log.info("dry_run_skip", action="delete", name=p.name)
@@ -164,10 +164,24 @@ def _reconcile_categories(
             # prune=False default: log but do NOT delete (R-04)
             log.info("prune_skip", resource="qbit_category", name=p.name)
 
-        # PRUNE_PROTECTED — qBit categories have no tags so this branch is
-        # unreachable in practice (managed_tag_id=None means no DELETE is gated
-        # by tag check). The reconcile() helper still emits PRUNE_PROTECTED when
-        # prune=True and managed_tag_id is None — which never happens here.
+        elif p.action == Action.PRUNE_PROTECTED:
+            # qBit categories have no managed-tag concept (R-05), so differ.reconcile()
+            # emits PRUNE_PROTECTED (not DELETE) when managed_tag_id=None + prune=True.
+            # We override here: if the operator explicitly set prune=True, execute the
+            # delete (no tag guard needed — the operator is the trust boundary).
+            assert p.current is not None
+            if prune:
+                log.info("plan_action", action="delete", name=p.name)
+                if dry_run:
+                    log.info("dry_run_skip", action="delete", name=p.name)
+                else:
+                    client.post_form(
+                        REMOVE_CATEGORIES_PATH,
+                        data={"categories": p.current.name},
+                    )
+                    actions_taken.append(f"delete:{p.name}")
+            else:
+                log.info("prune_skip", resource="qbit_category", name=p.name)
 
     return plan, actions_taken
 

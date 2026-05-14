@@ -37,7 +37,9 @@ select = ["E", "F", "I", "B", "UP", "N", "D"]
 ignore = ["D203", "D213"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D"]
+# D: docstrings not required in tests.
+# N802: test names may include camelCase to mirror API names (AuthError, savePath).
+"tests/**" = ["D", "N802"]
 # Sonarr/Radarr APIs use camelCase field names; pydantic models must match (D-21).
 "arrconf/resources/**" = ["N815"]
 # HostConfigSection mirrors camelCase API fields for YAML→API round-trip (D-21).
@@ -51,12 +53,6 @@ strict = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
 
-# Phase 5 Plan 02: qbittorrent reconciler + client not yet wired (Plan 04).
-# Remove this override when Plan 04 adds arrconf/reconcilers/qbittorrent.py
-# and the QbittorrentClient class to client_base.py.
-[[tool.mypy.overrides]]
-module = ["arrconf.reconcilers.qbittorrent"]
-ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-v --strict-markers"
