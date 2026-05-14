@@ -184,7 +184,15 @@ Plans:
   4. Test bout-en-bout : ajouter manuellement une série taggée `anime` dans Sonarr UI → le download arrive dans `/data/anime` côté qBit puis hardlink vers `/media/anime` (NFS partagé)
   5. `arrconf diff` après le test ≡ 0 action (idempotence sur tags / root folders / download clients)
   6. Configarr met à jour les 3 quality profiles (MULTi.VF, Anime, Family) avec scoring adapté (ex: VOSTFR à -10000 sur MULTi.VF, +50 sur Anime) sans casser l'existant
-**Plans**: TBD
+**Plans**: 8 plans (planned 2026-05-14)
+- [ ] 05-01-PLAN.md — Wave 0: Pre-flight gate (operator Secret bootstrap D-05-BOOTSTRAP-01 + ADR-6 baseline snapshot)
+- [ ] 05-02-PLAN.md — Wave 1: Pydantic schema extension (RootConfig.qbittorrent + Sonarr/Radarr tags/remote_path_mappings/series_tags-movie_tags + Settings.qbt_user/qbt_pass + fail-fast env-var gate D-05-BOOTSTRAP-01 #2 + JSON Schema regen)
+- [ ] 05-03-PLAN.md — Wave 1 (parallel to 02): Test fixtures + conftest.py extensions (8 new fixtures from Wave 0 snapshot)
+- [ ] 05-04-PLAN.md — Wave 2: QbittorrentClient cookie auth + reconcile_qbittorrent (categories + preferences allowlist) + diff_qbittorrent + 12 respx tests
+- [ ] 05-05-PLAN.md — Wave 2 (sequential after 02+03): Sonarr reconciler extension — tags list + remote_path_mappings (DELETE+ADD composite-key) + series_tags retroactive (D-05-MIG-01) + label→id resolver + D-05-ORDER-01 ordering invariant under regression test
+- [ ] 05-06-PLAN.md — Wave 3: Radarr reconciler mirror — movie_tags (default_tag=movies per D-05-SPLIT-02) + movieIds/addImportExclusion schema divergence + ordering invariant mirror
+- [ ] 05-07-PLAN.md — Wave 4: Chart YAMLs — arrconf.yml (qbittorrent block + Sonarr/Radarr split with D-05-PATHS-01 /media/films) + configarr.yml (3 profiles per instance — Family clone of MULTi.VF D-05-FAM-01) + values.yaml D-05-ARGS-01 1-line bump + helm lint + 4 chart-validation tests
+- [ ] 05-08-PLAN.md — Wave 5: Cluster apply via auto-tag → my-kluster Renovate → ArgoCD sync; SC#4 anime smoke (checkpoint:human-action) + SC#5 idempotence dispositive + SC#6 configarr 3-profile verify + post-apply snapshot + diff against Wave 0 baseline
 **UI hint**: yes
 **Open questions to resolve**: (none — ADR-7 a tranché le pattern single-instance + tags)
 
@@ -243,7 +251,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 2.2. v0.1.4 forceSave fix (INSERTED) | 5/6 | In progress | - |
 | 3. Étendre arrconf | 6/6 | Complete   | 2026-05-11 |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
-| 5. Reconciler qBittorrent + split tv/anime/family | 0/TBD | Not started | - |
+| 5. Reconciler qBittorrent + split tv/anime/family | 0/8 | Not started | - |
 | 6. Reconciler Seerr | 0/TBD | Not started | - |
 | 7. Reconciler Jellyfin | 0/TBD | Not started | - |
 | 8. Migration ESO/Akeyless (optionnelle) | 0/TBD | Not started | - |
