@@ -4,14 +4,14 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-14T15:50:00Z"
-last_activity: 2026-05-14 -- Phase 4 cutover RESOLVED on v0.2.6. Bug 1+2 fixed (per-alias nameOverride + serviceAccount). arr-stack Synced+Healthy with automated:{prune,selfHeal}. Plan 04-09 Task 9.1 done. Only Task 9.2 (72h passive SC#2 watch) + Plan 04-07 T7.3 (operator README walkthrough) remain.
+last_updated: "2026-05-14T08:56:35.641Z"
+last_activity: 2026-05-14 -- Phase 05 execution started
 progress:
   total_phases: 11
   completed_phases: 6
-  total_plans: 43
-  completed_plans: 34
-  percent: 79
+  total_plans: 51
+  completed_plans: 43
+  percent: 84
 ---
 
 # Project State
@@ -21,19 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 4 — umbrella-chart-migration-des-9-apps
+**Current focus:** Phase 05 — reconciler-qbittorrent-split-tv-anime-family
 
 ## Current Position
 
-Phase: 4 (umbrella-chart-migration-des-9-apps) — FUNCTIONALLY COMPLETE on `v0.2.6`. arr-stack ArgoCD App Synced+Healthy with automated:{prune,selfHeal}. 8/8 Deployments READY 1/1. 2 CronJobs scheduled. EndpointSlices per-alias (Bug 1 fix). SA refs per-alias (Bug 2 fix). prowlarr 10/10 retries return 200. Remaining: Plan 04-09 Task 9.2 (passive 72h SC#2 watch) + Plan 04-07 Task 7.3 (operator README walkthrough timing) — both observation-mode, no executable work. See `04-08-SUMMARY.md` + `04-08-CUTOVER-LOG.md`.
+Phase: 05 (reconciler-qbittorrent-split-tv-anime-family) — EXECUTING
+Plan: 1 of 8
 Plans complete: 04-01 (Wave 0 baseline+scripts), 04-02 (chart skeleton), 04-03 (sonarr/radarr/prowlarr/qbittorrent aliases), 04-04 (cleanuparr/seerr/flaresolverr/jellyfin aliases — :latest invariant closed), 04-05 (arrconf+configarr CronJobs + values.schema.json + examples/values-prod.yaml), 04-06 (chart-lint.yml CI workflow + renovate.json customManagers + auto-tag job), 04-07 partial (Tasks 7.1+7.2 README+CLAUDE.md rewrites committed)
 Pending operator gates:
+
   - 04-07 Task 7.3 — operator timed walkthrough of README onboarding (<30 min budget per REQ-readme-onboarding)
   - 04-08 (Wave 6) — cross-repo cutover PR in my-kluster + kubectl-driven sync (argocd CLI absent)
   - 04-09 (Wave 7) — re-enable automated.{selfHeal,prune} + SC#2 Renovate E2E evidence within 72h M1/M2/M3 gate
+
 Chart state: 8 Deployments + 8 Services + 7 Ingresses + 7 PVCs + 2 CronJobs + 2 ConfigMaps + 10 ServiceAccounts render cleanly; helm lint passes; render snapshot committed at `.planning/phases/04-umbrella-chart-migration-des-9-apps/evidence/umbrella-render.yaml`
 Phase 2.1 (interrupt) — INSERTED to fix field-merge before Phase 3 — DONE
-Last activity: 2026-05-13 -- Phase 4 autonomous waves complete; operator handoff for waves 6-7 cutover
+Last activity: 2026-05-14 -- Phase 05 execution started
 
 Progress: [██████████] 100%
 
