@@ -154,6 +154,36 @@ def test_login_missing_sid_cookie_raises_AuthError(respx_mock: respx.MockRouter)
     assert "SID" in str(exc_info.value) or "cookie" in str(exc_info.value).lower()
 
 
+@pytest.mark.respx(base_url=f"{QBIT_BASE}/api/v2", assert_all_called=False)
+def test_login_qbit_5x_accepts_204_and_port_suffixed_cookie(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """qBit 5.x returns HTTP 204 No Content + Set-Cookie QBT_SID_<port>=... — must succeed.
+
+    Regression: qBit 4.x returns 200 + 'Ok.' + SID cookie; 5.x diverges. arrconf
+    initially rejected 5.x logins as failures because the legacy branch only
+    accepted (200, 'Ok.', 'SID'). The cluster runs linuxserver/qbittorrent:5.x.
+    """
+    respx_mock.post(f"{QBIT_BASE}/api/v2/auth/login").mock(
+        return_value=httpx.Response(
+            204,
+            headers={"set-cookie": "QBT_SID_8080=qbit5-sid-token; HttpOnly; path=/"},
+        )
+    )
+    respx_mock.get("/torrents/categories").mock(
+        return_value=httpx.Response(200, json={}, headers={"content-type": "application/json"})
+    )
+
+    # Should NOT raise — must accept 204 + QBT_SID_8080 cookie as a successful login
+    client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
+
+    # Confirm the long-lived client carries the port-suffixed cookie verbatim
+    # (sending "SID" instead would 401 on qBit 5.x).
+    assert "QBT_SID_8080" in client._client.cookies
+    assert client._client.cookies["QBT_SID_8080"] == "qbit5-sid-token"
+    client.close()
+
+
 # ===========================================================================
 # Categories ADD tests
 # ===========================================================================
