@@ -7,6 +7,14 @@ on:
     tags: ['v*']
   pull_request:
     paths: ['tools/arrconf/**']
+  repository_dispatch:
+    types: [arrconf-image-build]
+  workflow_dispatch:
+    inputs:
+      tag_ref:
+        description: 'Tag ref to build (e.g. v0.3.1). Defaults to current ref.'
+        required: false
+        type: string
 
 jobs:
   build:
@@ -16,6 +24,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref }}
       - uses: docker/setup-buildx-action@v3
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
@@ -31,8 +41,8 @@ jobs:
           tags: |
             type=sha,prefix=sha-,format=short
             type=ref,event=branch,prefix=branch-
-            type=semver,pattern={{version}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}},value=${{ github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref }}
+            type=raw,value=latest,enable=${{ startsWith(github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref, 'refs/tags/v') || startsWith(github.event.client_payload.tag || github.event.inputs.tag_ref || '', 'v') }}
       - uses: docker/build-push-action@v5
         with:
           context: tools/arrconf
