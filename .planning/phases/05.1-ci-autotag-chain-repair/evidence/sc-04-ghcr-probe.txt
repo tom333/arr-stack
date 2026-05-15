@@ -1,0 +1,45 @@
+G-05.1-2 / SC#4 evidence (captured 2026-05-15T08:58:33Z)
+================================================================
+
+Target tag: 0.3.1 (from G-05.1-1 evidence — extracted from v0.3.1)
+Image: ghcr.io/tom333/arr-stack-arrconf
+
+Note on GHCR v2 API: anonymous manifest reads always return 401 ('need auth'),
+regardless of manifest existence. Bearer-token reads are the dispositive probe:
+HTTP 200 = manifest exists, HTTP 404 = does not. The plan's expected '200 or 401'
+acceptance is met by Probe 1 (401 anon — also dispositive per CONTEXT.md G-05.1-2)
+AND by Probe 4 (200 bearer-auth — definitive proof of existence).
+
+=== Probe 1: OCI image-index Accept header, anonymous (canonical per CLAUDE.md) ===
+HTTP/2 401 
+content-type: application/json
+www-authenticate: Bearer realm="https://ghcr.io/token",service="ghcr.io",scope="repository:tom333/arr-stack-arrconf:pull"
+date: Fri, 15 May 2026 08:58:33 GMT
+content-length: 73
+
+=== Probe 2: Anonymous Docker manifest v2 (fallback verification) ===
+HTTP/2 401 
+content-type: application/json
+www-authenticate: Bearer realm="https://ghcr.io/token",service="ghcr.io",scope="repository:tom333/arr-stack-arrconf:pull"
+date: Fri, 15 May 2026 08:58:33 GMT
+content-length: 73
+
+=== Probe 3: Confirm v0.3.0 is still an orphan (D-05.1-ORPHAN-01) ===
+Using bearer-auth — anonymous probes are ambiguous (always 401 on GHCR v2).
+HTTP/2 404 
+content-type: application/json
+docker-distribution-api-version: registry/2.0
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+date: Fri, 15 May 2026 08:58:34 GMT
+
+=== Probe 4: Dispositive existence check for :0.3.1 with bearer-auth ===
+HTTP/2 200 
+content-length: 856
+content-type: application/vnd.oci.image.index.v1+json
+
+----------------------------------------------------------------
+Dispositive conclusion:
+----------------------------------------------------------------
+✅ SC#4 — :0.3.1 published to GHCR. Probe 1 (401 anon) meets the plan's acceptance threshold; Probe 4 (200 bearer) is the definitive existence proof.
+✅ D-05.1-ORPHAN-01 invariant — :0.3.0 returns HTTP 404 with bearer-auth, confirming v0.3.0 is a tag without an image (orphan as designed by D-05.1-ORPHAN-01).
+✅ Chain integrity — the FIRST post-merge tag (v0.3.1) actually published its image, which is the entire point of Phase 5.1.

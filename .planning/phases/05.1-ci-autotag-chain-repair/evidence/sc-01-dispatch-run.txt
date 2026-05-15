@@ -1,0 +1,49 @@
+G-05.1-1 evidence (captured 2026-05-15T08:57:00Z)
+================================================================
+
+PR #9 merge commit: 8cb12415d800abc94c62bd52be8dd729a8493238
+PR #9 merge time:  2026-05-15T08:14:31Z
+PR #9 URL:         https://github.com/tom333/arr-stack/pull/9
+
+----------------------------------------------------------------
+chart-lint run on main (post-Plan-05.1-01 merge):
+----------------------------------------------------------------
+  Database ID: 25907630447
+  URL: https://github.com/tom333/arr-stack/actions/runs/25907630447
+  Trigger: push (event=push, ref=refs/heads/main)
+  Head SHA: 8cb12415d8
+  Started: 2026-05-15T08:14:34Z
+  Conclusion: success
+
+  lint job: PASSED
+    Step "repository_dispatch trigger guard (D-05.1-GUARD-01)":
+      Output: "OK: repository_dispatch + workflow_dispatch triggers present"
+      Status: PASSED — D-05.1-GUARD-01 invariant green on the very first post-merge run.
+
+  tag job: PASSED
+    Step "Auto-tag patch bump":
+      new_tag = v0.3.1  (default_bump: patch, previous = v0.3.0)
+    Step "Dispatch arrconf-image build for new tag":
+      Output: "Dispatched arrconf-image build for tag v0.3.1"
+      gh api POST /repos/tom333/arr-stack/dispatches → 204 No Content
+      Status: PASSED (continue-on-error was set but NOT needed — first-run happy path).
+
+----------------------------------------------------------------
+arrconf-image run (repository_dispatch trigger):
+----------------------------------------------------------------
+  Database ID: 25907665183
+  URL: https://github.com/tom333/arr-stack/actions/runs/25907665183
+  Trigger: repository_dispatch (event_type: arrconf-image-build)
+  Head SHA: 8cb12415d8  (resolved from client_payload.tag = v0.3.1)
+  Started: 2026-05-15T08:15:28Z (54 seconds after chart-lint tag job)
+  Conclusion: success
+  Build tag: v0.3.1 → semver pattern → :0.3.1 published to GHCR
+
+----------------------------------------------------------------
+Dispositive conclusion:
+----------------------------------------------------------------
+✅ SC#1 — chart-lint emits repository_dispatch: confirmed by the "Dispatched arrconf-image build for tag v0.3.1" output line + HTTP 204 ack.
+✅ SC#2 — arrconf-image responds via repository_dispatch: confirmed by run 25907665183 with event=repository_dispatch.
+✅ The auto-tag → image-build chain that was broken since v0.2.2 is now operational.
+
+No rescue path used. continue-on-error stayed inert.

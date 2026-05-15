@@ -21,50 +21,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 05.1 — ci-autotag-chain-repair
+**Current focus:** Phase 05 Plan 05-08 — cluster apply wave (Phase 5.1 closed, blocker resolved)
 
 ## Current Position
 
-Phase: 05.1 (ci-autotag-chain-repair) — Wave 1 COMPLETE, Wave 2 BLOCKED on operator merge of PR #9
-Plan: 2 of 2 (Wave 2 awaiting prerequisite)
-Phase 05 (reconciler-qbittorrent-split-tv-anime-family) — Plan 05-08 BLOCKED pending Phase 5.1 close.
-Plans complete: 05-01 → 05-07 (Phase 5) + 05.1-01 (Wave 1, see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-01-SUMMARY.md`)
-Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — BLOCKED by Phase 5.1) ; 05.1-02 (Wave 2 — post-merge gates G-05.1-1/2/3/4)
+Phase: **05 (reconciler-qbittorrent-split-tv-anime-family)** — RESUMED post-5.1 closure. Plan 05-08 UNBLOCKED.
+Plans complete: 05-01 → 05-07 (Phase 5) + 05.1-01 + 05.1-02 (Phase 5.1 closed — see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`)
+Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — UNBLOCKED, ready for `/gsd-execute-phase 05` after PR #10 merges)
 
-**Phase 5.1 PR #9:** https://github.com/tom333/arr-stack/pull/9 — OPEN, awaits operator merge.
-  - PR contains the 2 workflow YAML edits + planning artifacts (CONTEXT/RESEARCH/VALIDATION/PLAN/SUMMARY) because origin/main is ~3 commits behind local main (planning commits unpushed).
-  - PR body includes the "First-run dispositive" operator monitoring section (revision applied in plan-phase).
-  - After merge: auto-tag job creates `v0.3.1` (or successor) → `repository_dispatch` fires → `arrconf-image.yml` publishes `:0.3.1` to GHCR → arr-stack Renovate opens auto-merge PR bumping `values.yaml::arrconf.tag` from `0.2.1` → `0.3.1`.
-  - Then resume Wave 2: `/gsd-execute-phase 5.1 --wave 2` (or just `/gsd-execute-phase 5.1` — wave filter auto-detects).
+**Phase 5.1 outcome (closed 2026-05-15):**
+  - ✅ D-05-CI-AUTOTAG-CHAIN resolved. PR #9 merged (commit 8cb1241). Tag `v0.3.1` created → `repository_dispatch` fired → `arrconf-image.yml` published `ghcr.io/tom333/arr-stack-arrconf:0.3.1` (bearer-auth HEAD probe = 200).
+  - ✅ D-05.1-ORPHAN-01 verified: `:0.3.0` is HTTP 404 on GHCR (orphan tag preserved).
+  - ⚠️  D-05.1-BUMP-01 DEVIATED: Mend Renovate App not installed on `tom333/arr-stack`. Manual values.yaml bump via PR #10 (https://github.com/tom333/arr-stack/pull/10) substitutes. Follow-up: install Renovate App at https://github.com/apps/renovate.
+  - All 6 ROADMAP SC dispositives green (see SUMMARY).
 
-Last activity: 2026-05-15
+**Next operator action:** review + merge PR #10 (1-line values.yaml diff). After merge → my-kluster Renovate watches arr-stack tag, opens `targetRevision` PR → ArgoCD sync → CronJob runs `:0.3.1`. Then `/gsd-execute-phase 05` to run Plan 05-08 (cluster apply wave).
 
-Progress: 7/8 Phase-5 plans (87%) ; Phase 5.1 plans scoped (0/2 executed) — ready for `/gsd-execute-phase 5.1`
+Last activity: 2026-05-15 -- Phase 5.1 closed (UNBLOCKED Plan 05-08 — pending PR #10 merge)
 
-### Blocker — D-05-CI-AUTOTAG-CHAIN (HIGH severity, discovered 2026-05-15)
-
-Plan 05-08 Task 8.1 assumes the Phase-4 chain `auto-tag (chart-lint.yml) → image build (arrconf-image.yml) → my-kluster Renovate PR` works end-to-end. **It does not.** The chain has been broken since v0.2.2 (just after Phase 4 — v0.2.1 was the last semver image actually published to GHCR).
-
-Dispositive evidence (2026-05-15 session):
-
-- Tag `v0.3.0` exists on origin → `ef7681a` (PR #8 merge — Phase 5 code).
-- `chart-lint.yml` run on `ef7681a` succeeded (auto-tag job created the tag).
-- `arrconf-image.yml` push-on-main run for `ef7681a` succeeded — but only pushed `:branch-main` + `:sha-ef7681a` (docker/metadata-action `type=semver` only fires on tag-ref).
-- **No `arrconf-image.yml` tag-event run has fired for v0.2.2 → v0.3.0** — last tag-triggered build was v0.2.1 on 2026-05-11.
-- GHCR HEAD probes: `:0.3.0` and `:v0.3.0` return **HTTP 404**; only `:sha-ef7681a`, `:0.2.1`, and `:latest` exist.
-- `charts/arr-stack/values.yaml` pins `arrconf.tag: "0.2.1"` since Phase 4 — never bumped.
-
-Root cause: `mathieudutour/github-tag-action` uses `secrets.GITHUB_TOKEN`. Tags created via `GITHUB_TOKEN` do **not** trigger downstream workflows (GitHub anti-loop policy). The auto-tag job ships the git tag but never publishes the corresponding image.
-
-Consequences:
-
-- Even if my-kluster's `targetRevision` were bumped to `v0.3.0`, the chart at that ref still pins arrconf to `0.2.1` → the CronJob would keep running the Phase-1 image.
-- Renovate (my-kluster side) has no newer semver image to bump to → no PR opens for arr-stack.
-- SC#2/SC#3/SC#4/SC#5/SC#6 dispositives all gated on a Phase-5 image actually running in the cluster — unreachable until the chain is repaired.
-
-**Required next action:** `/gsd-plan-phase 5.1` to scope the workflow changes (Option C `repository_dispatch` per D-05.1-TRIGGER-01) + post-merge verification gates G-05.1-1/2/3. v0.3.0 accepted as orphan tag (D-05.1-ORPHAN-01) — next semver image will be `:0.3.1` (ou Renovate-bumped successor) once the fix lands. Plan 05-08 resumes after `:0.3.x` HEAD-probes 200 on GHCR + `values.yaml::arrconf.tag` is auto-bumped by arr-stack Renovate.
-
-**Phase 5.1 entry point:** `.planning/phases/05.1-ci-autotag-chain-repair/05.1-CONTEXT.md` (gathered 2026-05-15).
+Progress: 7/8 Phase-5 plans (87%) ; Phase 5.1 2/2 plans complete ; Plan 05-08 ready to resume after PR #10 merge
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 
