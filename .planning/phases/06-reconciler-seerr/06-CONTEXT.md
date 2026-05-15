@@ -43,7 +43,7 @@ Add the Seerr reconciler (`tools/arrconf/arrconf/reconcilers/seerr.py`) so Seerr
           prune: false
           admin:
             displayName: "admin"
-            permissions: 8388608  # full
+            permissions: 2  # ADMIN (per research — 8388608 = AUTO_REQUEST, NOT full admin)
             movieQuotaDays: 0  # unlimited
             movieQuotaLimit: 0
             tvQuotaDays: 0
@@ -70,9 +70,10 @@ Add the Seerr reconciler (`tools/arrconf/arrconf/reconcilers/seerr.py`) so Seerr
           enable: true
           rules:
             - tag: family
-              keywords: ["Family", "Kids", "Children", "Animation"]  # case-insensitive intersection
+              keywords: ["Family", "Kids", "Children"]   # NOT "Animation" — too broad (catches non-family Animation series); see research § "Genre Taxonomy"
             - tag: anime
-              keywords: ["Anime", "Animation - Japanese"]  # gap-fill for items Seerr's animeTags missed
+              keywords: ["Anime"]                        # TVDB has a first-class "Anime" genre; gap-fill for items Seerr's animeTags missed
+              # OPTIONAL secondary signal (planner discretion): also match if seriesType=="anime"
     radarr:
       main:
         # ... existing Phase 5 fields ...
@@ -80,9 +81,10 @@ Add the Seerr reconciler (`tools/arrconf/arrconf/reconcilers/seerr.py`) so Seerr
           enable: true
           rules:
             - tag: family
-              keywords: ["Family", "Kids", "Children", "Animation"]
-            - tag: anime
-              keywords: ["Anime", "Animation - Japanese"]
+              keywords: ["Family"]                       # TMDB Family genre. NOT "Animation" — would catch Pixar/Disney (research Pitfall 5)
+              # Operator may add "Kids"/"Children" but TMDB doesn't use those — Family alone is the high-precision signal
+            # NO anime rule on Radarr — TMDB has no "Anime" genre and "Animation" catches Disney/Pixar (research Pitfall 5).
+            # Anime films stay manual-tag until Phase 6+1 ships an originalLanguage-based filter.
     ```
   - Net add: ~150 LOC + 4-6 respx tests per reconciler (Sonarr + Radarr mirror).
 
@@ -108,11 +110,10 @@ Add the Seerr reconciler (`tools/arrconf/arrconf/reconcilers/seerr.py`) so Seerr
 ## Implementation Decisions
 
 ### Q1 validation approach
-- **D-06-VALIDATE-01**: Wave 0 read-only PUT probe before reconciler implementation.
-  - **Why**: GET-side endpoints already verified by Phase 0 snapshot (`settings/sonarr`, `settings/radarr`, `user`, `request` all 200). PUT-side compat with Overseerr is the real risk. Cheapest path: round-trip GET-then-PUT-unchanged on `settings/sonarr` (with the live body, no modification) — expect 200/204. If 400/422 with field error → document divergence in plan + decide fail-fast or workaround before writing reconciler.
-  - **How to apply**: Plan 06-01 is the validation spike — `curl` from inside the Seerr pod, no arrconf code yet. Captures evidence to `evidence/q1-put-probe.txt`. Outcomes:
-    - 200/204 → Q1 RESOLVED, proceed to Plan 06-02 with confidence
-    - 4xx → STOP, log diff, decide fail-fast vs scope-down
+- **D-06-VALIDATE-01**: Wave 0 = re-snapshot Seerr + look up Anime quality_profile ID + commit the PUT-probe evidence ALREADY captured by Phase 6 research (no new probe work).
+  - **Why**: GET-side endpoints already verified by Phase 0 snapshot. **PUT-side compat ALSO verified during research (see 06-RESEARCH.md § "Q1 PUT probe RESOLVED")** — research did live `curl PUT /api/v1/settings/sonarr` round-trip + write of animeTags + write of settings/main and confirmed HTTP 200 on all 4 endpoints. Q1 closed pre-Plan 06-01.
+  - **Critical PUT constraint surfaced by research**: PUT body must NOT include `id` field — Seerr returns HTTP 400 `"request.body.id is read-only"`. All seerr pydantic models MUST use `Field(exclude=True)` on `id`. Also: `settings/main` uses POST (not PUT) for updates.
+  - **How to apply**: Plan 06-01 scope reduces to: (1) re-snapshot `snapshots/before-phase-6-<date>/seerr/`, (2) `curl GET /api/v3/qualityprofile` against Sonarr+Radarr to look up the "Anime" profile ID created by configarr, (3) commit research evidence + this lookup to `evidence/q1-put-probe.txt`. No blocking "STOP if 4xx" branch needed.
 
 ### Auth + client architecture
 - **D-06-AUTH-01**: `class SeerrClient(ArrApiClient)` with `api_path = "/api/v1"`. NO forceSave by default.
@@ -136,13 +137,18 @@ Add the Seerr reconciler (`tools/arrconf/arrconf/reconcilers/seerr.py`) so Seerr
   - **How to apply**: seerr.py defines 4 reconcile methods. arrconf.yml seerr section follows the schema shown in `<domain>` In scope above. Estimated ~250 LOC for the reconciler + ~150 LOC for content_tags extension = ~400 LOC net.
 
 ### Credentials handling
-- **D-06-CREDS-01**: Reuse Phase 2.1 `merge_fields_for_put` for the apiKey field. Operator bootstraps Seerr→Sonarr/Radarr connections ONCE via Seerr UI. arrconf preserves on PUT.
-  - **Why**: This pattern is proven (Phase 2.1 + 2.2 closed D-02.2-AUTH-REGRESSION). Env-injection (D-05-DLCLIENT-CREDS-AT-CREATE backlog) is a separate concern and not blocking Phase 6. Avoiding scope creep keeps Phase 6 tight.
-  - **How to apply**: YAML `apiKey: ""` (or omit). arrconf's GET returns Seerr's `********` mask. merge_fields_for_put recognizes the mask and substitutes the cluster value back on PUT. No code change to client_base.py — Phase 2.1's helper is already general.
-  - **Implications**: A fresh Seerr install would need the operator to type Sonarr/Radarr API keys into Seerr UI first. Phase 6 Wave 0 plan confirms this is already done on the current cluster (snapshot 2026-05-07 already shows configured connections).
+- **D-06-CREDS-01**: Apply the **spirit** of Phase 2.1 merge_fields_for_put manually — Seerr is **NOT compatible with the existing helper** (research correction).
+  - **Why**: Research surfaced (06-RESEARCH.md § Pitfall 6): `merge_fields_for_put` operates on models with `fields: list[FieldKV]` — that's the *arr shape (download clients, indexers). Seerr models have flat top-level string fields (`apiKey: str`, `hostname: str`). The helper would silently no-op or fail. Phase 6 must use a Seerr-specific apiKey-preservation pattern, NOT invoke `merge_fields_for_put`.
+  - **How to apply (corrected)**: In seerr.py UPDATE branch, BEFORE building the PUT body:
+    ```python
+    if not desired.apiKey:
+        desired.apiKey = current_obj["apiKey"]  # preserve cluster value
+    ```
+    Equivalent alternative: define `apiKey: str = Field(exclude=True)` on the pydantic model + always merge cluster value in. Either approach keeps the operator-bootstrapped credentials intact. No code change to `differ.py:merge_fields_for_put` needed (it stays *arr-only).
+  - **Implications**: A fresh Seerr install needs the operator to type Sonarr/Radarr API keys into Seerr UI first. Phase 6 Wave 0 plan confirms this is already done on the current cluster (snapshot 2026-05-07 + research live probe show configured connections).
 
 ### Pre-deploy safety
-- **D-06-PROBE-FIRST**: Plan 06-01 is the Q1 PUT probe. Plan 06-02..06-N can only start once Q1 is RESOLVED (200/204 on probe). If probe returns 4xx, Phase 6 stops and re-scopes.
+- **D-06-PROBE-FIRST**: ~~Plan 06-01 is the Q1 PUT probe~~ **OBSOLETE — Q1 already RESOLVED by research** (see D-06-VALIDATE-01 update above). Plans 06-02..06-N can proceed in parallel immediately.
 
 ### Snapshot baseline
 - **D-06-SNAPSHOT-01**: Re-snapshot Seerr in Wave 0 (`snapshots/before-phase-6-<date>/seerr/`) before any reconciler code lands. ADR-6 invariant.
