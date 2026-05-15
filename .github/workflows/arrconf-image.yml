@@ -7,6 +7,14 @@ on:
     tags: ['v*']
   pull_request:
     paths: ['tools/arrconf/**']
+  repository_dispatch:
+    types: [arrconf-image-build]
+  workflow_dispatch:
+    inputs:
+      tag_ref:
+        description: 'Tag ref to build (e.g. v0.3.1). Defaults to current ref.'
+        required: false
+        type: string
 
 jobs:
   build:
