@@ -20,6 +20,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] **Phase 3: Étendre arrconf (indexers, notifications, root_folders, tags, host_config + Radarr + Prowlarr)** - Couverture complète Sonarr/Radarr/Prowlarr avec app sync Prowlarr → *arr (depends on Phase 2.1 + 2.2 fix) (completed 2026-05-11)
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
 - [ ] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants
+- [ ] **Phase 5.1: CI auto-tag → image-build chain repair (INSERTED)** - Réparer la chaîne `chart-lint.yml tag job → arrconf-image.yml` via `repository_dispatch` (Option C), accepter v0.3.0 comme orphelin (pas d'image GHCR semver), shipper v0.3.1 comme première image Phase-5 correctement publiée. Débloque Plan 05-08.
 - [ ] **Phase 6: Reconciler Seerr** - Validation Q1 (compat API Seerr vs Overseerr/Jellyseerr) + Q10 (routing tags), reconciler `seerr.py` (services connectés, users, requests config)
 - [ ] **Phase 7: Reconciler Jellyfin** - Bootstrap admin manuel préalable, validation Q9 (auth header), reconciler libraries / users / server config / plugins (best effort)
 - [ ] **Phase 8: Migration ESO/Akeyless (optionnelle, post-MVP)** - ExternalSecret pour les API keys, suppression du secret manuel, alignement avec chantier ESO global du cluster
@@ -196,6 +197,25 @@ Plans:
 **UI hint**: yes
 **Open questions to resolve**: (none — ADR-7 a tranché le pattern single-instance + tags)
 
+### Phase 5.1: CI auto-tag → image-build chain repair (INSERTED)
+**Goal**: Réparer la chaîne CI cassée depuis v0.2.2 — les tags semver créés par le job `tag` de `chart-lint.yml` (via `mathieudutour/github-tag-action` + `secrets.GITHUB_TOKEN`) ne déclenchent pas `arrconf-image.yml` (politique GitHub anti-loop : un tag poussé par `GITHUB_TOKEN` n'éveille pas les workflows `on: push: tags:`). Résultat : aucune image semver `:v0.2.2…:v0.3.0` n'existe sur GHCR, et `charts/arr-stack/values.yaml` reste épinglée à `arrconf.tag: "0.2.1"`. Phase 5.1 ship la réparation via `repository_dispatch` (Option C — chart-lint envoie un event custom, arrconf-image y répond) et fait passer la prochaine release `:0.3.1` comme première image Phase-5 réellement publiée.
+**Depends on**: Phase 4 (chaîne CI Phase-4 d'origine) — INSERTED après Phase 5 mais BLOQUE Plan 05-08
+**Requirements**: REQ-pr-to-cluster-latency (latence ≤ 1 h chaîne tag → cluster) — actuellement infinie sans cette réparation
+**Success Criteria** (what must be TRUE):
+  1. `chart-lint.yml` job `tag` : après création du tag `vX.Y.Z`, émet un `repository_dispatch` (event_type `arrconf-image-build`) avec le tag en payload, le job `tag` reste OK même si l'API call dispatch échoue (defense-in-depth — log warning, n'échoue pas le run)
+  2. `arrconf-image.yml` accepte le trigger `repository_dispatch: types: [arrconf-image-build]` ; checkout du tag reçu en payload ; `docker/metadata-action` produit bien la tag semver `:X.Y.Z` (validation locale via `act` ou push dry-run, sinon validation production sur le 1er tag post-fix)
+  3. Le legacy trigger `on: push: tags: ['v*']` reste actif (filet de sécurité pour tags manuels poussés via PAT/local) ET un `workflow_dispatch` est ajouté à `arrconf-image.yml` pour rescue ad-hoc futur (input: `tag_ref`, default: `main`)
+  4. Après merge de Phase 5.1, auto-tag crée `v0.3.1` → `repository_dispatch` fire → `arrconf-image.yml` publie `ghcr.io/tom333/arr-stack-arrconf:0.3.1` (HEAD probe HTTP 200) → arr-stack Renovate ouvre PR auto-merge bumpant `values.yaml` `arrconf.tag: "0.2.1"` → `"0.3.1"` (latence ≤ 1 h)
+  5. v0.3.0 explicitement documenté comme tag-orphelin (pas d'image semver, code Phase-5 disponible uniquement via `:sha-ef7681a`) dans `.planning/phases/05.1-ci-autotag-chain-repair/05.1-CONTEXT.md` § Decisions D-05.1-ORPHAN-01
+  6. Guard CI : nouveau step dans `chart-lint.yml` ou un workflow dédié qui ÉCHOUE si `arrconf-image.yml` ne contient plus `repository_dispatch:` (prévient un revert silencieux) — OU décision documentée que la garde est out-of-scope (low risk, peu de surface)
+**Plans**: 2 plans
+- [ ] 05.1-01-PLAN.md — Wave 1: Workflow YAML edits (chart-lint.yml repository_dispatch step + CI regression guard + path triggers ; arrconf-image.yml repository_dispatch + workflow_dispatch + checkout ref override + metadata-action value= override) — implements D-05.1-TRIGGER-01 / D-05.1-RESCUE-01 / D-05.1-LEGACY-01 / D-05.1-GUARD-01
+- [ ] 05.1-02-PLAN.md — Wave 2: Post-merge verification gates (G-05.1-1 dispatch + arrconf-image run ; G-05.1-2 GHCR :0.3.x HEAD probe ; G-05.1-3 Renovate auto-PR ; G-05.1-4 SUMMARY + STATE.md closure of D-05-CI-AUTOTAG-CHAIN)
+**UI hint**: no (CI/chart-only, aucune surface UI)
+**Open questions to resolve**:
+  - Q-05.1-1 : faut-il ajouter une garde CI (SC#6 option) ou accepter le risque de régression silencieuse ?
+  - Q-05.1-2 : nommage de l'event `repository_dispatch` (`arrconf-image-build` proposé — alternatif `tag-published`)
+
 ### Phase 6: Reconciler Seerr
 **Goal**: Implémenter le reconciler `seerr.py` (services Sonarr/Radarr connectés, users, requests config, default tags par type de contenu si supporté) après validation préalable de Q1 (compat API Seerr v3.2.0 vs Overseerr/Jellyseerr) et Q10 (stratégie de routing tags Seerr → Sonarr).
 **Depends on**: Phase 5
@@ -252,6 +272,7 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 3. Étendre arrconf | 6/6 | Complete   | 2026-05-11 |
 | 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/8 | Not started | - |
+| 5.1. CI auto-tag → image-build chain repair (INSERTED) | 0/2 | Not started | - |
 | 6. Reconciler Seerr | 0/TBD | Not started | - |
 | 7. Reconciler Jellyfin | 0/TBD | Not started | - |
 | 8. Migration ESO/Akeyless (optionnelle) | 0/TBD | Not started | - |
