@@ -4,14 +4,14 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-15T06:20:55.958Z"
-last_activity: 2026-05-15 -- Phase 05.1 planning complete
+last_updated: "2026-05-15T07:34:17.069Z"
+last_activity: 2026-05-15
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 53
-  completed_plans: 49
-  percent: 92
+  completed_plans: 50
+  percent: 94
 ---
 
 # Project State
@@ -21,17 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 05 — reconciler-qbittorrent-split-tv-anime-family
+**Current focus:** Phase 05.1 — ci-autotag-chain-repair
 
 ## Current Position
 
-Phase: **05.1 (ci-autotag-chain-repair) — INSERTED 2026-05-15** as resolver for D-05-CI-AUTOTAG-CHAIN.
+Phase: 05.1 (ci-autotag-chain-repair) — Wave 1 COMPLETE, Wave 2 BLOCKED on operator merge of PR #9
+Plan: 2 of 2 (Wave 2 awaiting prerequisite)
 Phase 05 (reconciler-qbittorrent-split-tv-anime-family) — Plan 05-08 BLOCKED pending Phase 5.1 close.
-Plans complete: 05-01 → 05-07 (see Phase 5 summaries)
-Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — BLOCKED by Phase 5.1)
-Plans pending (Phase 5.1): 05.1-01 (Wave 1, autonomous — 2 workflow YAML edits + CI guard), 05.1-02 (Wave 2, depends_on: [01], operator gates — post-merge G-05.1-1/2/3/4)
+Plans complete: 05-01 → 05-07 (Phase 5) + 05.1-01 (Wave 1, see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-01-SUMMARY.md`)
+Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — BLOCKED by Phase 5.1) ; 05.1-02 (Wave 2 — post-merge gates G-05.1-1/2/3/4)
 
-Last activity: 2026-05-15 -- Phase 05.1 planning complete (2 plans, plan-checker iteration 2 PASS)
+**Phase 5.1 PR #9:** https://github.com/tom333/arr-stack/pull/9 — OPEN, awaits operator merge.
+  - PR contains the 2 workflow YAML edits + planning artifacts (CONTEXT/RESEARCH/VALIDATION/PLAN/SUMMARY) because origin/main is ~3 commits behind local main (planning commits unpushed).
+  - PR body includes the "First-run dispositive" operator monitoring section (revision applied in plan-phase).
+  - After merge: auto-tag job creates `v0.3.1` (or successor) → `repository_dispatch` fires → `arrconf-image.yml` publishes `:0.3.1` to GHCR → arr-stack Renovate opens auto-merge PR bumping `values.yaml::arrconf.tag` from `0.2.1` → `0.3.1`.
+  - Then resume Wave 2: `/gsd-execute-phase 5.1 --wave 2` (or just `/gsd-execute-phase 5.1` — wave filter auto-detects).
+
+Last activity: 2026-05-15
 
 Progress: 7/8 Phase-5 plans (87%) ; Phase 5.1 plans scoped (0/2 executed) — ready for `/gsd-execute-phase 5.1`
 
