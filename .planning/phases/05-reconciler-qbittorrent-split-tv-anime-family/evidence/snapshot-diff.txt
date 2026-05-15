@@ -1,0 +1,33 @@
+Post-Phase-5 snapshot diff (captured 2026-05-16)
+=================================================
+
+Wave 0 baseline: snapshots/before-phase-5-2026-05-14/
+Post-apply:      snapshots/after-phase-5-2026-05-16/
+
+Note: qbittorrent omitted from post-apply (snapshot.sh has the same qBit 5.x
+      auth-response incompat we fixed in arrconf via PR #11 — login 204 + cookie
+      QBT_SID_<port>=). qBit state verified live via direct curl:
+        9 categories total, 6 Phase-5 (sonarr-{tv,anime,family}, radarr-{movies,anime,family})
+        with correct savePaths per D-05-PATHS-01 + 3 legacy preserved by prune: false
+
+=== sonarr ===
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/config_host.json et snapshots/after-phase-5-2026-05-16/sonarr/config_host.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/downloadclient.json et snapshots/after-phase-5-2026-05-16/sonarr/downloadclient.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/indexer.json et snapshots/after-phase-5-2026-05-16/sonarr/indexer.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/qualityprofile.json et snapshots/after-phase-5-2026-05-16/sonarr/qualityprofile.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/remotepathmapping.json et snapshots/after-phase-5-2026-05-16/sonarr/remotepathmapping.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/rootfolder.json et snapshots/after-phase-5-2026-05-16/sonarr/rootfolder.json sont différents
+Seulement dans snapshots/before-phase-5-2026-05-14/sonarr: series.json
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/system_status.json et snapshots/after-phase-5-2026-05-16/sonarr/system_status.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/sonarr/tag.json et snapshots/after-phase-5-2026-05-16/sonarr/tag.json sont différents
+
+=== radarr ===
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/config_host.json et snapshots/after-phase-5-2026-05-16/radarr/config_host.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/downloadclient.json et snapshots/after-phase-5-2026-05-16/radarr/downloadclient.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/indexer.json et snapshots/after-phase-5-2026-05-16/radarr/indexer.json sont différents
+Seulement dans snapshots/before-phase-5-2026-05-14/radarr: movie.json
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/qualityprofile.json et snapshots/after-phase-5-2026-05-16/radarr/qualityprofile.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/remotepathmapping.json et snapshots/after-phase-5-2026-05-16/radarr/remotepathmapping.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/rootfolder.json et snapshots/after-phase-5-2026-05-16/radarr/rootfolder.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/system_status.json et snapshots/after-phase-5-2026-05-16/radarr/system_status.json sont différents
+Les fichiers snapshots/before-phase-5-2026-05-14/radarr/tag.json et snapshots/after-phase-5-2026-05-16/radarr/tag.json sont différents

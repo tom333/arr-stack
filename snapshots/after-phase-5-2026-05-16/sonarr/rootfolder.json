@@ -1,0 +1,23 @@
+[
+  {
+    "accessible": true,
+    "freeSpace": 459295162368,
+    "id": 1,
+    "path": "/media/series",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 459295162368,
+    "id": 2,
+    "path": "/media/anime",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 459295162368,
+    "id": 3,
+    "path": "/media/family",
+    "unmappedFolders": []
+  }
+]

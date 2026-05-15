@@ -1,0 +1,55 @@
+G-Task-8.3 / SC#4 anime smoke test evidence
+================================================================
+Captured: 2026-05-16
+
+CONTEXT
+-------
+Plan 05-08 Task 8.3 dispositive: operator manually adds an anime series via
+Sonarr UI with tag `anime` → series fetched via Prowlarr/indexer → qBit
+downloads to /data/anime/<series>/ → Sonarr imports to /media/anime/<series>/.
+
+PRE-REQUISITE FIX APPLIED (not in Phase 5 plan — operator deviation)
+---------------------------------------------------------------------
+Initial attempt in Sonarr UI failed with "Impossible de communiquer avec
+qBittorrent. Failed to connect to qBittorrent, check your settings."
+
+Root cause: the 3 new Phase-5 download clients (Sonarr id=2/3/4 — qBittorrent
+- TV/Anime/Family) were POSTed by arrconf with empty username + password
+fields (chart YAML uses `value: ''` per CLAUDE.md "Ne pas committer de
+secrets"). Phase 2.1's `merge_fields_for_put` helper preserves cluster values
+on UPDATE but not on CREATE — so credentials were stored as literal empty
+strings.
+
+Workaround: 6 download clients (Sonarr × 3 + Radarr × 3) patched via Sonarr
+/ Radarr API:
+  PUT /api/v3/downloadclient/{2,3,4}?forceSave=true
+  body: GET response with fields[name=username].value=$QBT_USER + password=$QBT_PASS
+
+All 6 returned HTTP 202 (forceSave=true accepted per ADR-8 trusted-controller
+pattern). Connectivity test then green:
+  POST /api/v3/downloadclient/test for each id:
+    qBittorrent - TV (Sonarr id=2)     → HTTP 200 {}
+    qBittorrent - Anime (Sonarr id=3)  → HTTP 200 {}
+    qBittorrent - Family (Sonarr id=4) → HTTP 200 {}
+    qBittorrent - Movies (Radarr id=2) → HTTP 200 {}
+    qBittorrent - Anime (Radarr id=3)  → HTTP 200 {}
+    qBittorrent - Family (Radarr id=4) → HTTP 200 {}
+
+OPERATOR DISPOSITIVE
+--------------------
+After credential injection, operator confirmed end-to-end SC#4 path:
+Sonarr UI → Add Series (tagged `anime`, root folder /media/anime) → qBit
+received the torrent in category sonarr-anime → file landed at
+/data/anime/<series>/ (qBit view) → Sonarr imported to /media/anime/<series>/.
+
+Date confirmed: 2026-05-16.
+
+SC#4 STATUS: PASS
+
+FOLLOW-UP (NOT BLOCKING Phase 5 closure)
+-----------------------------------------
+- D-05-DLCLIENT-CREDS-AT-CREATE: arrconf's qBit download_client POST should
+  inject QBT_USER / QBT_PASS from env when YAML values are empty (today
+  the merge_fields_for_put helper covers UPDATE only). Track for Phase 5.2
+  or 6+. Today's manual API patch is sustainable until then since the
+  download clients only need credentials at create time.

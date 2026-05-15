@@ -25,46 +25,39 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 05 (reconciler-qbittorrent-split-tv-anime-family) — EXECUTING
-Plan: 1 of 8
-Plans complete: 05-01 → 05-07 (Phase 5) + 05.1-01 + 05.1-02 (Phase 5.1 closed — see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`)
-Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — UNBLOCKED, ready for `/gsd-execute-phase 05` after PR #10 merges)
+Phase: **05 (reconciler-qbittorrent-split-tv-anime-family) — COMPLETE 2026-05-16**
+Plans complete: 05-01 → 05-08 (all 8 Phase 5 plans) + 05.1-01 + 05.1-02 (Phase 5.1 closed)
+Plans pending: (none for Phase 5 ; next phase = 06 Reconciler Seerr)
+
+**Phase 5 outcome (closed 2026-05-16, see `.planning/phases/05-reconciler-qbittorrent-split-tv-anime-family/05-08-SUMMARY.md`):**
+
+  - ✅ All 6 ROADMAP SC dispositives green (qBit categories, Sonarr/Radarr split, anime E2E, idempotence, configarr profiles, snapshot diff)
+  - ✅ 9 qBit categories live with correct savePaths (6 Phase-5 + 3 legacy preserved)
+  - ✅ D-05-MIG-01 retroactive tagging: 8/8 series tagged `tv`, 11/11 movies tagged `movies`
+  - ✅ configarr CronJob produces 3 Phase-5 quality profiles per instance (MULTi.VF, Anime, Family)
+  - ✅ Post-apply snapshot committed: `snapshots/after-phase-5-2026-05-16/` (3/4 apps, qBit verified live)
 
 **Phase 5.1 outcome (closed 2026-05-15):**
 
-  - ✅ D-05-CI-AUTOTAG-CHAIN resolved. PR #9 merged (commit 8cb1241). Tag `v0.3.1` created → `repository_dispatch` fired → `arrconf-image.yml` published `ghcr.io/tom333/arr-stack-arrconf:0.3.1` (bearer-auth HEAD probe = 200).
-  - ✅ D-05.1-ORPHAN-01 verified: `:0.3.0` is HTTP 404 on GHCR (orphan tag preserved).
-  - ⚠️  D-05.1-BUMP-01 DEVIATED: Mend Renovate App not installed on `tom333/arr-stack`. Manual values.yaml bump via PR #10 (https://github.com/tom333/arr-stack/pull/10) substitutes. Follow-up: install Renovate App at https://github.com/apps/renovate.
-  - All 6 ROADMAP SC dispositives green (see SUMMARY).
+  - ✅ D-05-CI-AUTOTAG-CHAIN resolved. `repository_dispatch` chain operational since PR #9.
+  - ✅ All 6 SC dispositives green (see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`).
 
-**Next operator action:** review + merge **PR #11** (qBit 5.x auth compat fix). After merge → auto-tag `v0.3.3` → repository_dispatch → `:0.3.3` on GHCR → 1-line values.yaml bump PR (Renovate-substitute) → my-kluster ArgoCD sync → retry apply.
+**Milestone v0.2.0 (forceSave fix) ready to ship.** Next phase: **06 Reconciler Seerr** (Q1 + Q10 validation, then reconciler implementation).
 
-### Plan 05-08 progress (2026-05-15) — Task 8.2 partial, PR #11 in flight
+### Phase 5 deviations + follow-ups (operator-deferred, see 05-08-SUMMARY.md for details)
 
-**3 of 4 apps reconciled successfully** despite retry-storm pattern (Sonarr/Radarr/Prowlarr complete). qBittorrent reconcile **failing** on auth — Phase 5 reconciler coded against qBit 4.x (`HTTP 200 + body 'Ok.' + cookie SID=`), live cluster runs `linuxserver/qbittorrent:5.2.x` (`HTTP 204 + cookie QBT_SID_<port>=`). Fix shipped as **PR #11** (`fix-qbit-5x-auth-response` branch, https://github.com/tom333/arr-stack/pull/11).
+1. arrconf download_client POST should inject QBT_USER/QBT_PASS when YAML values empty (Phase 2.1 merge helper covers UPDATE only) — today handled by manual API PUT
+2. Chart should pre-create `/media/{anime,family,films-anime,films-family}` + `/data/torrents/{series,anime,family,films,films-anime,films-family}` via initContainer or Helm hook
+3. Port qBit 5.x auth fix (arrconf PR #11) to `tools/snapshot/snapshot.sh`
+4. Re-verify snapshot.sh password-redaction step for `config_host.json` sensitive fields
+5. Refine arrconf qBit category + Prowlarr app-sync diff comparators to eliminate idempotence false-positives
+6. Install Mend Renovate App on `tom333/arr-stack` (Q-05.1-3, blocks Renovate auto-bump path)
+7. Extend `chart-lint.yml` `paths:` to include `tools/arrconf/**` so arrconf-only PRs auto-tag (Phase 5.1 F1)
+8. Fix `arrconf-image.yml` metadata-action `value=` to handle legacy `push:tags` semver correctly (Phase 5.1 F2 — A1-ASSUMED-REGRESSION confirmed)
 
-**Cluster state captured 2026-05-15T09:48Z:**
-- Sonarr: 4 tags (arrconf-managed, tv, anime, family) ; 3 root folders (/media/series, /media/anime, /media/family) ; 4 RPMs (/data/{complete,series,anime,family}/) ; 4 download clients (qBittorrent legacy + TV/Anime/Family)
-- Radarr: 4 tags (arrconf-managed, movies, anime, family) ; 3 root folders (/media/films, /media/films-anime, /media/films-family) ; 4 RPMs (/data/{complete,films,films-anime,films-family}/) ; 4 download clients
-- Prowlarr: app sync updated for Sonarr + Radarr applications
-- qBittorrent: 6 categories NOT created (login failure aborts qbit reconcile before any POST)
-- **D-05-MIG-01 retroactive tagging COMPLETE**: 8/8 Sonarr series tagged `tv`, 11/11 Radarr movies tagged `movies`
+Last activity: 2026-05-16 -- Phase 5 closed (all 6 SC dispositives green ; milestone v0.2.0 ready to ship)
 
-**Manual prerequisites required (NOT in chart — discovered during Task 8.2):**
-- `/media/{anime,family,films-anime,films-family}` — created via `kubectl exec deploy/sonarr -- mkdir -p`. Sonarr/Radarr validate root folder paths exist on disk before accepting POST /rootfolder.
-- `/data/torrents/{series,anime,family,films,films-anime,films-family}` — created via same. Sonarr/Radarr validate RPM `localPath` exists before accepting POST /remotepathmapping.
-- These should arguably be a Wave 0 prerequisite step or chart `initContainer`. Track as Phase 5 follow-up.
-
-**Resume sequence (after PR #11 merges):**
-1. Auto-tag fires → `v0.3.3` → repository_dispatch → `:0.3.3` on GHCR (≤5 min)
-2. Open 1-line PR bumping `values.yaml::arrconf.tag 0.3.1 → 0.3.3` (Renovate-substitute pattern — D-05.1-BUMP-01 deviation)
-3. After PR merges + my-kluster Renovate auto-bumps `targetRevision` + ArgoCD syncs: trigger fresh apply job
-4. Expect: qBit logs in → 6 `category_created` events ; Sonarr/Radarr/Prowlarr emit `no_op` for all resources (idempotence kicks in) ; D-05-MIG-01 no-op (already tagged)
-5. Capture full evidence to `evidence/cluster-apply-log.txt` ; close Task 8.2 ; proceed to Task 8.3 (anime smoke)
-
-Last activity: 2026-05-15 -- Phase 05 Plan 08 Task 8.2 partial (3/4 apps reconciled, qBit blocked on PR #11)
-
-Progress: 7/8 Phase-5 plans (87%) ; Phase 5.1 2/2 plans complete ; Plan 05-08 Task 8.2 IN PROGRESS
+Progress: 8/8 Phase 5 plans + 2/2 Phase 5.1 plans (Phase 5 milestone work complete)
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 
