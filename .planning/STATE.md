@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-15T09:17:22.135Z"
-last_activity: "2026-05-15 -- Phase 5.1 closed (UNBLOCKED Plan 05-08 — pending PR #10 merge)"
+last_updated: "2026-05-15T09:20:38.047Z"
+last_activity: 2026-05-15 -- Phase 05 execution started
 progress:
   total_phases: 12
   completed_phases: 7
@@ -21,11 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 05 Plan 05-08 — cluster apply wave (Phase 5.1 closed, blocker resolved)
+**Current focus:** Phase 05 — reconciler-qbittorrent-split-tv-anime-family
 
 ## Current Position
 
-Phase: **05 (reconciler-qbittorrent-split-tv-anime-family)** — RESUMED post-5.1 closure. Plan 05-08 UNBLOCKED.
+Phase: 05 (reconciler-qbittorrent-split-tv-anime-family) — EXECUTING
+Plan: 1 of 8
 Plans complete: 05-01 → 05-07 (Phase 5) + 05.1-01 + 05.1-02 (Phase 5.1 closed — see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`)
 Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — UNBLOCKED, ready for `/gsd-execute-phase 05` after PR #10 merges)
 
@@ -36,11 +37,34 @@ Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — UNBLOCKED, ready f
   - ⚠️  D-05.1-BUMP-01 DEVIATED: Mend Renovate App not installed on `tom333/arr-stack`. Manual values.yaml bump via PR #10 (https://github.com/tom333/arr-stack/pull/10) substitutes. Follow-up: install Renovate App at https://github.com/apps/renovate.
   - All 6 ROADMAP SC dispositives green (see SUMMARY).
 
-**Next operator action:** review + merge PR #10 (1-line values.yaml diff). After merge → my-kluster Renovate watches arr-stack tag, opens `targetRevision` PR → ArgoCD sync → CronJob runs `:0.3.1`. Then `/gsd-execute-phase 05` to run Plan 05-08 (cluster apply wave).
+**Next operator action:** review + merge **PR #11** (qBit 5.x auth compat fix). After merge → auto-tag `v0.3.3` → repository_dispatch → `:0.3.3` on GHCR → 1-line values.yaml bump PR (Renovate-substitute) → my-kluster ArgoCD sync → retry apply.
 
-Last activity: 2026-05-15 -- Phase 5.1 closed (UNBLOCKED Plan 05-08 — pending PR #10 merge)
+### Plan 05-08 progress (2026-05-15) — Task 8.2 partial, PR #11 in flight
 
-Progress: 7/8 Phase-5 plans (87%) ; Phase 5.1 2/2 plans complete ; Plan 05-08 ready to resume after PR #10 merge
+**3 of 4 apps reconciled successfully** despite retry-storm pattern (Sonarr/Radarr/Prowlarr complete). qBittorrent reconcile **failing** on auth — Phase 5 reconciler coded against qBit 4.x (`HTTP 200 + body 'Ok.' + cookie SID=`), live cluster runs `linuxserver/qbittorrent:5.2.x` (`HTTP 204 + cookie QBT_SID_<port>=`). Fix shipped as **PR #11** (`fix-qbit-5x-auth-response` branch, https://github.com/tom333/arr-stack/pull/11).
+
+**Cluster state captured 2026-05-15T09:48Z:**
+- Sonarr: 4 tags (arrconf-managed, tv, anime, family) ; 3 root folders (/media/series, /media/anime, /media/family) ; 4 RPMs (/data/{complete,series,anime,family}/) ; 4 download clients (qBittorrent legacy + TV/Anime/Family)
+- Radarr: 4 tags (arrconf-managed, movies, anime, family) ; 3 root folders (/media/films, /media/films-anime, /media/films-family) ; 4 RPMs (/data/{complete,films,films-anime,films-family}/) ; 4 download clients
+- Prowlarr: app sync updated for Sonarr + Radarr applications
+- qBittorrent: 6 categories NOT created (login failure aborts qbit reconcile before any POST)
+- **D-05-MIG-01 retroactive tagging COMPLETE**: 8/8 Sonarr series tagged `tv`, 11/11 Radarr movies tagged `movies`
+
+**Manual prerequisites required (NOT in chart — discovered during Task 8.2):**
+- `/media/{anime,family,films-anime,films-family}` — created via `kubectl exec deploy/sonarr -- mkdir -p`. Sonarr/Radarr validate root folder paths exist on disk before accepting POST /rootfolder.
+- `/data/torrents/{series,anime,family,films,films-anime,films-family}` — created via same. Sonarr/Radarr validate RPM `localPath` exists before accepting POST /remotepathmapping.
+- These should arguably be a Wave 0 prerequisite step or chart `initContainer`. Track as Phase 5 follow-up.
+
+**Resume sequence (after PR #11 merges):**
+1. Auto-tag fires → `v0.3.3` → repository_dispatch → `:0.3.3` on GHCR (≤5 min)
+2. Open 1-line PR bumping `values.yaml::arrconf.tag 0.3.1 → 0.3.3` (Renovate-substitute pattern — D-05.1-BUMP-01 deviation)
+3. After PR merges + my-kluster Renovate auto-bumps `targetRevision` + ArgoCD syncs: trigger fresh apply job
+4. Expect: qBit logs in → 6 `category_created` events ; Sonarr/Radarr/Prowlarr emit `no_op` for all resources (idempotence kicks in) ; D-05-MIG-01 no-op (already tagged)
+5. Capture full evidence to `evidence/cluster-apply-log.txt` ; close Task 8.2 ; proceed to Task 8.3 (anime smoke)
+
+Last activity: 2026-05-15 -- Phase 05 Plan 08 Task 8.2 partial (3/4 apps reconciled, qBit blocked on PR #11)
+
+Progress: 7/8 Phase-5 plans (87%) ; Phase 5.1 2/2 plans complete ; Plan 05-08 Task 8.2 IN PROGRESS
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 
