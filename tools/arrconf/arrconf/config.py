@@ -19,9 +19,12 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
+from arrconf.resources.qbittorrent.category import Category
+from arrconf.resources.qbittorrent.preferences import QbitPreferences
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
 from arrconf.resources.sonarr.notification import Notification
+from arrconf.resources.sonarr.remote_path_mapping import RemotePathMapping
 from arrconf.resources.sonarr.root_folder import RootFolder
 
 # ---------------------------------------------------------------------------
@@ -101,6 +104,134 @@ class HostConfigSection(BaseModel):
     instanceName: str | None = Field(default=None, description="Display name of the instance.")
 
 
+# ---------------------------------------------------------------------------
+# Phase 5 section models — qBittorrent + Sonarr/Radarr extensions (D-05).
+# ---------------------------------------------------------------------------
+
+
+class TagItem(BaseModel):
+    """A single Sonarr/Radarr tag declared in YAML (Phase 5, D-05-SPLIT-01).
+
+    Minimal model: only ``label`` is needed for match + create. The server-
+    derived ``id`` lives on the ``Tag`` resource model in resources/sonarr/tag.py.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    label: str = Field(description="Tag label (e.g. 'tv', 'anime', 'family').")
+
+
+class TagsSection(BaseModel):
+    """List of Sonarr/Radarr tags with opt-in prune (D-05-SPLIT-01)."""
+
+    model_config = ConfigDict(extra="forbid")
+    prune: bool = Field(
+        default=False,
+        description="Opt-in deletion of unmanaged tags (D-04).",
+    )
+    items: list[TagItem] = Field(default_factory=list)
+
+
+class RemotePathMappingsSection(BaseModel):
+    """List of *arr Remote Path Mappings with opt-in prune (D-05-PATHMAP-01).
+
+    Match key is the composite tuple (host, remotePath) — changes are DELETE+ADD
+    (no PUT endpoint on the *arr API, Pitfall 1).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    prune: bool = Field(
+        default=False,
+        description="Opt-in deletion of unmanaged path mappings (D-04).",
+    )
+    items: list[RemotePathMapping] = Field(default_factory=list)
+
+
+class SeriesTagsSection(BaseModel):
+    """D-05-MIG-01: retroactive default-tag for untagged series in Sonarr.
+
+    ``enable`` defaults to True — Phase 5 core feature. On each apply run,
+    arrconf adds ``default_tag`` to any series that has no tags. Idempotent:
+    series already tagged are not modified.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(
+        default=True,
+        description="Default-ON: tag un-tagged series with default_tag (D-05-MIG-01).",
+    )
+    default_tag: str = Field(
+        default="tv",
+        description="Tag label added to un-tagged series (D-05-MIG-01).",
+    )
+
+
+class MovieTagsSection(BaseModel):
+    """D-05-SPLIT-02: retroactive default-tag for untagged movies in Radarr.
+
+    Mirror of SeriesTagsSection with default_tag='movies' (Radarr convention:
+    'movies' not 'tv', matching qBit category 'radarr-movies').
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(
+        default=True,
+        description="Default-ON: tag un-tagged movies with default_tag (D-05-SPLIT-02).",
+    )
+    default_tag: str = Field(
+        default="movies",
+        description="Tag label added to un-tagged movies (D-05-SPLIT-02).",
+    )
+
+
+class CategoriesSection(BaseModel):
+    """List of qBittorrent categories with opt-in prune.
+
+    NEVER set prune=True in production — cleanuparr depends on the
+    'cleanuparr-unlinked' category surviving reconciliation (R-04 in RESEARCH.md).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    prune: bool = Field(
+        default=False,
+        description="Opt-in deletion of unmanaged categories (D-04). "
+        "NEVER set true — cleanuparr depends on cleanuparr-unlinked (R-04).",
+    )
+    items: list[Category] = Field(default_factory=list)
+
+
+class PreferencesSection(BaseModel):
+    """qBittorrent preferences opt-in reconcile (D-03-04 mirror for qBit).
+
+    ``enable`` defaults to False — same opt-in pattern as host_config (D-03-04).
+    When disabled, the reconciler logs 'qbit_preferences_reconcile_skipped'.
+    Only the 4-key allowlist (QbitPreferences) is written; all other qBit
+    settings remain operator-controlled.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(
+        default=False,
+        description=(
+            "Opt-in flag — qBit preferences reconcile is skipped unless True (D-03-04 mirror)."
+        ),
+    )
+    values: QbitPreferences = Field(default_factory=QbitPreferences)
+
+
+class QbittorrentInstance(BaseModel):
+    """A single qBittorrent instance (Phase 5, D-05-QBT-02).
+
+    Cookie-based auth (D-05-QBT-01): credentials come from QBT_USER / QBT_PASS
+    env vars (CLAUDE.md §"Variables d'environnement"), NOT from this YAML.
+    Resources managed: categories (6 entries) + preferences (opt-in settings).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    base_url: str = Field(description="qBittorrent base URL e.g. http://qbittorrent.svc:8080")
+    categories: CategoriesSection = Field(default_factory=CategoriesSection)
+    preferences: PreferencesSection = Field(default_factory=PreferencesSection)
+
+
 class AppEntry(BaseModel):
     """A single Prowlarr application connection (D-03-03).
 
@@ -147,6 +278,11 @@ class SonarrInstance(BaseModel):
 
     Resource section order is alphabetical for readability — runtime
     reconcile ordering is enforced by the reconciler itself (Plan 03).
+
+    Phase 5 additions (D-05-SPLIT-01, D-05-PATHMAP-01, D-05-MIG-01):
+    - tags: declarative Sonarr tags (tv, anime, family)
+    - remote_path_mappings: qBit-to-Sonarr path translation entries
+    - series_tags: retroactive default-tag for un-tagged series
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -155,7 +291,12 @@ class SonarrInstance(BaseModel):
     host_config: HostConfigSection = Field(default_factory=HostConfigSection)
     indexers: IndexersSection = Field(default_factory=IndexersSection)
     notifications: NotificationsSection = Field(default_factory=NotificationsSection)
+    remote_path_mappings: RemotePathMappingsSection = Field(
+        default_factory=RemotePathMappingsSection
+    )
     root_folders: RootFoldersSection = Field(default_factory=RootFoldersSection)
+    series_tags: SeriesTagsSection = Field(default_factory=SeriesTagsSection)
+    tags: TagsSection = Field(default_factory=TagsSection)
 
 
 class RadarrInstance(BaseModel):
@@ -164,6 +305,11 @@ class RadarrInstance(BaseModel):
     Identical section list to SonarrInstance — Radarr's v3 API exposes the
     same resource types with the same shapes. The reconciler (Plan 04) is a
     parallel implementation; the YAML schema is intentionally aligned.
+
+    Phase 5 additions (D-05-SPLIT-02, D-05-PATHMAP-01, D-05-MIG-01):
+    - tags: declarative Radarr tags (movies, anime, family)
+    - remote_path_mappings: qBit-to-Radarr path translation entries
+    - movie_tags: retroactive default-tag for un-tagged movies (default_tag='movies')
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -171,8 +317,13 @@ class RadarrInstance(BaseModel):
     download_clients: DownloadClientsSection = Field(default_factory=DownloadClientsSection)
     host_config: HostConfigSection = Field(default_factory=HostConfigSection)
     indexers: IndexersSection = Field(default_factory=IndexersSection)
+    movie_tags: MovieTagsSection = Field(default_factory=MovieTagsSection)
     notifications: NotificationsSection = Field(default_factory=NotificationsSection)
+    remote_path_mappings: RemotePathMappingsSection = Field(
+        default_factory=RemotePathMappingsSection
+    )
     root_folders: RootFoldersSection = Field(default_factory=RootFoldersSection)
+    tags: TagsSection = Field(default_factory=TagsSection)
 
 
 class ProwlarrInstance(BaseModel):
@@ -198,12 +349,16 @@ class RootConfig(BaseModel):
     Phase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the
     root level. The Phase-1 ``apps:`` indirection has been removed — every
     caller updated atomically with this rewrite (Plan 02 Task 2.3).
+
+    Phase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root
+    convention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.
     """
 
     model_config = ConfigDict(extra="forbid")
     sonarr: dict[str, SonarrInstance] = Field(default_factory=dict)
     radarr: dict[str, RadarrInstance] = Field(default_factory=dict)
     prowlarr: dict[str, ProwlarrInstance] = Field(default_factory=dict)
+    qbittorrent: dict[str, QbittorrentInstance] = Field(default_factory=dict)
 
 
 def load_config(path: Path) -> RootConfig:

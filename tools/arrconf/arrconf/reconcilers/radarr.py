@@ -1,21 +1,38 @@
-"""Radarr reconciler — Phase 3 scope (D-03-01 full parity with Sonarr).
+"""Radarr reconciler — Phase 5 scope (D-05-SPLIT-02, D-05-PATHMAP-01, D-05-MIG-01).
 
-Topological order (RESEARCH.md §10):
+Covers: download_clients + indexers + notifications + root_folders +
+host_config (opt-in gated, D-03-04) + tags (movies/anime/family, D-05-SPLIT-02) +
+remote_path_mappings (composite-key DELETE+ADD, D-05-PATHMAP-01) +
+movie_tags (retroactive default-tag via bulk editor, D-05-MIG-01).
+
+Topological order (D-05-ORDER-01 mirror — regression-tested in test_reconcile_order_radarr):
 
 1. Ensure the ``arrconf-managed`` tag exists (D-02 / REQ-managed-tag).
-2. Reconcile ``indexers`` (list resource, match by ``name``).
-3. Reconcile ``root_folders`` (list resource, match by ``path`` — Pitfall 1).
-4. Reconcile ``download_clients`` with managed-tag protection
-   (D-04 / D-09 / T-01-04).
-5. Reconcile ``notifications`` (list resource, match by ``name``).
-6. Reconcile ``host_config`` (singleton, opt-in via section.enable — D-03-04).
+2. Reconcile ``tags`` (movies, anime, family) — MUST precede download_clients
+   so tag IDs exist for label→id resolution.
+3. Reconcile ``indexers`` (list resource, match by ``name``).
+4. Reconcile ``root_folders`` (list resource, match by ``path`` — Pitfall 1).
+5. Reconcile ``remote_path_mappings`` (composite-key DELETE+ADD — no PUT endpoint;
+   D-05-PATHMAP-01).
+6. Reconcile ``download_clients`` with managed-tag protection
+   (D-04 / D-09 / T-01-04) and label→id resolution for tags.
+7. Reconcile ``notifications`` (list resource, match by ``name``).
+8. Reconcile ``host_config`` (singleton, opt-in via section.enable — D-03-04).
+9. Reconcile ``movie_tags`` — MUST run AFTER download_clients (D-05-ORDER-01)
+   to ensure tagged movies route to already-configured download clients.
+
+Rationale for ordering mirrors Sonarr's (sonarr.py D-05-ORDER-01 docstring).
+movie_tags last — the bulk editor touches REAL movie collection (D-05-MIG-01).
+
+Critical schema divergence from Sonarr (RESEARCH lines 220–231):
+- PUT /movie/editor uses ``movieIds`` (NOT ``seriesIds``)
+- PUT /movie/editor uses ``addImportExclusion`` (NOT ``addImportListExclusion``)
+Both divergences are regression-tested in test_movie_editor.py.
 
 Implementation note: This file intentionally mirrors the Sonarr reconciler
-verbatim with the appropriate client substituted. Extracting the shared
-helpers (`_execute`, `_reconcile_list_resource`, `_reconcile_host_config`,
-`_ensure_managed_tag`) into a shared module is a future cleanup tracked in
-RESEARCH.md Open Question 1 — deferred from Phase 3 to keep the file
-ownership boundaries clean across parallel Wave-3 plans.
+verbatim with the appropriate client and movie-specific names substituted.
+Shared helpers (_reconcile_remote_path_mappings, _resolve_download_client_tag_labels)
+are imported from arrconf.reconcilers._shared (Plan 06 extraction — byte-equivalent).
 """
 
 from __future__ import annotations
@@ -27,7 +44,7 @@ import structlog
 from pydantic import BaseModel
 
 from arrconf.client_base import RadarrClient
-from arrconf.config import HostConfigSection, RadarrInstance
+from arrconf.config import HostConfigSection, MovieTagsSection, RadarrInstance, TagsSection
 from arrconf.differ import (
     Action,
     PlannedAction,
@@ -36,6 +53,10 @@ from arrconf.differ import (
     reconcile,
 )
 from arrconf.exceptions import ReconcileError
+from arrconf.reconcilers._shared import (
+    _reconcile_remote_path_mappings,
+    _resolve_download_client_tag_labels,
+)
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.host_config import HostConfig
 from arrconf.resources.sonarr.indexer import Indexer
@@ -53,6 +74,8 @@ INDEXER_PATH = "/indexer"
 NOTIFICATION_PATH = "/notification"
 ROOT_FOLDER_PATH = "/rootfolder"
 HOST_CONFIG_PATH = "/config/host"
+MOVIE_PATH = "/movie"
+MOVIE_EDITOR_PATH = "/movie/editor"
 
 
 @dataclass
@@ -213,16 +236,124 @@ def _reconcile_host_config(
     client.put(HOST_CONFIG_PATH, id=current_full.id, json=body)
 
 
+def _reconcile_tags(
+    client: RadarrClient,
+    section: TagsSection,
+    dry_run: bool,
+) -> list[Tag]:
+    """Reconcile the operator-declared tags (e.g. movies, anime, family).
+
+    Mirror of sonarr._reconcile_tags. Returns the post-reconcile tag list with
+    IDs populated — downstream callers (label→id resolver, movie_tags) consume
+    this list instead of issuing a second GET /tag call (D-05-ORDER-01 efficiency).
+
+    Uses _reconcile_list_resource (match_key="label") for the diff/execute loop.
+    After the reconcile, re-fetches the tag list to capture server-assigned IDs
+    for any newly POSTed tags (the POST response body carries the new id, but
+    _reconcile_list_resource does not return individual response bodies).
+    """
+    raw_current = client.get(TAG_PATH)
+    desired_tags = [Tag(label=item.label) for item in section.items]
+    _reconcile_list_resource(
+        client,
+        TAG_PATH,
+        raw_current,
+        Tag,
+        desired_tags,
+        match_key="label",
+        prune=section.prune,
+        managed_tag_id=None,
+        dry_run=dry_run,
+    )
+    # Re-fetch to get server-assigned IDs for any newly created tags.
+    # In dry_run mode, no tags were actually created so the GET returns the
+    # same list as before; callers must tolerate potentially-missing IDs.
+    raw_after = client.get(TAG_PATH)
+    return [Tag.model_validate(t) for t in raw_after]
+
+
+def _reconcile_movie_tags(
+    client: RadarrClient,
+    section: MovieTagsSection,
+    all_tags: list[Tag],
+    dry_run: bool,
+) -> list[str]:
+    """Retroactively tag untagged movies with the default tag (D-05-MIG-01 Radarr mirror).
+
+    Runs AFTER download_clients (D-05-ORDER-01) so movie tag routing goes to
+    already-configured download clients. Uses PUT /api/v3/movie/editor with
+    applyTags="add" so existing operator tags on movies are NEVER removed (R-02).
+
+    Pitfall 5: editor returns HTTP 202 Accepted — raise_for_status() accepts
+    2xx already.
+
+    Critical body invariants (T-05-CONTENT threat mitigation):
+    - applyTags="add" (never "replace" or "remove")
+    - moveFiles=False  (must NOT trigger file moves)
+    - deleteFiles=False (must NOT delete files)
+
+    Radarr schema divergence from Sonarr (RESEARCH lines 220–231):
+    - Body field ``movieIds`` (NOT ``seriesIds`` — field name differs)
+    - Body field ``addImportExclusion: False`` (NOT ``addImportListExclusion`` —
+      Radarr's MovieEditorResource.cs uses the singular form without "List")
+
+    Default tag is ``"movies"`` per D-05-SPLIT-02 (Radarr convention: matches
+    the qBittorrent category name ``radarr-movies``).
+    """
+    if not section.enable:
+        log.info("movie_tags_reconcile_skipped")
+        return []
+
+    raw_movies = client.get(MOVIE_PATH)
+    untagged_ids = [m["id"] for m in raw_movies if not m.get("tags")]
+    if not untagged_ids:
+        log.info("movie_tags_no_op")
+        return []
+
+    # Resolve the default_tag label → id only when there is actual work to do.
+    # Deferring until here avoids raising on misconfiguration when the cluster is
+    # already fully tagged (idempotent runs in sync state stay error-free).
+    default_tag = next((t for t in all_tags if t.label == section.default_tag), None)
+    if default_tag is None or default_tag.id is None:
+        raise ReconcileError(
+            f"movie_tags: default tag '{section.default_tag}' not found — "
+            "declare it in instance.tags.items so it is reconciled first (D-05-ORDER-01)"
+        )
+
+    if dry_run:
+        log.info("dry_run_skip", resource="movie_tags", count=len(untagged_ids))
+        return [f"movie_tags:dry_run:{len(untagged_ids)}"]
+
+    body = {
+        "movieIds": untagged_ids,
+        "tags": [default_tag.id],
+        "applyTags": "add",
+        "moveFiles": False,
+        "deleteFiles": False,
+        "addImportExclusion": False,
+    }
+    # Use _request directly — client.put() requires (path, id, json) signature with
+    # a numeric id parameter, but the editor endpoint is PUT /movie/editor (no id).
+    client._request("PUT", MOVIE_EDITOR_PATH, json=body)
+    log.info("movie_tags_applied", count=len(untagged_ids), tag_id=default_tag.id)
+    return [f"movie_tags:applied:{len(untagged_ids)}"]
+
+
 def reconcile_radarr(
     client: RadarrClient,
     instance: RadarrInstance,
     dry_run: bool,
 ) -> RadarrResult:
-    """Reconcile a Radarr instance (full parity with Sonarr — D-03-01).
+    """Reconcile a Radarr instance (Phase 5 — D-05-SPLIT-02 full scope).
 
-    Topological order: tags → indexers → root_folders → download_clients →
-    notifications → host_config (D-03-04 opt-in). See module docstring.
+    Topological order (D-05-ORDER-01 mirror — regression-tested in test_reconcile_order_radarr):
+    managed-tag → tags → indexers → root_folders → remote_path_mappings →
+    download_clients → notifications → host_config → movie_tags.
+
+    step_begin log events carry step_index for ordering regression tests.
     """
+    # Step 1: Ensure the arrconf-managed tag.
+    log.info("step_begin", step="managed_tag", step_index=1)
     managed_tag = _ensure_managed_tag(client, dry_run)
     # WR-04 (Phase 3 code review): use the defensive sentinel CONSISTENTLY everywhere.
     # Pre-fix, the sentinel was only applied to _ensure_managed_tag_in_desired and
@@ -231,7 +362,13 @@ def reconcile_radarr(
     managed_tag_id = managed_tag.id if managed_tag.id is not None else DRY_RUN_TAG_SENTINEL_ID
     actions_taken: list[str] = []
 
-    # 2. Indexers (read-mostly alignment; created by Prowlarr sync).
+    # Step 2: Reconcile operator-declared tags (movies, anime, family).
+    # MUST precede download_clients so IDs are available for label→id resolution.
+    log.info("step_begin", step="tags", step_index=2)
+    all_tags = _reconcile_tags(client, instance.tags, dry_run)
+
+    # Step 3: Indexers (read-mostly alignment; created by Prowlarr sync).
+    log.info("step_begin", step="indexers", step_index=3)
     actions_taken += _reconcile_list_resource(
         client,
         INDEXER_PATH,
@@ -244,7 +381,8 @@ def reconcile_radarr(
         dry_run=dry_run,
     )
 
-    # 3. Root folders (match by PATH — Pitfall 1; no managed tag).
+    # Step 4: Root folders (match by PATH — Pitfall 1; no managed tag).
+    log.info("step_begin", step="root_folders", step_index=4)
     actions_taken += _reconcile_list_resource(
         client,
         ROOT_FOLDER_PATH,
@@ -257,12 +395,27 @@ def reconcile_radarr(
         dry_run=dry_run,
     )
 
-    # 4. Download clients (managed-tag-stamped desired list).
+    # Step 5: Remote path mappings (composite-key DELETE+ADD; D-05-PATHMAP-01).
+    log.info("step_begin", step="remote_path_mappings", step_index=5)
+    actions_taken += _reconcile_remote_path_mappings(
+        client,
+        instance.remote_path_mappings.items,
+        prune=instance.remote_path_mappings.prune,
+        dry_run=dry_run,
+    )
+
+    # Step 6: Download clients (original Phase 1 — managed-tag-stamped + label-resolved).
+    # MUST run AFTER tags (step 2) so resolved IDs exist.
+    log.info("step_begin", step="download_clients", step_index=6)
     raw_current = client.get(DOWNLOAD_CLIENT_PATH)
     current_dcs = [DownloadClient.model_validate(x) for x in raw_current]
-    desired_dcs = [
-        _ensure_managed_tag_in_desired(dc, managed_tag_id) for dc in instance.download_clients.items
-    ]
+
+    # Resolve string tag labels → integer IDs using the post-reconcile all_tags list.
+    label_resolved = _resolve_download_client_tag_labels(
+        instance.download_clients.items, all_tags, app_name="Radarr"
+    )
+    desired_dcs = [_ensure_managed_tag_in_desired(dc, managed_tag_id) for dc in label_resolved]
+
     dc_plan = reconcile(
         current=current_dcs,
         desired=desired_dcs,
@@ -272,7 +425,8 @@ def reconcile_radarr(
     )
     actions_taken += _execute(client, DOWNLOAD_CLIENT_PATH, dc_plan, dry_run)
 
-    # 5. Notifications.
+    # Step 7: Notifications.
+    log.info("step_begin", step="notifications", step_index=7)
     actions_taken += _reconcile_list_resource(
         client,
         NOTIFICATION_PATH,
@@ -285,8 +439,14 @@ def reconcile_radarr(
         dry_run=dry_run,
     )
 
-    # 6. host_config (D-03-04 opt-in; singleton).
+    # Step 8: host_config (D-03-04 opt-in; singleton).
+    log.info("step_begin", step="host_config", step_index=8)
     _reconcile_host_config(client, instance.host_config, dry_run)
+
+    # Step 9: Movie tags — MUST run AFTER download_clients (D-05-ORDER-01).
+    # Tagged movies route to already-configured download clients.
+    log.info("step_begin", step="movie_tags", step_index=9)
+    actions_taken += _reconcile_movie_tags(client, instance.movie_tags, all_tags, dry_run)
 
     return RadarrResult(
         plan=dc_plan,

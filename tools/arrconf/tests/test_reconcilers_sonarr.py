@@ -11,6 +11,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+import structlog.testing
 
 from arrconf.client_base import SonarrClient
 from arrconf.config import (
@@ -19,7 +20,10 @@ from arrconf.config import (
     IndexersSection,
     NotificationsSection,
     RootFoldersSection,
+    SeriesTagsSection,
     SonarrInstance,
+    TagItem,
+    TagsSection,
 )
 from arrconf.differ import Action
 from arrconf.reconcilers.sonarr import reconcile_sonarr
@@ -47,13 +51,16 @@ def _mock_base_gets(
     rootfolders: list[dict[str, Any]] | None = None,
     downloadclients: list[dict[str, Any]] | None = None,
     notifications: list[dict[str, Any]] | None = None,
+    remotepathmappings: list[dict[str, Any]] | None = None,
+    series: list[dict[str, Any]] | None = None,
 ) -> None:
     """Mock the GET endpoints that the extended reconciler always touches.
 
-    The Phase-3 reconciler calls GET /indexer, /rootfolder, /downloadclient,
-    /notification in every run. Tests that focus on download_clients only must
-    still mock all four endpoints to avoid AllMockedAssertionError from respx.
-    Defaults to empty lists for endpoints the test does not care about.
+    The Phase-5 reconciler calls GET /tag (multiple times), /indexer, /rootfolder,
+    /downloadclient, /notification, /remotepathmapping, /series in every run.
+    Tests that focus on a specific resource must still mock all endpoints to avoid
+    AllMockedAssertionError from respx. Defaults to empty lists for endpoints the
+    test does not care about.
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=tag_fixture))
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=indexers or []))
@@ -62,6 +69,10 @@ def _mock_base_gets(
         return_value=httpx.Response(200, json=downloadclients or [])
     )
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    respx_mock.get("/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=remotepathmappings or [])
+    )
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=series or []))
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
@@ -465,12 +476,17 @@ def _mock_phase3_gets(
     rootfolders: list[dict[str, Any]] | None = None,
     downloadclients: list[dict[str, Any]] | None = None,
     hostconfig: dict[str, Any] | None = None,
+    remotepathmappings: list[dict[str, Any]] | None = None,
+    series: list[dict[str, Any]] | None = None,
 ) -> None:
     """Mock every GET endpoint the extended reconciler touches.
 
     Defaults to empty lists for list resources. host_config GET is only
     mocked if `hostconfig` is provided — tests for the skipped branch should
     NOT pass a hostconfig fixture so respx records 0 calls.
+
+    Phase-5 additions: /remotepathmapping and /series are always mocked (default
+    empty) because the Phase-5 reconciler calls these in every run.
     """
     respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=tag_fixture))
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=indexers or []))
@@ -479,6 +495,10 @@ def _mock_phase3_gets(
         return_value=httpx.Response(200, json=downloadclients or [])
     )
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    respx_mock.get("/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=remotepathmappings or [])
+    )
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=series or []))
     if hostconfig is not None:
         respx_mock.get("/config/host").mock(return_value=httpx.Response(200, json=hostconfig))
 
@@ -709,3 +729,289 @@ def test_host_config_update_when_different(
     # (Plan 01 Task 1.2 — HostConfig excludes apiKey/password):
     assert "apiKey" not in body_json, "HostConfig.apiKey must be excluded from PUT body"
     assert "password" not in body_json, "HostConfig.password must be excluded from PUT body"
+
+
+# ---------------------------------------------------------------------------
+# Phase-5 extension tests (D-05-SPLIT-01, D-05-ORDER-01, label→id resolver)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_split_three_tags_three_root_folders_three_download_clients(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """ADR-7 split: 3 tags + 3 root folders + 3 download clients in a single reconcile.
+
+    After reconcile:
+    - 3 POSTs to /tag (tv, anime, family — managed tag already exists).
+    - 3 POSTs to /rootfolder (new media paths).
+    - 3 POSTs to /downloadclient.
+    - Download client POST bodies must contain INTEGER tag IDs (label resolution worked),
+      not string labels.
+    """
+    managed_tag = {"id": 1, "label": "arrconf-managed"}
+    tv_id, anime_id, family_id = 2, 3, 4
+
+    # /tag: GET returns managed tag; POST creates each new tag in sequence.
+    tag_responses = iter(
+        [
+            httpx.Response(201, json={"id": tv_id, "label": "tv"}),
+            httpx.Response(201, json={"id": anime_id, "label": "anime"}),
+            httpx.Response(201, json={"id": family_id, "label": "family"}),
+        ]
+    )
+    respx_mock.get("/tag").mock(
+        side_effect=[
+            httpx.Response(200, json=[managed_tag]),  # _ensure_managed_tag
+            httpx.Response(200, json=[managed_tag]),  # _reconcile_tags (before)
+            httpx.Response(
+                200,
+                json=[  # _reconcile_tags (after re-fetch)
+                    managed_tag,
+                    {"id": tv_id, "label": "tv"},
+                    {"id": anime_id, "label": "anime"},
+                    {"id": family_id, "label": "family"},
+                ],
+            ),
+        ]
+    )
+    respx_mock.post("/tag").mock(side_effect=lambda r: next(tag_responses))
+
+    # /rootfolder: GET returns empty (all 3 are new).
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 99, "path": "/media/new"})
+    )
+
+    # /downloadclient: GET returns empty.
+    dc_post_bodies: list[dict[str, Any]] = []
+
+    def _capture_dc_post(request: httpx.Request) -> httpx.Response:
+        dc_post_bodies.append(json.loads(request.content.decode()))
+        return httpx.Response(201, json={"id": 50})
+
+    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.post("/downloadclient").mock(side_effect=_capture_dc_post)
+
+    # Other endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
+
+    tv_dc = DownloadClient(
+        name="qbit-tv",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["tv"],
+    )
+    anime_dc = DownloadClient(
+        name="qbit-anime",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["anime"],
+    )
+    family_dc = DownloadClient(
+        name="qbit-family",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["family"],
+    )
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        tags=TagsSection(
+            items=[TagItem(label="tv"), TagItem(label="anime"), TagItem(label="family")]
+        ),
+        root_folders=RootFoldersSection(
+            items=[
+                RootFolder(path="/media/series"),
+                RootFolder(path="/media/anime"),
+                RootFolder(path="/media/family"),
+            ]
+        ),
+        download_clients=DownloadClientsSection(items=[tv_dc, anime_dc, family_dc]),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    # 3 tag POSTs (tv, anime, family).
+    tag_posts = [
+        c for c in respx_mock.calls if c.request.method == "POST" and "/tag" in c.request.url.path
+    ]
+    assert len(tag_posts) == 3, f"Expected 3 tag POSTs, got {len(tag_posts)}"
+
+    # 3 root folder POSTs.
+    rf_posts = [
+        c
+        for c in respx_mock.calls
+        if c.request.method == "POST" and "/rootfolder" in c.request.url.path
+    ]
+    assert len(rf_posts) == 3, f"Expected 3 rootfolder POSTs, got {len(rf_posts)}"
+
+    # 3 download client POSTs with INTEGER tag IDs (not string labels).
+    assert len(dc_post_bodies) == 3, f"Expected 3 download client POSTs, got {len(dc_post_bodies)}"
+    for body in dc_post_bodies:
+        tags_in_body = body.get("tags", [])
+        # tag_labels field must NOT appear in the API body (excluded=True).
+        assert "tag_labels" not in body, "tag_labels must be excluded from POST body"
+        # Each download client gets its tag ID + managed tag ID.
+        assert all(isinstance(t, int) for t in tags_in_body), (
+            f"All tags in download client POST body must be ints. Got: {tags_in_body}"
+        )
+        # At minimum: managed tag + one routing tag.
+        assert len(tags_in_body) >= 2, (
+            f"Expected managed tag + routing tag in body. Got: {tags_in_body}"
+        )
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_reconcile_order(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """D-05-ORDER-01 regression: step_begin events must appear in the exact fixed order.
+
+    Captures the structured-log output (JSON lines written to stdout by the configured
+    structlog processor chain) and asserts that step_begin events appear in the
+    D-05-ORDER-01 sequence. Uses capsys rather than structlog.testing.capture_logs()
+    because cache_logger_on_first_use=True (set by configure_logging() in CLI tests)
+    can freeze the bound logger before capture_logs() can inject its processor.
+    """
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture)
+
+    instance = SonarrInstance(base_url="http://sonarr.test")
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+
+    # Use structlog.testing.capture_logs() when possible; fall back to capsys JSON parsing.
+    # Both approaches are tried: capture_logs() is clean when the logger is not cached;
+    # capsys parsing is robust regardless of the processor chain state.
+    step_events: list[dict[str, Any]] = []
+
+    with structlog.testing.capture_logs() as cap_logs:
+        reconcile_sonarr(client, instance, dry_run=False)
+
+    step_events = [e for e in cap_logs if e.get("event") == "step_begin" and "step_index" in e]
+
+    if not step_events:
+        # Fallback: parse JSON lines from stdout (works when logger is cached).
+        import json as _json
+
+        captured = capsys.readouterr()
+        for line in captured.out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = _json.loads(line)
+                if obj.get("event") == "step_begin" and "step_index" in obj:
+                    step_events.append(obj)
+            except (_json.JSONDecodeError, ValueError):
+                pass
+
+    assert len(step_events) >= 4, (
+        f"D-05-ORDER-01: expected at least 4 step_begin events, got {len(step_events)}. "
+        f"Events: {step_events}"
+    )
+
+    # The step_index must be strictly increasing (D-05-ORDER-01 invariant).
+    indices = [e["step_index"] for e in step_events]
+    assert indices == sorted(indices), (
+        f"D-05-ORDER-01 violated! step_index sequence must be monotonically increasing. "
+        f"Got: {indices}. Step events: {[(e.get('step'), e['step_index']) for e in step_events]}"
+    )
+
+    # Verify the canonical order by step name.
+    step_names = [e.get("step") for e in step_events]
+    canonical_order = [
+        "managed_tag",
+        "tags",
+        "indexers",
+        "root_folders",
+        "remote_path_mappings",
+        "download_clients",
+        "notifications",
+        "host_config",
+        "series_tags",
+    ]
+    assert step_names == canonical_order, (
+        f"D-05-ORDER-01 violated! Expected step order:\n  {canonical_order}\nGot:\n  {step_names}"
+    )
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_download_client_tags_label_resolution_uses_just_created_id(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """D-05-ORDER-01 dispositive: label resolver uses IDs from the tags step, not from cache.
+
+    Fixture: GET /tag returns [] (no tags exist). YAML declares tag {label: tv} AND
+    download_client with tag_labels=[tv]. After reconcile: the download_client POST
+    body's tags field must contain the ID returned by the just-completed POST /tag.
+
+    This proves the label→id resolver runs AFTER the tags POST completes (step 2
+    before step 6 per D-05-ORDER-01).
+    """
+    just_created_tv_id = 42  # Non-trivial id to prove the resolver used the POST response.
+
+    # GET /tag: first and second calls return [] (no pre-existing tags).
+    # Third call (re-fetch after reconcile) returns the newly created tag.
+    respx_mock.get("/tag").mock(
+        side_effect=[
+            httpx.Response(200, json=[]),  # _ensure_managed_tag
+            httpx.Response(200, json=[]),  # _reconcile_tags (before)
+            httpx.Response(200, json=[{"id": just_created_tv_id, "label": "tv"}]),  # re-fetch
+        ]
+    )
+    # POST /tag for "tv" returns the server-assigned id=42.
+    respx_mock.post("/tag").mock(
+        return_value=httpx.Response(201, json={"id": just_created_tv_id, "label": "tv"})
+    )
+
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
+
+    dc_post_bodies: list[dict[str, Any]] = []
+
+    def _capture_dc_post(request: httpx.Request) -> httpx.Response:
+        dc_post_bodies.append(json.loads(request.content.decode()))
+        return httpx.Response(201, json={"id": 1})
+
+    respx_mock.post("/downloadclient").mock(side_effect=_capture_dc_post)
+
+    tv_dc = DownloadClient(
+        name="qbit-tv",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["tv"],
+    )
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        tags=TagsSection(items=[TagItem(label="tv")]),
+        download_clients=DownloadClientsSection(items=[tv_dc]),
+        series_tags=SeriesTagsSection(enable=False),  # disable to keep test focused
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(client, instance, dry_run=False)
+
+    assert len(dc_post_bodies) == 1, "Expected exactly one download client POST"
+    tags_in_body = dc_post_bodies[0].get("tags", [])
+
+    assert just_created_tv_id in tags_in_body, (
+        f"Label resolver must use the id={just_created_tv_id} returned by the just-completed "
+        f"POST /tag, not a stale/string value. Got tags: {tags_in_body}"
+    )
+    # String "tv" must NOT be in the tags field.
+    assert "tv" not in tags_in_body, (
+        f"String 'tv' must not appear in tags body — label resolution must produce integer. "
+        f"Got: {tags_in_body}"
+    )

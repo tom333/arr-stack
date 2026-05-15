@@ -1,0 +1,1049 @@
+[
+  {
+    "added": "2026-04-14T01:30:23Z",
+    "airTime": "00:00",
+    "alternateTitles": [],
+    "cleanTitle": "luckyluke2026",
+    "ended": false,
+    "firstAired": "2026-03-23T00:00:00Z",
+    "genres": [
+      "Action",
+      "Adventure",
+      "Comedy",
+      "Mini-Series",
+      "Western"
+    ],
+    "id": 1,
+    "imdbId": "tt33560536",
+    "languageProfileId": 1,
+    "lastAired": "2026-03-23T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "Disney+",
+    "originalLanguage": {
+      "id": 2,
+      "name": "French"
+    },
+    "overview": "Lucky Luke must help Louise find her mother, who mysteriously disappeared, while foiling a plot that could change the course of American history.",
+    "path": "/media/series/Lucky Luke (2026)",
+    "previousAiring": "2026-03-23T04:00:00Z",
+    "qualityProfileId": 4,
+    "ratings": {
+      "value": 5.9,
+      "votes": 749
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 35,
+    "seasonFolder": true,
+    "seasons": [
+      {
+        "monitored": true,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 8,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "previousAiring": "2026-03-23T04:00:00Z",
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 8
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "lucky luke 2026",
+    "statistics": {
+      "episodeCount": 8,
+      "episodeFileCount": 0,
+      "percentOfEpisodes": 0,
+      "releaseGroups": [],
+      "seasonCount": 1,
+      "sizeOnDisk": 0,
+      "totalEpisodeCount": 8
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "Lucky Luke (2026)",
+    "titleSlug": "lucky-luke-2026",
+    "tmdbId": 259405,
+    "tvMazeId": 77154,
+    "tvRageId": 0,
+    "tvdbId": 455362,
+    "useSceneNumbering": false,
+    "year": 2026
+  },
+  {
+    "added": "2026-04-14T01:32:28Z",
+    "airTime": "20:00",
+    "alternateTitles": [
+      {
+        "seasonNumber": -1,
+        "title": "NCIS : Enquêtes spéciales"
+      },
+      {
+        "seasonNumber": -1,
+        "title": "Navy, investigación criminal (NCIS)"
+      },
+      {
+        "seasonNumber": -1,
+        "title": "Navy CIS"
+      },
+      {
+        "seasonNumber": -1,
+        "title": "NCIS: Naval Criminal Investigative Service 2003"
+      },
+      {
+        "seasonNumber": -1,
+        "title": "Navy CIS 2003"
+      }
+    ],
+    "certification": "TV-14",
+    "cleanTitle": "ncis",
+    "ended": false,
+    "firstAired": "2003-09-23T00:00:00Z",
+    "genres": [
+      "Action",
+      "Adventure",
+      "Crime",
+      "Drama",
+      "Mystery",
+      "Thriller"
+    ],
+    "id": 2,
+    "imdbId": "tt0364845",
+    "languageProfileId": 1,
+    "lastAired": "2026-05-12T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "CBS",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "Explore the inner workings of the government agency that investigates all crimes involving Navy and Marine Corps personnel, regardless of rank or position.  Leading this team is NCIS Special Agent Leroy Jethro Gibbs, a skilled investigator and interrogator who is smart, tough and willing to bend the rules to get the job done.",
+    "path": "/media/series/NCIS",
+    "previousAiring": "2026-05-13T00:00:00Z",
+    "qualityProfileId": 4,
+    "ratings": {
+      "value": 7.8,
+      "votes": 176549
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 45,
+    "seasonFolder": true,
+    "seasons": [
+      {
+        "monitored": false,
+        "seasonNumber": 0,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 1
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 23
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 2,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 23
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 3,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 4,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 5,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 19
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 6,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 25
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 7,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 8,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 9,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 10,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 11,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 12,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 13,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 14,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 15,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 16,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 24
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 17,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 20
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 18,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 16
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 19,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 21
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 20,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 22
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 21,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 10
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 22,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 20
+        }
+      },
+      {
+        "monitored": true,
+        "seasonNumber": 23,
+        "statistics": {
+          "episodeCount": 20,
+          "episodeFileCount": 8,
+          "percentOfEpisodes": 40.0,
+          "previousAiring": "2026-05-13T00:00:00Z",
+          "releaseGroups": [
+            "AMB3R",
+            "NOTAG"
+          ],
+          "sizeOnDisk": 17724728069,
+          "totalEpisodeCount": 20
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "ncis",
+    "statistics": {
+      "episodeCount": 20,
+      "episodeFileCount": 8,
+      "percentOfEpisodes": 40.0,
+      "releaseGroups": [
+        "AMB3R",
+        "NOTAG"
+      ],
+      "seasonCount": 23,
+      "sizeOnDisk": 17724728069,
+      "totalEpisodeCount": 508
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "NCIS",
+    "titleSlug": "ncis",
+    "tmdbId": 4614,
+    "tvMazeId": 60,
+    "tvRageId": 4628,
+    "tvdbId": 72108,
+    "useSceneNumbering": false,
+    "year": 2003
+  },
+  {
+    "added": "2026-04-14T01:45:50Z",
+    "airTime": "22:00",
+    "alternateTitles": [],
+    "certification": "TV-14",
+    "cleanTitle": "ncisorigins",
+    "ended": false,
+    "firstAired": "2024-10-14T00:00:00Z",
+    "genres": [
+      "Action",
+      "Adventure",
+      "Crime",
+      "Drama"
+    ],
+    "id": 3,
+    "imdbId": "tt30796986",
+    "languageProfileId": 1,
+    "lastAired": "2026-05-05T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "CBS",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "In 1991, years prior to the events of \"NCIS,\" a young Leroy Jethro Gibbs starts his career as a newly minted special agent at the fledgling NCIS Camp Pendleton office where he forges his place on a gritty, ragtag team led by NCIS legend Mike Franks.",
+    "path": "/media/series/NCIS - Origins",
+    "previousAiring": "2026-05-06T02:00:00Z",
+    "qualityProfileId": 6,
+    "ratings": {
+      "value": 7.5,
+      "votes": 6287
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 43,
+    "seasonFolder": true,
+    "seasons": [
+      {
+        "monitored": true,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 18,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "previousAiring": "2025-04-29T02:00:00Z",
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 18
+        }
+      },
+      {
+        "monitored": true,
+        "seasonNumber": 2,
+        "statistics": {
+          "episodeCount": 18,
+          "episodeFileCount": 2,
+          "percentOfEpisodes": 11.111111111111111111111111110,
+          "previousAiring": "2026-05-06T02:00:00Z",
+          "releaseGroups": [
+            "NOTAG"
+          ],
+          "sizeOnDisk": 5186107458,
+          "totalEpisodeCount": 18
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "ncis origins",
+    "statistics": {
+      "episodeCount": 36,
+      "episodeFileCount": 2,
+      "percentOfEpisodes": 5.5555555555555555555555555600,
+      "releaseGroups": [
+        "NOTAG"
+      ],
+      "seasonCount": 2,
+      "sizeOnDisk": 5186107458,
+      "totalEpisodeCount": 36
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "NCIS: Origins",
+    "titleSlug": "ncis-origins",
+    "tmdbId": 243006,
+    "tvMazeId": 73811,
+    "tvRageId": 0,
+    "tvdbId": 444350,
+    "useSceneNumbering": false,
+    "year": 2024
+  },
+  {
+    "added": "2026-04-14T01:46:49Z",
+    "airTime": "00:00",
+    "alternateTitles": [
+      {
+        "comment": "LostFilm",
+        "seasonNumber": -1,
+        "title": "Paradise -"
+      },
+      {
+        "comment": "LostFilm",
+        "seasonNumber": -1,
+        "title": "Paradise"
+      }
+    ],
+    "certification": "TV-MA",
+    "cleanTitle": "paradise2025",
+    "ended": false,
+    "firstAired": "2025-01-26T00:00:00Z",
+    "genres": [
+      "Drama",
+      "Science Fiction",
+      "Thriller"
+    ],
+    "id": 4,
+    "imdbId": "tt27444205",
+    "languageProfileId": 1,
+    "lastAired": "2026-03-30T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "Hulu",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "A security service team gets assigned to safeguard a former president.",
+    "path": "/media/series/Paradise (2025)",
+    "previousAiring": "2026-03-30T04:00:00Z",
+    "qualityProfileId": 4,
+    "ratings": {
+      "value": 7.9,
+      "votes": 79443
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 52,
+    "seasonFolder": true,
+    "seasons": [
+      {
+        "monitored": false,
+        "seasonNumber": 0,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 9
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 8
+        }
+      },
+      {
+        "monitored": true,
+        "seasonNumber": 2,
+        "statistics": {
+          "episodeCount": 8,
+          "episodeFileCount": 5,
+          "percentOfEpisodes": 62.500,
+          "previousAiring": "2026-03-30T04:00:00Z",
+          "releaseGroups": [
+            "FW",
+            "GANDALF",
+            "RAWR"
+          ],
+          "sizeOnDisk": 6243013089,
+          "totalEpisodeCount": 8
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "paradise 2025",
+    "statistics": {
+      "episodeCount": 8,
+      "episodeFileCount": 5,
+      "percentOfEpisodes": 62.500,
+      "releaseGroups": [
+        "FW",
+        "GANDALF",
+        "RAWR"
+      ],
+      "seasonCount": 2,
+      "sizeOnDisk": 6243013089,
+      "totalEpisodeCount": 25
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "Paradise (2025)",
+    "titleSlug": "paradise-2025",
+    "tmdbId": 245927,
+    "tvMazeId": 75030,
+    "tvRageId": 0,
+    "tvdbId": 454565,
+    "useSceneNumbering": false,
+    "year": 2025
+  },
+  {
+    "added": "2026-04-16T08:45:51Z",
+    "airTime": "00:00",
+    "alternateTitles": [],
+    "certification": "7",
+    "cleanTitle": "unicornacademy",
+    "ended": true,
+    "firstAired": "2023-11-02T00:00:00Z",
+    "genres": [
+      "Adventure",
+      "Animation",
+      "Children",
+      "Fantasy"
+    ],
+    "id": 5,
+    "imdbId": "tt27423738",
+    "languageProfileId": 1,
+    "lastAired": "2025-11-14T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "Netflix",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "Unicorn Academy is the boarding school of every kid’s dreams. Located on Unicorn Island, Sophia and the rest of the freshman class must bond with a unicorn to unlock their magical powers; only then can they learn to become revered protectors of the island and its magic — all while balancing classwork and navigating new friendships.",
+    "path": "/media/series/Unicorn Academy",
+    "previousAiring": "2025-11-14T05:00:00Z",
+    "qualityProfileId": 6,
+    "ratings": {
+      "value": 6.6,
+      "votes": 573
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 31,
+    "seasonFolder": false,
+    "seasons": [
+      {
+        "monitored": false,
+        "seasonNumber": 0,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 33
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 9
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 2,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 10
+        }
+      },
+      {
+        "monitored": false,
+        "seasonNumber": 3,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 1
+        }
+      },
+      {
+        "monitored": true,
+        "seasonNumber": 4,
+        "statistics": {
+          "episodeCount": 1,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "previousAiring": "2025-11-14T05:00:00Z",
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 1
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "unicorn academy",
+    "statistics": {
+      "episodeCount": 1,
+      "episodeFileCount": 0,
+      "percentOfEpisodes": 0,
+      "releaseGroups": [],
+      "seasonCount": 4,
+      "sizeOnDisk": 0,
+      "totalEpisodeCount": 54
+    },
+    "status": "ended",
+    "tags": [
+      2
+    ],
+    "title": "Unicorn Academy",
+    "titleSlug": "unicorn-academy",
+    "tmdbId": 221504,
+    "tvMazeId": 70045,
+    "tvRageId": 0,
+    "tvdbId": 431911,
+    "useSceneNumbering": false,
+    "year": 2023
+  },
+  {
+    "added": "2026-04-17T06:00:42Z",
+    "airTime": "21:00",
+    "alternateTitles": [
+      {
+        "seasonNumber": -1,
+        "title": "CIA"
+      }
+    ],
+    "cleanTitle": "cia2026",
+    "ended": false,
+    "firstAired": "2026-02-23T00:00:00Z",
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "id": 6,
+    "imdbId": "tt35515227",
+    "languageProfileId": 1,
+    "lastAired": "2026-05-18T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "CBS",
+    "nextAiring": "2026-05-19T01:00:00Z",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "Follows two unlikely partners — a fast-talking, rule-breaking loose cannon CIA case officer and a by-the-book, seasoned and smart FBI agent who believes in the rule of law. When this odd couple are assigned to work out of CIA’s New York Station, they must learn to work together to investigate cases and criminals posing threats on U.S. soil, finding that their differences may actually be their strength.",
+    "path": "/media/series/CIA (2026)",
+    "previousAiring": "2026-05-12T01:00:00Z",
+    "qualityProfileId": 6,
+    "ratings": {
+      "value": 6.2,
+      "votes": 2592
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 42,
+    "seasonFolder": false,
+    "seasons": [
+      {
+        "monitored": true,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 11,
+          "episodeFileCount": 1,
+          "nextAiring": "2026-05-19T01:00:00Z",
+          "percentOfEpisodes": 9.090909090909090909090909090,
+          "previousAiring": "2026-05-12T01:00:00Z",
+          "releaseGroups": [
+            "NoNE"
+          ],
+          "sizeOnDisk": 2690817222,
+          "totalEpisodeCount": 12
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "cia 2026",
+    "statistics": {
+      "episodeCount": 11,
+      "episodeFileCount": 1,
+      "percentOfEpisodes": 9.090909090909090909090909090,
+      "releaseGroups": [
+        "NoNE"
+      ],
+      "seasonCount": 1,
+      "sizeOnDisk": 2690817222,
+      "totalEpisodeCount": 12
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "CIA (2026)",
+    "titleSlug": "cia-2026",
+    "tmdbId": 289560,
+    "tvMazeId": 82211,
+    "tvRageId": 0,
+    "tvdbId": 462856,
+    "useSceneNumbering": false,
+    "year": 2026
+  },
+  {
+    "added": "2026-04-22T04:55:11Z",
+    "airTime": "00:00",
+    "alternateTitles": [
+      {
+        "seasonNumber": -1,
+        "title": "Mermaid Magic Die magische Welt der Meerjungfrauen"
+      }
+    ],
+    "cleanTitle": "mermaidmagic",
+    "ended": false,
+    "firstAired": "2024-08-22T00:00:00Z",
+    "genres": [
+      "Adventure",
+      "Animation",
+      "Comedy",
+      "Fantasy"
+    ],
+    "id": 7,
+    "imdbId": "tt20917668",
+    "languageProfileId": 1,
+    "lastAired": "2024-08-22T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "Netflix",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "“Mermaid Magic” immerses us in the underwater world of Mertropia to follow the adventures of fearless Princess Merlinda and her inseparable friends Sasha and Nerissa. These warrior mermaids embark on an epic journey to the surface world to battle the wicked pirate Barbarossa, who is draining the ocean’s magic. The series has a dazzling blend of magic, action, humor, and emotion. It also shines a spotlight on crucial issues like ocean conservation.",
+    "path": "/media/series/Mermaid Magic",
+    "previousAiring": "2024-08-22T04:00:00Z",
+    "qualityProfileId": 6,
+    "ratings": {
+      "value": 7.4,
+      "votes": 231
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 26,
+    "seasonFolder": false,
+    "seasons": [
+      {
+        "monitored": false,
+        "seasonNumber": 0,
+        "statistics": {
+          "episodeCount": 0,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 19
+        }
+      },
+      {
+        "monitored": true,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 10,
+          "episodeFileCount": 0,
+          "percentOfEpisodes": 0,
+          "previousAiring": "2024-08-22T04:00:00Z",
+          "releaseGroups": [],
+          "sizeOnDisk": 0,
+          "totalEpisodeCount": 10
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "mermaid magic",
+    "statistics": {
+      "episodeCount": 10,
+      "episodeFileCount": 0,
+      "percentOfEpisodes": 0,
+      "releaseGroups": [],
+      "seasonCount": 1,
+      "sizeOnDisk": 0,
+      "totalEpisodeCount": 29
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "Mermaid Magic",
+    "titleSlug": "mermaid-magic",
+    "tmdbId": 231725,
+    "tvMazeId": 79095,
+    "tvRageId": 0,
+    "tvdbId": 451945,
+    "useSceneNumbering": false,
+    "year": 2024
+  },
+  {
+    "added": "2026-05-04T10:48:49Z",
+    "airTime": "02:00",
+    "alternateTitles": [
+      {
+        "seasonNumber": -1,
+        "title": "Young Sherlock"
+      },
+      {
+        "seasonNumber": -1,
+        "title": "El joven Sherlock"
+      }
+    ],
+    "certification": "TV-14",
+    "cleanTitle": "youngsherlock2026",
+    "ended": false,
+    "firstAired": "2026-03-04T00:00:00Z",
+    "genres": [
+      "Action",
+      "Mystery"
+    ],
+    "id": 8,
+    "imdbId": "tt8599532",
+    "languageProfileId": 1,
+    "lastAired": "2026-03-04T00:00:00Z",
+    "monitorNewItems": "all",
+    "monitored": true,
+    "network": "Prime Video",
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "overview": "At age 19, Sherlock Holmes is disgraced, raw, unfiltered, and unformed, when he finds himself caught up in a murder mystery at Oxford University which threatens his freedom. Diving into his first-ever case with a wild lack of discipline, Sherlock manages to unravel a globe-trotting conspiracy that will change his life forever.",
+    "path": "/media/series/Young Sherlock (2026)",
+    "previousAiring": "2026-03-04T07:00:00Z",
+    "qualityProfileId": 6,
+    "ratings": {
+      "value": 7.5,
+      "votes": 28038
+    },
+    "rootFolderPath": "/media/series",
+    "runtime": 49,
+    "seasonFolder": false,
+    "seasons": [
+      {
+        "monitored": true,
+        "seasonNumber": 1,
+        "statistics": {
+          "episodeCount": 8,
+          "episodeFileCount": 8,
+          "percentOfEpisodes": 100,
+          "previousAiring": "2026-03-04T07:00:00Z",
+          "releaseGroups": [
+            "TyHD"
+          ],
+          "sizeOnDisk": 8791191734,
+          "totalEpisodeCount": 8
+        }
+      }
+    ],
+    "seriesType": "standard",
+    "sortTitle": "young sherlock 2026",
+    "statistics": {
+      "episodeCount": 8,
+      "episodeFileCount": 8,
+      "percentOfEpisodes": 100,
+      "releaseGroups": [
+        "TyHD"
+      ],
+      "seasonCount": 1,
+      "sizeOnDisk": 8791191734,
+      "totalEpisodeCount": 8
+    },
+    "status": "continuing",
+    "tags": [
+      2
+    ],
+    "title": "Young Sherlock (2026)",
+    "titleSlug": "young-sherlock-2026",
+    "tmdbId": 255661,
+    "tvMazeId": 77427,
+    "tvRageId": 0,
+    "tvdbId": 450633,
+    "useSceneNumbering": false,
+    "year": 2026
+  }
+]

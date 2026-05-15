@@ -125,3 +125,134 @@ def test_app_entry_rejects_invalid_sync_level(tmp_path: Path) -> None:
     )
     with pytest.raises(ConfigError, match=r"validation error"):
         load_config(cfg)
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 (D-05): qBittorrent schema + Sonarr/Radarr extensions
+# ---------------------------------------------------------------------------
+
+
+def test_load_config_with_qbittorrent_main_section(tmp_path: Path) -> None:
+    """Phase 5 D-05-QBT-02: qbittorrent.main block parses to QbittorrentInstance."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
+    result = load_config(cfg)
+    assert "main" in result.qbittorrent
+    assert result.qbittorrent["main"].base_url == "http://qbit:8080"
+
+
+def test_load_config_qbittorrent_categories_default_empty(tmp_path: Path) -> None:
+    """Phase 5: categories defaults to empty list and prune=False when not specified."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
+    result = load_config(cfg)
+    instance = result.qbittorrent["main"]
+    assert instance.categories.items == []
+    assert instance.categories.prune is False
+
+
+def test_load_config_qbittorrent_prune_defaults_to_false(tmp_path: Path) -> None:
+    """Phase 5 R-04 mitigation: categories.prune is False by default (never auto-delete)."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n    categories:\n      items: []\n"
+    )
+    result = load_config(cfg)
+    assert result.qbittorrent["main"].categories.prune is False
+
+
+def test_load_config_qbittorrent_preferences_extra_forbid_rejects_unknown_key(
+    tmp_path: Path,
+) -> None:
+    """Phase 5 T-05-CONTENT: extra=forbid on QbitPreferences rejects unknown keys."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n"
+        "    preferences:\n      values:\n        max_active_downloads: 5\n"
+    )
+    with pytest.raises(ConfigError) as exc_info:
+        load_config(cfg)
+    assert "max_active_downloads" in str(exc_info.value)
+
+
+def test_load_config_qbittorrent_preferences_enable_defaults_to_false(tmp_path: Path) -> None:
+    """Phase 5 D-03-04 mirror: preferences.enable is False by default (opt-in)."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
+    result = load_config(cfg)
+    assert result.qbittorrent["main"].preferences.enable is False
+
+
+def test_load_config_sonarr_tags_section(tmp_path: Path) -> None:
+    """Phase 5 D-05-SPLIT-01: sonarr.main.tags.items accepts list of TagItem entries."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    tags:\n"
+        "      items:\n"
+        "        - label: tv\n"
+        "        - label: anime\n"
+        "        - label: family\n"
+    )
+    result = load_config(cfg)
+    instance = result.sonarr["main"]
+    assert len(instance.tags.items) == 3
+    labels = {item.label for item in instance.tags.items}
+    assert labels == {"tv", "anime", "family"}
+
+
+def test_load_config_sonarr_remote_path_mappings_section(tmp_path: Path) -> None:
+    """Phase 5 D-05-PATHMAP-01: sonarr.main.remote_path_mappings parses correctly."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    remote_path_mappings:\n"
+        "      items:\n"
+        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
+        "          remotePath: /data/series/\n"
+        "          localPath: /data/torrents/series/\n"
+        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
+        "          remotePath: /data/anime/\n"
+        "          localPath: /data/torrents/anime/\n"
+        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
+        "          remotePath: /data/family/\n"
+        "          localPath: /data/torrents/family/\n"
+        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
+        "          remotePath: /data/complete/\n"
+        "          localPath: /data/torrents/complete/\n"
+    )
+    result = load_config(cfg)
+    instance = result.sonarr["main"]
+    assert len(instance.remote_path_mappings.items) == 4
+    first = instance.remote_path_mappings.items[0]
+    assert first.host == "qbittorrent.selfhost.svc.cluster.local"
+    assert first.remotePath == "/data/series/"
+    assert first.localPath == "/data/torrents/series/"
+
+
+def test_load_config_sonarr_series_tags_defaults(tmp_path: Path) -> None:
+    """Phase 5 D-05-MIG-01: series_tags.enable=True and default_tag='tv' when not specified."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("sonarr:\n  main:\n    base_url: http://sonarr.test\n")
+    result = load_config(cfg)
+    instance = result.sonarr["main"]
+    assert instance.series_tags.enable is True
+    assert instance.series_tags.default_tag == "tv"
+
+
+def test_load_config_radarr_movie_tags_defaults(tmp_path: Path) -> None:
+    """Phase 5 D-05-SPLIT-02: movie_tags.enable=True and default_tag='movies' when not specified."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("radarr:\n  main:\n    base_url: http://radarr.test\n")
+    result = load_config(cfg)
+    instance = result.radarr["main"]
+    assert instance.movie_tags.enable is True
+    assert instance.movie_tags.default_tag == "movies"
+
+
+def test_load_config_rejects_unknown_top_level_key(tmp_path: Path) -> None:
+    """Phase 5: RootConfig still uses extra='forbid' — unknown top-level keys rejected."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("seerr:\n  main:\n    base_url: http://seerr.test\n")
+    with pytest.raises(ConfigError, match=r"validation error"):
+        load_config(cfg)

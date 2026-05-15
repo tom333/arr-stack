@@ -39,7 +39,7 @@ app = typer.Typer(
 )
 
 
-_VALID_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "prowlarr"})
+_VALID_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "prowlarr", "qbittorrent"})
 
 
 def _selected_apps(apps: str | None) -> set[str]:
@@ -189,6 +189,57 @@ def apply(
             log.error("app_failed", app="prowlarr", error=str(e))
             failures.append("prowlarr")
 
+    # Phase 5: qBittorrent branch (D-05-QBT-01, D-05-BOOTSTRAP-01 gate #2).
+    if "qbittorrent" in targets and "main" in root.qbittorrent:
+        # D-05-BOOTSTRAP-01 gate #2: fail-fast before constructing the client.
+        # A future CronJob run on a degraded Secret exits with code 2 + structured
+        # log event so on-call can identify the missing env vars without digging
+        # into the full log stream.
+        missing = [
+            k
+            for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
+            if not v
+        ]
+        if missing:
+            log.error("missing_env_vars", app="qbittorrent", missing=missing)
+            raise typer.Exit(code=2)
+        try:
+            # Lazy imports — reconcile_qbittorrent wired in Plan 04.
+            # QbittorrentClient has a Plan 02 stub in client_base.py that
+            # raises NotImplementedError until Plan 04 lands the real impl.
+            from arrconf.client_base import QbittorrentClient  # noqa: PLC0415
+            from arrconf.reconcilers.qbittorrent import (  # noqa: PLC0415
+                reconcile_qbittorrent,
+            )
+
+            qbit_instance = root.qbittorrent["main"]
+            assert settings.qbt_user is not None and settings.qbt_pass is not None
+            qbit_client = QbittorrentClient(
+                base_url=qbit_instance.base_url,
+                username=settings.qbt_user.get_secret_value(),
+                password=settings.qbt_pass.get_secret_value(),
+            )
+            qbit_result = reconcile_qbittorrent(
+                qbit_client, qbit_instance, dry_run=dry_run or settings.arrconf_dry_run
+            )
+            if not qbit_result.actions_taken:
+                log.info("no-op", app="qbittorrent")
+            else:
+                log.info("apply_complete", app="qbittorrent", actions=qbit_result.actions_taken)
+        except ImportError as e:
+            log.error(
+                "qbittorrent_reconciler_not_wired",
+                error=str(e),
+                hint=(
+                    "Plan 04 (qbittorrent reconciler) must be merged"
+                    " before --apps qbittorrent works"
+                ),
+            )
+            failures.append("qbittorrent")
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="qbittorrent", error=str(e))
+            failures.append("qbittorrent")
+
     if failures:
         raise typer.Exit(code=1)
     raise typer.Exit(code=0)
@@ -306,6 +357,40 @@ def diff(
             max_code = max(max_code, code)
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="prowlarr", error=str(e))
+            raise typer.Exit(code=1) from e
+
+    # Phase 5: qBittorrent diff branch — same fail-fast gate as apply.
+    if "qbittorrent" in targets and "main" in root.qbittorrent:
+        missing = [
+            k
+            for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
+            if not v
+        ]
+        if missing:
+            log.error("missing_env_vars", app="qbittorrent", missing=missing)
+            raise typer.Exit(code=2)
+        try:
+            from arrconf.client_base import QbittorrentClient  # noqa: PLC0415
+            from arrconf.diff_cmd import diff_qbittorrent  # noqa: PLC0415
+
+            qbit_diff_instance = root.qbittorrent["main"]
+            assert settings.qbt_user is not None and settings.qbt_pass is not None
+            qbit_diff_client = QbittorrentClient(
+                base_url=qbit_diff_instance.base_url,
+                username=settings.qbt_user.get_secret_value(),
+                password=settings.qbt_pass.get_secret_value(),
+            )
+            code = diff_qbittorrent(qbit_diff_client, root)
+            max_code = max(max_code, code)
+        except ImportError as e:
+            log.error(
+                "qbittorrent_diff_not_wired",
+                error=str(e),
+                hint="Plan 04 (qbittorrent reconciler + diff) must be merged first",
+            )
+            raise typer.Exit(code=1) from e
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="qbittorrent", error=str(e))
             raise typer.Exit(code=1) from e
 
     raise typer.Exit(code=max_code)

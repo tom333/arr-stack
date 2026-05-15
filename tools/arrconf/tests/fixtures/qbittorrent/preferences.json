@@ -1,0 +1,11 @@
+{
+  "auto_tmm_enabled": false,
+  "category_changed_tmm_enabled": false,
+  "locale": "fr",
+  "max_active_downloads": 5,
+  "max_active_uploads": 50,
+  "queueing_enabled": true,
+  "save_path": "/data/complete",
+  "temp_path": "/data/incomplete",
+  "torrent_changed_tmm_enabled": true
+}

@@ -66,7 +66,16 @@ class DownloadClient(BaseModel):
     )
     tags: list[int] = Field(
         default_factory=list,
-        description="Tag IDs (resolved from `tags:` names by reconciler).",
+        description="Tag IDs — set by the reconciler after label→id resolution.",
+    )
+    tag_labels: list[str] = Field(
+        default_factory=list,
+        exclude=True,
+        description=(
+            "Human-readable tag labels (e.g. ['tv', 'anime']). The reconciler resolves "
+            "these to integer IDs in instance.tags after the tags-reconcile step "
+            "(D-05-ORDER-01). Excluded from API diff/dump — never sent to Sonarr."
+        ),
     )
     removeCompletedDownloads: bool = Field(default=True)
     removeFailedDownloads: bool = Field(default=True)

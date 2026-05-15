@@ -452,7 +452,7 @@ arrconf:
             - "/app/config/arrconf.yml"
             - "apply"
             - "--apps"
-            - "sonarr,radarr,prowlarr"   # D-04-CRON-03: Phase 4 expands beyond production's sonarr-only
+            - "sonarr,radarr,prowlarr,qbittorrent"   # D-05-ARGS-01: Phase 5 adds qbittorrent
           env:
             TZ: "Europe/Paris"
             ARRCONF_DRY_RUN: "false"

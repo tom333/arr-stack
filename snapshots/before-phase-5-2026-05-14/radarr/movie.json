@@ -1,0 +1,1979 @@
+[
+  {
+    "added": "2026-04-14T07:20:45Z",
+    "alternateTitles": [
+      {
+        "id": 1,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "The Super Mario Bros. Movie 2"
+      },
+      {
+        "id": 2,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Super Mario Dünyası"
+      },
+      {
+        "id": 3,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Super Mario World"
+      },
+      {
+        "id": 4,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "האחים סופר מריו: גלקסי"
+      },
+      {
+        "id": 5,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Super Mario Galaxy"
+      },
+      {
+        "id": 6,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Super Mario Galaktika"
+      },
+      {
+        "id": 7,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Super Mario Galatički Film"
+      },
+      {
+        "id": 8,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Super Mario Galaxy: La película"
+      },
+      {
+        "id": 9,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "SUPER MARIO GALAXY, LE FILM"
+      },
+      {
+        "id": 10,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "เดอะ ซูเปอร์มาริโอ กาแล็กซี่ มูฟวี่"
+      },
+      {
+        "id": 11,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "ザ・スーパーマリオギャラクシー・ムービー"
+      },
+      {
+        "id": 12,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "슈퍼마리오 갤럭시"
+      },
+      {
+        "id": 22,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Супербратья Марио 2"
+      },
+      {
+        "id": 23,
+        "movieMetadataId": 1,
+        "sourceType": "tmdb",
+        "title": "Супербратья Марио в кино 2"
+      }
+    ],
+    "certification": "PG",
+    "cleanTitle": "thesupermariogalaxymovie",
+    "collection": {
+      "title": "The Super Mario Collection",
+      "tmdbId": 1434561
+    },
+    "digitalRelease": "2026-05-19T00:00:00Z",
+    "folderName": "/media/films/The Super Mario Galaxy Movie (2026)",
+    "genres": [
+      "Family",
+      "Comedy",
+      "Adventure",
+      "Fantasy",
+      "Animation"
+    ],
+    "hasFile": false,
+    "id": 1,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/eJGWx219ZcEMVQJhAgMiqo8tYY.jpg",
+        "url": "/MediaCover/1/poster.jpg?lastWrite=639117480499819270"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/9Z2uDYXqJrlmePznQQJhL6d92Rq.jpg",
+        "url": "/MediaCover/1/fanart.jpg?lastWrite=639141348814008626"
+      }
+    ],
+    "imdbId": "tt28650488",
+    "inCinemas": "2026-04-01T00:00:00Z",
+    "isAvailable": false,
+    "keywords": [
+      "aftercreditsstinger",
+      "based on video game",
+      "brother brother relationship",
+      "buddy comedy",
+      "children's adventure",
+      "duringcreditsstinger",
+      "father son relationship",
+      "fictional country",
+      "friendship",
+      "galaxy",
+      "globetrotting",
+      "joyful",
+      "magic land",
+      "parallel universe",
+      "robot",
+      "sequel",
+      "sibling relationship",
+      "slapstick comedy",
+      "space adventure",
+      "space travel",
+      "talking animal",
+      "turtle"
+    ],
+    "lastSearchTime": "2026-04-25T05:16:36Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFileId": 0,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "The Super Mario Galaxy Movie",
+    "overview": "Mario et Luigi gèrent les tracas du royaume Champignon, se lient d'amitié avec Yoshi, tentent de réhabiliter mini-Bowser et se préparent pour l'anniversaire de Peach. Mais quand un appel à l'aide arrive de l'autre bout de la galaxie, l'équipe part découvrir des mondes nouveaux, des menaces inattendues et des personnages emblématiques, comme Rosalina et Bowser Jr.",
+    "path": "/media/films/The Super Mario Galaxy Movie (2026)",
+    "popularity": 411.1512,
+    "qualityProfileId": 4,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 6.3,
+        "votes": 48212
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 37,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 6.698,
+        "votes": 817
+      },
+      "trakt": {
+        "type": "user",
+        "value": 7.14847,
+        "votes": 3637
+      }
+    },
+    "releaseDate": "2026-05-19T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 98,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 0,
+    "sortTitle": "super mario galaxy le film",
+    "statistics": {
+      "movieFileCount": 0,
+      "releaseGroups": [],
+      "sizeOnDisk": 0
+    },
+    "status": "inCinemas",
+    "studio": "Illumination",
+    "tags": [],
+    "title": "Super Mario Galaxy, le film",
+    "titleSlug": "1226863",
+    "tmdbId": 1226863,
+    "website": "https://www.thesupermariogalaxymovie.com",
+    "year": 2026,
+    "youTubeTrailerId": "En5QZmL5R1s"
+  },
+  {
+    "added": "2026-04-14T07:23:26Z",
+    "alternateTitles": [
+      {
+        "id": 13,
+        "movieMetadataId": 3,
+        "sourceType": "tmdb",
+        "title": "Ore dake Level Up na Ken: ReAwakening"
+      },
+      {
+        "id": 14,
+        "movieMetadataId": 3,
+        "sourceType": "tmdb",
+        "title": "Solo Leveling: Segundo Despertar"
+      },
+      {
+        "id": 15,
+        "movieMetadataId": 3,
+        "sourceType": "tmdb",
+        "title": "나 혼자만 레벨업 -ReAwakening-"
+      },
+      {
+        "id": 16,
+        "movieMetadataId": 3,
+        "sourceType": "tmdb",
+        "title": "我独自升级-二次觉醒-"
+      },
+      {
+        "id": 17,
+        "movieMetadataId": 3,
+        "sourceType": "tmdb",
+        "title": "我獨自升級：二次覺醒"
+      }
+    ],
+    "certification": "R",
+    "cleanTitle": "sololevelingreawakening",
+    "folderName": "/media/films/Solo Leveling -ReAwakening- (2024)",
+    "genres": [
+      "Action",
+      "Adventure",
+      "Fantasy",
+      "Animation"
+    ],
+    "hasFile": false,
+    "id": 2,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/dblIFen0bNZAq8icJXHwrjfymDW.jpg",
+        "url": "/MediaCover/2/poster.jpg?lastWrite=639117482078485801"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/hlfu6g0h0D65SjkVhQBU20zePTl.jpg",
+        "url": "/MediaCover/2/fanart.jpg?lastWrite=639117482085415697"
+      }
+    ],
+    "imdbId": "tt33428606",
+    "inCinemas": "2024-11-26T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "anime",
+      "based on comic",
+      "based on novel or book",
+      "based on webcomic or webtoon",
+      "compilation",
+      "dungeon crawling",
+      "edited from tv series",
+      "modern dungeon"
+    ],
+    "lastSearchTime": "2026-05-02T08:53:58Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFileId": 0,
+    "originalLanguage": {
+      "id": 8,
+      "name": "Japanese"
+    },
+    "originalTitle": "俺だけレベルアップな件 -ReAwakening-",
+    "overview": "Plus d’une décennie s’est écoulée depuis l’apparition soudaine d’étranges portails reliant notre monde à une autre dimension. Depuis, certains humains se sont découverts des pouvoirs surnaturels. On appelle ces individus des chasseurs. Ils gagnent leur vie en utilisant leurs pouvoirs pour conquérir des donjons à l’intérieur de ces portails. Parmi ces valeureux chasseurs, Jinwoo Sung, toutefois connu pour être \"le plus faible de toute l’humanité\". Un jour, Jinwoo est mortellement blessé lorsqu’il tombe par hasard sur un double donjon caché. Miraculeusement rescapé et au bord de la mort, Jinwoo entrevoit une quête et saisit une opportunité qui lui permet dès lors de gagner en puissance très rapidement…",
+    "path": "/media/films/Solo Leveling -ReAwakening- (2024)",
+    "popularity": 17.53,
+    "qualityProfileId": 4,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 8.7,
+        "votes": 16971
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 7.14,
+        "votes": 267
+      },
+      "trakt": {
+        "type": "user",
+        "value": 8.23729,
+        "votes": 295
+      }
+    },
+    "releaseDate": "2025-02-24T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 116,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 0,
+    "sortTitle": "solo leveling reawakening",
+    "statistics": {
+      "movieFileCount": 0,
+      "releaseGroups": [],
+      "sizeOnDisk": 0
+    },
+    "status": "released",
+    "studio": "Aniplex",
+    "tags": [],
+    "title": "Solo Leveling -ReAwakening-",
+    "titleSlug": "1357633",
+    "tmdbId": 1357633,
+    "website": "https://www.sololevelingreawakening.com",
+    "year": 2024,
+    "youTubeTrailerId": "UdIXUDpeTXU"
+  },
+  {
+    "added": "2026-04-17T06:17:24Z",
+    "alternateTitles": [
+      {
+        "id": 18,
+        "movieMetadataId": 4,
+        "sourceType": "tmdb",
+        "title": "白日梦奇遇记"
+      },
+      {
+        "id": 19,
+        "movieMetadataId": 4,
+        "sourceType": "tmdb",
+        "title": "В твоих снах"
+      },
+      {
+        "id": 20,
+        "movieMetadataId": 4,
+        "sourceType": "tmdb",
+        "title": "في احلامكما"
+      },
+      {
+        "id": 21,
+        "movieMetadataId": 4,
+        "sourceType": "tmdb",
+        "title": "In Your Dreams Im Traum ist alles moeglich"
+      }
+    ],
+    "certification": "PG",
+    "cleanTitle": "inyourdreams",
+    "digitalRelease": "2025-11-13T00:00:00Z",
+    "folderName": "/media/films/In Your Dreams (2025)",
+    "genres": [
+      "Adventure",
+      "Animation",
+      "Comedy",
+      "Family",
+      "Fantasy"
+    ],
+    "hasFile": true,
+    "id": 3,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/ug0TqgmByPCEYzR9lQWQmyAa7sw.jpg",
+        "url": "/MediaCover/3/poster.jpg?lastWrite=639120034467837147"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/cTuFz80FozP54Aob9TYl4mF1wKk.jpg",
+        "url": "/MediaCover/3/fanart.jpg?lastWrite=639120034472497095"
+      }
+    ],
+    "imdbId": "tt27604215",
+    "inCinemas": "2025-11-07T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "dream",
+      "family",
+      "magic",
+      "wish"
+    ],
+    "lastSearchTime": "2026-04-17T06:17:28Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFile": {
+      "dateAdded": "2026-04-17T07:38:04Z",
+      "edition": "",
+      "id": 1,
+      "indexerFlags": 1,
+      "languages": [
+        {
+          "id": 2,
+          "name": "French"
+        },
+        {
+          "id": 1,
+          "name": "English"
+        }
+      ],
+      "mediaInfo": {
+        "audioBitrate": 768000,
+        "audioChannels": 5.1,
+        "audioCodec": "EAC3 Atmos",
+        "audioLanguages": "fre/fre/eng",
+        "audioStreamCount": 3,
+        "resolution": "1920x1080",
+        "runTime": "1:31:12",
+        "scanType": "Progressive",
+        "subtitles": "fre/fre/fre/eng",
+        "videoBitDepth": 8,
+        "videoBitrate": 4766670,
+        "videoCodec": "x264",
+        "videoDynamicRange": "",
+        "videoDynamicRangeType": "",
+        "videoFps": 24
+      },
+      "movieId": 3,
+      "originalFilePath": "In.Your.Dreams.2025.MULTi.1080p.WEB.x264-FW.mkv",
+      "path": "/media/films/In Your Dreams (2025)/In.Your.Dreams.2025.MULTi.1080p.WEB.x264-FW.mkv",
+      "quality": {
+        "quality": {
+          "id": 3,
+          "modifier": "none",
+          "name": "WEBDL-1080p",
+          "resolution": 1080,
+          "source": "webdl"
+        },
+        "revision": {
+          "isRepack": false,
+          "real": 0,
+          "version": 1
+        }
+      },
+      "qualityCutoffNotMet": false,
+      "relativePath": "In.Your.Dreams.2025.MULTi.1080p.WEB.x264-FW.mkv",
+      "releaseGroup": "FW",
+      "sceneName": "In.Your.Dreams.2025.MULTi.1080p.WEB.x264-FW",
+      "size": 4751254617
+    },
+    "movieFileId": 1,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "In Your Dreams",
+    "overview": "Stevie et son petit frère Elliot s'aventurent dans le monde follement absurde de leurs rêves pour demander au marchand de sable de leur donner la famille parfaite.",
+    "path": "/media/films/In Your Dreams (2025)",
+    "popularity": 11.3661,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 6.5,
+        "votes": 7482
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 59,
+        "votes": 0
+      },
+      "rottenTomatoes": {
+        "type": "user",
+        "value": 86,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 6.981,
+        "votes": 213
+      },
+      "trakt": {
+        "type": "user",
+        "value": 7.15499,
+        "votes": 942
+      }
+    },
+    "releaseDate": "2025-11-13T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 87,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 4751254617,
+    "sortTitle": "dans tes rêves",
+    "statistics": {
+      "movieFileCount": 1,
+      "releaseGroups": [
+        "FW"
+      ],
+      "sizeOnDisk": 4751254617
+    },
+    "status": "released",
+    "studio": "Kuku Studios",
+    "tags": [],
+    "title": "Dans tes rêves",
+    "titleSlug": "1117857",
+    "tmdbId": 1117857,
+    "website": "https://www.netflix.com/title/80992977",
+    "year": 2025,
+    "youTubeTrailerId": "Jjjcn4acAC8"
+  },
+  {
+    "added": "2026-04-25T04:41:47Z",
+    "alternateTitles": [
+      {
+        "id": 24,
+        "movieMetadataId": 5,
+        "sourceType": "tmdb",
+        "title": "Snow White and the 7 Dwarfs"
+      }
+    ],
+    "cleanTitle": "snowwhite",
+    "digitalRelease": "2025-03-07T00:00:00Z",
+    "folderName": "/media/films/Snow White (2025)",
+    "genres": [
+      "Animation",
+      "Family",
+      "Fantasy"
+    ],
+    "hasFile": true,
+    "id": 4,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/ilFLHU1OxUS1YDvUMCr8K3hW28r.jpg",
+        "url": "/MediaCover/4/poster.jpg?lastWrite=639126889098726938"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/78mfMIC7itMnefZnS5ff4djAmnC.jpg",
+        "url": "/MediaCover/4/fanart.jpg?lastWrite=639126889105076869"
+      }
+    ],
+    "imdbId": "tt35983585",
+    "inCinemas": "2025-07-10T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [],
+    "lastSearchTime": "2026-04-25T04:44:40Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFile": {
+      "dateAdded": "2026-04-25T04:56:15Z",
+      "edition": "",
+      "id": 2,
+      "indexerFlags": 0,
+      "languages": [
+        {
+          "id": 2,
+          "name": "French"
+        }
+      ],
+      "mediaInfo": {
+        "audioBitrate": 224000,
+        "audioChannels": 2,
+        "audioCodec": "EAC3",
+        "audioLanguages": "fre",
+        "audioStreamCount": 1,
+        "resolution": "1920x1080",
+        "runTime": "1:26:51",
+        "scanType": "Progressive",
+        "subtitles": "",
+        "videoBitDepth": 8,
+        "videoBitrate": 3702760,
+        "videoCodec": "h265",
+        "videoDynamicRange": "",
+        "videoDynamicRangeType": "",
+        "videoFps": 25
+      },
+      "movieId": 4,
+      "originalFilePath": "Snow.White.and.the.7.Dwarfs.2025.TRUEFRENCH.1080p.WEB.H265-SUPPLY/Snow.White.and.the.7.Dwarfs.2025.TRUEFRENCH.1080p.WEB.H265-SUPPLY.mkv",
+      "path": "/media/films/Snow White (2025)/Snow.White.and.the.7.Dwarfs.2025.TRUEFRENCH.1080p.WEB.H265-SUPPLY.mkv",
+      "quality": {
+        "quality": {
+          "id": 3,
+          "modifier": "none",
+          "name": "WEBDL-1080p",
+          "resolution": 1080,
+          "source": "webdl"
+        },
+        "revision": {
+          "isRepack": false,
+          "real": 0,
+          "version": 1
+        }
+      },
+      "qualityCutoffNotMet": false,
+      "relativePath": "Snow.White.and.the.7.Dwarfs.2025.TRUEFRENCH.1080p.WEB.H265-SUPPLY.mkv",
+      "releaseGroup": "SUPPLY",
+      "sceneName": "Snow.White.and.the.7.Dwarfs.2025.TRUEFRENCH.1080p.WEB.H265-SUPPLY",
+      "size": 2559264872
+    },
+    "movieFileId": 2,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "Snow White",
+    "overview": "Lorsque la jalousie meurtrière de la Reine menace sa vie, Blanche-Neige n’a d’autre choix que de s’allier aux gnomes du royaume. Ensemble, ils devront unir leurs forces pour affronter la colère impitoyable de la belle-mère et protéger la paix du royaume.",
+    "path": "/media/films/Snow White (2025)",
+    "popularity": 2.9123,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 5.1,
+        "votes": 34
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 7,
+        "votes": 24
+      },
+      "trakt": {
+        "type": "user",
+        "value": 5.47297,
+        "votes": 74
+      }
+    },
+    "releaseDate": "2025-03-07T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 93,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 2559264872,
+    "sortTitle": "blanche neige",
+    "statistics": {
+      "movieFileCount": 1,
+      "releaseGroups": [
+        "SUPPLY"
+      ],
+      "sizeOnDisk": 2559264872
+    },
+    "status": "released",
+    "studio": "The Asylum",
+    "tags": [],
+    "title": "Blanche Neige",
+    "titleSlug": "1449951",
+    "tmdbId": 1449951,
+    "website": "",
+    "year": 2025,
+    "youTubeTrailerId": "UJuNWcnKFGY"
+  },
+  {
+    "added": "2026-04-25T04:42:43Z",
+    "alternateTitles": [
+      {
+        "id": 25,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Saltadores"
+      },
+      {
+        "id": 26,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Operation Bäver"
+      },
+      {
+        "id": 27,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Mission: Bæver"
+      },
+      {
+        "id": 28,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Sauteurs"
+      },
+      {
+        "id": 29,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Jumpers"
+      },
+      {
+        "id": 30,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Хопперс"
+      },
+      {
+        "id": 31,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Хопперы"
+      },
+      {
+        "id": 32,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hoppers: Operación castor"
+      },
+      {
+        "id": 33,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Cara de Um, Focinho de Outro"
+      },
+      {
+        "id": 34,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Хопъри"
+      },
+      {
+        "id": 35,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "河狸变身计划"
+      },
+      {
+        "id": 36,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Na skok do divočiny"
+      },
+      {
+        "id": 37,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hüppajad"
+      },
+      {
+        "id": 38,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Operaatio Majava"
+      },
+      {
+        "id": 39,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Στον κόσμο των ζώων"
+      },
+      {
+        "id": 40,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "狸想奇兵"
+      },
+      {
+        "id": 41,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Agyugrász"
+      },
+      {
+        "id": 42,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Jumpers: Un salto tra gli animali"
+      },
+      {
+        "id": 43,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "私がビーバーになる時"
+      },
+      {
+        "id": 44,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hoperi"
+      },
+      {
+        "id": 45,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Šokliai"
+      },
+      {
+        "id": 46,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Skokoumci"
+      },
+      {
+        "id": 47,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Operasjon bever"
+      },
+      {
+        "id": 48,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hopnięci"
+      },
+      {
+        "id": 49,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Saltitões"
+      },
+      {
+        "id": 50,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hopperi"
+      },
+      {
+        "id": 51,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Прыгуны"
+      },
+      {
+        "id": 52,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Skokani"
+      },
+      {
+        "id": 53,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Skokci"
+      },
+      {
+        "id": 54,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "狸想世界"
+      },
+      {
+        "id": 55,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hoplayanlar"
+      },
+      {
+        "id": 56,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Cú Nhảy Kỳ Diệu"
+      },
+      {
+        "id": 57,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "Hopparar"
+      },
+      {
+        "id": 58,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "سندس فى عالم قندس"
+      },
+      {
+        "id": 59,
+        "movieMetadataId": 6,
+        "sourceType": "tmdb",
+        "title": "เด้งโดด เปลี่ยนโหมดเป็นบีเวอร์"
+      }
+    ],
+    "certification": "PG",
+    "cleanTitle": "hoppers",
+    "digitalRelease": "2026-04-28T00:00:00Z",
+    "folderName": "/media/films/Hoppers (2026)",
+    "genres": [
+      "Animation",
+      "Adventure",
+      "Comedy",
+      "Family",
+      "Science Fiction"
+    ],
+    "hasFile": false,
+    "id": 5,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/xjtWQ2CL1mpmMNwuU5HeS4Iuwuu.jpg",
+        "url": "/MediaCover/5/poster.jpg?lastWrite=639126889658810812"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/u53UYu5XG2hNgWGvs3xGhAVzypl.jpg",
+        "url": "/MediaCover/5/fanart.jpg?lastWrite=639126889668690704"
+      }
+    ],
+    "imdbId": "tt26443616",
+    "inCinemas": "2026-03-04T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "3d animation",
+      "aftercreditsstinger",
+      "amused",
+      "beaver",
+      "consciousness",
+      "duringcreditsstinger",
+      "human becoming an animal",
+      "human vs nature",
+      "oregon, usa",
+      "robotic animal",
+      "spy",
+      "transhumanism"
+    ],
+    "lastSearchTime": "2026-04-25T04:46:30Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFileId": 0,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "Hoppers",
+    "overview": "Mabel, une amoureuse des animaux, utilise une nouvelle technologie pour \"transférer\" sa conscience dans un robot-castor réaliste et communiquer directement avec les animaux. Alors qu'elle découvre des mystères du monde animal dépassant tout ce qu'elle aurait pu imaginer, Mabel se lie d'amitié avec Roi Georges, un charismatique castor, et doit rallier tout le règne animal pour faire face à une menace humaine majeure et imminente : le maire Jerry Generazzo, un beau parleur.",
+    "path": "/media/films/Hoppers (2026)",
+    "physicalRelease": "2026-06-02T00:00:00Z",
+    "popularity": 154.6615,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 7.4,
+        "votes": 43335
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 73,
+        "votes": 0
+      },
+      "rottenTomatoes": {
+        "type": "user",
+        "value": 94,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 7.953,
+        "votes": 967
+      },
+      "trakt": {
+        "type": "user",
+        "value": 7.77052,
+        "votes": 3508
+      }
+    },
+    "releaseDate": "2026-04-28T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 104,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 0,
+    "sortTitle": "jumpers",
+    "statistics": {
+      "movieFileCount": 0,
+      "releaseGroups": [],
+      "sizeOnDisk": 0
+    },
+    "status": "released",
+    "studio": "Pixar",
+    "tags": [],
+    "title": "Jumpers",
+    "titleSlug": "1327819",
+    "tmdbId": 1327819,
+    "website": "https://www.pixar.com/hoppers",
+    "year": 2026,
+    "youTubeTrailerId": "PypDSyIRRSs"
+  },
+  {
+    "added": "2026-04-25T04:50:34Z",
+    "alternateTitles": [
+      {
+        "id": 60,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit - O Corcel Indomável"
+      },
+      {
+        "id": 61,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit L'étalon des plaines"
+      },
+      {
+        "id": 62,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit - Hästen från vildmarken"
+      },
+      {
+        "id": 63,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit: De Hengst van het Woeste Westen"
+      },
+      {
+        "id": 64,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit, el corcel indomable"
+      },
+      {
+        "id": 65,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit - Hingsten fra Cimarron"
+      },
+      {
+        "id": 66,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Szilaj a vad völgy paripája"
+      },
+      {
+        "id": 67,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Simarono žirgas"
+      },
+      {
+        "id": 68,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "スピリット"
+      },
+      {
+        "id": 69,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit - Hengst van het woeste Westen"
+      },
+      {
+        "id": 70,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Spirit, to agrio alogo"
+      },
+      {
+        "id": 71,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Mustang"
+      },
+      {
+        "id": 72,
+        "movieMetadataId": 7,
+        "sourceType": "tmdb",
+        "title": "Villti folinn"
+      }
+    ],
+    "certification": "G",
+    "cleanTitle": "spiritstallioncimarron",
+    "collection": {
+      "title": "Spirit Collection",
+      "tmdbId": 806483
+    },
+    "digitalRelease": "2002-06-28T00:00:00Z",
+    "folderName": "/media/films/Spirit - Stallion of the Cimarron (2002)",
+    "genres": [
+      "Animation",
+      "Adventure",
+      "Family",
+      "Drama",
+      "Western"
+    ],
+    "hasFile": true,
+    "id": 6,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/cUgYrz4twiJ3QgVGpRfey984NIB.jpg",
+        "url": "/MediaCover/6/poster.jpg?lastWrite=639126894476569380"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/b8hPBW0NJmiIVzvQjT3CwIpAdzl.jpg",
+        "url": "/MediaCover/6/fanart.jpg?lastWrite=639126894500518359"
+      }
+    ],
+    "imdbId": "tt0166813",
+    "inCinemas": "2002-05-24T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "animals",
+      "cavalry",
+      "comforting",
+      "eyebrow",
+      "freedom",
+      "indian war",
+      "melodramatic",
+      "mustang",
+      "pets",
+      "rivalry",
+      "sentimental",
+      "villain",
+      "wild horse",
+      "wildlife"
+    ],
+    "lastSearchTime": "2026-04-25T04:50:47Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFile": {
+      "dateAdded": "2026-04-25T05:06:04Z",
+      "edition": "",
+      "id": 3,
+      "indexerFlags": 0,
+      "languages": [
+        {
+          "id": 2,
+          "name": "French"
+        },
+        {
+          "id": 1,
+          "name": "English"
+        }
+      ],
+      "mediaInfo": {
+        "audioBitrate": 312551,
+        "audioChannels": 5.1,
+        "audioCodec": "AAC",
+        "audioLanguages": "fre/eng",
+        "audioStreamCount": 2,
+        "resolution": "1920x820",
+        "runTime": "1:23:28",
+        "scanType": "Progressive",
+        "subtitles": "fre/eng/eng/fre/eng/eng",
+        "videoBitDepth": 10,
+        "videoBitrate": 1635734,
+        "videoCodec": "x265",
+        "videoDynamicRange": "",
+        "videoDynamicRangeType": "",
+        "videoFps": 23.976
+      },
+      "movieId": 6,
+      "originalFilePath": "Spirit - Stallion of the Cimarron (2002) MULTI VFI 1080p BluRay HE-AAC 5.1 x265-k7.mkv",
+      "path": "/media/films/Spirit - Stallion of the Cimarron (2002)/Spirit - Stallion of the Cimarron (2002) MULTI VFI 1080p BluRay HE-AAC 5.1 x265-k7.mkv",
+      "quality": {
+        "quality": {
+          "id": 7,
+          "modifier": "none",
+          "name": "Bluray-1080p",
+          "resolution": 1080,
+          "source": "bluray"
+        },
+        "revision": {
+          "isRepack": false,
+          "real": 0,
+          "version": 1
+        }
+      },
+      "qualityCutoffNotMet": false,
+      "relativePath": "Spirit - Stallion of the Cimarron (2002) MULTI VFI 1080p BluRay HE-AAC 5.1 x265-k7.mkv",
+      "releaseGroup": "k7",
+      "sceneName": "Spirit - Stallion of the Cimarron (2002) MULTI VFI 1080p BluRay HE-AAC 5.1 x265-k7",
+      "size": 1431680323
+    },
+    "movieFileId": 3,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "Spirit: Stallion of the Cimarron",
+    "overview": "L'étalon sauvage Spirit naît dans les plaines vierges de l'Ouest américain, aux premières années de la Conquête. Son enfance est tout entière placée sous le signe du jeu et de l'aventure. Spirit découvre avec émerveillement l'immensité, les ressources infinies, la beauté majestueuse de sa terre natale. Jeune adulte, il devient le chef de sa bande.Un soir, Spirit rencontre l'Homme. Pris au lasso, livré à un colonel sadique, il refuse de se faire dompter...",
+    "path": "/media/films/Spirit - Stallion of the Cimarron (2002)",
+    "physicalRelease": "2002-11-19T00:00:00Z",
+    "popularity": 7.6919,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 7.2,
+        "votes": 94900
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 52,
+        "votes": 0
+      },
+      "rottenTomatoes": {
+        "type": "user",
+        "value": 69,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 7.687,
+        "votes": 4871
+      },
+      "trakt": {
+        "type": "user",
+        "value": 7.61089,
+        "votes": 5289
+      }
+    },
+    "releaseDate": "2002-06-28T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 83,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 1431680323,
+    "sortTitle": "spirit létalon des plaines",
+    "statistics": {
+      "movieFileCount": 1,
+      "releaseGroups": [
+        "k7"
+      ],
+      "sizeOnDisk": 1431680323
+    },
+    "status": "released",
+    "studio": "DreamWorks Animation",
+    "tags": [],
+    "title": "Spirit, l'étalon des plaines",
+    "titleSlug": "9023",
+    "tmdbId": 9023,
+    "website": "",
+    "year": 2002,
+    "youTubeTrailerId": "4UzmHsy4u8s"
+  },
+  {
+    "added": "2026-05-06T01:30:08Z",
+    "alternateTitles": [
+      {
+        "id": 81,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Nada es lo que parece"
+      },
+      {
+        "id": 82,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Die Unfassbaren - Now You See Me"
+      },
+      {
+        "id": 83,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "나우 유씨미 : 마술사기단"
+      },
+      {
+        "id": 84,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "グランド・イリュージョン"
+      },
+      {
+        "id": 85,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "惊天魔盗团"
+      },
+      {
+        "id": 86,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Phi Vụ Thế Kỷ"
+      },
+      {
+        "id": 87,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "非常盜"
+      },
+      {
+        "id": 88,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Ahora me ves: 1"
+      },
+      {
+        "id": 89,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Now You See Me 1"
+      },
+      {
+        "id": 90,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Insaisissables"
+      },
+      {
+        "id": 91,
+        "movieMetadataId": 13,
+        "sourceType": "tmdb",
+        "title": "Иллюзия обмана 1"
+      }
+    ],
+    "certification": "PG-13",
+    "cleanTitle": "nowyouseeme",
+    "collection": {
+      "title": "Now You See Me Collection",
+      "tmdbId": 382685
+    },
+    "digitalRelease": "2025-11-05T00:00:00Z",
+    "folderName": "/media/films/Now You See Me (2013)",
+    "genres": [
+      "Thriller",
+      "Crime"
+    ],
+    "hasFile": false,
+    "id": 8,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/tWsNYbrqy1p1w6K9zRk0mSchztT.jpg",
+        "url": "/MediaCover/8/poster.jpg?lastWrite=639136278131706796"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/xEY0MV2jSQBz9iOJfCFvLTiPGMA.jpg",
+        "url": "/MediaCover/8/fanart.jpg?lastWrite=639136278142796686"
+      }
+    ],
+    "imdbId": "tt1670345",
+    "inCinemas": "2013-05-29T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "awestruck",
+      "bank",
+      "conspiracy",
+      "elaborate deception",
+      "escape",
+      "excited",
+      "fbi",
+      "heist",
+      "investigation",
+      "las vegas",
+      "magic",
+      "magician",
+      "mischievous",
+      "money",
+      "new orleans, louisiana",
+      "new york city",
+      "paris, france",
+      "shocking",
+      "suspenseful",
+      "vault"
+    ],
+    "lastSearchTime": "2026-05-06T01:31:33Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFileId": 0,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "Now You See Me",
+    "overview": "« Les Quatre Cavaliers », un groupe de brillants magiciens et illusionnistes, vient de donner deux spectacles de magie époustouflants: le premier en braquant une banque sur un autre continent, le deuxième en transférant la fortune d’un banquier véreux sur les comptes en banque du public. Deux agents spéciaux du FBI et d’Interpol sont déterminés à les arrêter avant qu’ils ne mettent à exécution leur promesse de réaliser des braquages encore plus audacieux. Ils font appel à Thaddeus, spécialiste reconnu pour expliquer les tours de magie les plus sophistiqués. Alors que la pression s’intensifie, et que le monde entier attend le spectaculaire tour final des Cavaliers, la course contre la montre commence.",
+    "path": "/media/films/Now You See Me (2013)",
+    "physicalRelease": "2013-07-25T00:00:00Z",
+    "popularity": 11.7015,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 7.2,
+        "votes": 767620
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 50,
+        "votes": 0
+      },
+      "rottenTomatoes": {
+        "type": "user",
+        "value": 51,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 7.331,
+        "votes": 16627
+      },
+      "trakt": {
+        "type": "user",
+        "value": 7.53304,
+        "votes": 39342
+      }
+    },
+    "releaseDate": "2013-07-25T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 116,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 0,
+    "sortTitle": "insaisissables",
+    "statistics": {
+      "movieFileCount": 0,
+      "releaseGroups": [],
+      "sizeOnDisk": 0
+    },
+    "status": "released",
+    "studio": "Summit Entertainment",
+    "tags": [],
+    "title": "Insaisissables",
+    "titleSlug": "75656",
+    "tmdbId": 75656,
+    "website": "https://www.lionsgate.com/franchises/now-you-see-me",
+    "year": 2013,
+    "youTubeTrailerId": "DaavRAV8a0A"
+  },
+  {
+    "added": "2026-05-06T01:30:15Z",
+    "alternateTitles": [
+      {
+        "id": 92,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Now You See Me: The Second Act"
+      },
+      {
+        "id": 93,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "NYSM2"
+      },
+      {
+        "id": 94,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Mestres da Ilusão 2"
+      },
+      {
+        "id": 95,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Truque de Mestre o Segundo Ato"
+      },
+      {
+        "id": 96,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "나우 유씨 미 2"
+      },
+      {
+        "id": 97,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Insaisissable 2 - Now You See Me 2"
+      },
+      {
+        "id": 98,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "グランド・イリュージョン 見破られたトリック"
+      },
+      {
+        "id": 99,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Phi Vụ Thế Kỷ 2"
+      },
+      {
+        "id": 100,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "非常盜2"
+      },
+      {
+        "id": 101,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Ahora me ves: 2"
+      },
+      {
+        "id": 102,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "اکنون مرا میبینی 2"
+      },
+      {
+        "id": 103,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Insaisissables 2"
+      },
+      {
+        "id": 104,
+        "movieMetadataId": 14,
+        "sourceType": "tmdb",
+        "title": "Truque de Mestre 2"
+      }
+    ],
+    "certification": "PG-13",
+    "cleanTitle": "nowyouseeme2",
+    "collection": {
+      "title": "Now You See Me Collection",
+      "tmdbId": 382685
+    },
+    "digitalRelease": "2016-06-17T00:00:00Z",
+    "folderName": "/media/films/Now You See Me 2 (2016)",
+    "genres": [
+      "Crime",
+      "Thriller"
+    ],
+    "hasFile": true,
+    "id": 9,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/A81kDB6a1K86YLlcOtZB27jriJh.jpg",
+        "url": "/MediaCover/9/poster.jpg?lastWrite=639136278165786458"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/oFQilRMEq6yQbtMPxIYWpXeQ5ZN.jpg",
+        "url": "/MediaCover/9/fanart.jpg?lastWrite=639136278174986367"
+      }
+    ],
+    "imdbId": "tt3110958",
+    "inCinemas": "2016-06-02T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "card trick",
+      "cheerful",
+      "debunker",
+      "fake death",
+      "fbi",
+      "fbi agent",
+      "heist",
+      "hypnosis",
+      "illusion",
+      "illusionism",
+      "illusionist",
+      "intense",
+      "kidnapping",
+      "macau",
+      "magic",
+      "new york city",
+      "on the run",
+      "perception",
+      "prison",
+      "revenge",
+      "secrecy",
+      "secret society",
+      "sequel",
+      "sleight of hand",
+      "twin brother",
+      "vigilante"
+    ],
+    "lastSearchTime": "2026-05-06T01:30:21Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFile": {
+      "dateAdded": "2026-05-06T01:49:04Z",
+      "edition": "",
+      "id": 4,
+      "indexerFlags": 1,
+      "languages": [
+        {
+          "id": 2,
+          "name": "French"
+        },
+        {
+          "id": 1,
+          "name": "English"
+        }
+      ],
+      "mediaInfo": {
+        "audioBitrate": 384000,
+        "audioChannels": 5.1,
+        "audioCodec": "AC3",
+        "audioLanguages": "fre/eng/fre",
+        "audioStreamCount": 3,
+        "resolution": "1920x800",
+        "runTime": "2:09:25",
+        "scanType": "Progressive",
+        "subtitles": "fre/fre/fre/fre",
+        "videoBitDepth": 8,
+        "videoBitrate": 0,
+        "videoCodec": "x264",
+        "videoDynamicRange": "",
+        "videoDynamicRangeType": "",
+        "videoFps": 24
+      },
+      "movieId": 9,
+      "originalFilePath": "Insaisissables 2 2016 1080p VFF EN X264 AC3-mHDgz.mkv",
+      "path": "/media/films/Now You See Me 2 (2016)/Insaisissables 2 2016 1080p VFF EN X264 AC3-mHDgz.mkv",
+      "quality": {
+        "quality": {
+          "id": 3,
+          "modifier": "none",
+          "name": "WEBDL-1080p",
+          "resolution": 1080,
+          "source": "webdl"
+        },
+        "revision": {
+          "isRepack": false,
+          "real": 0,
+          "version": 1
+        }
+      },
+      "qualityCutoffNotMet": false,
+      "relativePath": "Insaisissables 2 2016 1080p VFF EN X264 AC3-mHDgz.mkv",
+      "releaseGroup": "mHDgz",
+      "sceneName": "Insaisissables 2 2016 1080p VFF EN X264 AC3-mHDgz",
+      "size": 3613096724
+    },
+    "movieFileId": 4,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "Now You See Me 2",
+    "overview": "Un an après avoir surpassé le FBI et acquis l’admiration du grand public grâce à leurs tours exceptionnels, Les 4 Cavaliers reviennent ! Pour leur retour sur le devant de la scène, ils vont dénoncer les méthodes peu orthodoxe d’un magnat de la technologie à la tête d’une vaste organisation criminelle. Ils ignorent que cet homme d’affaire, Walter Marbry a une longueur d’avance sur eux, et les conduit dans un piège : il veut que les magiciens braquent l’un des systèmes informatiques les plus sécurisés du monde. Pour sortir de ce chantage et déjouer les plans de ce syndicat du crime, ils vont devoir élaborer le braquage le plus spectaculaire jamais conçu.",
+    "path": "/media/films/Now You See Me 2 (2016)",
+    "physicalRelease": "2016-08-16T00:00:00Z",
+    "popularity": 10.8588,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 6.4,
+        "votes": 360805
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 46,
+        "votes": 0
+      },
+      "rottenTomatoes": {
+        "type": "user",
+        "value": 34,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 6.827,
+        "votes": 11532
+      },
+      "trakt": {
+        "type": "user",
+        "value": 7.09918,
+        "votes": 31881
+      }
+    },
+    "releaseDate": "2016-06-17T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 129,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 3613096724,
+    "sortTitle": "insaisissables 2",
+    "statistics": {
+      "movieFileCount": 1,
+      "releaseGroups": [
+        "mHDgz"
+      ],
+      "sizeOnDisk": 3613096724
+    },
+    "status": "released",
+    "studio": "Summit Entertainment",
+    "tags": [],
+    "title": "Insaisissables 2",
+    "titleSlug": "291805",
+    "tmdbId": 291805,
+    "website": "http://nowyouseeme.movie",
+    "year": 2016,
+    "youTubeTrailerId": "JzZh8kJJwe4"
+  },
+  {
+    "added": "2026-05-07T07:25:45Z",
+    "alternateTitles": [
+      {
+        "id": 105,
+        "movieMetadataId": 17,
+        "sourceType": "tmdb",
+        "title": "Spy Kids 2 : Espions en herbe"
+      },
+      {
+        "id": 106,
+        "movieMetadataId": 17,
+        "sourceType": "tmdb",
+        "title": "Espions en herbe 2:L'île des rêves envolés"
+      },
+      {
+        "id": 107,
+        "movieMetadataId": 17,
+        "sourceType": "tmdb",
+        "title": "スパイキッズ２ 失われた夢の島"
+      },
+      {
+        "id": 108,
+        "movieMetadataId": 17,
+        "sourceType": "tmdb",
+        "title": "Pequenos Espiões 2 - A Ilha dos Sonhos Perdidos"
+      }
+    ],
+    "certification": "PG",
+    "cleanTitle": "spykids2islandlostdreams",
+    "collection": {
+      "title": "Spy Kids Collection",
+      "tmdbId": 86486
+    },
+    "digitalRelease": "2002-08-09T00:00:00Z",
+    "folderName": "/media/films/Spy Kids 2 The Island of Lost Dreams (2002)",
+    "genres": [
+      "Family",
+      "Action",
+      "Adventure",
+      "Comedy",
+      "Science Fiction"
+    ],
+    "hasFile": true,
+    "id": 10,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/z8pfWCk6SlxxDLXXQdUHdxF5dwJ.jpg",
+        "url": "/MediaCover/10/poster.jpg?lastWrite=639137355527668212"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/5rKa5UKXnTdLsgY0mJbjAEQX3gB.jpg",
+        "url": "/MediaCover/10/fanart.jpg?lastWrite=639137355535148202"
+      }
+    ],
+    "imdbId": "tt0287717",
+    "inCinemas": "2002-08-07T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "experiment",
+      "island",
+      "rivalry",
+      "scientist",
+      "secrecy",
+      "secret organization",
+      "sequel",
+      "spy",
+      "villain",
+      "wretch"
+    ],
+    "lastSearchTime": "2026-05-07T07:26:00Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFile": {
+      "dateAdded": "2026-05-07T07:35:04Z",
+      "edition": "",
+      "id": 5,
+      "indexerFlags": 0,
+      "languages": [
+        {
+          "id": 2,
+          "name": "French"
+        },
+        {
+          "id": 1,
+          "name": "English"
+        }
+      ],
+      "mediaInfo": {
+        "audioBitrate": 448000,
+        "audioChannels": 5.1,
+        "audioCodec": "AC3",
+        "audioLanguages": "fre/eng/fre",
+        "audioStreamCount": 3,
+        "resolution": "1920x1080",
+        "runTime": "1:40:17",
+        "scanType": "Progressive",
+        "subtitles": "fre/fre/fre/eng/eng",
+        "videoBitDepth": 8,
+        "videoBitrate": 2550141,
+        "videoCodec": "x264",
+        "videoDynamicRange": "",
+        "videoDynamicRangeType": "",
+        "videoFps": 23.976
+      },
+      "movieId": 10,
+      "originalFilePath": "Spy.Kids.2.L.Ile.des.Reves.Perdus.2002.MULTi.VF2.1080p.BluRay.x264-PopHD.mkv",
+      "path": "/media/films/Spy Kids 2 The Island of Lost Dreams (2002)/Spy Kids 2 - The Island of Lost Dreams (2002) Bluray-1080p.mkv",
+      "quality": {
+        "quality": {
+          "id": 7,
+          "modifier": "none",
+          "name": "Bluray-1080p",
+          "resolution": 1080,
+          "source": "bluray"
+        },
+        "revision": {
+          "isRepack": false,
+          "real": 0,
+          "version": 1
+        }
+      },
+      "qualityCutoffNotMet": false,
+      "relativePath": "Spy Kids 2 - The Island of Lost Dreams (2002) Bluray-1080p.mkv",
+      "releaseGroup": "PopHD",
+      "sceneName": "Spy.Kids.2.L.Ile.des.Reves.Perdus.2002.MULTi.VF2.1080p.BluRay.x264-PopHD",
+      "size": 2738783887
+    },
+    "movieFileId": 5,
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "originalTitle": "Spy Kids 2: The Island of Lost Dreams",
+    "overview": "Le sauvetage fort spectaculaire de leurs parents a valu à Juni et Carmen de faire partie des espions les plus réputés du métier. Ils sont à présent chargés d'une mission des plus périlleuses : mettre la main sur un système diabolique, capable de détruire les instruments électroniques du globe, et le neutraliser au plus vite. Ils ignorent tout de cette terrifiante machine, sinon qu'elle se situe sur une île perdue au milieu de l'océan. Ils doivent avant tout savoir qui la contrôle, afin d'anéantir l'ensemble de l'organisation à l'origine d'une telle invention. Mais leur parcours est semé d'embûches. En effet, dès leur arrivée sur l'île, ils sont confrontés aux étranges créatures qui peuplent les lieux...",
+    "path": "/media/films/Spy Kids 2 The Island of Lost Dreams (2002)",
+    "physicalRelease": "2004-02-11T00:00:00Z",
+    "popularity": 5.2873,
+    "qualityProfileId": 6,
+    "ratings": {
+      "imdb": {
+        "type": "user",
+        "value": 5.3,
+        "votes": 78878
+      },
+      "metacritic": {
+        "type": "user",
+        "value": 66,
+        "votes": 0
+      },
+      "rottenTomatoes": {
+        "type": "user",
+        "value": 75,
+        "votes": 0
+      },
+      "tmdb": {
+        "type": "user",
+        "value": 5.658,
+        "votes": 2335
+      },
+      "trakt": {
+        "type": "user",
+        "value": 5.94073,
+        "votes": 3594
+      }
+    },
+    "releaseDate": "2002-08-09T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 100,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 2738783887,
+    "sortTitle": "spy kids 2 espions en herbe",
+    "statistics": {
+      "movieFileCount": 1,
+      "releaseGroups": [
+        "PopHD"
+      ],
+      "sizeOnDisk": 2738783887
+    },
+    "status": "released",
+    "studio": "Dimension Films",
+    "tags": [],
+    "title": "Spy Kids 2 - Espions en herbe",
+    "titleSlug": "9488",
+    "tmdbId": 9488,
+    "website": "",
+    "year": 2002,
+    "youTubeTrailerId": "RLkRbj8sv8E"
+  },
+  {
+    "added": "2026-05-10T09:28:06Z",
+    "alternateTitles": [],
+    "cleanTitle": "lesalphas",
+    "folderName": "/media/films/Les Alphas (2013)",
+    "genres": [
+      "Animation",
+      "Documentary",
+      "Family"
+    ],
+    "hasFile": false,
+    "id": 11,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/iclCO8v8hpMYcqQCAIr519NZSBt.jpg",
+        "url": "/MediaCover/11/poster.jpg?lastWrite=639140020900091411"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/ykBARmAZzeIkltDXuHZVNe2iQyq.jpg",
+        "url": "/MediaCover/11/fanart.jpg?lastWrite=639140020915891231"
+      }
+    ],
+    "inCinemas": "2013-10-01T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [],
+    "lastSearchTime": "2026-05-10T09:28:55Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFileId": 0,
+    "originalLanguage": {
+      "id": 2,
+      "name": "French"
+    },
+    "originalTitle": "Les Alphas",
+    "overview": "La planète de Alphas, c'est l'histoire d'un enfant qui est triste parce qu'il aimerait savoir lire et qu'il ne trouve personne pour lui apprendre. Transformé en super héros ayant pour nom \"Petit Malin\", et avec l'aide d'un bon génie et d'une fée, il va partir à la rescousse de petits personnages extraordinaires, les Alphas, qui ont la particularité d'avoir la forme et de faire le même son que les lettres de notre alphabet. En effet, les membres de l'une de deux familles habitant sur la planète des Alpha - les Consonnes - ont été capturés par les Bêtas envoûtés et manipulés par une méchante sorcière , Furiosa. En faisant connaissance et en devenant ami avec les Alphas, Petit Malin apprend à les reconnaître et va ainsi entrer dans l'univers de la lecture.",
+    "path": "/media/films/Les Alphas (2013)",
+    "popularity": 0.0261,
+    "qualityProfileId": 6,
+    "ratings": {
+      "tmdb": {
+        "type": "user",
+        "value": 0,
+        "votes": 0
+      }
+    },
+    "releaseDate": "2013-12-30T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 0,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 0,
+    "sortTitle": "les alphas",
+    "statistics": {
+      "movieFileCount": 0,
+      "releaseGroups": [],
+      "sizeOnDisk": 0
+    },
+    "status": "released",
+    "studio": "",
+    "tags": [],
+    "title": "Les Alphas",
+    "titleSlug": "680066",
+    "tmdbId": 680066,
+    "website": "",
+    "year": 2013,
+    "youTubeTrailerId": ""
+  },
+  {
+    "added": "2026-05-10T09:28:08Z",
+    "alternateTitles": [],
+    "cleanTitle": "laplanetedesalphas",
+    "folderName": "/media/films/La Planete des Alphas (2013)",
+    "genres": [
+      "Animation",
+      "Family"
+    ],
+    "hasFile": false,
+    "id": 12,
+    "images": [
+      {
+        "coverType": "poster",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/hhNGEFJiOP6JOSqbL4A9NuuYj7V.jpg",
+        "url": "/MediaCover/12/poster.jpg?lastWrite=639140020927531098"
+      },
+      {
+        "coverType": "fanart",
+        "remoteUrl": "https://image.tmdb.org/t/p/original/bCzXLUcjEPVeaW0CozBZmioWA2U.jpg",
+        "url": "/MediaCover/12/fanart.jpg?lastWrite=639140020934661017"
+      }
+    ],
+    "inCinemas": "2013-10-01T00:00:00Z",
+    "isAvailable": true,
+    "keywords": [
+      "education"
+    ],
+    "lastSearchTime": "2026-05-10T09:28:34Z",
+    "minimumAvailability": "released",
+    "monitored": true,
+    "movieFileId": 0,
+    "originalLanguage": {
+      "id": 2,
+      "name": "French"
+    },
+    "originalTitle": "La Planète des Alphas",
+    "overview": "La planète de Alphas, c'est l'histoire d'un enfant qui est triste parce qu'il aimerait savoir lire et qu'il ne trouve personne pour lui apprendre. Transformé en super héros ayant pour nom \"Petit Malin\", et avec l'aide d'un bon génie et d'une fée, il va partir à la rescousse de petits personnages extraordinaires, les Alphas, qui ont la particularité d'avoir la forme et de faire le même son que les lettres de notre alphabet. En effet, les membres de l'une de deux familles habitant sur la planète des Alpha - les Consonnes - ont été capturés par les Bêtas envoûtés et manipulés par une méchante sorcière , Furiosa. En faisant connaissance et en devenant ami avec les Alphas, Petit Malin apprend à les reconnaître et va ainsi entrer dans l'univers de la lecture.",
+    "path": "/media/films/La Planete des Alphas (2013)",
+    "popularity": 0.0982,
+    "qualityProfileId": 6,
+    "ratings": {
+      "tmdb": {
+        "type": "user",
+        "value": 7.5,
+        "votes": 2
+      }
+    },
+    "releaseDate": "2013-12-30T00:00:00Z",
+    "rootFolderPath": "/media/films",
+    "runtime": 19,
+    "secondaryYearSourceId": 0,
+    "sizeOnDisk": 0,
+    "sortTitle": "la planète des alphas",
+    "statistics": {
+      "movieFileCount": 0,
+      "releaseGroups": [],
+      "sizeOnDisk": 0
+    },
+    "status": "released",
+    "studio": "",
+    "tags": [],
+    "title": "La Planète des Alphas",
+    "titleSlug": "332311",
+    "tmdbId": 332311,
+    "website": "",
+    "year": 2013,
+    "youTubeTrailerId": ""
+  }
+]

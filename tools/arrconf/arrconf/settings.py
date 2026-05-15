@@ -21,5 +21,7 @@ class Settings(BaseSettings):
     sonarr_api_key: SecretStr | None = None  # SONARR_API_KEY
     radarr_api_key: SecretStr | None = None  # RADARR_API_KEY (Phase 3)
     prowlarr_api_key: SecretStr | None = None  # PROWLARR_API_KEY (Phase 3)
+    qbt_user: SecretStr | None = None  # QBT_USER (Phase 5, D-05-QBT-01)
+    qbt_pass: SecretStr | None = None  # QBT_PASS (Phase 5, D-05-QBT-01)
     arrconf_log_level: str = "INFO"
     arrconf_dry_run: bool = False

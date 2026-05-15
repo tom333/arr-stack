@@ -81,6 +81,9 @@ def test_managed_tag_added_to_download_client_on_apply(
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 5 extension: reconcile_sonarr now also reads remotepathmapping and series.
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
     post_dc = respx_mock.post("/downloadclient").mock(
         return_value=httpx.Response(201, json={"id": 7, "name": "qbit"})
     )
@@ -122,6 +125,9 @@ def test_managed_tag_never_deleted_in_prune_mode(
     respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    # Phase 5 extension: reconcile_sonarr now also reads remotepathmapping and series.
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
     delete_tag_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/tag/\d+$")
 
     instance = SonarrInstance(

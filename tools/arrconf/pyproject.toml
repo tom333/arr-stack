@@ -10,6 +10,7 @@ dependencies = [
   "ruyaml>=0.91,<0.92",
   "structlog>=25.5,<26",
   "tenacity>=9.1,<10",
+  "jsonschema>=4.26.0",
 ]
 
 [project.scripts]
@@ -37,7 +38,9 @@ select = ["E", "F", "I", "B", "UP", "N", "D"]
 ignore = ["D203", "D213"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D"]
+# D: docstrings not required in tests.
+# N802: test names may include camelCase to mirror API names (AuthError, savePath).
+"tests/**" = ["D", "N802"]
 # Sonarr/Radarr APIs use camelCase field names; pydantic models must match (D-21).
 "arrconf/resources/**" = ["N815"]
 # HostConfigSection mirrors camelCase API fields for YAML→API round-trip (D-21).
@@ -50,6 +53,7 @@ python_version = "3.13"
 strict = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
+
 
 [tool.pytest.ini_options]
 addopts = "-v --strict-markers"

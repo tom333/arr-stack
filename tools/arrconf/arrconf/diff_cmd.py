@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import structlog
 
-from arrconf.client_base import ProwlarrClient, RadarrClient, SonarrClient
+from arrconf.client_base import ProwlarrClient, QbittorrentClient, RadarrClient, SonarrClient
 from arrconf.config import RootConfig
 from arrconf.differ import Action
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -69,6 +69,30 @@ def diff_prowlarr(client: ProwlarrClient, root_config: RootConfig) -> int:
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
         log.info("no_drift", apps=["prowlarr"])
+        return 0
+    for p in non_noop:
+        log.info("drift", action=p.action.value, name=p.name, diff_fields=p.diff_fields)
+    return 3
+
+
+def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
+    """Run qBittorrent reconcile in dry-run mode and return CLI exit code.
+
+    Mirror of diff_prowlarr (CR-02 pattern): gates on result.plan (populated
+    in dry-run) NOT on actions_taken (empty in dry-run by definition).
+
+    Returns 0 when every planned action is NO_OP, 3 when drift is detected
+    (CLAUDE.md CLI exit-code contract: 3 = drift). D-05-QBT-02.
+    """
+    from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
+
+    if "main" not in root_config.qbittorrent:
+        log.warning("no_qbittorrent_config", hint="qbittorrent.main missing in YAML")
+        return 0
+    result = reconcile_qbittorrent(client, root_config.qbittorrent["main"], dry_run=True)
+    non_noop = [p for p in result.plan if p.action != Action.NO_OP]
+    if not non_noop:
+        log.info("no_drift", apps=["qbittorrent"])
         return 0
     for p in non_noop:
         log.info("drift", action=p.action.value, name=p.name, diff_fields=p.diff_fields)

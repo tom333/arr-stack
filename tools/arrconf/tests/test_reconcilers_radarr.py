@@ -19,15 +19,19 @@ from typing import Any
 import httpx
 import pytest
 import respx
+import structlog.testing
 
 from arrconf.client_base import RadarrClient
 from arrconf.config import (
     DownloadClientsSection,
     HostConfigSection,
     IndexersSection,
+    MovieTagsSection,
     NotificationsSection,
     RadarrInstance,
     RootFoldersSection,
+    TagItem,
+    TagsSection,
 )
 from arrconf.differ import Action
 from arrconf.reconcilers.radarr import reconcile_radarr
@@ -63,8 +67,14 @@ def _mock_radarr_gets(
     downloadclients: list[dict[str, Any]] | None = None,
     notifications: list[dict[str, Any]] | None = None,
     hostconfig: dict[str, Any] | None = None,
+    remotepathmappings: list[dict[str, Any]] | None = None,
+    movies: list[dict[str, Any]] | None = None,
 ) -> None:
-    """Mock every GET endpoint reconcile_radarr touches."""
+    """Mock every GET endpoint reconcile_radarr touches.
+
+    Phase-5 additions: /remotepathmapping and /movie are always mocked (default
+    empty) because the Phase-5 reconciler calls these in every run.
+    """
     respx_mock.get("/tag").mock(
         return_value=httpx.Response(
             200, json=tag if tag is not None else _load("tag_with_arrconf_managed.json")
@@ -76,6 +86,10 @@ def _mock_radarr_gets(
         return_value=httpx.Response(200, json=downloadclients or [])
     )
     respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=notifications or []))
+    respx_mock.get("/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=remotepathmappings or [])
+    )
+    respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=movies or []))
     if hostconfig is not None:
         respx_mock.get("/config/host").mock(return_value=httpx.Response(200, json=hostconfig))
 
@@ -462,3 +476,293 @@ def test_radarr_full_round_trip_no_op(respx_mock: respx.MockRouter) -> None:
     for name, route in put_routes.items():
         assert route.call_count == 0, f"round_trip: unexpected PUT on {name}"
     assert all(p.action == Action.NO_OP for p in result.plan if p.desired is not None)
+
+
+# ---------------------------------------------------------------------------
+# Phase-5 extension tests (D-05-SPLIT-02, D-05-ORDER-01, label→id resolver)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_split_three_tags_three_root_folders_three_download_clients_radarr(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """ADR-7 split Radarr mirror: 3 tags + 3 root folders + 3 download clients.
+
+    After reconcile:
+    - 3 POSTs to /tag (movies, anime, family — managed tag already exists).
+    - 3 POSTs to /rootfolder (/media/films, /media/films-anime, /media/films-family).
+    - 3 POSTs to /downloadclient.
+    - Download client POST bodies must contain INTEGER tag IDs (label resolution worked),
+      not string labels.
+    """
+    managed_tag = {"id": 1, "label": "arrconf-managed"}
+    movies_id, anime_id, family_id = 2, 3, 4
+
+    # /tag: GET returns managed tag; POST creates each new tag in sequence.
+    tag_responses = iter(
+        [
+            httpx.Response(201, json={"id": movies_id, "label": "movies"}),
+            httpx.Response(201, json={"id": anime_id, "label": "anime"}),
+            httpx.Response(201, json={"id": family_id, "label": "family"}),
+        ]
+    )
+    respx_mock.get("/tag").mock(
+        side_effect=[
+            httpx.Response(200, json=[managed_tag]),  # _ensure_managed_tag
+            httpx.Response(200, json=[managed_tag]),  # _reconcile_tags (before)
+            httpx.Response(
+                200,
+                json=[  # _reconcile_tags (after re-fetch)
+                    managed_tag,
+                    {"id": movies_id, "label": "movies"},
+                    {"id": anime_id, "label": "anime"},
+                    {"id": family_id, "label": "family"},
+                ],
+            ),
+        ]
+    )
+    respx_mock.post("/tag").mock(side_effect=lambda r: next(tag_responses))
+
+    # /rootfolder: GET returns empty (all 3 are new).
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 99, "path": "/media/new"})
+    )
+
+    # /downloadclient: GET returns empty.
+    dc_post_bodies: list[dict[str, Any]] = []
+
+    def _capture_dc_post(request: httpx.Request) -> httpx.Response:
+        dc_post_bodies.append(json.loads(request.content.decode()))
+        return httpx.Response(201, json={"id": 50})
+
+    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.post("/downloadclient").mock(side_effect=_capture_dc_post)
+
+    # Other endpoints.
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=[]))
+
+    movies_dc = DownloadClient(
+        name="qbit-movies",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["movies"],
+    )
+    anime_dc = DownloadClient(
+        name="qbit-anime",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["anime"],
+    )
+    family_dc = DownloadClient(
+        name="qbit-family",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["family"],
+    )
+
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        tags=TagsSection(
+            items=[TagItem(label="movies"), TagItem(label="anime"), TagItem(label="family")]
+        ),
+        root_folders=RootFoldersSection(
+            items=[
+                RootFolder(path="/media/films"),
+                RootFolder(path="/media/films-anime"),
+                RootFolder(path="/media/films-family"),
+            ]
+        ),
+        download_clients=DownloadClientsSection(items=[movies_dc, anime_dc, family_dc]),
+        movie_tags=MovieTagsSection(enable=False),  # keep test focused on split
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    reconcile_radarr(client, instance, dry_run=False)
+
+    # 3 tag POSTs (movies, anime, family).
+    tag_posts = [
+        c for c in respx_mock.calls if c.request.method == "POST" and "/tag" in c.request.url.path
+    ]
+    assert len(tag_posts) == 3, f"Expected 3 tag POSTs, got {len(tag_posts)}"
+
+    # 3 root folder POSTs.
+    rf_posts = [
+        c
+        for c in respx_mock.calls
+        if c.request.method == "POST" and "/rootfolder" in c.request.url.path
+    ]
+    assert len(rf_posts) == 3, f"Expected 3 rootfolder POSTs, got {len(rf_posts)}"
+
+    # 3 download client POSTs with INTEGER tag IDs (not string labels).
+    assert len(dc_post_bodies) == 3, f"Expected 3 download client POSTs, got {len(dc_post_bodies)}"
+    for body in dc_post_bodies:
+        tags_in_body = body.get("tags", [])
+        # tag_labels field must NOT appear in the API body (excluded=True).
+        assert "tag_labels" not in body, "tag_labels must be excluded from POST body"
+        # Each download client gets its tag ID + managed tag ID.
+        assert all(isinstance(t, int) for t in tags_in_body), (
+            f"All tags in download client POST body must be ints. Got: {tags_in_body}"
+        )
+        # At minimum: managed tag + one routing tag.
+        assert len(tags_in_body) >= 2, (
+            f"Expected managed tag + routing tag in body. Got: {tags_in_body}"
+        )
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_reconcile_order_radarr(
+    respx_mock: respx.MockRouter,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """D-05-ORDER-01 Radarr mirror regression: step_begin events in the exact fixed order.
+
+    Captures the structured-log output (JSON lines written to stdout by the configured
+    structlog processor chain) and asserts that step_begin events appear in the
+    D-05-ORDER-01 sequence. Uses capsys rather than structlog.testing.capture_logs()
+    because cache_logger_on_first_use=True (set by configure_logging() in CLI tests)
+    can freeze the bound logger before capture_logs() can inject its processor.
+    """
+    _mock_radarr_gets(respx_mock, tag=_load("tag_with_arrconf_managed.json"))
+
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        movie_tags=MovieTagsSection(enable=False),
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+
+    # Use structlog.testing.capture_logs() when possible; fall back to capsys JSON parsing.
+    step_events: list[dict[str, Any]] = []
+
+    with structlog.testing.capture_logs() as cap_logs:
+        reconcile_radarr(client, instance, dry_run=False)
+
+    step_events = [e for e in cap_logs if e.get("event") == "step_begin" and "step_index" in e]
+
+    if not step_events:
+        # Fallback: parse JSON lines from stdout (works when logger is cached).
+        import json as _json
+
+        captured = capsys.readouterr()
+        for line in captured.out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = _json.loads(line)
+                if obj.get("event") == "step_begin" and "step_index" in obj:
+                    step_events.append(obj)
+            except (_json.JSONDecodeError, ValueError):
+                pass
+
+    assert len(step_events) >= 4, (
+        f"D-05-ORDER-01 Radarr: expected at least 4 step_begin events, got {len(step_events)}. "
+        f"Events: {step_events}"
+    )
+
+    # The step_index must be strictly increasing (D-05-ORDER-01 invariant).
+    indices = [e["step_index"] for e in step_events]
+    assert indices == sorted(indices), (
+        f"D-05-ORDER-01 Radarr violated! step_index sequence must be monotonically increasing. "
+        f"Got: {indices}. Step events: {[(e.get('step'), e['step_index']) for e in step_events]}"
+    )
+
+    # Verify the canonical order by step name.
+    step_names = [e.get("step") for e in step_events]
+    canonical_order = [
+        "managed_tag",
+        "tags",
+        "indexers",
+        "root_folders",
+        "remote_path_mappings",
+        "download_clients",
+        "notifications",
+        "host_config",
+        "movie_tags",
+    ]
+    assert step_names == canonical_order, (
+        f"D-05-ORDER-01 Radarr violated! Expected step order:\n  {canonical_order}\n"
+        f"Got:\n  {step_names}"
+    )
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_download_client_tags_label_resolution_uses_just_created_id_radarr(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """D-05-ORDER-01 Radarr dispositive: label resolver uses IDs from the tags step, not from cache.
+
+    Fixture: GET /tag returns [] (no tags exist). YAML declares tag {label: movies} AND
+    download_client with tag_labels=[movies]. After reconcile: the download_client POST
+    body's tags field must contain the ID returned by the just-completed POST /tag.
+
+    This proves the label→id resolver runs AFTER the tags POST completes (step 2
+    before step 6 per D-05-ORDER-01).
+    """
+    just_created_movies_id = 42  # Non-trivial id to prove the resolver used the POST response.
+
+    # GET /tag: first and second calls return [] (no pre-existing tags).
+    # Third call (re-fetch after reconcile) returns the newly created tag.
+    respx_mock.get("/tag").mock(
+        side_effect=[
+            httpx.Response(200, json=[]),  # _ensure_managed_tag
+            httpx.Response(200, json=[]),  # _reconcile_tags (before)
+            httpx.Response(
+                200, json=[{"id": just_created_movies_id, "label": "movies"}]
+            ),  # re-fetch
+        ]
+    )
+    # POST /tag for "movies" returns the server-assigned id=42.
+    respx_mock.post("/tag").mock(
+        return_value=httpx.Response(201, json={"id": just_created_movies_id, "label": "movies"})
+    )
+
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=[]))
+
+    dc_post_bodies: list[dict[str, Any]] = []
+
+    def _capture_dc_post(request: httpx.Request) -> httpx.Response:
+        dc_post_bodies.append(json.loads(request.content.decode()))
+        return httpx.Response(201, json={"id": 1})
+
+    respx_mock.post("/downloadclient").mock(side_effect=_capture_dc_post)
+
+    movies_dc = DownloadClient(
+        name="qbit-movies",
+        protocol="torrent",
+        implementation="QBittorrent",
+        configContract="QBittorrentSettings",
+        tag_labels=["movies"],
+    )
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        tags=TagsSection(items=[TagItem(label="movies")]),
+        download_clients=DownloadClientsSection(items=[movies_dc]),
+        movie_tags=MovieTagsSection(enable=False),  # disable to keep test focused
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    reconcile_radarr(client, instance, dry_run=False)
+
+    assert len(dc_post_bodies) == 1, "Expected exactly one download client POST"
+    tags_in_body = dc_post_bodies[0].get("tags", [])
+
+    assert just_created_movies_id in tags_in_body, (
+        f"Label resolver must use the id={just_created_movies_id} returned by the just-completed "
+        f"POST /tag, not a stale/string value. Got tags: {tags_in_body}"
+    )
+    # String "movies" must NOT be in the tags field.
+    assert "movies" not in tags_in_body, (
+        f"String 'movies' must not appear in tags body — label resolution must produce integer. "
+        f"Got: {tags_in_body}"
+    )
