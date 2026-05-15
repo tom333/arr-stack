@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-15T21:11:18.445Z"
-last_activity: 2026-05-16 -- Phase 5 learnings extracted (46 items)
+last_updated: "2026-05-15T21:32:19.100Z"
+last_activity: "2026-05-16 -- Phase 6 context captured (5 locked decisions: D-06-VALIDATE-01, D-06-AUTH-01, D-06-Q10-01, D-06-RETAG-01, D-06-SCOPE-01, D-06-CREDS-01)"
 progress:
   total_phases: 12
   completed_phases: 8
@@ -55,7 +55,7 @@ Plans pending: (none for Phase 5 ; next phase = 06 Reconciler Seerr)
 7. Extend `chart-lint.yml` `paths:` to include `tools/arrconf/**` so arrconf-only PRs auto-tag (Phase 5.1 F1)
 8. Fix `arrconf-image.yml` metadata-action `value=` to handle legacy `push:tags` semver correctly (Phase 5.1 F2 — A1-ASSUMED-REGRESSION confirmed)
 
-Last activity: 2026-05-16 -- Phase 5 learnings extracted (46 items)
+Last activity: 2026-05-16 -- Phase 6 context captured (5 locked decisions: D-06-VALIDATE-01, D-06-AUTH-01, D-06-Q10-01, D-06-RETAG-01, D-06-SCOPE-01, D-06-CREDS-01)
 
 Progress: 8/8 Phase 5 plans + 2/2 Phase 5.1 plans (Phase 5 milestone work complete)
 
