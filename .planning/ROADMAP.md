@@ -210,7 +210,7 @@ Plans:
   6. Guard CI : nouveau step dans `chart-lint.yml` ou un workflow dédié qui ÉCHOUE si `arrconf-image.yml` ne contient plus `repository_dispatch:` (prévient un revert silencieux) — OU décision documentée que la garde est out-of-scope (low risk, peu de surface)
 **Plans**: 2 plans
 - [x] 05.1-01-PLAN.md — Wave 1: Workflow YAML edits (chart-lint.yml repository_dispatch step + CI regression guard + path triggers ; arrconf-image.yml repository_dispatch + workflow_dispatch + checkout ref override + metadata-action value= override) — implements D-05.1-TRIGGER-01 / D-05.1-RESCUE-01 / D-05.1-LEGACY-01 / D-05.1-GUARD-01
-- [ ] 05.1-02-PLAN.md — Wave 2: Post-merge verification gates (G-05.1-1 dispatch + arrconf-image run ; G-05.1-2 GHCR :0.3.x HEAD probe ; G-05.1-3 Renovate auto-PR ; G-05.1-4 SUMMARY + STATE.md closure of D-05-CI-AUTOTAG-CHAIN)
+- [x] 05.1-02-PLAN.md — Wave 2: Post-merge verification gates (G-05.1-1 dispatch + arrconf-image run ; G-05.1-2 GHCR :0.3.x HEAD probe ; G-05.1-3 Renovate auto-PR ; G-05.1-4 SUMMARY + STATE.md closure of D-05-CI-AUTOTAG-CHAIN)
 **UI hint**: no (CI/chart-only, aucune surface UI)
 **Open questions to resolve**:
   - Q-05.1-1 : faut-il ajouter une garde CI (SC#6 option) ou accepter le risque de régression silencieuse ?

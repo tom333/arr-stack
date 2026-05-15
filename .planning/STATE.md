@@ -4,14 +4,14 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-15T07:34:17.069Z"
-last_activity: 2026-05-15
+last_updated: "2026-05-15T09:17:22.135Z"
+last_activity: "2026-05-15 -- Phase 5.1 closed (UNBLOCKED Plan 05-08 — pending PR #10 merge)"
 progress:
   total_phases: 12
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 53
-  completed_plans: 50
-  percent: 94
+  completed_plans: 51
+  percent: 96
 ---
 
 # Project State
@@ -30,6 +30,7 @@ Plans complete: 05-01 → 05-07 (Phase 5) + 05.1-01 + 05.1-02 (Phase 5.1 closed 
 Plans pending: 05-08 (cluster apply + SC#1-6 dispositives — UNBLOCKED, ready for `/gsd-execute-phase 05` after PR #10 merges)
 
 **Phase 5.1 outcome (closed 2026-05-15):**
+
   - ✅ D-05-CI-AUTOTAG-CHAIN resolved. PR #9 merged (commit 8cb1241). Tag `v0.3.1` created → `repository_dispatch` fired → `arrconf-image.yml` published `ghcr.io/tom333/arr-stack-arrconf:0.3.1` (bearer-auth HEAD probe = 200).
   - ✅ D-05.1-ORPHAN-01 verified: `:0.3.0` is HTTP 404 on GHCR (orphan tag preserved).
   - ⚠️  D-05.1-BUMP-01 DEVIATED: Mend Renovate App not installed on `tom333/arr-stack`. Manual values.yaml bump via PR #10 (https://github.com/tom333/arr-stack/pull/10) substitutes. Follow-up: install Renovate App at https://github.com/apps/renovate.
