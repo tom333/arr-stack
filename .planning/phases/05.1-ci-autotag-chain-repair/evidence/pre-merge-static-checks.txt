@@ -1,0 +1,20 @@
+=== T1: continue-on-error on dispatch step ===
+OK T1
+=== T2: new_tag != '' guard on dispatch ===
+OK T2
+=== T3: metadata-action value= override on type=semver ===
+OK T3
+=== T4: checkout ref override uses client_payload.tag ===
+OK T4
+=== T5: repository_dispatch + workflow_dispatch present in arrconf-image.yml ===
+OK T5 (count=2)
+=== T6: CI guard step present in chart-lint.yml ===
+OK T6
+=== T7: chart-lint.yml paths include arrconf-image.yml ===
+OK T7 (count=4)
+=== YAML parse: chart-lint.yml ===
+OK YAML chart-lint
+=== YAML parse: arrconf-image.yml ===
+OK YAML arrconf-image
+=== actionlint (deferred per RESEARCH Q2 if not installed) ===
+SKIP actionlint (not installed - RESEARCH Q2 documented as deferred)
