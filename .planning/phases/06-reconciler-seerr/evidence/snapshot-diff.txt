@@ -1,0 +1,94 @@
+=== Phase 6 snapshot diff (baseline 2026-05-16 → after 2026-05-16) ===
+
+## File-set summary
+Seulement dans snapshots/after-phase-6-2026-05-16/: radarr
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/request_count.json et snapshots/after-phase-6-2026-05-16/seerr/request_count.json sont différents
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/request.json et snapshots/after-phase-6-2026-05-16/seerr/request.json sont différents
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/settings_jobs.json et snapshots/after-phase-6-2026-05-16/seerr/settings_jobs.json sont différents
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/settings_main.json et snapshots/after-phase-6-2026-05-16/seerr/settings_main.json sont différents
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/settings_radarr.json et snapshots/after-phase-6-2026-05-16/seerr/settings_radarr.json sont différents
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/settings_sonarr.json et snapshots/after-phase-6-2026-05-16/seerr/settings_sonarr.json sont différents
+Les fichiers snapshots/before-phase-6-2026-05-16/seerr/user.json et snapshots/after-phase-6-2026-05-16/seerr/user.json sont différents
+Seulement dans snapshots/after-phase-6-2026-05-16/: sonarr
+
+## Intentional deltas — seerr/settings_sonarr.json (Phase 6 write target)
+3,5c3,5
+<     "activeAnimeDirectory": "/media/series",
+<     "activeAnimeProfileId": 4,
+<     "activeAnimeProfileName": "HD-1080p",
+---
+>     "activeAnimeDirectory": "/media/anime",
+>     "activeAnimeProfileId": 8,
+>     "activeAnimeProfileName": "Anime",
+9c9,11
+<     "animeTags": [],
+---
+>     "animeTags": [
+>       3
+>     ],
+12c14
+<     "externalUrl": "https://sonarr.tgu.ovh",
+---
+>     "externalUrl": "",
+21,22c23,26
+<     "tagRequests": false,
+<     "tags": [],
+---
+>     "tagRequests": true,
+>     "tags": [
+>       2
+>     ],
+
+## Intentional deltas — seerr/settings_radarr.json (Phase 6 write target)
+7c7
+<     "externalUrl": "https://radarr.tgu.ovh",
+---
+>     "externalUrl": "",
+13c13
+<     "name": "radaarr",
+---
+>     "name": "radarr",
+17,18c17,20
+<     "tagRequests": false,
+<     "tags": [],
+---
+>     "tagRequests": true,
+>     "tags": [
+>       2
+>     ],
+
+## Intentional deltas — seerr/settings_main.json (Phase 6 write target — defaultPermissions=32, defaultQuotas)
+2c2
+<   "apiKey": "***REDACTED***",
+---
+>   "apiKey": "MTc3NjE0OTk5MzUyN2IxNjRmOTA1LTM4MWItNGUwMS1hZGNmLWYxY2E2ZjA5ZTBmMg==",
+12,13c12,19
+<     "movie": {},
+<     "tv": {}
+---
+>     "movie": {
+>       "quotaDays": 7,
+>       "quotaLimit": 5
+>     },
+>     "tv": {
+>       "quotaDays": 7,
+>       "quotaLimit": 5
+>     }
+
+## Intentional deltas — seerr/user.json (Phase 6 write target — permissions: 2 ADMIN)
+25c25
+<       "requestCount": 16,
+---
+>       "requestCount": 17,
+
+## Noise deltas (informational — NOT Phase 6 writes)
+  - seerr/request.json + request_count.json: timestamps + new Elena of Avalor request
+  - seerr/settings_jobs.json: scheduled job tick timestamps
+  - sonarr/ + radarr/ directories: NEW in after/ (baseline 06-01 captured only seerr/)
+
+## Anti-leak status
+  Redacted 5 files (Phase 5 Deviation #6 reproduced — snapshot.sh apiKey scope gap):
+    - seerr/{settings_sonarr,settings_radarr,settings_jellyfin}.json
+    - radarr/config_host.json
+    - sonarr/config_host.json
+  All 'apiKey' high-entropy values replaced with '***REDACTED***'

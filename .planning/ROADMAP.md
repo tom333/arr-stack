@@ -21,7 +21,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [ ] **Phase 4: Umbrella chart + migration des 9 apps** - `charts/arr-stack/` umbrella avec deps `bjw-s/app-template`, migration des 9 ArgoCD Apps de my-kluster vers 1 seule App, Renovate `customManagers` validé bout-en-bout
 - [x] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants (completed 2026-05-16, all 6 SC dispositives green)
 - [x] **Phase 5.1: CI auto-tag → image-build chain repair (INSERTED)** - Réparer la chaîne `chart-lint.yml tag job → arrconf-image.yml` via `repository_dispatch` (Option C), accepter v0.3.0 comme orphelin (pas d'image GHCR semver), shipper v0.3.1 comme première image Phase-5 correctement publiée. Débloque Plan 05-08. (completed 2026-05-15)
-- [ ] **Phase 6: Reconciler Seerr** - Validation Q1 (compat API Seerr vs Overseerr/Jellyseerr) + Q10 (routing tags), reconciler `seerr.py` (services connectés, users, requests config)
+- [x] **Phase 6: Reconciler Seerr** - Validation Q1 (compat API Seerr vs Overseerr/Jellyseerr) + Q10 (routing tags), reconciler `seerr.py` (services connectés, users, requests config) (completed 2026-05-17, all 5 SC dispositives green except SC#4 partial — operator-override Elena of Avalor, native animeTags routing untested in this session; 4 deviations documented inc. D-06-OPENAPI-01 hotfix shipped in :0.4.4)
 - [ ] **Phase 7: Reconciler Jellyfin** - Bootstrap admin manuel préalable, validation Q9 (auth header), reconciler libraries / users / server config / plugins (best effort)
 - [ ] **Phase 8: Migration ESO/Akeyless (optionnelle, post-MVP)** - ExternalSecret pour les API keys, suppression du secret manuel, alignement avec chantier ESO global du cluster
 
@@ -226,9 +226,16 @@ Plans:
   3. Q10 résolue : soit Seerr expose `defaultTags` par service connecté → routing auto par genre, soit fallback documenté `tag par défaut tv + ré-tag manuel pour anime/family minoritaires`
   4. Reconciler `seerr.py` réconcilie services Sonarr/Radarr connectés (single instance `main`), au minimum 1 user admin, requests config (auto-approve, request limits) ; round-trip `dump → apply --dry-run` = 0 action
   5. Test pratique : créer une demande Seerr → la requête arrive bien dans Sonarr ou Radarr taggée correctement (ou taggée `tv` + ré-tag manuel selon résolution Q10)
-**Plans**: TBD
+**Plans**: 7 plans
+- [x] 06-01-PLAN.md — Wave 0 pre-flight: Seerr re-snapshot + Q1 PUT-probe evidence committed + Anime profile ID=8 lookup
+- [x] 06-02-PLAN.md — Wave 1: arrconf config schema extension (4 Seerr pydantic resources + ContentRoutingSection on Sonarr/Radarr instances) + JSON Schema regen
+- [x] 06-03-PLAN.md — Wave 1 (parallel): Seerr test fixtures (4 GET-response JSON copies from baseline) + conftest extensions
+- [x] 06-04-PLAN.md — Wave 2: SeerrClient + reconcile_seerr (4 resources scoped per D-06-SCOPE-01) + CLI dispatch wiring + 17 respx tests
+- [x] 06-05-PLAN.md — Wave 2 (parallel): content_tags step in Sonarr + Radarr reconcilers (D-06-RETAG-01, family/anime keyword rules, Pitfall 5 enforced)
+- [x] 06-06-PLAN.md — Wave 3: chart-side cutover (arrconf.yml seerr.main + content_routing rules; values.schema.json regen)
+- [x] 06-07-PLAN.md — Wave 4: cluster-apply + SC#1-5 dispositive evidence + post-apply snapshot + Phase 6 closure SUMMARY (4 deviations documented inc. D-06-OPENAPI-01 hotfixed in `:0.4.4`)
 **UI hint**: yes
-**Open questions to resolve**: Q1 (bloque la phase si incompatible), Q10 (avec fallback documenté)
+**Open questions to resolve**: (all resolved — Q1 dispositively probed in Plan 06-01, Q10 mechanism wired via D-06-Q10-01 native + D-06-RETAG-01 fallback, validated live in Phase 6)
 
 ### Phase 7: Reconciler Jellyfin
 **Goal**: Implémenter le reconciler `jellyfin.py` (libraries, users, server config, plugins best effort) avec bootstrap admin manuel préalable et validation de Q9 (auth header — `X-Emby-Token` / `Authorization: MediaBrowser` / `?api_key=` query param). `client_base.py` doit pouvoir overrider la stratégie d'auth par app (les *arr utilisent `X-Api-Key`, qBit utilise login-based, Jellyfin diverge).

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: forceSave fix
-status: Phase 03 complete
-stopped_at: Phase 4 context gathered
-last_updated: "2026-05-16T00:33:15.202Z"
-last_activity: 2026-05-16
+status: Phase 06 complete
+stopped_at: Phase 06 closed — Phase 07 (Jellyfin) next
+last_updated: "2026-05-17T08:30:00.000Z"
+last_activity: 2026-05-17
 progress:
   total_phases: 12
-  completed_phases: 8
-  total_plans: 60
-  completed_plans: 52
-  percent: 87
+  completed_phases: 9
+  total_plans: 67
+  completed_plans: 59
+  percent: 88
 ---
 
 # Project State
@@ -21,14 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 06 — reconciler-seerr
+**Current focus:** Phase 07 — reconciler-jellyfin (next, not yet started)
 
 ## Current Position
 
-Phase: 06 (reconciler-seerr) — EXECUTING
-Plan: 1 of 7
-Plans complete: 05-01 → 05-08 (all 8 Phase 5 plans) + 05.1-01 + 05.1-02 (Phase 5.1 closed)
-Plans pending: (none for Phase 5 ; next phase = 06 Reconciler Seerr)
+Phase: **06 (reconciler-seerr) — COMPLETE 2026-05-17**
+Plans complete: 06-01 → 06-07 (all 7 Phase 6 plans)
+Plans pending: (none for Phase 6 ; next phase = 07 Reconciler Jellyfin)
+
+**Phase 6 outcome (closed 2026-05-17, see `.planning/phases/06-reconciler-seerr/06-07-SUMMARY.md`):**
+
+  - ✅ SC#1 pre-write snapshot (Plan 06-01, Seerr-only baseline, anti-leak clean)
+  - ✅ SC#2 Seerr reconciler `apply_complete` on image `:0.4.4` (4 resources scoped per D-06-SCOPE-01)
+  - ✅ SC#3 content_tags step ran on Sonarr + Radarr; live family-tag retag of Elena of Avalor confirmed
+  - ⚠️ SC#4 partial — Elena of Avalor smoke test via Seerr UI; native `animeTags` routing not exercised for a TVDB-anime-classified series in this session (deferred)
+  - ✅ SC#5 idempotence (0 add events, 13 no_op events, 1 user re-PUT same-shape FP)
+  - ✅ Post-apply snapshot committed: `snapshots/after-phase-6-2026-05-16/` (seerr+sonarr+radarr, 5 leak files redacted)
+  - 4 Phase 6 deviations documented: D-06-OPENAPI-01 (hotfixed in `:0.4.4`), D-06-CHART-ARGS-01 (seerr added to --apps), D-06-QBIT-MOVE-01 (hostPath move to sdb1), D-06-SEERR-USER-FP (false-positive)
+  - Cluster currently on arr-stack `v0.4.4`, sealed-secrets contains `SEERR_API_KEY`, qBit data on `/media/data/torrents`
 
 **Phase 5 outcome (closed 2026-05-16, see `.planning/phases/05-reconciler-qbittorrent-split-tv-anime-family/05-08-SUMMARY.md`):**
 
@@ -43,22 +53,28 @@ Plans pending: (none for Phase 5 ; next phase = 06 Reconciler Seerr)
   - ✅ D-05-CI-AUTOTAG-CHAIN resolved. `repository_dispatch` chain operational since PR #9.
   - ✅ All 6 SC dispositives green (see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`).
 
-**Milestone v0.2.0 (forceSave fix) ready to ship.** Next phase: **06 Reconciler Seerr** (Q1 + Q10 validation, then reconciler implementation).
+**Milestone v0.2.0 (forceSave fix) ready to ship.** Next phase: **07 Reconciler Jellyfin** (Q9 auth-strategy validation, then reconciler implementation — apply D-06-VALIDATE-01 pattern to PUT-probe Jellyfin API before code).
 
-### Phase 5 deviations + follow-ups (operator-deferred, see 05-08-SUMMARY.md for details)
+### Phase 5 deviations + follow-ups (operator-deferred — items also reproduced in Phase 6, see 06-07-SUMMARY.md for details)
 
 1. arrconf download_client POST should inject QBT_USER/QBT_PASS when YAML values empty (Phase 2.1 merge helper covers UPDATE only) — today handled by manual API PUT
 2. Chart should pre-create `/media/{anime,family,films-anime,films-family}` + `/data/torrents/{series,anime,family,films,films-anime,films-family}` via initContainer or Helm hook
 3. Port qBit 5.x auth fix (arrconf PR #11) to `tools/snapshot/snapshot.sh`
-4. Re-verify snapshot.sh password-redaction step for `config_host.json` sensitive fields
-5. Refine arrconf qBit category + Prowlarr app-sync diff comparators to eliminate idempotence false-positives
-6. Install Mend Renovate App on `tom333/arr-stack` (Q-05.1-3, blocks Renovate auto-bump path)
-7. Extend `chart-lint.yml` `paths:` to include `tools/arrconf/**` so arrconf-only PRs auto-tag (Phase 5.1 F1)
+4. Re-verify snapshot.sh password-redaction step for `config_host.json` sensitive fields — **REPRODUCED Phase 6**: 5 files leaked, manually redacted before commit
+5. Refine arrconf diff comparators to eliminate idempotence false-positives — **EXPANDED Phase 6**: Seerr `user` resource also affected (D-06-SEERR-USER-FP)
+6. Install Mend Renovate App on `tom333/arr-stack` (Q-05.1-3, blocks Renovate auto-bump path) — **MITIGATED Phase 6** via D-05.1-BUMP-01 manual chain (2 PRs per Phase release)
+7. Extend `chart-lint.yml` `paths:` to include `tools/arrconf/**` so arrconf-only PRs auto-tag (Phase 5.1 F1) — **REPRODUCED Phase 6**: `tools/arrconf/**`-only fix commit needed a chart-touch follow-up to trigger CI
 8. Fix `arrconf-image.yml` metadata-action `value=` to handle legacy `push:tags` semver correctly (Phase 5.1 F2 — A1-ASSUMED-REGRESSION confirmed)
 
-Last activity: 2026-05-16
+### Phase 6 deviations + follow-ups (carried forward, see 06-07-SUMMARY.md)
 
-Progress: 8/8 Phase 5 plans + 2/2 Phase 5.1 plans (Phase 5 milestone work complete)
+9. `06-RESEARCH.md` Pitfall 3 stale — `activeProfileName`/`activeAnimeProfileName` ARE OpenAPI-required despite being server-computed. Pattern: for any Phase 7 (Jellyfin) `exclude=True` field, re-validate against the live OpenAPI validator before trusting research-time classifications
+10. `D-06-Q10-01` native `animeTags` routing remains untested in production for a TVDB-anime-classified series (Phase 6 SC#4 used a non-anime operator-override series). Capture evidence on next operator anime request via Seerr; non-blocking
+11. `sudo rm -rf /opt/media-stack/torrents` cleanup pending operator verification of qBit Force Recheck on a few torrents at `/media/data/torrents` (D-06-QBIT-MOVE-01 closure step)
+
+Last activity: 2026-05-17
+
+Progress: 7/7 Phase 6 plans + 8/8 Phase 5 plans + 2/2 Phase 5.1 plans (milestone v0.2.0 has 9 phases complete out of 12)
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 

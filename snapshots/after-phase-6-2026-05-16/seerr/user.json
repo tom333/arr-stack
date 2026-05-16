@@ -1,0 +1,34 @@
+{
+  "pageInfo": {
+    "page": 1,
+    "pageSize": 10,
+    "pages": 1,
+    "results": 1
+  },
+  "results": [
+    {
+      "avatar": "/avatarproxy/82fd95db72904569b08d83271823ceaa?v=null",
+      "avatarETag": null,
+      "avatarVersion": null,
+      "createdAt": "2026-04-14T07:16:07.000Z",
+      "displayName": "moi",
+      "email": "laboitatom@gmail.com",
+      "id": 1,
+      "jellyfinUserId": "82fd95db72904569b08d83271823ceaa",
+      "jellyfinUsername": "moi",
+      "movieQuotaDays": null,
+      "movieQuotaLimit": null,
+      "permissions": 2,
+      "plexId": null,
+      "plexUsername": null,
+      "recoveryLinkExpirationDate": null,
+      "requestCount": 17,
+      "tvQuotaDays": null,
+      "tvQuotaLimit": null,
+      "updatedAt": "2026-04-17T06:14:53.000Z",
+      "userType": 3,
+      "username": null,
+      "warnings": []
+    }
+  ]
+}

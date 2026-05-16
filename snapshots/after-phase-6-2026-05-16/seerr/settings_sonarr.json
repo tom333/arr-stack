@@ -1,0 +1,29 @@
+[
+  {
+    "activeAnimeDirectory": "/media/anime",
+    "activeAnimeProfileId": 8,
+    "activeAnimeProfileName": "Anime",
+    "activeDirectory": "/media/series",
+    "activeProfileId": 6,
+    "activeProfileName": "HD - 720p/1080p",
+    "animeTags": [
+      3
+    ],
+    "apiKey": "***REDACTED***",
+    "enableSeasonFolders": false,
+    "externalUrl": "",
+    "hostname": "sonarr.selfhost.svc.cluster.local",
+    "id": 0,
+    "is4k": false,
+    "isDefault": true,
+    "name": "sonarr",
+    "port": 8989,
+    "preventSearch": false,
+    "syncEnabled": true,
+    "tagRequests": true,
+    "tags": [
+      2
+    ],
+    "useSsl": false
+  }
+]

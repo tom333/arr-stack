@@ -1,0 +1,83 @@
+[
+  {
+    "cronSchedule": "0 */5 * * * *",
+    "id": "jellyfin-recently-added-scan",
+    "interval": "minutes",
+    "name": "Jellyfin Recently Added Scan",
+    "nextExecutionTime": "2026-05-16T23:10:00.000+02:00",
+    "running": false,
+    "type": "process"
+  },
+  {
+    "cronSchedule": "0 0 3 * * *",
+    "id": "jellyfin-full-scan",
+    "interval": "hours",
+    "name": "Jellyfin Full Library Scan",
+    "nextExecutionTime": "2026-05-17T03:00:00.000+02:00",
+    "running": false,
+    "type": "process"
+  },
+  {
+    "cronSchedule": "0 0 4 * * *",
+    "id": "radarr-scan",
+    "interval": "hours",
+    "name": "Radarr Scan",
+    "nextExecutionTime": "2026-05-17T04:00:00.000+02:00",
+    "running": false,
+    "type": "process"
+  },
+  {
+    "cronSchedule": "0 30 4 * * *",
+    "id": "sonarr-scan",
+    "interval": "hours",
+    "name": "Sonarr Scan",
+    "nextExecutionTime": "2026-05-17T04:30:00.000+02:00",
+    "running": false,
+    "type": "process"
+  },
+  {
+    "cronSchedule": "0 0 5 * * *",
+    "id": "availability-sync",
+    "interval": "hours",
+    "name": "Media Availability Sync",
+    "nextExecutionTime": "2026-05-17T05:00:00.000+02:00",
+    "running": false,
+    "type": "process"
+  },
+  {
+    "cronSchedule": "0 * * * * *",
+    "id": "download-sync",
+    "interval": "seconds",
+    "name": "Download Sync",
+    "nextExecutionTime": "2026-05-16T23:09:00.000+02:00",
+    "running": false,
+    "type": "command"
+  },
+  {
+    "cronSchedule": "0 0 1 * * *",
+    "id": "download-sync-reset",
+    "interval": "hours",
+    "name": "Download Sync Reset",
+    "nextExecutionTime": "2026-05-17T01:00:00.000+02:00",
+    "running": false,
+    "type": "command"
+  },
+  {
+    "cronSchedule": "0 0 5 * * *",
+    "id": "image-cache-cleanup",
+    "interval": "hours",
+    "name": "Image Cache Cleanup",
+    "nextExecutionTime": "2026-05-17T05:00:00.000+02:00",
+    "running": false,
+    "type": "process"
+  },
+  {
+    "cronSchedule": "0 30 1 */7 * *",
+    "id": "process-blocklisted-tags",
+    "interval": "days",
+    "name": "Process Blocklisted Tags",
+    "nextExecutionTime": "2026-05-22T01:30:00.000+02:00",
+    "running": false,
+    "type": "process"
+  }
+]
