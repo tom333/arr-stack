@@ -214,10 +214,18 @@ class QbittorrentClient:
 
         Performs POST /api/v2/auth/login with form-encoded credentials and the
         Referer header (Pitfall 1 — qBit CSRF protection rejects requests
-        without Referer). Extracts the SID cookie and builds a long-lived
+        without Referer). Extracts the session cookie and builds a long-lived
         httpx.Client carrying that cookie + Referer on all subsequent calls.
 
-        Raises AuthError on HTTP != 200, body != 'Ok.', or missing SID cookie.
+        Supports both qBit response shapes:
+        - 4.x: HTTP 200 + body "Ok." + Set-Cookie SID=...
+        - 5.x: HTTP 200 (whitelist match) or 204 No Content + Set-Cookie QBT_SID_<port>=...
+
+        Cookie name is preserved as-emitted so the long-lived client sends the
+        exact name qBit expects on subsequent requests (qBit 5.x rejects "SID"
+        when it issued "QBT_SID_8080").
+
+        Raises AuthError on non-2xx status, "Fails." body, or missing session cookie.
         The password is NEVER logged or included in exception messages.
         """
         self.base_url = base_url.rstrip("/")
@@ -230,18 +238,26 @@ class QbittorrentClient:
                 data={"username": username, "password": password},
                 headers={"Referer": self.base_url},  # Pitfall 1
             )
-        if r.status_code != 200 or r.text != "Ok.":
+        # Accept both qBit 4.x (200 + "Ok.") and 5.x (200 or 204 + empty) on success.
+        # Reject anything non-2xx, or 200 with explicit "Fails." body (qBit 4.x bad-cred signal).
+        body_ok = r.status_code == 204 or r.text in ("Ok.", "")
+        if not (200 <= r.status_code < 300) or not body_ok:
             # NEVER log the password. Truncate body to 80 chars.
             raise AuthError(
                 f"qbittorrent: login failed (HTTP {r.status_code} body={r.text[:80]!r})"
             )
-        sid = r.cookies.get("SID")
-        if not sid:
+        # qBit 4.x sets "SID", qBit 5.x sets "QBT_SID_<port>". Take whichever is present.
+        sid_name = next(
+            (n for n in r.cookies.keys() if n == "SID" or n.startswith("QBT_SID_")),
+            None,
+        )
+        if sid_name is None:
             raise AuthError("qbittorrent: login succeeded but no SID cookie returned")
+        sid_value = r.cookies[sid_name]
         # Step 2: long-lived client with cookie + Referer pre-loaded
         self._client = httpx.Client(
             base_url=f"{self.base_url}{self.api_path}",
-            cookies={"SID": sid},
+            cookies={sid_name: sid_value},
             headers={"Referer": self.base_url},
             timeout=self._timeout,
         )
