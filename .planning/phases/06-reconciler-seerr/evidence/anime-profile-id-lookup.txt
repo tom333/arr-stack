@@ -1,0 +1,56 @@
+Anime Quality Profile ID Lookup — Phase 6
+Captured: 2026-05-16
+Method: kubectl port-forward + curl (Path 1 — port-forward available)
+Required by: Plan 06-06 (arrconf.yml seerr.main.sonarr_service.activeAnimeProfileId)
+
+Lookup commands used:
+  SONARR_KEY=$(kubectl -n selfhost get secret arrconf-env -o jsonpath='{.data.SONARR_API_KEY}' | base64 -d)
+  kubectl -n selfhost port-forward svc/sonarr 8989:8989 &
+  curl -sS -H "X-Api-Key: $SONARR_KEY" http://localhost:8989/api/v3/qualityprofile | jq '.[] | {id, name}'
+
+  RADARR_KEY=$(kubectl -n selfhost get secret arrconf-env -o jsonpath='{.data.RADARR_API_KEY}' | base64 -d)
+  kubectl -n selfhost port-forward svc/radarr 7878:7878 &
+  curl -sS -H "X-Api-Key: $RADARR_KEY" http://localhost:7878/api/v3/qualityprofile | jq '.[] | {id, name}'
+
+== Sonarr quality profiles ==
+{"id": 1, "name": "Any"}
+{"id": 2, "name": "SD"}
+{"id": 3, "name": "HD-720p"}
+{"id": 4, "name": "HD-1080p"}
+{"id": 5, "name": "Ultra-HD"}
+{"id": 6, "name": "HD - 720p/1080p"}
+{"id": 7, "name": "MULTi.VF"}
+{"id": 8, "name": "Anime"}
+{"id": 9, "name": "Family"}
+
+anime_profile_id: 8
+family_profile_id: 9
+
+Notes:
+  - "Anime" profile (id=8) was created by Phase 5 configarr run (confirmed present).
+  - "Family" profile (id=9) also created by Phase 5 configarr (recorded for future use).
+  - Previous activeAnimeProfileId was 4 ("HD-1080p") — pre-Phase-5 profile.
+    Plan 06-06 will update activeAnimeProfileId to 8.
+  - Profile 6 ("HD - 720p/1080p") is the main profile used for both activeProfileId
+    in Sonarr Seerr settings (confirmed by live GET: activeProfileId=6).
+
+== Radarr quality profiles ==
+{"id": 1, "name": "Any"}
+{"id": 2, "name": "SD"}
+{"id": 3, "name": "HD-720p"}
+{"id": 4, "name": "HD-1080p"}
+{"id": 5, "name": "Ultra-HD"}
+{"id": 6, "name": "HD - 720p/1080p"}
+{"id": 7, "name": "MULTi.VF"}
+{"id": 8, "name": "Anime"}
+{"id": 9, "name": "Family"}
+
+anime_profile_id: 8
+family_profile_id: 9
+
+Notes:
+  - Radarr has same profile IDs as Sonarr (both managed by configarr Phase 5).
+  - Seerr's settings/radarr has NO animeTags / activeAnimeDirectory / activeAnimeProfileId
+    per baseline snapshot — Radarr anime routing is NOT available via Seerr.
+    The content_tags step (Plan 06-05) is the sole mechanism for Radarr content classification.
+  - Radarr's activeProfileId in Seerr = 6 ("HD - 720p/1080p") — same as Sonarr.

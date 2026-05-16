@@ -1,0 +1,99 @@
+Q1 PUT Probe Evidence — Phase 6 (Reconciler Seerr)
+Captured: 2026-05-16 (research session, see 06-RESEARCH.md § Q1 PUT Probe — VERIFIED Results)
+Live target: Seerr v3.2.0 pod in selfhost namespace
+Probe method: kubectl exec into Seerr pod, Node.js inline HTTP client
+
+== settings/sonarr/0 ==
+Method: PUT /api/v1/settings/sonarr/0 (id stripped from body)
+HTTP/2 200
+Round-trip body echo: matches GET except id is excluded from PUT body
+Functional probe: animeTags=[3], tags=[2], activeAnimeDirectory="/media/anime", tagRequests=true → HTTP 200
+
+Current live state (from GET at research time):
+  activeProfileId: 6 ("HD - 720p/1080p")
+  activeAnimeProfileId: 4 ("HD-1080p" — pre-Phase-5 value, Plan 06-06 will update to 8)
+  activeAnimeDirectory: "/media/series" (Plan 06-06 will update to "/media/anime")
+  activeDirectory: "/media/series"
+  animeTags: []
+  tags: []
+  tagRequests: false
+  isDefault: true
+  hostname: sonarr.selfhost.svc.cluster.local
+  port: 8989
+
+== settings/sonarr/0 (id IN body — negative test) ==
+Method: PUT /api/v1/settings/sonarr/0 with `id: 0` in body
+HTTP/2 400 — "request.body.id is read-only"
+Conclusion: Seerr pydantic models MUST Field(exclude=True) on `id`
+This is DIFFERENT from *arr APIs which require `id` in the PUT body.
+
+== settings/radarr/0 ==
+Method: PUT /api/v1/settings/radarr/0
+HTTP/2 200
+Note: Radarr-side has NO animeTags / activeAnimeDirectory / activeAnimeProfileId fields per GET shape
+  Fields confirmed absent: animeTags, activeAnimeDirectory, activeAnimeProfileId
+  Fields present: name, hostname, port, apiKey, useSsl, activeProfileId, activeProfileName,
+    activeDirectory, is4k, minimumAvailability, tags, isDefault, externalUrl, syncEnabled,
+    preventSearch, tagRequests
+  Current name: "radaarr" (typo in live cluster — reconciler matches by isDefault=true, not name)
+  Current activeProfileId: 6 ("HD - 720p/1080p")
+  isDefault: true
+
+== user/1 ==
+Method: PUT /api/v1/user/1 (body limited to displayName, permissions, *QuotaDays/Limit)
+HTTP/2 200
+Read-only fields excluded: id, email, plex/jellyfin*, userType, *Id, avatar*, createdAt,
+  updatedAt, requestCount, warnings, recoveryLinkExpirationDate, settings
+Writable fields: displayName, permissions, movieQuotaDays, movieQuotaLimit, tvQuotaDays, tvQuotaLimit
+
+Current live state:
+  id: 1
+  displayName: "moi"
+  permissions: 2 (ADMIN — see Permissions Bitmask section below)
+  userType: 3 (jellyfin+local)
+  movieQuotaDays: null
+  movieQuotaLimit: null
+  tvQuotaDays: null
+  tvQuotaLimit: null
+
+== settings/main ==
+Method: POST /api/v1/settings/main (NOT PUT — Seerr API quirk)
+HTTP/2 200
+Subset scope (D-06-SCOPE-01): defaultPermissions + defaultQuotas only
+apiKey: MUST be excluded from POST body
+GET returns 23 keys; only 2 (defaultPermissions, defaultQuotas) are managed by arrconf.
+
+Current live state:
+  defaultPermissions: 0 (no default permissions set — Plan 06-06 will set to 32=REQUEST)
+  apiKey: ***REDACTED*** (must never appear in arrconf YAML or PUT body)
+
+== Permissions bitmask (live `/app/server/lib/permissions.ts`) ==
+ADMIN = 2     (NOT 8388608 — that is AUTO_REQUEST)
+REQUEST = 32  (defaultPermissions in CONTEXT.md is CORRECT for "request only")
+Live admin user has permissions: 2 (ADMIN)
+anime_profile_id_lookup_required: see anime-profile-id-lookup.txt
+
+CRITICAL CORRECTION from CONTEXT.md initial YAML example:
+  WRONG:   permissions: 8388608  # full
+  CORRECT: permissions: 2  # ADMIN
+  Reason: In this Seerr v3.2.0 fork, ADMIN=2 (grants all checks via hasPermission shortcut).
+          8388608 = AUTO_REQUEST (not admin).
+
+== Wave 0 curl commands (copy-pasteable) ==
+SEERR_POD=$(kubectl -n selfhost get pod -l app.kubernetes.io/name=seerr -o name | head -1)
+SEERR_KEY=$(kubectl -n selfhost exec "$SEERR_POD" -- node -e \
+  "const s=require('/app/config/settings.json'); process.stdout.write(s.main.apiKey)")
+
+# Round-trip PUT (id stripped):
+kubectl -n selfhost exec "$SEERR_POD" -- node -e "
+const http=require('http'),key='${SEERR_KEY}';
+const get=http.get({host:'localhost',port:5055,path:'/api/v1/settings/sonarr',headers:{'X-Api-Key':key}},(res)=>{
+  let d='';res.on('data',c=>d+=c);res.on('end',()=>{
+    const obj=JSON.parse(d)[0],id=obj.id;delete obj.id;const body=JSON.stringify(obj);
+    const put=http.request({host:'localhost',port:5055,path:'/api/v1/settings/sonarr/'+id,method:'PUT',
+      headers:{'X-Api-Key':key,'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
+    },(r)=>{let d2='';r.on('data',c=>d2+=c);r.on('end',()=>console.log('PUT_STATUS:'+r.statusCode));});
+    put.on('error',e=>console.log('ERR:'+e.message));put.write(body);put.end();
+  });
+});get.on('error',e=>console.log('ERR:'+e.message));"
+# Result: PUT_STATUS:200
