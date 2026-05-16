@@ -39,7 +39,7 @@ app = typer.Typer(
 )
 
 
-_VALID_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "prowlarr", "qbittorrent"})
+_VALID_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "prowlarr", "qbittorrent", "seerr"})
 
 
 def _selected_apps(apps: str | None) -> set[str]:
@@ -239,6 +239,32 @@ def apply(
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="qbittorrent", error=str(e))
             failures.append("qbittorrent")
+
+    # Phase 6: Seerr branch (D-06-SCOPE-01, D-06-AUTH-01, REQ-app-coverage).
+    if "seerr" in targets and "main" in root.seerr:
+        if not settings.seerr_api_key:
+            log.error("missing_api_key", app="seerr", env_var="SEERR_API_KEY")
+            raise typer.Exit(code=2)
+        try:
+            from arrconf.client_base import SeerrClient  # noqa: PLC0415
+            from arrconf.reconcilers.seerr import reconcile_seerr  # noqa: PLC0415
+
+            seerr_instance = root.seerr["main"]
+            seerr_api_key = settings.seerr_api_key.get_secret_value()
+            seerr_client = SeerrClient(
+                base_url=seerr_instance.base_url,
+                api_key=seerr_api_key,
+            )
+            seerr_result = reconcile_seerr(
+                seerr_client, seerr_instance, dry_run=dry_run or settings.arrconf_dry_run
+            )
+            if not seerr_result.actions_taken:
+                log.info("no-op", app="seerr")
+            else:
+                log.info("apply_complete", app="seerr", actions=seerr_result.actions_taken)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="seerr", error=str(e))
+            failures.append("seerr")
 
     if failures:
         raise typer.Exit(code=1)

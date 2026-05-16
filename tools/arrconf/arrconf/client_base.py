@@ -163,6 +163,25 @@ class ProwlarrClient(_ArrV3Client):
     name = "prowlarr"
 
 
+class SeerrClient(ArrApiClient):
+    """Seerr API client — Phase 6 (D-06-AUTH-01).
+
+    Seerr (v3.2.0 fork) uses /api/v1 + X-Api-Key auth (matches *arr default
+    auth_headers()). Does NOT inherit from _ArrV3Client — Seerr does not have
+    the forceSave query parameter (D-02.2 mechanism is *arr-specific for
+    masked-credential round-trips on UI save).
+
+    Endpoint quirks (research-verified):
+    - settings/main uses POST not PUT (Pitfall 2; see seerr reconciler)
+    - PUT body MUST NOT include `id` field (Pitfall 1; Seerr returns HTTP 400
+      "request.body.id is read-only"). Plan 06-02 pydantic models enforce
+      `Field(exclude=True)` on id across the 4 Seerr resource models.
+    """
+
+    api_path = "/api/v1"
+    name = "seerr"
+
+
 class QbittorrentClient:
     """qBittorrent WebUI API v2 client (D-05-QBT-01 — cookie auth).
 
