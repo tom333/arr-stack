@@ -151,6 +151,19 @@ sonarr:
       enable: true
       default_tag: tv
 
+    # Phase 6 (D-06-RETAG-01): genre-keyword-driven post-import retagger.
+    # Runs as step 10, AFTER series_tags (Phase 5 step 9 D-05-MIG-01 baseline tag).
+    # Pitfall 5 (research): keyword lists are conservative.
+    #   family: NEVER include "Animation" — catches anime
+    #   anime:  ["Anime"] — TVDB has a first-class "Anime" genre
+    content_routing:
+      enable: true
+      rules:
+        - tag: family
+          keywords: ["Family", "Kids", "Children"]
+        - tag: anime
+          keywords: ["Anime"]
+
 radarr:
   main:
     base_url: http://radarr.selfhost.svc.cluster.local:7878
@@ -302,6 +315,18 @@ radarr:
       enable: true
       default_tag: movies
 
+    # Phase 6 (D-06-RETAG-01): family-only on Radarr.
+    # Pitfall 5: NO anime rule on Radarr.
+    #   - TMDB has no "Anime" first-class genre
+    #   - "Animation" would catch Pixar/Disney (false-positive)
+    #   Anime films stay manual-tag until a future phase ships an
+    #   originalLanguage-based filter (deferred — D-06+1).
+    content_routing:
+      enable: true
+      rules:
+        - tag: family
+          keywords: ["Family"]
+
 prowlarr:
   main:
     base_url: http://prowlarr.selfhost.svc.cluster.local:9696
@@ -339,3 +364,71 @@ qbittorrent:
           savePath: /data/films-family
     preferences:
       enable: false
+
+# Phase 6 (D-06-SCOPE-01): Seerr reconciler — single-instance per ADR-7.
+# 4 resources managed:
+#   1. settings/sonarr  — match by isDefault=true; writes animeTags + activeAnimeDirectory + activeAnimeProfileId + tagRequests=true
+#   2. settings/radarr  — match by isDefault=true; writes tags + tagRequests=true (NO animeTags equivalent on Radarr per Seerr schema)
+#   3. user[admin]      — single user; permissions=2 (ADMIN per research permissions bitmask)
+#   4. settings/main    — scoped subset (defaultPermissions + defaultQuotas only); uses POST not PUT (research Pitfall 2)
+# Integer ID magic numbers (recorded by Plan 06-01 in evidence/anime-profile-id-lookup.txt + snapshots/after-phase-5-2026-05-16/sonarr/tag.json):
+#   activeProfileId=6               = HD - 720p/1080p (current cluster default, confirmed by live GET)
+#   activeAnimeProfileId=8          = "Anime" profile (created by Phase 5 configarr, confirmed present)
+#   sonarr_service.tags=[2]         = 'tv' Sonarr tag id (after-phase-5 baseline)
+#   sonarr_service.animeTags=[3]    = 'anime' Sonarr tag id (after-phase-5 baseline)
+#   radarr_service.tags=[2]         = 'movies' Radarr tag id (after-phase-5 baseline)
+# apiKey fields are INTENTIONALLY ABSENT — preserved at reconcile-time from cluster GET (D-06-CREDS-01).
+seerr:
+  main:
+    base_url: http://seerr.selfhost.svc.cluster.local:5055
+    sonarr_service:
+      hostname: sonarr.selfhost.svc.cluster.local
+      port: 8989
+      useSsl: false
+      activeProfileId: 6
+      activeDirectory: /media/series
+      activeAnimeProfileId: 8
+      activeAnimeDirectory: /media/anime
+      tags: [2]
+      animeTags: [3]
+      is4k: false
+      isDefault: true
+      enableSeasonFolders: false
+      externalUrl: ""
+      syncEnabled: true
+      preventSearch: false
+      tagRequests: true
+    radarr_service:
+      hostname: radarr.selfhost.svc.cluster.local
+      port: 7878
+      useSsl: false
+      activeProfileId: 6
+      activeDirectory: /media/films
+      is4k: false
+      minimumAvailability: released
+      tags: [2]
+      isDefault: true
+      externalUrl: ""
+      syncEnabled: true
+      preventSearch: false
+      tagRequests: true
+    users:
+      enable: true
+      prune: false
+      admin:
+        displayName: admin
+        permissions: 2  # ADMIN per research permissions bitmask (NOT 8388608 — that is AUTO_REQUEST)
+        movieQuotaDays: 0
+        movieQuotaLimit: 0
+        tvQuotaDays: 0
+        tvQuotaLimit: 0
+    main_settings:
+      enable: true
+      defaultPermissions: 32  # REQUEST per research permissions bitmask
+      defaultQuotas:
+        movie:
+          quotaDays: 7
+          quotaLimit: 5
+        tv:
+          quotaDays: 7
+          quotaLimit: 5
