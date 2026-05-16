@@ -56,8 +56,9 @@ sonarr:
         - path: /config
     torrents:
       # Même hostPath que qBittorrent pour accéder aux fichiers téléchargés
+      # 2026-05-16: moved from /opt/media-stack/torrents (sda2, 84% full) to /media/data/torrents (sdb1, 52% full)
       type: hostPath
-      hostPath: /opt/media-stack/torrents
+      hostPath: /media/data/torrents
       hostPathType: DirectoryOrCreate
       globalMounts:
         - path: /data/torrents
@@ -118,8 +119,9 @@ radarr:
       globalMounts:
         - path: /config
     torrents:
+      # 2026-05-16: moved from /opt/media-stack/torrents (sda2, 84% full) to /media/data/torrents (sdb1, 52% full)
       type: hostPath
-      hostPath: /opt/media-stack/torrents
+      hostPath: /media/data/torrents
       hostPathType: DirectoryOrCreate
       globalMounts:
         - path: /data/torrents
@@ -232,8 +234,9 @@ qbittorrent:
     torrents:
       # Stockage local sur le nœud MicroK8s
       # Partage le même path que Radarr/Sonarr pour accéder aux fichiers téléchargés
+      # 2026-05-16: moved from /opt/media-stack/torrents (sda2, 84% full) to /media/data/torrents (sdb1, 52% full)
       type: hostPath
-      hostPath: /opt/media-stack/torrents
+      hostPath: /media/data/torrents
       hostPathType: DirectoryOrCreate
       globalMounts:
         - path: /data
