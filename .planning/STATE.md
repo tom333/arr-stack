@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: forceSave fix
 status: Phase 03 complete
 stopped_at: Phase 4 context gathered
-last_updated: "2026-05-15T22:49:43.877Z"
-last_activity: 2026-05-15
+last_updated: "2026-05-16T00:33:15.202Z"
+last_activity: 2026-05-16
 progress:
   total_phases: 12
   completed_phases: 8
@@ -21,11 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 05 — reconciler-qbittorrent-split-tv-anime-family
+**Current focus:** Phase 06 — reconciler-seerr
 
 ## Current Position
 
-Phase: **05 (reconciler-qbittorrent-split-tv-anime-family) — COMPLETE 2026-05-16**
+Phase: 06 (reconciler-seerr) — EXECUTING
+Plan: 1 of 7
 Plans complete: 05-01 → 05-08 (all 8 Phase 5 plans) + 05.1-01 + 05.1-02 (Phase 5.1 closed)
 Plans pending: (none for Phase 5 ; next phase = 06 Reconciler Seerr)
 
@@ -55,7 +56,7 @@ Plans pending: (none for Phase 5 ; next phase = 06 Reconciler Seerr)
 7. Extend `chart-lint.yml` `paths:` to include `tools/arrconf/**` so arrconf-only PRs auto-tag (Phase 5.1 F1)
 8. Fix `arrconf-image.yml` metadata-action `value=` to handle legacy `push:tags` semver correctly (Phase 5.1 F2 — A1-ASSUMED-REGRESSION confirmed)
 
-Last activity: 2026-05-15
+Last activity: 2026-05-16
 
 Progress: 8/8 Phase 5 plans + 2/2 Phase 5.1 plans (Phase 5 milestone work complete)
 
