@@ -1,0 +1,85 @@
+{"step": "managed_tag", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:44.709140Z"}
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-16T11:53:44.722412Z"}
+{"step": "tags", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:44.722479Z"}
+{"name": "arrconf-managed", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.724892Z"}
+{"step": "indexers", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:44.726787Z"}
+{"name": "C411 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.733338Z"}
+{"name": "NorTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.733394Z"}
+{"name": "Torr9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.733421Z"}
+{"name": "Torrent9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.733443Z"}
+{"name": "World-torrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.733464Z"}
+{"name": "ZkTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:44.733485Z"}
+{"step": "root_folders", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:44.733600Z"}
+{"step": "remote_path_mappings", "step_index": 5, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.428680Z"}
+{"step": "download_clients", "step_index": 6, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.435556Z"}
+{"name": "qBittorrent", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.455141Z"}
+{"step": "notifications", "step_index": 7, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.455335Z"}
+{"name": "Emby / Jellyfin", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.464793Z"}
+{"step": "host_config", "step_index": 8, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.465008Z"}
+{"event": "host_config_reconcile_skipped", "level": "info", "timestamp": "2026-05-16T11:53:45.465124Z"}
+{"step": "series_tags", "step_index": 9, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.465209Z"}
+{"event": "series_tags_no_op", "level": "info", "timestamp": "2026-05-16T11:53:45.488106Z"}
+{"step": "content_tags", "step_index": 10, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.488252Z"}
+{"rule_tag": "family", "event": "content_tags_rule_no_op", "level": "info", "timestamp": "2026-05-16T11:53:45.499551Z"}
+{"rule_tag": "anime", "event": "content_tags_rule_no_op", "level": "info", "timestamp": "2026-05-16T11:53:45.499669Z"}
+{"app": "sonarr", "count": 4, "event": "no-op", "level": "info", "timestamp": "2026-05-16T11:53:45.499828Z"}
+{"step": "managed_tag", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.512001Z"}
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-16T11:53:45.518554Z"}
+{"step": "tags", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.518651Z"}
+{"name": "arrconf-managed", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.521161Z"}
+{"step": "indexers", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.523427Z"}
+{"name": "C411 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.533436Z"}
+{"name": "NorTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.533519Z"}
+{"name": "Torr9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.533575Z"}
+{"name": "Torrent9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.533613Z"}
+{"name": "World-torrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.533645Z"}
+{"name": "ZkTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:45.533674Z"}
+{"step": "root_folders", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:45.533869Z"}
+{"step": "remote_path_mappings", "step_index": 5, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.142780Z"}
+{"step": "download_clients", "step_index": 6, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.148804Z"}
+{"name": "qBittorrent", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:46.164761Z"}
+{"step": "notifications", "step_index": 7, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.164964Z"}
+{"name": "Emby / Jellyfin", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:46.172582Z"}
+{"step": "host_config", "step_index": 8, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.172738Z"}
+{"event": "host_config_reconcile_skipped", "level": "info", "timestamp": "2026-05-16T11:53:46.172821Z"}
+{"step": "movie_tags", "step_index": 9, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.172883Z"}
+{"event": "movie_tags_no_op", "level": "info", "timestamp": "2026-05-16T11:53:46.188654Z"}
+{"step": "content_tags", "step_index": 10, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.188773Z"}
+{"rule_tag": "family", "event": "content_tags_rule_no_op", "level": "info", "timestamp": "2026-05-16T11:53:46.198898Z"}
+{"app": "radarr", "count": 4, "event": "no-op", "level": "info", "timestamp": "2026-05-16T11:53:46.199073Z"}
+{"action": "update", "name": "Sonarr", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.217857Z"}
+{"action": "update", "name": "Radarr", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.217976Z"}
+{"path": "/applications", "id": 2, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-16T11:53:46.218087Z"}
+{"path": "/applications", "id": 1, "event": "put_force_save_used", "level": "info", "timestamp": "2026-05-16T11:53:46.277942Z"}
+{"app": "prowlarr", "actions": ["update:Sonarr", "update:Radarr"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-16T11:53:46.345330Z"}
+{"base_url": "http://qbittorrent.selfhost.svc.cluster.local:8080", "event": "qbittorrent_login_ok", "level": "info", "timestamp": "2026-05-16T11:53:46.419817Z"}
+{"action": "update", "name": "sonarr-tv", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.421932Z"}
+{"action": "update", "name": "sonarr-anime", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.421999Z"}
+{"action": "update", "name": "sonarr-family", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.422048Z"}
+{"action": "update", "name": "radarr-movies", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.422089Z"}
+{"action": "update", "name": "radarr-anime", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.422128Z"}
+{"action": "update", "name": "radarr-family", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.422165Z"}
+{"name": "cleanuparr-unlinked", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:46.422188Z"}
+{"name": "radarr", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:46.422248Z"}
+{"name": "sonarr", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-16T11:53:46.422270Z"}
+{"action": "update", "name": "sonarr-tv", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.422300Z"}
+{"action": "update", "name": "sonarr-anime", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.423282Z"}
+{"action": "update", "name": "sonarr-family", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.424095Z"}
+{"action": "update", "name": "radarr-movies", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.424901Z"}
+{"action": "update", "name": "radarr-anime", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.425651Z"}
+{"action": "update", "name": "radarr-family", "diff_fields": ["inactive_seeding_time_limit", "ratio_limit", "seeding_time_limit", "share_limit_action"], "event": "plan_action", "level": "info", "timestamp": "2026-05-16T11:53:46.426425Z"}
+{"resource": "qbit_category", "name": "cleanuparr-unlinked", "event": "prune_skip", "level": "info", "timestamp": "2026-05-16T11:53:46.427195Z"}
+{"resource": "qbit_category", "name": "radarr", "event": "prune_skip", "level": "info", "timestamp": "2026-05-16T11:53:46.427229Z"}
+{"resource": "qbit_category", "name": "sonarr", "event": "prune_skip", "level": "info", "timestamp": "2026-05-16T11:53:46.427250Z"}
+{"event": "qbit_preferences_reconcile_skipped", "level": "info", "timestamp": "2026-05-16T11:53:46.427271Z"}
+{"categories_planned": 9, "categories_applied": 6, "dry_run": false, "event": "qbittorrent_reconcile_complete", "level": "info", "timestamp": "2026-05-16T11:53:46.427289Z"}
+{"app": "qbittorrent", "actions": ["update:sonarr-tv", "update:sonarr-anime", "update:sonarr-family", "update:radarr-movies", "update:radarr-anime", "update:radarr-family"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-16T11:53:46.427312Z"}
+{"step": "settings_sonarr", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.435873Z"}
+{"event": "settings_sonarr_no_op", "level": "info", "timestamp": "2026-05-16T11:53:46.448852Z"}
+{"step": "settings_radarr", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.448907Z"}
+{"id": 0, "event": "settings_radarr_applied", "level": "info", "timestamp": "2026-05-16T11:53:46.464824Z"}
+{"step": "user", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.464883Z"}
+{"user_id": 1, "permissions": 2, "event": "user_applied", "level": "info", "timestamp": "2026-05-16T11:53:46.565355Z"}
+{"step": "main_settings", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-16T11:53:46.565420Z"}
+{"defaultPermissions": 32, "event": "main_settings_applied", "level": "info", "timestamp": "2026-05-16T11:53:46.636212Z"}
+{"app": "seerr", "actions": ["settings_radarr:applied:0", "user:applied:1", "main_settings:applied"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-16T11:53:46.636271Z"}
