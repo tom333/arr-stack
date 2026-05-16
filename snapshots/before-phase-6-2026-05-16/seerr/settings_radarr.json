@@ -1,0 +1,21 @@
+[
+  {
+    "activeDirectory": "/media/films",
+    "activeProfileId": 6,
+    "activeProfileName": "HD - 720p/1080p",
+    "apiKey": "***REDACTED***",
+    "externalUrl": "https://radarr.tgu.ovh",
+    "hostname": "radarr.selfhost.svc.cluster.local",
+    "id": 0,
+    "is4k": false,
+    "isDefault": true,
+    "minimumAvailability": "released",
+    "name": "radaarr",
+    "port": 7878,
+    "preventSearch": false,
+    "syncEnabled": true,
+    "tagRequests": false,
+    "tags": [],
+    "useSsl": false
+  }
+]
