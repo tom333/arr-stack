@@ -3,7 +3,8 @@
 Covers: download_clients + indexers + notifications + root_folders +
 host_config (opt-in gated, D-03-04) + tags (movies/anime/family, D-05-SPLIT-02) +
 remote_path_mappings (composite-key DELETE+ADD, D-05-PATHMAP-01) +
-movie_tags (retroactive default-tag via bulk editor, D-05-MIG-01).
+movie_tags (retroactive default-tag via bulk editor, D-05-MIG-01) +
+content_tags (genre-keyword-driven post-import retagger, Phase 6, D-06-RETAG-01).
 
 Topological order (D-05-ORDER-01 mirror — regression-tested in test_reconcile_order_radarr):
 
@@ -20,9 +21,13 @@ Topological order (D-05-ORDER-01 mirror — regression-tested in test_reconcile_
 8. Reconcile ``host_config`` (singleton, opt-in via section.enable — D-03-04).
 9. Reconcile ``movie_tags`` — MUST run AFTER download_clients (D-05-ORDER-01)
    to ensure tagged movies route to already-configured download clients.
+10. Reconcile ``content_tags`` — MUST run AFTER movie_tags (D-06-RETAG-01).
+    Genre-keyword-driven post-import retagger layers per-genre tags on top of
+    the bulk-tagged baseline.
 
 Rationale for ordering mirrors Sonarr's (sonarr.py D-05-ORDER-01 docstring).
-movie_tags last — the bulk editor touches REAL movie collection (D-05-MIG-01).
+movie_tags last before content_tags — the bulk editor touches REAL movie
+collection (D-05-MIG-01). content_tags layers on top (D-06-RETAG-01).
 
 Critical schema divergence from Sonarr (RESEARCH lines 220–231):
 - PUT /movie/editor uses ``movieIds`` (NOT ``seriesIds``)
@@ -44,7 +49,13 @@ import structlog
 from pydantic import BaseModel
 
 from arrconf.client_base import RadarrClient
-from arrconf.config import HostConfigSection, MovieTagsSection, RadarrInstance, TagsSection
+from arrconf.config import (
+    ContentRoutingSection,
+    HostConfigSection,
+    MovieTagsSection,
+    RadarrInstance,
+    TagsSection,
+)
 from arrconf.differ import (
     Action,
     PlannedAction,
@@ -339,6 +350,108 @@ def _reconcile_movie_tags(
     return [f"movie_tags:applied:{len(untagged_ids)}"]
 
 
+def _reconcile_content_tags(
+    client: RadarrClient,
+    section: ContentRoutingSection,
+    all_tags: list[Tag],
+    dry_run: bool,
+) -> list[str]:
+    """Step 10 mirror for Radarr (Phase 6, D-06-RETAG-01).
+
+    Runs AFTER movie_tags (D-05-MIG-01) so the bulk-tagged baseline ('movies' tag)
+    is already in place. content_tags then layers per-genre tags ('family')
+    on top.
+
+    Radarr-specific schema divergence from Sonarr:
+    - Body field ``movieIds`` (NOT ``seriesIds``)
+    - Body field ``addImportExclusion: False`` (NOT ``addImportListExclusion`` —
+      Radarr's MovieEditorResource.cs uses the singular form, matches Phase 5
+      _reconcile_movie_tags pattern)
+
+    Plan 06-06 chart YAML configures Radarr with ``family`` rule ONLY — NO ``anime``
+    rule (Pitfall 5: TMDB has no 'Anime' genre; 'Animation' would catch
+    Pixar/Disney). This reconciler code is generic (it would handle an anime
+    rule if one were declared), but the operator is expected NOT to declare one.
+
+    Matching algorithm:
+      For each rule in section.rules:
+        - resolve rule.tag label -> integer tag_id (via all_tags); fail loudly if missing
+        - GET /movie; filter to items whose genres[].lower() contains any
+          rule.keywords[].lower() substring AND don't already have tag_id in tags[]
+        - If non-empty: PUT /movie/editor with movieIds=matched, tags=[tag_id],
+          applyTags='add' (T-05-CONTENT — never replace operator tags)
+
+    Idempotent: items already carrying the rule's tag are filtered out before
+    the editor PUT body is built. Second run = no_op (SC#5 mirror).
+
+    Critical body invariants (T-05-CONTENT threat mitigation):
+    - applyTags='add' (never 'replace' or 'remove')
+    - moveFiles=False  (must NOT trigger file moves)
+    - deleteFiles=False (must NOT delete files)
+    - addImportExclusion=False (Radarr-specific — singular form, not 'addImportListExclusion')
+    """
+    if not section.enable:
+        log.info("content_tags_reconcile_skipped")
+        return []
+
+    if not section.rules:
+        log.info("content_tags_no_rules")
+        return []
+
+    raw_movies = client.get(MOVIE_PATH)
+    actions: list[str] = []
+
+    for rule in section.rules:
+        rule_tag = next((t for t in all_tags if t.label == rule.tag), None)
+        if rule_tag is None or rule_tag.id is None:
+            raise ReconcileError(
+                f"content_tags: rule.tag '{rule.tag}' not found in instance.tags.items — "
+                "declare it so it is reconciled first (D-05-ORDER-01 mirror)"
+            )
+
+        keyword_lc = [kw.lower() for kw in rule.keywords]
+        matching_ids: list[int] = []
+        for m in raw_movies:
+            genres_lc = [g.lower() for g in m.get("genres", [])]
+            # Case-insensitive substring intersection:
+            if not any(kw in g for kw in keyword_lc for g in genres_lc):
+                continue
+            # Idempotent skip — already carries the tag:
+            if rule_tag.id in m.get("tags", []):
+                continue
+            matching_ids.append(m["id"])
+
+        if not matching_ids:
+            log.info("content_tags_rule_no_op", rule_tag=rule.tag)
+            continue
+
+        if dry_run:
+            log.info(
+                "dry_run_skip", resource="content_tags", rule=rule.tag, count=len(matching_ids)
+            )
+            actions.append(f"content_tags:{rule.tag}:dry_run:{len(matching_ids)}")
+            continue
+
+        body = {
+            "movieIds": matching_ids,
+            "tags": [rule_tag.id],
+            "applyTags": "add",
+            "moveFiles": False,
+            "deleteFiles": False,
+            "addImportExclusion": False,
+        }
+        client._request("PUT", MOVIE_EDITOR_PATH, json=body)
+        log.info(
+            "content_tags_applied",
+            rule_tag=rule.tag,
+            tag_id=rule_tag.id,
+            count=len(matching_ids),
+        )
+        actions.append(f"content_tags:{rule.tag}:applied:{len(matching_ids)}")
+
+    return actions
+
+
 def reconcile_radarr(
     client: RadarrClient,
     instance: RadarrInstance,
@@ -348,7 +461,7 @@ def reconcile_radarr(
 
     Topological order (D-05-ORDER-01 mirror — regression-tested in test_reconcile_order_radarr):
     managed-tag → tags → indexers → root_folders → remote_path_mappings →
-    download_clients → notifications → host_config → movie_tags.
+    download_clients → notifications → host_config → movie_tags → content_tags.
 
     step_begin log events carry step_index for ordering regression tests.
     """
@@ -447,6 +560,11 @@ def reconcile_radarr(
     # Tagged movies route to already-configured download clients.
     log.info("step_begin", step="movie_tags", step_index=9)
     actions_taken += _reconcile_movie_tags(client, instance.movie_tags, all_tags, dry_run)
+
+    # Step 10: Content tags — MUST run AFTER movie_tags (D-05-ORDER-01 mirror).
+    # Genre-keyword-driven post-import retagger (D-06-RETAG-01).
+    log.info("step_begin", step="content_tags", step_index=10)
+    actions_taken += _reconcile_content_tags(client, instance.content_routing, all_tags, dry_run)
 
     return RadarrResult(
         plan=dc_plan,

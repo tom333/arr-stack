@@ -937,6 +937,7 @@ def test_reconcile_order(
         "notifications",
         "host_config",
         "series_tags",
+        "content_tags",  # Phase 6 D-06-RETAG-01 — LAST step (step_index=10)
     ]
     assert step_names == canonical_order, (
         f"D-05-ORDER-01 violated! Expected step order:\n  {canonical_order}\nGot:\n  {step_names}"
