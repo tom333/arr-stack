@@ -256,3 +256,122 @@ def test_load_config_rejects_unknown_top_level_key(tmp_path: Path) -> None:
     cfg.write_text("seerr:\n  main:\n    base_url: http://seerr.test\n")
     with pytest.raises(ConfigError, match=r"validation error"):
         load_config(cfg)
+
+
+# -- Phase 6 (D-06-SCOPE-01 + D-06-RETAG-01) -----------------------------------
+
+
+def test_root_config_accepts_seerr_block(tmp_path: Path) -> None:
+    """RootConfig validates the full Phase-6 seerr schema (D-06-SCOPE-01)."""
+    yaml_src = """
+seerr:
+  main:
+    base_url: http://seerr.selfhost.svc.cluster.local:5055
+    sonarr_service:
+      hostname: sonarr.selfhost.svc.cluster.local
+      port: 8989
+      activeProfileId: 6
+      activeDirectory: /media/series
+      activeAnimeProfileId: 7
+      activeAnimeDirectory: /media/anime
+      animeTags: [3]
+      tags: [2]
+      tagRequests: true
+    radarr_service:
+      hostname: radarr.selfhost.svc.cluster.local
+      port: 7878
+      activeProfileId: 6
+      activeDirectory: /media/films
+      tags: [2]
+      tagRequests: true
+    users:
+      enable: true
+      admin:
+        displayName: admin
+        permissions: 2
+        movieQuotaDays: 0
+        movieQuotaLimit: 0
+        tvQuotaDays: 0
+        tvQuotaLimit: 0
+    main_settings:
+      enable: true
+      defaultPermissions: 32
+      defaultQuotas:
+        movie: {quotaDays: 7, quotaLimit: 5}
+        tv: {quotaDays: 7, quotaLimit: 5}
+"""
+    cfg_file = tmp_path / "arrconf.yml"
+    cfg_file.write_text(yaml_src)
+    cfg = load_config(cfg_file)
+    assert "main" in cfg.seerr
+    assert cfg.seerr["main"].sonarr_service.animeTags == [3]
+    assert cfg.seerr["main"].users.admin.permissions == 2  # ADMIN — research correction
+    assert cfg.seerr["main"].main_settings.defaultPermissions == 32  # REQUEST
+
+
+def test_seerr_models_exclude_id_from_dump() -> None:
+    """All 4 Seerr resource models MUST exclude `id` from model_dump (Pitfall 1).
+
+    Seerr returns HTTP 400 "request.body.id is read-only" if id is in PUT body.
+    """
+    from arrconf.resources.seerr import (
+        SeerrMainSettings,
+        SeerrRadarrService,
+        SeerrSonarrService,
+        SeerrUser,
+    )
+
+    s = SeerrSonarrService(
+        id=0, hostname="h", port=1, apiKey="k", activeProfileId=1, activeDirectory="/a"
+    )
+    assert "id" not in s.model_dump(), "SeerrSonarrService leaked id"
+    assert "apiKey" not in s.model_dump(), "SeerrSonarrService leaked apiKey"
+    assert "activeProfileName" not in s.model_dump(), "SeerrSonarrService leaked activeProfileName"
+    assert "activeAnimeProfileName" not in s.model_dump(), (
+        "SeerrSonarrService leaked activeAnimeProfileName"
+    )
+
+    r = SeerrRadarrService(
+        id=0, hostname="h", port=1, apiKey="k", activeProfileId=1, activeDirectory="/a"
+    )
+    assert "id" not in r.model_dump()
+    assert "apiKey" not in r.model_dump()
+
+    u = SeerrUser(id=1, email="x@y", displayName="d", permissions=2)
+    assert "id" not in u.model_dump()
+    assert "email" not in u.model_dump()
+    assert "userType" not in u.model_dump()  # 16 read-only exclusions
+
+    m = SeerrMainSettings(apiKey="secret", defaultPermissions=32)
+    assert "apiKey" not in m.model_dump()
+
+
+def test_content_routing_section_defaults_disabled() -> None:
+    """content_routing is opt-in: enable=False default on Sonarr and Radarr instances."""
+    from arrconf.config import RadarrInstance, SonarrInstance
+
+    assert SonarrInstance(base_url="http://x").content_routing.enable is False
+    assert RadarrInstance(base_url="http://x").content_routing.enable is False
+
+
+def test_root_config_rejects_seerr_typo(tmp_path: Path) -> None:
+    """`extra='forbid'` on SeerrInstance catches YAML typos (sonar_service vs sonarr_service)."""
+    yaml_src = """
+seerr:
+  main:
+    base_url: http://seerr:5055
+    sonar_service:  # TYPO
+      hostname: sonarr
+      port: 8989
+      activeProfileId: 6
+      activeDirectory: /media/series
+    radarr_service:
+      hostname: radarr
+      port: 7878
+      activeProfileId: 6
+      activeDirectory: /media/films
+"""
+    cfg_file = tmp_path / "arrconf.yml"
+    cfg_file.write_text(yaml_src)
+    with pytest.raises(ConfigError):
+        load_config(cfg_file)

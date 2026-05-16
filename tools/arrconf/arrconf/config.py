@@ -21,6 +21,10 @@ from ruyaml import YAML
 from arrconf.exceptions import ConfigError
 from arrconf.resources.qbittorrent.category import Category
 from arrconf.resources.qbittorrent.preferences import QbitPreferences
+from arrconf.resources.seerr import (
+    DefaultQuotas,
+    SeerrUser,
+)
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
 from arrconf.resources.sonarr.notification import Notification
@@ -183,6 +187,45 @@ class MovieTagsSection(BaseModel):
     )
 
 
+# ---------------------------------------------------------------------------
+# Phase 6 section models — content_routing on Sonarr/Radarr (D-06-RETAG-01).
+# ---------------------------------------------------------------------------
+
+
+class ContentRoutingRule(BaseModel):
+    """A single content_tags routing rule (Phase 6, D-06-RETAG-01).
+
+    Genre-keyword-driven post-import retagger rule. `tag` MUST exist in
+    `instance.tags.items` (reconciler enforces via ReconcileError).
+    `keywords` is case-insensitive substring-matched against `item.genres[]`
+    on each series/movie. Phase 6 default config (Plan 06-06) ships:
+      - Sonarr family: ["Family", "Kids", "Children"]   (NOT Animation — too broad)
+      - Sonarr anime:  ["Anime"]                         (TVDB first-class genre)
+      - Radarr family: ["Family"]                        (NO Animation — catches Pixar/Disney)
+      - Radarr anime:  (no rule)                          (TMDB has no Anime genre)
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    tag: str = Field(description="Tag label to apply (must exist in instance.tags.items).")
+    keywords: list[str] = Field(
+        default_factory=list,
+        description="Genre keywords (case-insensitive substring match against item.genres[]).",
+    )
+
+
+class ContentRoutingSection(BaseModel):
+    """content_tags step config (Phase 6, D-06-RETAG-01, step 10).
+
+    Opt-in (enable=False default) — reconciler logs `content_tags_reconcile_skipped`
+    and returns when disabled. Runs AFTER series_tags/movie_tags (D-05-ORDER-01 +
+    Phase 6 ordering extension — step 10).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(default=False, description="Opt-in — content_tags skipped unless True.")
+    rules: list[ContentRoutingRule] = Field(default_factory=list)
+
+
 class CategoriesSection(BaseModel):
     """List of qBittorrent categories with opt-in prune.
 
@@ -283,10 +326,13 @@ class SonarrInstance(BaseModel):
     - tags: declarative Sonarr tags (tv, anime, family)
     - remote_path_mappings: qBit-to-Sonarr path translation entries
     - series_tags: retroactive default-tag for un-tagged series
+
+    Phase 6 (D-06-RETAG-01): content_routing — genre-keyword retagger (step 10)
     """
 
     model_config = ConfigDict(extra="forbid")
     base_url: str = Field(description="Sonarr base URL e.g. http://sonarr.svc:8989")
+    content_routing: ContentRoutingSection = Field(default_factory=ContentRoutingSection)
     download_clients: DownloadClientsSection = Field(default_factory=DownloadClientsSection)
     host_config: HostConfigSection = Field(default_factory=HostConfigSection)
     indexers: IndexersSection = Field(default_factory=IndexersSection)
@@ -310,10 +356,13 @@ class RadarrInstance(BaseModel):
     - tags: declarative Radarr tags (movies, anime, family)
     - remote_path_mappings: qBit-to-Radarr path translation entries
     - movie_tags: retroactive default-tag for un-tagged movies (default_tag='movies')
+
+    Phase 6 (D-06-RETAG-01): content_routing — genre-keyword retagger (step 10)
     """
 
     model_config = ConfigDict(extra="forbid")
     base_url: str = Field(description="Radarr base URL e.g. http://radarr.svc:7878")
+    content_routing: ContentRoutingSection = Field(default_factory=ContentRoutingSection)
     download_clients: DownloadClientsSection = Field(default_factory=DownloadClientsSection)
     host_config: HostConfigSection = Field(default_factory=HostConfigSection)
     indexers: IndexersSection = Field(default_factory=IndexersSection)
@@ -339,6 +388,109 @@ class ProwlarrInstance(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Phase 6 instance models — Seerr (D-06-SCOPE-01).
+# ---------------------------------------------------------------------------
+
+
+class SeerrSonarrServiceSection(BaseModel):
+    """Seerr -> Sonarr service connection config (D-06-SCOPE-01).
+
+    apiKey is intentionally absent from this YAML schema — operator bootstraps
+    Seerr->Sonarr/Radarr connections via Seerr UI ONCE (D-06-CREDS-01) and the
+    reconciler preserves the cluster apiKey on every PUT.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    hostname: str
+    port: int = Field(default=8989)
+    useSsl: bool = Field(default=False)
+    activeProfileId: int = Field(description="Sonarr quality profile integer ID (default).")
+    activeDirectory: str = Field(description="Sonarr root folder path for non-anime requests.")
+    activeAnimeProfileId: int | None = Field(
+        default=None,
+        description="Sonarr quality profile integer ID for anime (Phase 5 'Anime' profile).",
+    )
+    activeAnimeDirectory: str | None = Field(
+        default=None,
+        description="Sonarr root folder path for anime requests.",
+    )
+    tags: list[int] = Field(
+        default_factory=list,
+        description="Sonarr tag integer IDs applied to non-anime requests routed via Seerr.",
+    )
+    animeTags: list[int] = Field(
+        default_factory=list,
+        description="Sonarr tag integer IDs applied to anime requests routed via Seerr.",
+    )
+    is4k: bool = Field(default=False)
+    isDefault: bool = Field(default=True)
+    enableSeasonFolders: bool = Field(default=False)
+    externalUrl: str = Field(default="")
+    syncEnabled: bool = Field(default=True)
+    preventSearch: bool = Field(default=False)
+    tagRequests: bool = Field(default=True)
+
+
+class SeerrRadarrServiceSection(BaseModel):
+    """Seerr -> Radarr service connection config (D-06-SCOPE-01).
+
+    NO animeTags/activeAnime* — research-verified absence on Seerr-side Radarr config.
+    Family/anime routing for movies is handled entirely by Plan 06-05's content_tags step.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    hostname: str
+    port: int = Field(default=7878)
+    useSsl: bool = Field(default=False)
+    activeProfileId: int
+    activeDirectory: str
+    is4k: bool = Field(default=False)
+    minimumAvailability: str = Field(default="released")
+    tags: list[int] = Field(default_factory=list)
+    isDefault: bool = Field(default=True)
+    externalUrl: str = Field(default="")
+    syncEnabled: bool = Field(default=True)
+    preventSearch: bool = Field(default=False)
+    tagRequests: bool = Field(default=True)
+
+
+class SeerrUsersSection(BaseModel):
+    """Seerr users reconciliation (D-06-SCOPE-01 — admin only)."""
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(default=True, description="Opt-in default-ON — admin user only.")
+    prune: bool = Field(default=False, description="Opt-in deletion (D-04). Never True in Phase 6.")
+    admin: SeerrUser = Field(default_factory=SeerrUser)
+
+
+class SeerrMainSettingsSection(BaseModel):
+    """Seerr settings/main reconciliation (D-06-SCOPE-01)."""
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(default=True, description="Opt-in default-ON for the scoped subset.")
+    defaultPermissions: int = Field(default=32, description="32 = REQUEST (research verified).")
+    defaultQuotas: DefaultQuotas = Field(default_factory=DefaultQuotas)
+
+
+class SeerrInstance(BaseModel):
+    """A single Seerr instance (Phase 6, D-06-SCOPE-01 — single-instance per ADR-7).
+
+    Resources reconciled (per D-06-SCOPE-01 minimum-viable):
+    - sonarr_service: PUT /api/v1/settings/sonarr/{id} (match by isDefault=true)
+    - radarr_service: PUT /api/v1/settings/radarr/{id} (match by isDefault=true)
+    - users.admin: PUT /api/v1/user/{id} (single admin, id=1 per current cluster)
+    - main_settings: POST /api/v1/settings/main (scoped subset)
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    base_url: str = Field(description="Seerr base URL e.g. http://seerr.svc:5055")
+    sonarr_service: SeerrSonarrServiceSection
+    radarr_service: SeerrRadarrServiceSection
+    users: SeerrUsersSection = Field(default_factory=SeerrUsersSection)
+    main_settings: SeerrMainSettingsSection = Field(default_factory=SeerrMainSettingsSection)
+
+
+# ---------------------------------------------------------------------------
 # Root config — Phase 3 monolithic shape (D-03-05).
 # ---------------------------------------------------------------------------
 
@@ -352,6 +504,8 @@ class RootConfig(BaseModel):
 
     Phase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root
     convention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.
+
+    Phase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -359,6 +513,7 @@ class RootConfig(BaseModel):
     radarr: dict[str, RadarrInstance] = Field(default_factory=dict)
     prowlarr: dict[str, ProwlarrInstance] = Field(default_factory=dict)
     qbittorrent: dict[str, QbittorrentInstance] = Field(default_factory=dict)
+    seerr: dict[str, SeerrInstance] = Field(default_factory=dict)
 
 
 def load_config(path: Path) -> RootConfig:

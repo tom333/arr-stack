@@ -113,6 +113,83 @@
       "title": "Category",
       "type": "object"
     },
+    "ContentRoutingRule": {
+      "additionalProperties": false,
+      "description": "A single content_tags routing rule (Phase 6, D-06-RETAG-01).\n\nGenre-keyword-driven post-import retagger rule. `tag` MUST exist in\n`instance.tags.items` (reconciler enforces via ReconcileError).\n`keywords` is case-insensitive substring-matched against `item.genres[]`\non each series/movie. Phase 6 default config (Plan 06-06) ships:\n  - Sonarr family: [\"Family\", \"Kids\", \"Children\"]   (NOT Animation \u2014 too broad)\n  - Sonarr anime:  [\"Anime\"]                         (TVDB first-class genre)\n  - Radarr family: [\"Family\"]                        (NO Animation \u2014 catches Pixar/Disney)\n  - Radarr anime:  (no rule)                          (TMDB has no Anime genre)",
+      "properties": {
+        "keywords": {
+          "description": "Genre keywords (case-insensitive substring match against item.genres[]).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Keywords",
+          "type": "array"
+        },
+        "tag": {
+          "description": "Tag label to apply (must exist in instance.tags.items).",
+          "title": "Tag",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag"
+      ],
+      "title": "ContentRoutingRule",
+      "type": "object"
+    },
+    "ContentRoutingSection": {
+      "additionalProperties": false,
+      "description": "content_tags step config (Phase 6, D-06-RETAG-01, step 10).\n\nOpt-in (enable=False default) \u2014 reconciler logs `content_tags_reconcile_skipped`\nand returns when disabled. Runs AFTER series_tags/movie_tags (D-05-ORDER-01 +\nPhase 6 ordering extension \u2014 step 10).",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Opt-in \u2014 content_tags skipped unless True.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/ContentRoutingRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "title": "ContentRoutingSection",
+      "type": "object"
+    },
+    "DefaultQuota": {
+      "additionalProperties": false,
+      "description": "Per-resource default quota (movie or tv).",
+      "properties": {
+        "quotaDays": {
+          "default": 7,
+          "title": "Quotadays",
+          "type": "integer"
+        },
+        "quotaLimit": {
+          "default": 5,
+          "title": "Quotalimit",
+          "type": "integer"
+        }
+      },
+      "title": "DefaultQuota",
+      "type": "object"
+    },
+    "DefaultQuotas": {
+      "additionalProperties": false,
+      "description": "Seerr defaultQuotas object (movie + tv sub-objects).",
+      "properties": {
+        "movie": {
+          "$ref": "#/$defs/DefaultQuota"
+        },
+        "tv": {
+          "$ref": "#/$defs/DefaultQuota"
+        }
+      },
+      "title": "DefaultQuotas",
+      "type": "object"
+    },
     "DownloadClient": {
       "additionalProperties": true,
       "description": "A Sonarr download client (qBittorrent, Transmission, ...).\n\nMatched by ``name`` (D-20). Read-only fields excluded from diff (D-21).\nUses ``extra=\"allow\"`` for forward-compat with future Sonarr versions\n(Phase 1 simplification \u2014 Pitfall 4 trade-off documented in RESEARCH.md).",
@@ -847,12 +924,15 @@
     },
     "RadarrInstance": {
       "additionalProperties": false,
-      "description": "A single Radarr instance (Phase 3, D-03-01 \u2014 full parity with SonarrInstance).\n\nIdentical section list to SonarrInstance \u2014 Radarr's v3 API exposes the\nsame resource types with the same shapes. The reconciler (Plan 04) is a\nparallel implementation; the YAML schema is intentionally aligned.\n\nPhase 5 additions (D-05-SPLIT-02, D-05-PATHMAP-01, D-05-MIG-01):\n- tags: declarative Radarr tags (movies, anime, family)\n- remote_path_mappings: qBit-to-Radarr path translation entries\n- movie_tags: retroactive default-tag for un-tagged movies (default_tag='movies')",
+      "description": "A single Radarr instance (Phase 3, D-03-01 \u2014 full parity with SonarrInstance).\n\nIdentical section list to SonarrInstance \u2014 Radarr's v3 API exposes the\nsame resource types with the same shapes. The reconciler (Plan 04) is a\nparallel implementation; the YAML schema is intentionally aligned.\n\nPhase 5 additions (D-05-SPLIT-02, D-05-PATHMAP-01, D-05-MIG-01):\n- tags: declarative Radarr tags (movies, anime, family)\n- remote_path_mappings: qBit-to-Radarr path translation entries\n- movie_tags: retroactive default-tag for un-tagged movies (default_tag='movies')\n\nPhase 6 (D-06-RETAG-01): content_routing \u2014 genre-keyword retagger (step 10)",
       "properties": {
         "base_url": {
           "description": "Radarr base URL e.g. http://radarr.svc:7878",
           "title": "Base Url",
           "type": "string"
+        },
+        "content_routing": {
+          "$ref": "#/$defs/ContentRoutingSection"
         },
         "download_clients": {
           "$ref": "#/$defs/DownloadClientsSection"
@@ -1032,6 +1112,554 @@
       "title": "RootFoldersSection",
       "type": "object"
     },
+    "SeerrInstance": {
+      "additionalProperties": false,
+      "description": "A single Seerr instance (Phase 6, D-06-SCOPE-01 \u2014 single-instance per ADR-7).\n\nResources reconciled (per D-06-SCOPE-01 minimum-viable):\n- sonarr_service: PUT /api/v1/settings/sonarr/{id} (match by isDefault=true)\n- radarr_service: PUT /api/v1/settings/radarr/{id} (match by isDefault=true)\n- users.admin: PUT /api/v1/user/{id} (single admin, id=1 per current cluster)\n- main_settings: POST /api/v1/settings/main (scoped subset)",
+      "properties": {
+        "base_url": {
+          "description": "Seerr base URL e.g. http://seerr.svc:5055",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "main_settings": {
+          "$ref": "#/$defs/SeerrMainSettingsSection"
+        },
+        "radarr_service": {
+          "$ref": "#/$defs/SeerrRadarrServiceSection"
+        },
+        "sonarr_service": {
+          "$ref": "#/$defs/SeerrSonarrServiceSection"
+        },
+        "users": {
+          "$ref": "#/$defs/SeerrUsersSection"
+        }
+      },
+      "required": [
+        "base_url",
+        "sonarr_service",
+        "radarr_service"
+      ],
+      "title": "SeerrInstance",
+      "type": "object"
+    },
+    "SeerrMainSettingsSection": {
+      "additionalProperties": false,
+      "description": "Seerr settings/main reconciliation (D-06-SCOPE-01).",
+      "properties": {
+        "defaultPermissions": {
+          "default": 32,
+          "description": "32 = REQUEST (research verified).",
+          "title": "Defaultpermissions",
+          "type": "integer"
+        },
+        "defaultQuotas": {
+          "$ref": "#/$defs/DefaultQuotas"
+        },
+        "enable": {
+          "default": true,
+          "description": "Opt-in default-ON for the scoped subset.",
+          "title": "Enable",
+          "type": "boolean"
+        }
+      },
+      "title": "SeerrMainSettingsSection",
+      "type": "object"
+    },
+    "SeerrRadarrServiceSection": {
+      "additionalProperties": false,
+      "description": "Seerr -> Radarr service connection config (D-06-SCOPE-01).\n\nNO animeTags/activeAnime* \u2014 research-verified absence on Seerr-side Radarr config.\nFamily/anime routing for movies is handled entirely by Plan 06-05's content_tags step.",
+      "properties": {
+        "activeDirectory": {
+          "title": "Activedirectory",
+          "type": "string"
+        },
+        "activeProfileId": {
+          "title": "Activeprofileid",
+          "type": "integer"
+        },
+        "externalUrl": {
+          "default": "",
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "hostname": {
+          "title": "Hostname",
+          "type": "string"
+        },
+        "is4k": {
+          "default": false,
+          "title": "Is4K",
+          "type": "boolean"
+        },
+        "isDefault": {
+          "default": true,
+          "title": "Isdefault",
+          "type": "boolean"
+        },
+        "minimumAvailability": {
+          "default": "released",
+          "title": "Minimumavailability",
+          "type": "string"
+        },
+        "port": {
+          "default": 7878,
+          "title": "Port",
+          "type": "integer"
+        },
+        "preventSearch": {
+          "default": false,
+          "title": "Preventsearch",
+          "type": "boolean"
+        },
+        "syncEnabled": {
+          "default": true,
+          "title": "Syncenabled",
+          "type": "boolean"
+        },
+        "tagRequests": {
+          "default": true,
+          "title": "Tagrequests",
+          "type": "boolean"
+        },
+        "tags": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "useSsl": {
+          "default": false,
+          "title": "Usessl",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "hostname",
+        "activeProfileId",
+        "activeDirectory"
+      ],
+      "title": "SeerrRadarrServiceSection",
+      "type": "object"
+    },
+    "SeerrSonarrServiceSection": {
+      "additionalProperties": false,
+      "description": "Seerr -> Sonarr service connection config (D-06-SCOPE-01).\n\napiKey is intentionally absent from this YAML schema \u2014 operator bootstraps\nSeerr->Sonarr/Radarr connections via Seerr UI ONCE (D-06-CREDS-01) and the\nreconciler preserves the cluster apiKey on every PUT.",
+      "properties": {
+        "activeAnimeDirectory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sonarr root folder path for anime requests.",
+          "title": "Activeanimedirectory"
+        },
+        "activeAnimeProfileId": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sonarr quality profile integer ID for anime (Phase 5 'Anime' profile).",
+          "title": "Activeanimeprofileid"
+        },
+        "activeDirectory": {
+          "description": "Sonarr root folder path for non-anime requests.",
+          "title": "Activedirectory",
+          "type": "string"
+        },
+        "activeProfileId": {
+          "description": "Sonarr quality profile integer ID (default).",
+          "title": "Activeprofileid",
+          "type": "integer"
+        },
+        "animeTags": {
+          "description": "Sonarr tag integer IDs applied to anime requests routed via Seerr.",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Animetags",
+          "type": "array"
+        },
+        "enableSeasonFolders": {
+          "default": false,
+          "title": "Enableseasonfolders",
+          "type": "boolean"
+        },
+        "externalUrl": {
+          "default": "",
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "hostname": {
+          "title": "Hostname",
+          "type": "string"
+        },
+        "is4k": {
+          "default": false,
+          "title": "Is4K",
+          "type": "boolean"
+        },
+        "isDefault": {
+          "default": true,
+          "title": "Isdefault",
+          "type": "boolean"
+        },
+        "port": {
+          "default": 8989,
+          "title": "Port",
+          "type": "integer"
+        },
+        "preventSearch": {
+          "default": false,
+          "title": "Preventsearch",
+          "type": "boolean"
+        },
+        "syncEnabled": {
+          "default": true,
+          "title": "Syncenabled",
+          "type": "boolean"
+        },
+        "tagRequests": {
+          "default": true,
+          "title": "Tagrequests",
+          "type": "boolean"
+        },
+        "tags": {
+          "description": "Sonarr tag integer IDs applied to non-anime requests routed via Seerr.",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "useSsl": {
+          "default": false,
+          "title": "Usessl",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "hostname",
+        "activeProfileId",
+        "activeDirectory"
+      ],
+      "title": "SeerrSonarrServiceSection",
+      "type": "object"
+    },
+    "SeerrUser": {
+      "additionalProperties": true,
+      "description": "A single Seerr user (PUT /api/v1/user/{id}).",
+      "properties": {
+        "avatar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Avatar"
+        },
+        "avatarETag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Avataretag"
+        },
+        "avatarVersion": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Avatarversion"
+        },
+        "createdAt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Createdat"
+        },
+        "displayName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Displayname"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "jellyfinUserId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Jellyfinuserid"
+        },
+        "jellyfinUsername": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Jellyfinusername"
+        },
+        "movieQuotaDays": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Moviequotadays"
+        },
+        "movieQuotaLimit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Moviequotalimit"
+        },
+        "permissions": {
+          "default": 2,
+          "title": "Permissions",
+          "type": "integer"
+        },
+        "plexId": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plexid"
+        },
+        "plexUsername": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plexusername"
+        },
+        "recoveryLinkExpirationDate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recoverylinkexpirationdate"
+        },
+        "requestCount": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requestcount"
+        },
+        "settings": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Settings"
+        },
+        "tvQuotaDays": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tvquotadays"
+        },
+        "tvQuotaLimit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tvquotalimit"
+        },
+        "updatedAt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Updatedat"
+        },
+        "userType": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Usertype"
+        },
+        "username": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Username"
+        },
+        "warnings": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Warnings"
+        }
+      },
+      "title": "SeerrUser",
+      "type": "object"
+    },
+    "SeerrUsersSection": {
+      "additionalProperties": false,
+      "description": "Seerr users reconciliation (D-06-SCOPE-01 \u2014 admin only).",
+      "properties": {
+        "admin": {
+          "$ref": "#/$defs/SeerrUser"
+        },
+        "enable": {
+          "default": true,
+          "description": "Opt-in default-ON \u2014 admin user only.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in deletion (D-04). Never True in Phase 6.",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "SeerrUsersSection",
+      "type": "object"
+    },
     "SeriesTagsSection": {
       "additionalProperties": false,
       "description": "D-05-MIG-01: retroactive default-tag for untagged series in Sonarr.\n\n``enable`` defaults to True \u2014 Phase 5 core feature. On each apply run,\narrconf adds ``default_tag`` to any series that has no tags. Idempotent:\nseries already tagged are not modified.",
@@ -1054,12 +1682,15 @@
     },
     "SonarrInstance": {
       "additionalProperties": false,
-      "description": "A single Sonarr instance (Phase 3 extends Phase 1's download_clients-only scope).\n\nResource section order is alphabetical for readability \u2014 runtime\nreconcile ordering is enforced by the reconciler itself (Plan 03).\n\nPhase 5 additions (D-05-SPLIT-01, D-05-PATHMAP-01, D-05-MIG-01):\n- tags: declarative Sonarr tags (tv, anime, family)\n- remote_path_mappings: qBit-to-Sonarr path translation entries\n- series_tags: retroactive default-tag for un-tagged series",
+      "description": "A single Sonarr instance (Phase 3 extends Phase 1's download_clients-only scope).\n\nResource section order is alphabetical for readability \u2014 runtime\nreconcile ordering is enforced by the reconciler itself (Plan 03).\n\nPhase 5 additions (D-05-SPLIT-01, D-05-PATHMAP-01, D-05-MIG-01):\n- tags: declarative Sonarr tags (tv, anime, family)\n- remote_path_mappings: qBit-to-Sonarr path translation entries\n- series_tags: retroactive default-tag for un-tagged series\n\nPhase 6 (D-06-RETAG-01): content_routing \u2014 genre-keyword retagger (step 10)",
       "properties": {
         "base_url": {
           "description": "Sonarr base URL e.g. http://sonarr.svc:8989",
           "title": "Base Url",
           "type": "string"
+        },
+        "content_routing": {
+          "$ref": "#/$defs/ContentRoutingSection"
         },
         "download_clients": {
           "$ref": "#/$defs/DownloadClientsSection"
@@ -1132,7 +1763,7 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.",
+  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.\n\nPhase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.",
   "properties": {
     "prowlarr": {
       "additionalProperties": {
@@ -1153,6 +1784,13 @@
         "$ref": "#/$defs/RadarrInstance"
       },
       "title": "Radarr",
+      "type": "object"
+    },
+    "seerr": {
+      "additionalProperties": {
+        "$ref": "#/$defs/SeerrInstance"
+      },
+      "title": "Seerr",
       "type": "object"
     },
     "sonarr": {
