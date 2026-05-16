@@ -137,3 +137,76 @@ def test_arrconf_yml_prowlarr_apps_declared() -> None:
     app_names = {a.name for a in apps}
     assert "Sonarr" in app_names, f"Sonarr app not declared in prowlarr.main: {app_names}"
     assert "Radarr" in app_names, f"Radarr app not declared in prowlarr.main: {app_names}"
+
+
+# -- Phase 6 assertions (D-06-SCOPE-01 + D-06-RETAG-01) ------------------------
+
+
+def test_arrconf_yml_has_seerr_main_block() -> None:
+    """charts/arr-stack/files/arrconf.yml validates against RootConfig with a seerr.main block."""
+    cfg = load_config(ARRCONF_YML)
+    assert "main" in cfg.seerr, "Phase 6 must wire seerr.main into the chart YAML"
+    seerr_main = cfg.seerr["main"]
+    # T-06-CREDS-LEAK: no apiKey at the YAML layer (D-06-CREDS-01 — runtime preservation).
+    # SeerrSonarrServiceSection has NO apiKey field (Plan 06-02) — enforced by pydantic.
+    # User defaults verified:
+    assert seerr_main.users.admin.permissions == 2, (
+        "Phase 6: admin permissions=2 (ADMIN per research bitmask)"
+    )
+    assert seerr_main.main_settings.defaultPermissions == 32, (
+        "Phase 6: defaultPermissions=32 (REQUEST per research)"
+    )
+    # Anime routing fields configured (D-06-Q10-01 mechanism):
+    assert seerr_main.sonarr_service.activeAnimeProfileId is not None, (
+        "Phase 6: activeAnimeProfileId required for anime routing"
+    )
+    assert seerr_main.sonarr_service.activeAnimeDirectory == "/media/anime"
+    assert seerr_main.sonarr_service.animeTags, "Phase 6: animeTags must be non-empty"
+    assert seerr_main.sonarr_service.tagRequests is True
+    # Radarr-side: NO animeTags field (research-verified absence on Radarr-side Seerr schema)
+    assert not hasattr(seerr_main.radarr_service, "animeTags"), (
+        "SeerrRadarrServiceSection MUST NOT have animeTags (research-verified)"
+    )
+
+
+def test_arrconf_yml_sonarr_content_routing_has_family_and_anime() -> None:
+    """Sonarr content_routing wires both family + anime rules (D-06-RETAG-01)."""
+    cfg = load_config(ARRCONF_YML)
+    rules = cfg.sonarr["main"].content_routing.rules
+    rule_tags = {r.tag for r in rules}
+    assert "family" in rule_tags, "Sonarr Phase 6 must have a family rule"
+    assert "anime" in rule_tags, (
+        "Sonarr Phase 6 must have an anime rule (gap-fill for items Seerr missed)"
+    )
+    # Pitfall 5: family keywords must NOT include "Animation"
+    family_rule = next(r for r in rules if r.tag == "family")
+    assert "Animation" not in family_rule.keywords, (
+        "Pitfall 5: 'Animation' must NEVER appear in Sonarr family keywords"
+    )
+    assert family_rule.keywords == ["Family", "Kids", "Children"], (
+        "Sonarr family keywords must be the conservative trio per Pitfall 5"
+    )
+
+
+def test_arrconf_yml_radarr_content_routing_has_NO_anime_rule() -> None:
+    """Pitfall 5 enforced at the chart layer: Radarr MUST NOT have an anime rule.
+
+    TMDB has no 'Anime' first-class genre; 'Animation' would catch Pixar/Disney
+    (false-positive). Anime films stay manual-tag until a future phase ships an
+    originalLanguage-based filter (deferred — D-06+1).
+    """
+    cfg = load_config(ARRCONF_YML)
+    rules = cfg.radarr["main"].content_routing.rules
+    rule_tags = {r.tag for r in rules}
+    assert "anime" not in rule_tags, (
+        "Pitfall 5: Radarr MUST NOT have an anime rule (TMDB Animation catches Pixar/Disney)"
+    )
+    # Family rule MUST exist:
+    assert "family" in rule_tags, (
+        "Radarr Phase 6 must have the family rule (operator's stated need)"
+    )
+    family_rule = next(r for r in rules if r.tag == "family")
+    # Pitfall 5: family keywords on Radarr are JUST ["Family"] — TMDB doesn't use Kids/Children
+    assert family_rule.keywords == ["Family"], (
+        "Radarr family keywords MUST be ['Family'] only (TMDB taxonomy)"
+    )
