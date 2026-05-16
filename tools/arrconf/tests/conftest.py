@@ -189,3 +189,56 @@ def radarr_remotepathmapping_fixture() -> list[dict[str, Any]]:
     pointing qBittorrent's complete path to Radarr's import path.
     """
     return _load_fixture("radarr/remotepathmapping.json")
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — Seerr fixtures (D-06-SCOPE-01).
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def seerr_settings_sonarr_fixture() -> list[dict[str, Any]]:
+    """Seerr GET /api/v1/settings/sonarr response (1 default-true Sonarr service, redacted).
+
+    Shape: list of service objects. Each has `id` (Plan 06-04 must NOT echo `id`
+    in PUT body — Seerr returns 400 with `"request.body.id is read-only"`), `isDefault`
+    (the match key — D-06-SCOPE-01 single-instance per ADR-7), `apiKey` (preserved
+    via D-06-CREDS-01 manual pattern — Plan 06-04 must NOT overwrite if YAML omits it),
+    `animeTags` + `activeAnimeDirectory` + `activeAnimeProfileId` (the D-06-Q10-01 anime
+    routing fields — Sonarr-side ONLY).
+    """
+    return _load_fixture("seerr/settings_sonarr.json")
+
+
+@pytest.fixture
+def seerr_settings_radarr_fixture() -> list[dict[str, Any]]:
+    """Seerr GET /api/v1/settings/radarr response (1 default-true Radarr service, redacted).
+
+    Research-verified: NO `animeTags`, NO `activeAnimeDirectory`, NO `activeAnimeProfileId`
+    on the Radarr-side service shape — anime/family routing for movies is handled
+    entirely by Plan 06-05's content_tags step (D-06-Q10-01 + scope_directive #6).
+    """
+    return _load_fixture("seerr/settings_radarr.json")
+
+
+@pytest.fixture
+def seerr_user_fixture() -> dict[str, Any]:
+    """Seerr GET /api/v1/user paginated response (1 admin user, permissions=2).
+
+    Shape: `{pageInfo: {...}, results: [user]}`. The single admin user has
+    permissions=2 (ADMIN in Seerr v3.2.0 fork — research-verified live; CONTEXT.md
+    originally said 8388608, that is AUTO_REQUEST not full admin).
+    """
+    return _load_fixture("seerr/user.json")
+
+
+@pytest.fixture
+def seerr_settings_main_fixture() -> dict[str, Any]:
+    """Seerr GET /api/v1/settings/main response (23-key body, apiKey REDACTED).
+
+    Plan 06-04 reads the FULL body and modifies ONLY `defaultPermissions` +
+    `defaultQuotas` before POSTing (Pitfall 2 — settings/main uses POST not PUT;
+    D-06-SCOPE-01 scoped subset). All other 21 keys (locale/region/UI/mediaServer/etc.)
+    flow through untouched. apiKey is excluded from POST body (Pitfall 1).
+    """
+    return _load_fixture("seerr/settings_main.json")
