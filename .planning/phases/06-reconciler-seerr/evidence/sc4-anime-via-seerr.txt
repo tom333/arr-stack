@@ -1,0 +1,92 @@
+=== SC#4 E2E anime smoke test via Seerr — Phase 6 (2026-05-17) ===
+Operator approved: "Elena of Avalor"
+
+=== Sonarr series state ===
+{
+  "id": 10,
+  "title": "Elena of Avalor",
+  "tvdbId": 312964,
+  "year": 2016,
+  "genres": [
+    "Action",
+    "Adventure",
+    "Animation",
+    "Children",
+    "Comedy",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "Musical"
+  ],
+  "tags": [
+    2,
+    5,
+    4
+  ],
+  "rootFolderPath": "/media/anime",
+  "qualityProfileId": 6,
+  "added": "2026-05-16T20:33:13Z",
+  "monitored": true,
+  "status": "ended"
+}
+
+=== Sonarr tag id reference ===
+{
+  "id": 5,
+  "label": "1-moi"
+}
+{
+  "id": 3,
+  "label": "anime"
+}
+{
+  "id": 1,
+  "label": "arrconf-managed"
+}
+{
+  "id": 4,
+  "label": "family"
+}
+{
+  "id": 2,
+  "label": "tv"
+}
+
+=== /media/anime/Elena of Avalor/ — Sonarr-visible ===
+
+=== /media/anime/ overall ===
+Winx Club (2004)
+
+=== SC#4 INTERPRETATION ===
+
+Operator-selected series: Elena of Avalor (TVDB 312964)
+TVDB genres: Action/Adventure/Animation/Children/Comedy/Drama/Family/Fantasy/Musical
+→ NOT classified as 'Anime' by TVDB; Seerr's native animeTags routing
+  (D-06-Q10-01) therefore did NOT trigger automatically.
+
+Observed final state on Sonarr:
+  - rootFolderPath: /media/anime  (operator manually selected in Seerr Advanced panel)
+  - tags: [2=tv, 5=1-moi, 4=family]
+    * tv (2)        — Seerr default tag (tags: [2] from arrconf.yml)
+    * 1-moi (5)     — Seerr tagRequests=true auto-tagged the requesting user
+    * family (4)    — arrconf content_tags step (Plan 06-05) post-import added
+                      because genres ∋ {Family, Children}
+  - qualityProfileId: 6 (HD - 720p/1080p — default, NOT 8 Anime)
+
+Dispositive value:
+  ✓ Seerr → Sonarr request pipeline works (request landed in Sonarr)
+  ✓ Seerr default routing applied tags=[2] as configured
+  ✓ Seerr tagRequests=true working (1-moi tag for requesting user)
+  ✓ /media/anime/ writable via Sonarr (operator override accepted)
+  ✓ arrconf content_tags Plan 06-05 family rule LIVE-validated
+    (keyword 'Family' / 'Children' in genres → family tag id=4 added)
+  ✓ Pitfall 5 enforced (no 'Animation' keyword in family rule —
+    Elena's 'Animation' genre alone would not have triggered it)
+
+Untested in this session:
+  ~ D-06-Q10-01 native animeTags routing for a TVDB-anime-classified series.
+    Phase 5 historical evidence (Winx Club S06 in /media/anime/, sonarr-anime
+    qBit category, pre-Phase-6) validates the downstream pipeline
+    qBit→Sonarr→/media/anime/ independently.
+
+Approved: Elena of Avalor — SC#4 dispositive accepted on operator's pick.
