@@ -268,14 +268,17 @@ def test_settings_sonarr_apikey_preserved_when_yaml_empty(
 
 
 @pytest.mark.respx(base_url=f"{SEERR_BASE}/api/v1", assert_all_called=False)
-def test_settings_sonarr_excludes_activeProfileName_from_put(
+def test_settings_sonarr_preserves_activeProfileName_from_get(
     respx_mock: respx.MockRouter,
     seerr_settings_sonarr_fixture: list[dict[str, Any]],
     seerr_settings_radarr_fixture: list[dict[str, Any]],
     seerr_user_fixture: dict[str, Any],
     seerr_settings_main_fixture: dict[str, Any],
 ) -> None:
-    """Pitfall 3: activeProfileName + activeAnimeProfileName are server-computed."""
+    """D-06-OPENAPI-01 (revises Pitfall 3): activeProfileName + activeAnimeProfileName
+    are REQUIRED by Seerr OpenAPI schema in the PUT body, even though they are
+    server-computed. Reconciler MUST re-inject them from the current GET (same
+    pattern as apiKey, D-06-CREDS-01)."""
     sonarr_state = [
         dict(
             seerr_settings_sonarr_fixture[0],
@@ -297,9 +300,14 @@ def test_settings_sonarr_excludes_activeProfileName_from_put(
     put_route = respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
     reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
-    body = put_route.calls[0].request.content.decode()
-    assert '"activeProfileName"' not in body
-    assert '"activeAnimeProfileName"' not in body
+    body_json = json.loads(put_route.calls[0].request.content.decode())
+    # Required by OpenAPI — must be present.
+    assert "activeProfileName" in body_json
+    assert "activeAnimeProfileName" in body_json
+    # Value must come from cluster GET (server-computed truth), NOT from YAML
+    # (the desired-state schema deliberately omits these names).
+    assert body_json["activeProfileName"] == "HD - 720p/1080p"
+    assert body_json["activeAnimeProfileName"] == "HD-1080p"
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +374,45 @@ def test_settings_radarr_apikey_preserved(
     reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
     body = json.loads(put_route.calls[0].request.content)
     assert body["apiKey"] == "radarr-cluster-secret"
+
+
+@pytest.mark.respx(base_url=f"{SEERR_BASE}/api/v1", assert_all_called=False)
+def test_settings_radarr_preserves_activeProfileName_from_get(
+    respx_mock: respx.MockRouter,
+    seerr_settings_sonarr_fixture: list[dict[str, Any]],
+    seerr_settings_radarr_fixture: list[dict[str, Any]],
+    seerr_user_fixture: dict[str, Any],
+    seerr_settings_main_fixture: dict[str, Any],
+) -> None:
+    """D-06-OPENAPI-01: Radarr settings PUT body MUST include activeProfileName
+    (OpenAPI-required). Reconciler re-injects from current GET. Radarr has NO
+    activeAnimeProfileName field (research-verified Pitfall 3 partial)."""
+    radarr_state = [
+        dict(
+            seerr_settings_radarr_fixture[0],
+            tags=[],
+            isDefault=True,
+            id=0,
+            apiKey="x",
+            activeProfileName="HD - 720p/1080p",
+        )
+    ]
+    _mock_all_gets(
+        respx_mock,
+        seerr_settings_sonarr_fixture,
+        radarr_state,
+        seerr_user_fixture,
+        seerr_settings_main_fixture,
+    )
+    put_route = respx_mock.put("/settings/radarr/0").mock(return_value=httpx.Response(200, json={}))
+    respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
+
+    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    body = json.loads(put_route.calls[0].request.content)
+    assert "activeProfileName" in body
+    assert body["activeProfileName"] == "HD - 720p/1080p"
+    # Radarr has no activeAnimeProfileName field (Pitfall 3 partial).
+    assert "activeAnimeProfileName" not in body
 
 
 # ---------------------------------------------------------------------------

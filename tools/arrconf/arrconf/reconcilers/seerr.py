@@ -11,7 +11,15 @@ Critical research-verified pitfalls (06-RESEARCH.md):
 - Pitfall 1: PUT body MUST exclude `id` (Seerr 400 "request.body.id is read-only").
   Enforced at the pydantic layer by Plan 06-02 via `Field(exclude=True)`.
 - Pitfall 2: settings/main uses POST not PUT.
-- Pitfall 3: activeProfileName + activeAnimeProfileName are server-computed; excluded.
+- Pitfall 3 (REVISED 2026-05-16 — D-06-OPENAPI-01): activeProfileName +
+  activeAnimeProfileName ARE server-computed (Seerr re-derives them from the IDs
+  server-side), BUT Seerr's OpenAPI schema marks them as REQUIRED in the PUT
+  body. Sending a body without them yields HTTP 400
+  "request.body should have required property 'activeProfileName'".
+  Mitigation: same manual injection pattern as apiKey — read from current GET,
+  re-inject into put_body after model_dump(). Pydantic models keep
+  `exclude=True` for symmetry (these fields are not part of the desired-state
+  surface and must not appear in arrconf YAML).
 - Pitfall 6 + D-06-CREDS-01: merge_fields_for_put is *arr-only. Seerr apiKey
   preservation is done MANUALLY here, NOT via merge_fields_for_put.
 
@@ -106,7 +114,9 @@ def _reconcile_settings_sonarr(
 
     D-06-CREDS-01: apiKey preservation pattern (manual, NOT merge_fields_for_put).
     Pitfall 1: id excluded from PUT body (pydantic Field(exclude=True)).
-    Pitfall 3: activeProfileName + activeAnimeProfileName excluded (server-computed).
+    Pitfall 3 (D-06-OPENAPI-01): activeProfileName + activeAnimeProfileName ARE
+    server-computed but Seerr OpenAPI validates them as required in the PUT body.
+    Pydantic excludes them from desired-state YAML; reconciler re-injects from GET.
     """
     log.info("step_begin", step="settings_sonarr", step_index=1)
     current_list: list[dict[str, Any]] = client.get(SETTINGS_SONARR_PATH)
@@ -130,10 +140,17 @@ def _reconcile_settings_sonarr(
     # PUT body reaches Seerr with the cluster credential — critical for keeping
     # the Sonarr connection alive (D-06-CREDS-01 T-06-CREDS mitigation).
     put_body["apiKey"] = cluster_api_key
+    # D-06-OPENAPI-01: Seerr OpenAPI validator rejects PUT bodies missing
+    # activeProfileName / activeAnimeProfileName (HTTP 400 even though Seerr
+    # re-derives them server-side from the IDs). Re-inject from current GET —
+    # same pattern as apiKey. On YAML profileId changes, Seerr accepts a stale
+    # name in the body and recomputes the canonical name on the next GET.
+    put_body["activeProfileName"] = current.get("activeProfileName", "")
+    put_body["activeAnimeProfileName"] = current.get("activeAnimeProfileName", "")
 
     # Diff: compare the relevant subset of current vs put_body.
-    # Extra cluster keys (activeProfileName, etc.) are ignored — they appear in
-    # current but not in put_body, so _payloads_equivalent skips them (correct).
+    # Extra cluster keys (server-managed timestamps etc.) are ignored — they
+    # appear in current but not in put_body, so _payloads_equivalent skips them.
     if _payloads_equivalent(current, put_body):
         log.info("settings_sonarr_no_op")
         return []
@@ -175,6 +192,9 @@ def _reconcile_settings_radarr(
     desired_model = SeerrRadarrService(**desired_payload)
     put_body = desired_model.model_dump()
     put_body["apiKey"] = cluster_api_key
+    # D-06-OPENAPI-01: same OpenAPI-required activeProfileName injection as sonarr.
+    # Radarr has no activeAnimeProfile* fields (Pitfall 3 partial; only activeProfileName).
+    put_body["activeProfileName"] = current.get("activeProfileName", "")
 
     if _payloads_equivalent(current, put_body):
         log.info("settings_radarr_no_op")
