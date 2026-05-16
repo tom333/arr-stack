@@ -17,6 +17,7 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 <!-- Shipped and confirmed valuable. -->
 
 - [x] **REQ-drift-detection** — Drift UI détecté et corrigé au prochain run d'arrconf. Validated in Phase 02.2: fully-automated priority restore + credential survival (composite dispositive: `merge_field_omitted_credential ≥ 1`, `sonarr_qbit_test_http_status=200`, `manual_nudge_used=NO`). v0.1.6.
+- [x] **REQ-app-coverage (Seerr increment)** — Seerr declaratively managed for 4 resources (settings/sonarr, settings/radarr, user[admin], settings/main subset per D-06-SCOPE-01). Validated in Phase 06: live `apply_complete` on image `:0.4.4` + 3/4 resources idempotent on second run + content_tags retag step LIVE-validated on Sonarr+Radarr. Native animeTags routing deferred to operator (06-HUMAN-UAT.md).
 
 ### Active
 
@@ -120,7 +121,7 @@ Questions non décidées dans la spec — à résoudre en `discuss-phase` avant 
 
 | ID | Question | Phase de résolution | Notes |
 |----|----------|---------------------|-------|
-| **Q1** | Compatibilité API Seerr (`ghcr.io/seerr-team/seerr` v3.2.0) vs Overseerr/Jellyseerr | **Phase 6** | Vérifier `/api/v1/settings/services`, `/api/v1/user`, `/api/v1/request` ; bloque la phase si incompatible |
+| **Q1** | ~~Compatibilité API Seerr (`ghcr.io/seerr-team/seerr` v3.2.0) vs Overseerr/Jellyseerr~~ | **RESOLVED Phase 6** | All 4 endpoints PUT-probed live (06-01 evidence `q1-put-probe.txt` HTTP 200); Pitfall 3 wrong on `activeProfileName` excludability — D-06-OPENAPI-01 hotfix shipped in `:0.4.4`. Seerr v3.2.0 API confirmed compatible. |
 | **Q2** | Helm dependencies vs sub-charts (multi-alias syntax) | **Phase 4** | Techniquement résolue par ADR-2 (Option A) ; reste arbitrage syntaxique multi-alias `bjw-s/app-template` |
 | **Q3** | Schedule arrconf (4 h comme configarr ? plus fréquent ?) | **Phase 2** | Recommandation initiale : 6 h |
 | **Q4** | Mode de release (tags manuels / release-please / semantic-release) | **Phase 1 ou 2** | À arbitrer avant le 1er release sémantique |
@@ -129,7 +130,7 @@ Questions non décidées dans la spec — à résoudre en `discuss-phase` avant 
 | **Q7** | Compatibilité multi-versions des APIs *arr | **Phase 1** | Recommandation : tester sur Sonarr v4+ uniquement, documenter comme prérequis (pas de v3) |
 | **Q8** | Stratégie `prune` par défaut | **Phase 1** | Recommandation : `prune: false` par défaut, opt-in par section (cf REQ-prune-opt-in) |
 | **Q9** | Jellyfin auth header (`X-Emby-Token` / `Authorization: MediaBrowser` / `?api_key=`) | **Phase 7** | À valider en pratique sur 10.11.8 ; `client_base.py` doit pouvoir overrider la stratégie d'auth par app |
-| **Q10** | Routing tags Seerr → Sonarr/Radarr (single instance + tags ADR-7) | **Phase 6** | Seerr expose-t-il `defaultTags` par service ? Fallback documenté : tag par défaut `tv` + ré-tag manuel pour anime/family minoritaires |
+| **Q10** | ~~Routing tags Seerr → Sonarr/Radarr (single instance + tags ADR-7)~~ | **RESOLVED Phase 6** | Native: `animeTags` + `activeAnimeDirectory` + `activeAnimeProfileId` exposed per service (D-06-Q10-01); fallback: arrconf `content_tags` step (D-06-RETAG-01) on Sonarr (family+anime) + Radarr (family only, Pitfall 5 enforced). Native production validation deferred — `06-HUMAN-UAT.md` tracks the TVDB-anime-classified series test. |
 
 ## Frontière arrconf / configarr (CRITIQUE)
 
@@ -157,4 +158,4 @@ Frontière dure dérivée de **ADR-5**. Les ✅ sont obligatoires, les ❌ inter
 | App sync Prowlarr | ❌ | ✅ |
 
 ---
-*Last updated: 2026-05-10 after Phase 02.2 (v0.1.5/v0.1.6 hotfix — CR-01 gap closed, REQ-drift-detection validated)*
+*Last updated: 2026-05-17 after Phase 06 (Seerr reconciler — Q1 + Q10 resolved, REQ-app-coverage Seerr increment validated; arr-stack v0.4.4 with D-06-OPENAPI-01 hotfix in production). Phase 02.2 closure: 2026-05-10 (v0.1.5/v0.1.6 — REQ-drift-detection validated).*
