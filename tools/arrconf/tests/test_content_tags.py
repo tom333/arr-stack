@@ -77,9 +77,7 @@ def test_sonarr_family_match_tags_series_with_family_genre(
         _series(11, "Drama Show", ["Drama"]),
     ]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -106,9 +104,7 @@ def test_sonarr_anime_match_tags_series_with_anime_genre(
     all_tags = [_tag(1, "tv"), _tag(2, "family"), _tag(3, "anime")]
     cluster_series = [_series(20, "Cowboy Bebop", ["Anime", "Action"])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -128,9 +124,7 @@ def test_sonarr_no_genre_match_skips(respx_mock: respx.MockRouter) -> None:
     all_tags = [_tag(1, "tv"), _tag(2, "family"), _tag(3, "anime")]
     cluster_series = [_series(30, "Pure Drama", ["Drama", "Crime"])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -152,9 +146,7 @@ def test_sonarr_already_tagged_is_idempotent_noop(respx_mock: respx.MockRouter) 
     all_tags = [_tag(1, "tv"), _tag(2, "family")]
     cluster_series = [_series(40, "Already Tagged", ["Family"], tags=[2])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -171,9 +163,7 @@ def test_sonarr_multi_tag_family_plus_anime_coexist(respx_mock: respx.MockRouter
     all_tags = [_tag(1, "tv"), _tag(2, "family"), _tag(3, "anime")]
     cluster_series = [_series(50, "Anime For Kids", ["Family", "Anime"])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -199,9 +189,7 @@ def test_sonarr_case_insensitive_genre_match(respx_mock: respx.MockRouter) -> No
     all_tags = [_tag(1, "tv"), _tag(2, "family")]
     cluster_series = [_series(60, "Lower Case Genre", ["family"])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -218,9 +206,7 @@ def test_sonarr_animation_does_not_match_family(respx_mock: respx.MockRouter) ->
     all_tags = [_tag(1, "tv"), _tag(2, "family")]
     cluster_series = [_series(70, "Just Animation", ["Animation"])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -260,9 +246,7 @@ def test_sonarr_dry_run_skips_put(respx_mock: respx.MockRouter) -> None:
     all_tags = [_tag(1, "tv"), _tag(2, "family")]
     cluster_series = [_series(80, "Family Series", ["Family"])]
     respx_mock.get("/series").mock(return_value=httpx.Response(200, json=cluster_series))
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -291,9 +275,7 @@ def test_radarr_family_match_tags_movie_with_family_genre(
         _movie(101, "Pure Drama", ["Drama"]),
     ]
     respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=cluster_movies))
-    editor_route = respx_mock.put("/movie/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/movie/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -332,9 +314,7 @@ def test_radarr_movie_editor_body_has_addImportExclusion(
     all_tags = [_tag(1, "movies"), _tag(2, "family")]
     cluster_movies = [_movie(200, "Family Film", ["Family"])]
     respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=cluster_movies))
-    editor_route = respx_mock.put("/movie/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/movie/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -353,9 +333,7 @@ def test_radarr_already_tagged_movie_is_noop(respx_mock: respx.MockRouter) -> No
     all_tags = [_tag(1, "movies"), _tag(2, "family")]
     cluster_movies = [_movie(300, "Already Tagged", ["Family"], tags=[2])]
     respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=cluster_movies))
-    editor_route = respx_mock.put("/movie/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/movie/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -372,9 +350,7 @@ def test_radarr_no_genre_match_noop(respx_mock: respx.MockRouter) -> None:
     all_tags = [_tag(1, "movies"), _tag(2, "family")]
     cluster_movies = [_movie(400, "Action Movie", ["Action", "Thriller"])]
     respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=cluster_movies))
-    editor_route = respx_mock.put("/movie/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/movie/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
@@ -450,9 +426,7 @@ def test_radarr_dry_run_skips_put(respx_mock: respx.MockRouter) -> None:
     all_tags = [_tag(1, "movies"), _tag(2, "family")]
     cluster_movies = [_movie(500, "Family Movie", ["Family"])]
     respx_mock.get("/movie").mock(return_value=httpx.Response(200, json=cluster_movies))
-    editor_route = respx_mock.put("/movie/editor").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    editor_route = respx_mock.put("/movie/editor").mock(return_value=httpx.Response(202, json={}))
 
     section = ContentRoutingSection(
         enable=True,
