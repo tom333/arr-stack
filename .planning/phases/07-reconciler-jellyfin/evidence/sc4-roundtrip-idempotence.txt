@@ -1,0 +1,46 @@
+# Phase 7 SC#4 — LITERAL ROADMAP CONTRACT (arrconf dump | arrconf diff = 0 diff)
+# Captured: 2026-05-17T15:18:11+11:00
+# Pattern used: B (local port-forward against cluster Jellyfin via kubectl)
+# arrconf source: tools/arrconf at HEAD e77f5be
+# Cluster Jellyfin: 10.11.8 in selfhost ns; config sourced from kubectl get cm arrconf-config
+
+## Step 1: arrconf --config /tmp/arrconf.yml dump --apps jellyfin --output /tmp/jelly.yml
+## (event: dump_written → /tmp/jelly.yml)
+
+## Step 2: arrconf --config /tmp/jelly.yml diff --apps jellyfin
+## Captured full stdout/stderr below:
+----- BEGIN DIFF OUTPUT -----
+{"step": "libraries", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-17T04:18:11.658790Z"}
+{"name": "S\u00e9ries", "path": "/media/series", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-17T04:18:11.663900Z"}
+{"name": "S\u00e9ries", "path": "/media/anime", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-17T04:18:11.663962Z"}
+{"name": "S\u00e9ries", "path": "/media/family", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-17T04:18:11.663986Z"}
+{"name": "Films", "path": "/media/films", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-17T04:18:11.664008Z"}
+{"name": "Films", "path": "/media/films-anime", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-17T04:18:11.664026Z"}
+{"name": "Films", "path": "/media/films-family", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-17T04:18:11.664042Z"}
+{"step": "users", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-17T04:18:11.664066Z"}
+{"user_id": "82fd95db72904569b08d83271823ceaa", "name": "moi", "event": "user_no_op", "level": "info", "timestamp": "2026-05-17T04:18:11.668510Z"}
+{"step": "server_config", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-17T04:18:11.668577Z"}
+{"event": "server_config_no_op", "level": "info", "timestamp": "2026-05-17T04:18:11.670435Z"}
+{"step": "plugins", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-17T04:18:11.670486Z"}
+{"name": "AudioDB", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-17T04:18:11.672334Z"}
+{"name": "Kodi Sync Queue", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-17T04:18:11.672382Z"}
+{"name": "MusicBrainz", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-17T04:18:11.672405Z"}
+{"name": "OMDb", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-17T04:18:11.672423Z"}
+{"name": "Studio Images", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-17T04:18:11.672440Z"}
+{"name": "TMDb", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-17T04:18:11.672455Z"}
+{"apps": ["jellyfin"], "event": "no_drift", "level": "info", "timestamp": "2026-05-17T04:18:11.672486Z"}
+----- END DIFF OUTPUT -----
+
+## Exit code of diff (MUST be 0 for SC#4 GREEN — anything else fails):
+DIFF_EXIT=0
+
+## Dispositive event counts:
+no_drift event count: 1
+drift event count (MUST be 0): 0
+plan_action event count (MUST be 0): 0
+
+## Per-step no-op breakdown:
+library_path_already_present: 6 (expect 6 = Séries 3 + Films 3)
+user_no_op: 1 (expect 1 = moi)
+server_config_no_op: 1 (expect 1)
+plugin_already_active: 6 (expect 6)
