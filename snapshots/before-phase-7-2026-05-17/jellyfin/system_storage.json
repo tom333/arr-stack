@@ -1,0 +1,86 @@
+{
+  "CacheFolder": {
+    "DeviceId": "/config/cache",
+    "FreeSpace": 269105451008,
+    "Path": "/config/cache",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  },
+  "ImageCacheFolder": {
+    "DeviceId": "/config/cache/images",
+    "FreeSpace": 269105451008,
+    "Path": "/config/cache/images",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  },
+  "InternalMetadataFolder": {
+    "DeviceId": "/config/data/metadata",
+    "FreeSpace": 269105451008,
+    "Path": "/config/data/metadata",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  },
+  "Libraries": [
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 351101517824,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2704502161408
+        },
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 351101517824,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2704502161408
+        }
+      ],
+      "Id": "d565273fd114d77bdf349a2896867069",
+      "Name": "Séries"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films",
+          "FreeSpace": 351101517824,
+          "Path": "/media/films",
+          "StorageType": "Network",
+          "UsedSpace": 2704502161408
+        }
+      ],
+      "Id": "db4c1708cbb5dd1676284a40f2950aba",
+      "Name": "Films"
+    }
+  ],
+  "LogFolder": {
+    "DeviceId": "/config/log",
+    "FreeSpace": 269105451008,
+    "Path": "/config/log",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  },
+  "ProgramDataFolder": {
+    "DeviceId": "/config/data",
+    "FreeSpace": 269105451008,
+    "Path": "/config/data",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  },
+  "TranscodingTempFolder": {
+    "DeviceId": "/config/cache/transcodes",
+    "FreeSpace": 269105451008,
+    "Path": "/config/cache/transcodes",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  },
+  "WebFolder": {
+    "DeviceId": "/usr/share/jellyfin/web",
+    "FreeSpace": 269105451008,
+    "Path": "/usr/share/jellyfin/web",
+    "StorageType": "Fixed",
+    "UsedSpace": 713134575616
+  }
+}
