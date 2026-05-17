@@ -71,11 +71,11 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
   4. Après bascule en `ARRCONF_DRY_RUN=false` : Sonarr UI montre le download client géré par arrconf
   5. Drift detection prouvée : modification UI hors-Git → écrasée au run suivant (logs JSON visibles)
 **Plans**: 5 plans
-- [ ] 02-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (re-snapshot all 6 apps + evidence/ dir for Wave 3/4 logs)
-- [ ] 02-02-PLAN.md — Wave 1: v0.1.2 image release + GHCR public toggle (v0.1.0 first-push race; closes Phase 1 HUMAN-UAT #1; records image_tag_verified for 02-03)
-- [ ] 02-03-PLAN.md — Wave 2: my-kluster chart authoring (capture verified hostnames, 9 files in my-kluster working tree, helm lint, secret-leak audit, end-of-plan cross-repo working-tree checkpoint per B-01)
-- [ ] 02-04-PLAN.md — Wave 3: PR1 dry-run deployment (manual secret apply with W-05 tracking-id check, ArgoCD sync, B-02 volumeMount inspection, forced smoke job with W-06 verified event names, post-PR1 snapshot diff = 0)
-- [ ] 02-05-PLAN.md — Wave 4: PR2 apply mode (B-03 split into 5.1a/b/c) + drift detection runbook (W-04 dispositive value-equality, W-01 REQUIRED forensic snapshot, W-06 verified plan_action event)
+- [x] 02-01-PLAN.md — Wave 1: Pre-deploy snapshot baseline (re-snapshot all 6 apps + evidence/ dir for Wave 3/4 logs)
+- [x] 02-02-PLAN.md — Wave 1: v0.1.2 image release + GHCR public toggle (v0.1.0 first-push race; closes Phase 1 HUMAN-UAT #1; records image_tag_verified for 02-03) (completed 2026-05-17)
+- [x] 02-03-PLAN.md — Wave 2: my-kluster chart authoring (capture verified hostnames, 9 files in my-kluster working tree, helm lint, secret-leak audit, end-of-plan cross-repo working-tree checkpoint per B-01)
+- [x] 02-04-PLAN.md — Wave 3: PR1 dry-run deployment (manual secret apply with W-05 tracking-id check, ArgoCD sync, B-02 volumeMount inspection, forced smoke job with W-06 verified event names, post-PR1 snapshot diff = 0)
+- [x] 02-05-PLAN.md — Wave 4: PR2 apply mode (B-03 split into 5.1a/b/c) + drift detection runbook (W-04 dispositive value-equality, W-01 REQUIRED forensic snapshot, W-06 verified plan_action event)
 **Open questions to resolve**: Q3 (resolved D-23 — schedule `0 */4 * * *`), Q4 (resolved by Phase 1 D-01 — manual tag releases)
 
 ### Phase 2.1: Field-merge fix for sensitive YAML values
@@ -107,7 +107,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 
 **Depends on:** Phase 2.1
 
-**Plans:** 13/13 plans complete
+**Plans:** 3/3 plans complete
 
 > **RESOLVED (2026-05-10):** D-02.2-AUTH-REGRESSION closed. v0.1.5 (omit-by-privacy strategy) + v0.1.6 (CR-01 rotation guard) shipped and deployed. Composite dispositive satisfied: `merge_field_omitted_credential ≥ 1`, `sonarr_qbit_test_http_status=200`, `manual_nudge_used=NO`. CronJob unsuspended. REQ-drift-detection FINAL closure.
 
@@ -162,14 +162,14 @@ Plans:
   5. CI `chart-lint.yml` verte : `helm lint` + `helm template … | kubeconform -` + `values.yaml` parse contre `values.schema.json` (bloquant)
   6. README final permet onboard (clone → bootstrap secrets → premier deploy) en moins de 30 min, avec liens vers `spec.md` / `CLAUDE.md` / my-kluster
 **Plans**: 9 plans (replanned 2026-05-13 against app-template **5.0.0** baseline — prior 4.6.2 assumption invalidated by ADR-6 baseline capture at commit 2a94257)
-- [ ] 04-01-PLAN.md — Wave 0: verify intact ADR-6 baseline (already-committed at 2a94257) + author helper scripts (check-renovate-annotations.sh + byte-equivalence-diff.sh)
-- [ ] 04-02-PLAN.md — Wave 1: Chart.yaml (10 app-template@5.0.0 aliases) + Chart.lock + _helpers.tpl + 2 ConfigMap templates + files/ verbatim port
-- [ ] 04-03-PLAN.md — Wave 2: sonarr + radarr + prowlarr + qbittorrent aliases (verbatim helm.values port + fullnameOverride + Renovate annotations; qbittorrent pinned to 5.2.0)
-- [ ] 04-04-PLAN.md — Wave 3: cleanuparr (2.3.3) + seerr + flaresolverr (v3.4.6, no-ingress) + jellyfin (no-oauth2-proxy) aliases; closes the :latest invariant
-- [ ] 04-05-PLAN.md — Wave 4: arrconf + configarr app-template@5.0.0 CronJob aliases (cronjob: key — NOT cronJobConfig:; Forbid; configarr tty:true; existingClaim configarr-cache) + values.schema.json + examples/values-prod.yaml
-- [ ] 04-06-PLAN.md — Wave 5: chart-lint.yml (helm lint + kubeconform 1.33.0 + annotation/latest/cronJobConfig guards + Python regex synthetic test + renovate-config-validator + auto-tag B3) + renovate.json customManagers + packageRules
-- [ ] 04-07-PLAN.md — Wave 5 (parallel, no file overlap with 04-06): README.md full rewrite + CLAUDE.md refresh (Structure actuelle, Intégration my-kluster v5/Replace=true, Historical bootstrap) + operator walkthrough checkpoint (< 30 min onboarding)
-- [ ] 04-08-PLAN.md — Wave 6 (cross-repo): local byte-equivalence diff vs Wave 0 baseline + atomic my-kluster PR (add arr-stack-app.yaml with Replace=true, WITHOUT automated:, delete 10 unit Apps + charts/{arrconf,configarr}/) + operator kubectl-driven sync + 10-min soak + ingress smoke
+- [x] 04-01-PLAN.md — Wave 0: verify intact ADR-6 baseline (already-committed at 2a94257) + author helper scripts (check-renovate-annotations.sh + byte-equivalence-diff.sh)
+- [x] 04-02-PLAN.md — Wave 1: Chart.yaml (10 app-template@5.0.0 aliases) + Chart.lock + _helpers.tpl + 2 ConfigMap templates + files/ verbatim port
+- [x] 04-03-PLAN.md — Wave 2: sonarr + radarr + prowlarr + qbittorrent aliases (verbatim helm.values port + fullnameOverride + Renovate annotations; qbittorrent pinned to 5.2.0)
+- [x] 04-04-PLAN.md — Wave 3: cleanuparr (2.3.3) + seerr + flaresolverr (v3.4.6, no-ingress) + jellyfin (no-oauth2-proxy) aliases; closes the :latest invariant
+- [x] 04-05-PLAN.md — Wave 4: arrconf + configarr app-template@5.0.0 CronJob aliases (cronjob: key — NOT cronJobConfig:; Forbid; configarr tty:true; existingClaim configarr-cache) + values.schema.json + examples/values-prod.yaml
+- [x] 04-06-PLAN.md — Wave 5: chart-lint.yml (helm lint + kubeconform 1.33.0 + annotation/latest/cronJobConfig guards + Python regex synthetic test + renovate-config-validator + auto-tag B3) + renovate.json customManagers + packageRules
+- [x] 04-07-PLAN.md — Wave 5 (parallel, no file overlap with 04-06): README.md full rewrite + CLAUDE.md refresh (Structure actuelle, Intégration my-kluster v5/Replace=true, Historical bootstrap) + operator walkthrough checkpoint (< 30 min onboarding)
+- [x] 04-08-PLAN.md — Wave 6 (cross-repo): local byte-equivalence diff vs Wave 0 baseline + atomic my-kluster PR (add arr-stack-app.yaml with Replace=true, WITHOUT automated:, delete 10 unit Apps + charts/{arrconf,configarr}/) + operator kubectl-driven sync + 10-min soak + ingress smoke
 - [ ] 04-09-PLAN.md — Wave 7 (cross-repo): 1-line follow-up PR re-enabling automated.{selfHeal,prune} + SC#2 E2E evidence within 72h hard gate (B4) — natural bump 0–48h OR D-04-PIN-04 Path B forced 48–72h
 **UI hint**: yes
 **Open questions to resolve**: Q2 (multi-alias `bjw-s/app-template` syntaxe — arbitrage syntaxique uniquement ; ADR-2 a déjà tranché Option A)
@@ -277,15 +277,15 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Bootstrap repo + snapshot raw | 3/3 | Complete    | 2026-05-07 |
-| 1. arrconf POC + JSON Schema | 0/TBD | Not started | - |
-| 2. Validation cluster | 0/TBD | Not started | - |
+| 0. Bootstrap repo + snapshot raw | 3/3 | Complete   | 2026-05-17 |
+| 1. arrconf POC + JSON Schema | 3/3 | Complete   | 2026-05-17 |
+| 2. Validation cluster | 5/5 | Complete   | 2026-05-17 |
 | 2.1. Field-merge fix for sensitive YAML values | 4/4 | Complete   | 2026-05-09 |
-| 2.2. v0.1.4 forceSave fix (INSERTED) | 5/6 | In progress | - |
-| 3. Étendre arrconf | 6/6 | Complete   | 2026-05-11 |
-| 4. Umbrella chart + migration des 9 apps | 0/TBD | Not started | - |
-| 5. Reconciler qBittorrent + split tv/anime/family | 0/8 | Not started | - |
-| 5.1. CI auto-tag → image-build chain repair (INSERTED) | 0/2 | Not started | - |
-| 6. Reconciler Seerr | 0/TBD | Not started | - |
+| 2.2. v0.1.4 forceSave fix (INSERTED) | 13/13 | Complete   | 2026-05-17 |
+| 3. Étendre arrconf | 6/6 | Complete   | 2026-05-17 |
+| 4. Umbrella chart + migration des 9 apps | 8/9 | In Progress|  |
+| 5. Reconciler qBittorrent + split tv/anime/family | 8/8 | Complete   | 2026-05-17 |
+| 5.1. CI auto-tag → image-build chain repair (INSERTED) | 2/2 | Complete   | 2026-05-17 |
+| 6. Reconciler Seerr | 7/7 | Complete   | 2026-05-17 |
 | 7. Reconciler Jellyfin | 6/6 | Complete   | 2026-05-17 |
 | 8. Migration ESO/Akeyless (optionnelle) | 0/TBD | Not started | - |
