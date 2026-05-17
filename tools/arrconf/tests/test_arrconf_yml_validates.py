@@ -276,10 +276,11 @@ def test_arrconf_yml_no_provider_ids_in_jellyfin_users() -> None:
     the check verifies the PARSED YAML data (not raw text) does not contain them
     as actual keys in the jellyfin.main.users.admin block.
     """
-    import yaml as _yaml
+    from ruyaml import YAML
 
+    yaml = YAML(typ="safe")
     with ARRCONF_YML.open("r", encoding="utf-8") as f:
-        data = _yaml.safe_load(f)
+        data = yaml.load(f)
 
     admin_block = data.get("jellyfin", {}).get("main", {}).get("users", {}).get("admin", {})
     assert "AuthenticationProviderId" not in admin_block, (
