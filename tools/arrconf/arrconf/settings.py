@@ -24,5 +24,6 @@ class Settings(BaseSettings):
     qbt_user: SecretStr | None = None  # QBT_USER (Phase 5, D-05-QBT-01)
     qbt_pass: SecretStr | None = None  # QBT_PASS (Phase 5, D-05-QBT-01)
     seerr_api_key: SecretStr | None = None  # SEERR_API_KEY (Phase 6, D-06-AUTH-01)
+    jellyfin_api_key: SecretStr | None = None  # JELLYFIN_API_KEY (Phase 7, D-07-AUTH-01)
     arrconf_log_level: str = "INFO"
     arrconf_dry_run: bool = False

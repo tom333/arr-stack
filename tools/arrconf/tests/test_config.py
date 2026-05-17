@@ -17,6 +17,7 @@ import pytest
 
 from arrconf.config import RootConfig, load_config
 from arrconf.exceptions import ConfigError
+from arrconf.resources.jellyfin import JellyfinUserPolicy
 
 
 def test_load_config_happy_path_sonarr_only(tmp_path: Path) -> None:
@@ -375,3 +376,124 @@ seerr:
     cfg_file.write_text(yaml_src)
     with pytest.raises(ConfigError):
         load_config(cfg_file)
+
+
+# -- Phase 7 (D-07-INSTANCE-01, D-07-LIB-01, D-07-USERS-01, D-07-CONFIG-01, D-07-PLUGINS-01) --
+
+
+def test_root_config_accepts_jellyfin_block(tmp_path: Path) -> None:
+    """RootConfig validates the full Phase-7 jellyfin schema (D-07-INSTANCE-01).
+
+    Mirrors test_root_config_accepts_seerr_block — covers the 4 Section models
+    (libraries / users / server_config / plugins) + JellyfinInstance + RootConfig.jellyfin field.
+    """
+    yaml_src = """
+jellyfin:
+  main:
+    base_url: http://jellyfin.selfhost.svc.cluster.local:8096
+    libraries:
+      enable: true
+      prune: false
+      items:
+        - name: "Séries"
+          collection_type: tvshows
+          paths: ["/media/series", "/media/anime", "/media/family"]
+        - name: "Films"
+          collection_type: movies
+          paths: ["/media/films", "/media/films-anime", "/media/films-family"]
+    users:
+      enable: true
+      prune: false
+      admin:
+        IsAdministrator: true
+        EnableContentDeletion: true
+        EnableRemoteAccess: true
+    server_config:
+      enable: true
+      ui_culture: "fr"
+      metadata_country_code: "FR"
+      preferred_metadata_language: "fr"
+      activity_log_retention_days: 30
+      log_file_retention_days: 3
+      server_name: "jellyfin"
+      plugin_repositories:
+        - Name: "Jellyfin Stable"
+          Url: "https://repo.jellyfin.org/files/plugin/manifest.json"
+          Enabled: true
+    plugins:
+      enable: true
+      required:
+        - name: "TMDb"
+        - name: "OMDb"
+        - name: "MusicBrainz"
+        - name: "AudioDb"
+        - name: "Studio Images"
+        - name: "Kodi Sync Queue"
+"""
+    cfg_file = tmp_path / "arrconf.yml"
+    cfg_file.write_text(yaml_src)
+    cfg = load_config(cfg_file)
+
+    assert "main" in cfg.jellyfin
+    instance = cfg.jellyfin["main"]
+    assert instance.base_url == "http://jellyfin.selfhost.svc.cluster.local:8096"
+
+    # Libraries (D-07-LIB-01: 2 entries, multi-path)
+    assert len(instance.libraries.items) == 2
+    series = instance.libraries.items[0]
+    assert series.name == "Séries"
+    assert series.collection_type == "tvshows"
+    assert series.paths == ["/media/series", "/media/anime", "/media/family"]
+    films = instance.libraries.items[1]
+    assert films.name == "Films"
+    assert films.paths == ["/media/films", "/media/films-anime", "/media/films-family"]
+
+    # Users (D-07-USERS-01: admin only)
+    assert instance.users.admin.IsAdministrator is True
+    assert instance.users.admin.EnableContentDeletion is True
+    assert instance.users.prune is False  # D-07-USERS-01 hardcoded protection
+
+    # Server config (D-07-CONFIG-01: 7-field allowlist)
+    sc = instance.server_config
+    assert sc.ui_culture == "fr"
+    assert sc.metadata_country_code == "FR"
+    assert sc.preferred_metadata_language == "fr"
+    assert sc.activity_log_retention_days == 30
+    assert sc.log_file_retention_days == 3
+    assert sc.server_name == "jellyfin"
+    assert len(sc.plugin_repositories) == 1
+    assert sc.plugin_repositories[0].Url == "https://repo.jellyfin.org/files/plugin/manifest.json"
+
+    # Plugins (D-07-PLUGINS-01: activation-only allowlist of 6)
+    assert len(instance.plugins.required) == 6
+    plugin_names = [p.name for p in instance.plugins.required]
+    assert "TMDb" in plugin_names
+    assert "Kodi Sync Queue" in plugin_names
+
+
+def test_jellyfin_user_policy_excludes_required_providerids_from_dump() -> None:
+    """Pitfall 6 (D-06-OPENAPI-01 carry-forward) type-layer enforcement.
+
+    AuthenticationProviderId + PasswordResetProviderId are OpenAPI-required
+    but NEVER configured by operator in YAML. Field(exclude=True) guarantees
+    they cannot leak from operator YAML into the POST body. The reconciler
+    (Plan 07-04) re-injects them from cluster GET — same pattern as Seerr apiKey
+    (D-06-CREDS-01).
+    """
+    policy = JellyfinUserPolicy(
+        AuthenticationProviderId="Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider",
+        PasswordResetProviderId="Jellyfin.Server.Implementations.Users.DefaultPasswordResetProvider",
+        IsAdministrator=True,
+        EnableContentDeletion=True,
+    )
+    result = policy.model_dump()
+
+    assert "AuthenticationProviderId" not in result, (
+        "Pitfall 6: AuthenticationProviderId leaked from YAML — exclude=True failed"
+    )
+    assert "PasswordResetProviderId" not in result, (
+        "Pitfall 6: PasswordResetProviderId leaked from YAML — exclude=True failed"
+    )
+    # Writable fields ARE in dump
+    assert result["IsAdministrator"] is True
+    assert result["EnableContentDeletion"] is True
