@@ -455,7 +455,7 @@ arrconf:
             - "/app/config/arrconf.yml"
             - "apply"
             - "--apps"
-            - "sonarr,radarr,prowlarr,qbittorrent,seerr"   # D-05-ARGS-01: Phase 5 adds qbittorrent ; Phase 6 adds seerr (D-06-SCOPE-01)
+            - "sonarr,radarr,prowlarr,qbittorrent,seerr,jellyfin"   # D-05-ARGS-01: Phase 5 adds qbittorrent ; Phase 6 adds seerr (D-06-SCOPE-01) ; Phase 7 adds jellyfin (D-07-INSTANCE-01)
           env:
             TZ: "Europe/Paris"
             ARRCONF_DRY_RUN: "false"

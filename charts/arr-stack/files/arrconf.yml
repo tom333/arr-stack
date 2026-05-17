@@ -432,3 +432,109 @@ seerr:
         tv:
           quotaDays: 7
           quotaLimit: 5
+
+# Phase 7 (D-07-INSTANCE-01): Jellyfin reconciler — single-instance per ADR-7.
+# 4 resources managed (D-07-ORDER-01 ordering libraries → users → server_config → plugins):
+#   1. libraries      — POST /Library/VirtualFolders/Paths
+#                       (Pitfall 2: NOT idempotent; reconciler set-membership shim
+#                        skips paths already present in LibraryOptions.PathInfos)
+#                       D-07-LIB-01: merged 2 libraries multi-path (Séries + Films);
+#                       D-07-LIB-02: scope = Name + CollectionType + PathInfos only
+#                       (LibraryOptions/TypeOptions/fetchers stay operator-managed via UI).
+#   2. users.admin    — POST /Users/{id}/Policy
+#                       (Pitfall 4: POST not PUT — PUT returns 405)
+#                       (Pitfall 6 / D-06-OPENAPI-01 carry-forward: AuthenticationProviderId
+#                        and PasswordResetProviderId are OpenAPI-REQUIRED but operator-NEVER-configured;
+#                        reconciler re-injects from cluster GET — pattern mirror Seerr apiKey D-06-CREDS-01).
+#                       D-07-USERS-01: admin "moi" only (Id 82fd95db72904569b08d83271823ceaa);
+#                       emilie operator-managed via UI, prune=false hardcoded.
+#   3. server_config  — POST /System/Configuration
+#                       (Pitfall 1: full REPLACE — reconciler does GET → merge 7-field allowlist
+#                        into cluster 56-field dict → POST entire body)
+#                       (Pitfall 7: PluginRepositories diff is set-by-URL — operator UI reorder
+#                        does not cause false-positive update events)
+#                       D-07-CONFIG-01 allowlist: UICulture, MetadataCountryCode,
+#                       PreferredMetadataLanguage, ActivityLogRetentionDays,
+#                       LogFileRetentionDays, ServerName, PluginRepositories.
+#                       (TrickplayOptions, MetadataOptions[], CodecsUsed, etc. stay operator-managed.)
+#   4. plugins        — POST /Plugins/{id}/{version}/Enable
+#                       (Pitfall 5: VERSION required in path; /Plugins/{id}/Enable returns 405)
+#                       D-07-PLUGINS-01: activation-only (no install, no uninstall).
+#                       6 plugins allowlisted (TMDb, OMDb, MusicBrainz, AudioDb, Studio Images, Kodi Sync Queue).
+#
+# AuthenticationProviderId AND PasswordResetProviderId are INTENTIONALLY ABSENT below —
+# preserved at reconcile-time from cluster GET (Pitfall 6 / D-06-OPENAPI-01 carry-forward).
+#
+# ADR-8 (forceSave) does NOT apply to Jellyfin (spec.md §895): the JellyfinClient
+# does NOT inherit from _ArrV3Client — Jellyfin has no forceSave mechanism.
+jellyfin:
+  main:
+    base_url: http://jellyfin.selfhost.svc.cluster.local:8096
+    libraries:
+      enable: true
+      prune: false  # D-07-LIB-01 hardcoded — reconciler refuses DELETE (Pitfall 3 protection)
+      items:
+        - name: "Séries"
+          collection_type: tvshows
+          paths:
+            - /media/series
+            - /media/anime
+            - /media/family
+        - name: "Films"
+          collection_type: movies
+          paths:
+            - /media/films
+            - /media/films-anime
+            - /media/films-family
+    users:
+      enable: true
+      prune: false  # D-07-USERS-01 hardcoded — emilie operator-managed, never touched
+      admin:
+        IsAdministrator: true
+        EnableContentDeletion: true
+        EnableRemoteAccess: true
+        EnableLiveTvAccess: true
+        EnableLiveTvManagement: false
+        EnableMediaPlayback: true
+        EnableAudioPlaybackTranscoding: true
+        EnableVideoPlaybackTranscoding: true
+        EnablePlaybackRemuxing: true
+        EnableContentDownloading: true
+        EnableSyncTranscoding: true
+        EnableMediaConversion: true
+        EnableAllDevices: true
+        EnableAllChannels: true
+        EnableAllFolders: true
+        InvalidLoginAttemptCount: 0
+        LoginAttemptsBeforeLockout: -1
+        MaxActiveSessions: 0
+        EnablePublicSharing: false
+        EnableUserPreferenceAccess: true
+        EnableRemoteControlOfOtherUsers: false
+        EnableSharedDeviceControl: true
+        EnablePlaylistManagement: true
+        EnableCollectionManagement: false
+        EnableSubtitleManagement: false
+        SyncPlayAccess: "CreateAndJoinGroups"
+        RemoteClientBitrateLimit: 0
+    server_config:
+      enable: true
+      ui_culture: "fr"
+      metadata_country_code: "FR"
+      preferred_metadata_language: "fr"
+      activity_log_retention_days: 30
+      log_file_retention_days: 3
+      server_name: "jellyfin"
+      plugin_repositories:
+        - Name: "Jellyfin Stable"
+          Url: "https://repo.jellyfin.org/files/plugin/manifest.json"
+          Enabled: true
+    plugins:
+      enable: true
+      required:
+        - name: "TMDb"
+        - name: "OMDb"
+        - name: "MusicBrainz"
+        - name: "AudioDb"
+        - name: "Studio Images"
+        - name: "Kodi Sync Queue"

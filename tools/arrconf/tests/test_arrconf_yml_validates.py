@@ -210,3 +210,83 @@ def test_arrconf_yml_radarr_content_routing_has_NO_anime_rule() -> None:
     assert family_rule.keywords == ["Family"], (
         "Radarr family keywords MUST be ['Family'] only (TMDB taxonomy)"
     )
+
+
+# -- Phase 7 assertions (D-07-INSTANCE-01 + D-07-LIB-01 + D-07-USERS-01
+#    + D-07-CONFIG-01 + D-07-PLUGINS-01) --
+
+
+def test_arrconf_yml_validates_jellyfin() -> None:
+    """Live chart YAML parses against the Phase 7 pydantic schema (D-07-INSTANCE-01).
+
+    Regression contract — prevents shipping a chart-side jellyfin block that
+    does not match the arrconf RootConfig schema. Mirrors the Seerr
+    test_arrconf_yml_validates pattern.
+    """
+    cfg = load_config(ARRCONF_YML)
+    assert "main" in cfg.jellyfin, (
+        "charts/arr-stack/files/arrconf.yml missing jellyfin.main section"
+    )
+
+    j = cfg.jellyfin["main"]
+    assert j.base_url == "http://jellyfin.selfhost.svc.cluster.local:8096"
+
+    # Libraries (D-07-LIB-01: 2 entries, multi-path)
+    assert len(j.libraries.items) == 2
+    assert j.libraries.items[0].name == "Séries"
+    assert j.libraries.items[0].collection_type == "tvshows"
+    assert j.libraries.items[0].paths == ["/media/series", "/media/anime", "/media/family"]
+    assert j.libraries.items[1].name == "Films"
+    assert j.libraries.items[1].paths == [
+        "/media/films",
+        "/media/films-anime",
+        "/media/films-family",
+    ]
+    assert j.libraries.prune is False  # D-07-LIB-01 hardcoded
+
+    # Users (D-07-USERS-01: admin only, emilie protection)
+    assert j.users.admin.IsAdministrator is True
+    assert j.users.prune is False  # D-07-USERS-01 hardcoded — emilie protection
+
+    # Server config (D-07-CONFIG-01: 7-field allowlist)
+    assert j.server_config.ui_culture == "fr"
+    assert j.server_config.metadata_country_code == "FR"
+    assert j.server_config.activity_log_retention_days == 30
+    assert len(j.server_config.plugin_repositories) == 1
+    assert j.server_config.plugin_repositories[0].Url == (
+        "https://repo.jellyfin.org/files/plugin/manifest.json"
+    )
+
+    # Plugins (D-07-PLUGINS-01: 6 plugins, activation-only)
+    assert len(j.plugins.required) == 6
+    plugin_names = [p.name for p in j.plugins.required]
+    assert "TMDb" in plugin_names
+    assert "Kodi Sync Queue" in plugin_names
+
+
+def test_arrconf_yml_no_provider_ids_in_jellyfin_users() -> None:
+    """Pitfall 6 / D-06-OPENAPI-01 carry-forward — defensive parse-level check.
+
+    AuthenticationProviderId + PasswordResetProviderId MUST be re-injected
+    from cluster GET, NEVER from YAML. If a future operator edits the chart
+    to add them, the reconciler would land them in the POST body and stomp
+    the cluster auth provider configuration.
+
+    Note: comments in arrconf.yml cite these field names for documentation;
+    the check verifies the PARSED YAML data (not raw text) does not contain them
+    as actual keys in the jellyfin.main.users.admin block.
+    """
+    import yaml as _yaml
+
+    with ARRCONF_YML.open("r", encoding="utf-8") as f:
+        data = _yaml.safe_load(f)
+
+    admin_block = data.get("jellyfin", {}).get("main", {}).get("users", {}).get("admin", {})
+    assert "AuthenticationProviderId" not in admin_block, (
+        "Pitfall 6: AuthenticationProviderId leaked into YAML jellyfin.main.users.admin — "
+        "reconciler re-injects this from cluster GET; YAML must not specify it."
+    )
+    assert "PasswordResetProviderId" not in admin_block, (
+        "Pitfall 6: PasswordResetProviderId leaked into YAML jellyfin.main.users.admin — "
+        "reconciler re-injects this from cluster GET; YAML must not specify it."
+    )
