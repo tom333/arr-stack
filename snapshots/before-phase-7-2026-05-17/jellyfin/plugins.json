@@ -1,0 +1,62 @@
+[
+  {
+    "CanUninstall": false,
+    "ConfigurationFileName": "Jellyfin.Plugin.AudioDb.xml",
+    "Description": "Get artist and album metadata or images from AudioDB.",
+    "HasImage": false,
+    "Id": "a629c0dafac54c7e931a7174223f14c8",
+    "Name": "AudioDB",
+    "Status": "Active",
+    "Version": "10.11.8.0"
+  },
+  {
+    "CanUninstall": true,
+    "ConfigurationFileName": "Jellyfin.Plugin.KodiSyncQueue.xml",
+    "Description": "Companion plugin that provides dynamic stream files and shorter sync times while using Jellyfin for Kodi.",
+    "HasImage": true,
+    "Id": "771e19d653854cafb35c28a0e865cf63",
+    "Name": "Kodi Sync Queue",
+    "Status": "Active",
+    "Version": "15.0.0.0"
+  },
+  {
+    "CanUninstall": false,
+    "ConfigurationFileName": "Jellyfin.Plugin.MusicBrainz.xml",
+    "Description": "Get artist and album metadata from any MusicBrainz server.",
+    "HasImage": false,
+    "Id": "8c95c4d2e50c4fb0a4f36c06ff0f9a1a",
+    "Name": "MusicBrainz",
+    "Status": "Active",
+    "Version": "10.11.8.0"
+  },
+  {
+    "CanUninstall": false,
+    "ConfigurationFileName": "Jellyfin.Plugin.Omdb.xml",
+    "Description": "Get metadata for movies and other video content from OMDb.",
+    "HasImage": false,
+    "Id": "a628c0dafac54c7e9d1a7134223f14c8",
+    "Name": "OMDb",
+    "Status": "Active",
+    "Version": "10.11.8.0"
+  },
+  {
+    "CanUninstall": false,
+    "ConfigurationFileName": "Jellyfin.Plugin.StudioImages.xml",
+    "Description": "Get artwork for studios from any Jellyfin-compatible repository.",
+    "HasImage": false,
+    "Id": "872a78491171458da6fb3de3d442ad30",
+    "Name": "Studio Images",
+    "Status": "Active",
+    "Version": "10.11.8.0"
+  },
+  {
+    "CanUninstall": false,
+    "ConfigurationFileName": "Jellyfin.Plugin.Tmdb.xml",
+    "Description": "Get metadata for movies and other video content from TheMovieDb.",
+    "HasImage": false,
+    "Id": "b8715ed16c4745289ad3f72deb539cd4",
+    "Name": "TMDb",
+    "Status": "Active",
+    "Version": "10.11.8.0"
+  }
+]
