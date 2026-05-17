@@ -66,12 +66,10 @@ def _mock_cluster(respx_mock: respx.MockRouter) -> None:
                     "Policy": {
                         "IsAdministrator": True,
                         "AuthenticationProviderId": (
-                            "Jellyfin.Server.Implementations.Users"
-                            ".DefaultAuthenticationProvider"
+                            "Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider"
                         ),
                         "PasswordResetProviderId": (
-                            "Jellyfin.Server.Implementations.Users"
-                            ".DefaultPasswordResetProvider"
+                            "Jellyfin.Server.Implementations.Users.DefaultPasswordResetProvider"
                         ),
                     },
                 }

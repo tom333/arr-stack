@@ -315,9 +315,7 @@ def _reconcile_plugins(
     by_name: dict[str, dict[str, Any]] = {
         str(p["Name"]): p for p in current_plugins if p.get("Name")
     }
-    by_id: dict[str, dict[str, Any]] = {
-        str(p["Id"]): p for p in current_plugins if p.get("Id")
-    }
+    by_id: dict[str, dict[str, Any]] = {str(p["Id"]): p for p in current_plugins if p.get("Id")}
     actions: list[str] = []
 
     for entry in section.required:
