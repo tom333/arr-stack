@@ -106,16 +106,34 @@ The MVP of arr-stack is live in production. All 6 *arr-stack apps (Sonarr / Rada
 
 **Code stats:** ~6,000 LOC Python + ~2,000 lines Helm/YAML + 65 SUMMARY.md docs across 11 phases. Test coverage 94.94% on reconciler code.
 
-## Next Milestone Goals (v0.3.0)
+## Current Milestone: v0.3.0 Categories first-class
 
-Loose scope (to be refined via `/gsd-new-milestone`):
+**Goal:** Refactor arr-stack so that a single declarative `categories[i]` entry propagates to all 8 sections × 6 apps (qBit + Sonarr + Radarr + configarr + Seerr + Jellyfin) and auto-creates the matching `/media/<name>` directory via a chart initContainer. Reproduce the operator's real-world content organization (10 categories, no permissions, no users) so that adding a new category like `anime-zoe` becomes a 1-entry YAML edit instead of 12 edits across 2 files.
 
-- **REQ-readme-onboarding closure** — Operator-driven < 30-min onboarding walkthrough; possibly bundled with a learnings-extract pass on v0.2.0.
-- **Phase 8 ESO/Akeyless migration** (was deferred) — Conditional on my-kluster ESO chantier reaching maturity.
-- **04-09 selfHeal+prune re-enable** — 1-line PR + SC#2 E2E evidence within 72h hard gate.
-- **Operational cleanups** — Mend Renovate App install (D-05.1-BUMP-01), legacy ConfigMap delete (D-07-CRONJOB-CRUFT), snapshot.sh redaction hardening (Phase 5 #4), idempotence false-positive fixes (Phase 5 #5).
-- **arrconf hardening** — QBT_USER/QBT_PASS injection on POST (Phase 5 #1), pre-bump arrconf.image.tag pattern (D-07-CHART-PIN-LOOP), `ruff format --check` in CI gates (D-07-RUFF-FORMAT-CI).
-- **Phase 7 follow-up** — D-07-PLAYLIST-MGMT-NULL re-verification on next Jellyfin major; D-06-Q10-01 native animeTags routing test for a real TVDB-anime series.
+**Target features:**
+
+- **Categories first-class data model** — top-level `categories: []` block in `arrconf.yml` with orthogonal `kind: movies|series` × `profile: general|anime|family` schema + `display`, `base_path`, `name` per entry.
+- **10-category target organization** — `films`, `nouveaux-films`, `films-enfants`, `films-animation-enfants`, `films-zoe` (Radarr side) + `series`, `series-emilie`, `series-thomas`, `series-garcons`, `series-zoe` (Sonarr side).
+- **8-section propagation per category** — qbit categories, sonarr/radarr tags, root_folders, download_clients, remote_path_mappings, configarr quality_profiles (3 per side, derived from `profile`), Seerr `animeTags` extended for `profile: anime`, Jellyfin library paths.
+- **Jellyfin layout Option A** — 2 super-libraries: "Séries" with 5 paths covering Sonarr-side categories + "Films" with 5 paths covering Radarr-side.
+- **Chart initContainer** — creates `/media/<name>` from each `categories[].base_path` at chart install/upgrade; never deletes; never touches existing file content.
+- **Progressive migration** — Categories generates sections at runtime; manually-edited flat sections (legacy `sonarr.main.tags`, etc.) still parse and override generation; deprecation warning planned for v0.4.0+.
+- **Operational polish bundle** — absorb ~8 carry-forward items from v0.2.0 (04-09 selfHeal/prune re-enable, ConfigMap cruft cleanup, ruff-format CI gate, chart-pin pre-bump pattern, paths-filter extension, Renovate App install, snapshot.sh redaction harden, idempotence FP fix).
+- **REQ-readme-onboarding closure** — < 30-min operator onboarding validated against the new Categories-aware README.
+
+**Key context:**
+
+- **Pure organizational refactor — NO permissions, NO new users, NO ACL.** The user/operator model (Jellyfin admin `moi` + operator-managed `emilie`) is preserved as-is. D-07-USERS-01 protection still applies.
+- **Filesystem migration deferred to operator.** arrconf will create the new `/media/<name>` directories empty; physical `mv` of existing content from the v0.2.0 flat layout (`/media/series`, `/media/anime`, etc.) to the new 10-bucket layout is a separate manual step the operator does later.
+- **`nouveaux-films` is a regular Category.** Not a temporary queue — operator manually moves to `films` after viewing.
+- **Web UI POC explicitly OUT of v0.3.0.** Sketch / discussion may surface during Phase 11 polish, but no React/Svelte code shipped. Re-evaluate for v0.4.0+.
+- **SuggestArr (SEED-001) parked for v0.4.0+.** Builds on v0.3.0's Categories foundation.
+- **ESO/Akeyless migration deferred.** sealed-secrets baseline is stable. REQ-secret-management stays Active for a future milestone (probably v0.4.0+ if the my-kluster ESO chantier matures).
+
+**Projected phases:** 3
+- Phase 9 — Categories data model + chart initContainer
+- Phase 10 — Categories → 6-app propagation + Seerr-routing extension
+- Phase 11 — Operational polish bundle + README onboarding refresh
 
 <details>
 <summary>Previous milestone scope (v0.2.0 — archived)</summary>

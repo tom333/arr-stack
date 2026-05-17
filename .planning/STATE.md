@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.0
-milestone_name: forceSave fix
-status: Awaiting next milestone
-stopped_at: Phase 7 context gathered
-last_updated: "2026-05-17T04:53:59.174Z"
-last_activity: 2026-05-17 — Milestone v0.2.0 completed and archived
+milestone: v0.3.0
+milestone_name: Categories first-class
+status: planning
+last_updated: "2026-05-17T20:40:34.122Z"
+last_activity: 2026-05-17
 progress:
-  total_phases: 12
-  completed_phases: 10
-  total_plans: 66
-  completed_plans: 65
-  percent: 98
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: Milestone v0.2.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-17 — Milestone v0.2.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-05-17 — Milestone v0.3.0 started
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
