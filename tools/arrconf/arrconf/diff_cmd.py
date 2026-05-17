@@ -8,7 +8,13 @@ from __future__ import annotations
 
 import structlog
 
-from arrconf.client_base import ProwlarrClient, QbittorrentClient, RadarrClient, SonarrClient
+from arrconf.client_base import (
+    JellyfinClient,
+    ProwlarrClient,
+    QbittorrentClient,
+    RadarrClient,
+    SonarrClient,
+)
 from arrconf.config import RootConfig
 from arrconf.differ import Action
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -96,4 +102,35 @@ def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
         return 0
     for p in non_noop:
         log.info("drift", action=p.action.value, name=p.name, diff_fields=p.diff_fields)
+    return 3
+
+
+def diff_jellyfin(client: JellyfinClient, root_config: RootConfig) -> int:
+    """Run ``reconcile_jellyfin`` in dry-run mode and return CLI exit code.
+
+    Returns ``0`` when ``result.actions_taken`` is empty (every step was a no-op),
+    ``3`` when at least one entry contains ``:dry_run:`` (a write would have happened).
+
+    SC#4 dispositive: paired with ``dump_jellyfin`` this proves round-trip idempotence.
+    After ``arrconf dump --apps jellyfin --output X.yml``, calling
+    ``arrconf --config X.yml diff --apps jellyfin`` MUST return 0 — the dumped YAML,
+    when applied, results in no writes.
+    """
+    from arrconf.reconcilers.jellyfin import reconcile_jellyfin  # noqa: PLC0415
+
+    if "main" not in root_config.jellyfin:
+        log.warning("no_jellyfin_config", hint="jellyfin.main missing in YAML")
+        return 0
+
+    result = reconcile_jellyfin(client, root_config.jellyfin["main"], dry_run=True)
+
+    # actions_taken strings carry ":dry_run:" when a write WOULD have happened.
+    # An empty list OR a list with no ":dry_run:" entries = no drift.
+    non_noop = [a for a in result.actions_taken if ":dry_run:" in a]
+    if not non_noop:
+        log.info("no_drift", apps=["jellyfin"])
+        return 0
+
+    for action_marker in non_noop:
+        log.info("drift", app="jellyfin", action=action_marker)
     return 3

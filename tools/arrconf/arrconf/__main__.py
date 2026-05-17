@@ -14,10 +14,10 @@ from pathlib import Path
 import structlog
 import typer
 
-from arrconf.client_base import ProwlarrClient, RadarrClient, SonarrClient
+from arrconf.client_base import JellyfinClient, ProwlarrClient, RadarrClient, SonarrClient
 from arrconf.config import load_config
-from arrconf.diff_cmd import diff_prowlarr, diff_radarr, diff_sonarr
-from arrconf.dump import dump_sonarr
+from arrconf.diff_cmd import diff_jellyfin, diff_prowlarr, diff_radarr, diff_sonarr
+from arrconf.dump import dump_jellyfin, dump_sonarr
 from arrconf.exceptions import (
     ApiClientError,
     ConfigError,
@@ -333,8 +333,26 @@ def dump(
         except ApiClientError as e:
             log.error("app_failed", app="sonarr", error=str(e))
             raise typer.Exit(code=1) from e
-    # dump is sonarr-only in Phase 3 (CONTEXT.md deferred stretch goal).
-    for unsupported in targets - {"sonarr"}:
+    # Phase 7: Jellyfin dump (D-07-INSTANCE-01, REQ-app-coverage, SC#4 feeder).
+    if "jellyfin" in targets and "main" in root.jellyfin:
+        jellyfin_dump_instance = root.jellyfin["main"]
+        if not settings.jellyfin_api_key:
+            log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
+            raise typer.Exit(code=2)
+        jellyfin_dump_key = settings.jellyfin_api_key.get_secret_value()
+        try:
+            jellyfin_dump_client = JellyfinClient(
+                base_url=jellyfin_dump_instance.base_url,
+                api_key=jellyfin_dump_key,
+            )
+            dump_jellyfin(jellyfin_dump_client, output)
+            log.info("dump_written", app="jellyfin", path=str(output))
+        except ApiClientError as e:
+            log.error("app_failed", app="jellyfin", error=str(e))
+            raise typer.Exit(code=1) from e
+
+    # dump is sonarr+jellyfin in Phase 7 (CONTEXT.md deferred stretch goal for radarr/prowlarr).
+    for unsupported in targets - {"sonarr", "jellyfin"}:
         if unsupported in ("radarr", "prowlarr"):
             log.warning(
                 "dump_not_implemented",
@@ -445,6 +463,24 @@ def diff(
             raise typer.Exit(code=1) from e
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="qbittorrent", error=str(e))
+            raise typer.Exit(code=1) from e
+
+    # Phase 7: Jellyfin diff branch (D-07-INSTANCE-01, SC#4 dispositive).
+    if "jellyfin" in targets and "main" in root.jellyfin:
+        jellyfin_diff_instance = root.jellyfin["main"]
+        if not settings.jellyfin_api_key:
+            log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
+            raise typer.Exit(code=2)
+        jellyfin_diff_key = settings.jellyfin_api_key.get_secret_value()
+        try:
+            jellyfin_diff_client = JellyfinClient(
+                base_url=jellyfin_diff_instance.base_url,
+                api_key=jellyfin_diff_key,
+            )
+            code = diff_jellyfin(jellyfin_diff_client, root)
+            max_code = max(max_code, code)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="jellyfin", error=str(e))
             raise typer.Exit(code=1) from e
 
     raise typer.Exit(code=max_code)
