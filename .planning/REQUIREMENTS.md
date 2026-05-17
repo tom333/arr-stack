@@ -70,35 +70,35 @@ Explicit boundaries for v0.3.0 — documented to prevent scope creep.
 
 ## Traceability
 
-Mapping `REQ-* → Phase`. Each requirement is mapped to exactly one phase (its phase of realization). Filled by `gsd-roadmapper` in Step 10.
+Mapping `REQ-* → Phase`. Each requirement is mapped to exactly one phase (its phase of realization).
 
 | Requirement | Phase | Status |
 |---|---|---|
-| REQ-categories-schema | TBD | Pending |
-| REQ-categories-10-target | TBD | Pending |
-| REQ-categories-qbit-propagation | TBD | Pending |
-| REQ-categories-sonarr-propagation | TBD | Pending |
-| REQ-categories-radarr-propagation | TBD | Pending |
-| REQ-categories-configarr-mapping | TBD | Pending |
-| REQ-categories-seerr-routing | TBD | Pending |
-| REQ-categories-jellyfin-paths | TBD | Pending |
-| REQ-migration-progressive | TBD | Pending |
-| REQ-filesystem-initcontainer | TBD | Pending |
-| REQ-filesystem-operator-migration | TBD | Pending |
-| REQ-04-09-argocd-selfheal | TBD | Pending |
-| REQ-cm-cruft-cleanup | TBD | Pending |
-| REQ-chart-pin-prebump | TBD | Pending |
-| REQ-ruff-format-ci-gate | TBD | Pending |
-| REQ-paths-filter-arrconf | TBD | Pending |
-| REQ-renovate-app-install | TBD | Pending |
-| REQ-snapshot-redaction-harden | TBD | Pending |
-| REQ-idempotence-fp-fix | TBD | Pending |
-| REQ-readme-onboarding-v030 | TBD | Pending |
+| REQ-categories-schema | Phase 9 | Pending |
+| REQ-categories-10-target | Phase 9 | Pending |
+| REQ-categories-qbit-propagation | Phase 10 | Pending |
+| REQ-categories-sonarr-propagation | Phase 10 | Pending |
+| REQ-categories-radarr-propagation | Phase 10 | Pending |
+| REQ-categories-configarr-mapping | Phase 10 | Pending |
+| REQ-categories-seerr-routing | Phase 10 | Pending |
+| REQ-categories-jellyfin-paths | Phase 10 | Pending |
+| REQ-migration-progressive | Phase 9 | Pending |
+| REQ-filesystem-initcontainer | Phase 9 | Pending |
+| REQ-filesystem-operator-migration | Phase 9 | Pending |
+| REQ-04-09-argocd-selfheal | Phase 11 | Pending |
+| REQ-cm-cruft-cleanup | Phase 11 | Pending |
+| REQ-chart-pin-prebump | Phase 10 | Pending |
+| REQ-ruff-format-ci-gate | Phase 11 | Pending |
+| REQ-paths-filter-arrconf | Phase 11 | Pending |
+| REQ-renovate-app-install | Phase 11 | Pending |
+| REQ-snapshot-redaction-harden | Phase 11 | Pending |
+| REQ-idempotence-fp-fix | Phase 10 | Pending |
+| REQ-readme-onboarding-v030 | Phase 11 | Pending |
 
 **Coverage:**
 - v0.3.0 requirements: 20 total
-- Mapped to phases: 0 (pending roadmapper)
-- Unmapped: 20 (will become 0 after Step 10)
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-18 after v0.2.0 milestone close + Categories first-class scoping conversation.*
