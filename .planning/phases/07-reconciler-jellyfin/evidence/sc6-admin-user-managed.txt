@@ -1,0 +1,48 @@
+# Phase 7 SC#6 — admin moi managed + emilie untouched (D-07-USERS-01)
+# Source: snapshots/after-phase-7-2026-05-17/jellyfin/users.json
+# Contract:
+#   1. admin 'moi' Policy reflects YAML (IsAdministrator=true, EnableContentDeletion=true, etc.)
+#   2. emilie Policy UNCHANGED from baseline (D-07-USERS-01 — prune=false hardcoded, never touched)
+
+## User: emilie (Id=8901eacec3634d169958d11bd95d4078)
+### Untouched (D-07-USERS-01) — Policy summary:
+  IsAdministrator = False
+  EnableContentDeletion = False
+  EnableRemoteAccess = True
+  EnableLiveTvAccess = True
+  EnableLiveTvManagement = False
+  MaxActiveSessions = 0
+
+## User: moi (Id=82fd95db72904569b08d83271823ceaa)
+### SC#6 fields (managed by Phase 7 YAML):
+  IsAdministrator = True
+  EnableContentDeletion = True
+  EnableRemoteAccess = True
+  EnableLiveTvAccess = True
+  EnableLiveTvManagement = False
+  EnableMediaPlayback = True
+  EnableAudioPlaybackTranscoding = True
+  EnableVideoPlaybackTranscoding = True
+  EnablePlaybackRemuxing = True
+  EnableContentDownloading = True
+  EnableSyncTranscoding = True
+  EnableMediaConversion = True
+  EnableAllDevices = True
+  EnableAllChannels = True
+  EnableAllFolders = True
+  InvalidLoginAttemptCount = 0
+  LoginAttemptsBeforeLockout = -1
+  MaxActiveSessions = 0
+  EnablePublicSharing = False
+  EnableUserPreferenceAccess = True
+  EnableRemoteControlOfOtherUsers = False
+  EnableSharedDeviceControl = True
+  EnablePlaylistManagement = None
+  EnableCollectionManagement = False
+  EnableSubtitleManagement = False
+  SyncPlayAccess = CreateAndJoinGroups
+  RemoteClientBitrateLimit = 0
+
+
+## Pre→post diff for emilie (Policy block only; D-07-USERS-01 must show 0 substantive changes):
+  ✓ Policy IDENTICAL pre→post (D-07-USERS-01 GREEN)

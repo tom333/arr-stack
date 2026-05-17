@@ -1,0 +1,11 @@
+# Phase 7 SC#5 — libraries on NFS dispositive
+# Source: snapshots/after-phase-7-2026-05-17/jellyfin/library_virtualfolders.json
+# Contract: Séries has [/media/series, /media/anime, /media/family]
+#           Films has [/media/films, /media/films-anime, /media/films-family]
+
+## Séries (collection_type=tvshows):
+  PathInfos: ['/media/series', '/media/anime', '/media/family']
+
+## Films (collection_type=movies):
+  PathInfos: ['/media/films', '/media/films-anime', '/media/films-family']
+
