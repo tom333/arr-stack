@@ -248,9 +248,15 @@ Plans:
   4. `arrconf dump --apps jellyfin` round-trip avec `arrconf diff --apps jellyfin` = 0 diff (idempotence prouvée)
   5. Bibliothèques Jellyfin pointent correctement sur le NFS partagé `/media/{movies,series}` (et `/media/family` / `/media/anime` selon split Phase 5) ; au moins 1 library Movies + 1 library TV Shows
   6. Au moins admin + 1 user de test gérés via YAML (création / mise à jour quotas)
-**Plans**: TBD
+**Plans**: 6 plans
+- [ ] 07-01-PLAN.md — Wave 0: pre-write Jellyfin snapshot baseline (ADR-6) + Q9 PUT-probe evidence file + JELLYFIN_API_KEY bootstrap operator checkpoint
+- [ ] 07-02-PLAN.md — Wave 1: pydantic resource models (resources/jellyfin/) + RootConfig.jellyfin + Settings.jellyfin_api_key + JSON Schema regen (Pitfall 6 type-layer enforcement)
+- [ ] 07-03-PLAN.md — Wave 1 (parallel to 02): test fixtures (5 sanitized JSON files) + conftest.py loaders
+- [ ] 07-04-PLAN.md — Wave 2: JellyfinClient (MediaBrowser auth override) + reconcile_jellyfin (4 step functions, 9 Pitfalls mitigated) + 13 respx tests + CLI dispatch branch
+- [ ] 07-05-PLAN.md — Wave 3: chart YAMLs (arrconf.yml jellyfin.main + values.yaml --apps list D-07-CHART-ARGS-01) + test_arrconf_yml_validates extension
+- [ ] 07-06-PLAN.md — Wave 4: cluster apply via auto-tag → my-kluster Renovate-or-manual → ArgoCD sync + SC#1-#6 dispositive evidence + post-apply snapshot + Phase 7 closure SUMMARY
 **UI hint**: yes
-**Open questions to resolve**: Q9 (à valider par test pratique sur Jellyfin 10.11.8)
+**Open questions to resolve**: (all resolved — Q9 dispositively probed live in 07-RESEARCH.md §138-310, codified in JellyfinClient.auth_headers via D-07-AUTH-01)
 
 ### Phase 8: Migration ESO/Akeyless (optionnelle, post-MVP)
 **Goal**: Migrer les bootstrap secrets de `my-kluster/secrets/` vers ExternalSecrets pull depuis Akeyless, en alignement avec le chantier ESO global du cluster. Phase explicitement optionnelle et hors MVP.

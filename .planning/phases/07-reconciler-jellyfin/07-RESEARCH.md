@@ -791,27 +791,29 @@ curl -X POST "http://jellyfin:8096/Plugins/${PLUGIN_ID}/${VERSION}/Enable" \
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All 4 questions are resolved through CONTEXT.md decisions + the live probe + planner-time pattern selection. None are blocking — each has a concrete resolution applied during planning.
 
 1. **POST /Users/{id}/Policy replace vs merge semantics (A1)**
    - What we know: HTTP 204 sur round-trip body complet. OpenAPI required = AuthN+PasswordReset Provider Ids.
-   - What's unclear: Une POST partielle (e.g. just `{"IsAdministrator":true}`) — reset-elle les autres 43 fields à defaults C# comme `/System/Configuration` ?
-   - Recommendation: Plan Wave 0 fait un probe additionnel sur un user de test (ou utilise le pattern complet GET → merge allowlist → POST par défense — coût additionnel négligeable, supprime le risque).
+   - What was unclear: Une POST partielle (e.g. just `{"IsAdministrator":true}`) — reset-elle les autres 43 fields à defaults C# comme `/System/Configuration` ?
+   - **RESOLVED**: Plan 04 implements the defensive GET → merge allowlist → POST pattern unconditionally (full body, re-injecting required ProviderIds — Pitfall 6). Cost is one extra GET per reconcile (negligible). This is correct whether the endpoint is replace OR merge — so the ambiguity is absorbed by the implementation choice. No Wave 0 additional probe required.
 
 2. **`Restart` PluginStatus — actionable ou pending (A2)**
    - What we know: enum OpenAPI = `['Active', 'Restart', 'Deleted', 'Superseded', 'Superceded', 'Malfunctioned', 'NotSupported', 'Disabled']`. Cluster baseline = tout `Active`.
-   - What's unclear: si après un Jellyfin upgrade un plugin passe en `Restart`, faut-il POST Enable ou attendre operator restart ?
-   - Recommendation: Treat `Restart` as no-op (active but pending) + warn log. Operator handles via UI. Defer formal handling à Phase 7+1.
+   - What was unclear: si après un Jellyfin upgrade un plugin passe en `Restart`, faut-il POST Enable ou attendre operator restart ?
+   - **RESOLVED**: Treat `Restart` as no-op (semantically "active but pending Jellyfin restart") + emit warn log via structlog (`plugin_status_restart_pending`). Operator handles via Dashboard restart. Formal handling deferred to Phase 7+1 if cluster ever encounters this state in practice. Implemented in Plan 04 Task 4.2 `_reconcile_plugins` step.
 
 3. **PluginRepositories diff semantic (A3)**
    - What we know: list of `{Name, Url, Enabled}` objects. URL est la clé unique sémantique.
-   - What's unclear: Reorder UI → diff naive flagge update. Acceptable false-positive ou bug ?
-   - Recommendation: Implémenter diff set-by-URL (sorted by URL avant comparaison). Évite le D-06-SEERR-USER-FP pattern.
+   - What was unclear: Reorder UI → diff naive flagge update. Acceptable false-positive ou bug ?
+   - **RESOLVED**: Plan 04 implements diff set-by-URL (sort the list by URL before comparison, both desired and current). Avoids the D-06-SEERR-USER-FP false-positive pattern. Documented as test case `test_plugin_repositories_diff_set_by_url` in Plan 04 Task 4.3.
 
 4. **Snapshot leak risk for /Devices**
    - What we know: `/Devices` GET returns `Id` field b64-encoded (UserAgent + maybe token). Phase 6 D-06-OPENAPI-01 leak Phase a sensibilisé.
-   - What's unclear: Le b64 contient-il du token ou juste UserAgent ?
-   - Recommendation: NE PAS snapshot `/Devices` en Phase 7 (out of scope ; non utilisé par le reconciler). Carry-forward Phase 5/6 #4 snapshot.sh redaction reste pertinente pour les autres endpoints.
+   - What was unclear: Le b64 contient-il du token ou juste UserAgent ?
+   - **RESOLVED**: `/Devices` is OUT OF SCOPE for Phase 7 (not reconciled, not snapshotted in fixtures). `tools/snapshot/snapshot.sh` Jellyfin endpoint list intentionally excludes `/Devices`. Carry-forward Phase 5/6 #4 redaction discipline remains active for the in-scope endpoints (library_virtualfolders, users, system_configuration, plugins) — Plan 01 Task 1.3 anti-leak grep covers this.
 
 ---
 
