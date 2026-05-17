@@ -682,6 +682,441 @@
       "title": "IndexersSection",
       "type": "object"
     },
+    "JellyfinInstance": {
+      "additionalProperties": false,
+      "description": "A single Jellyfin instance (Phase 7, D-07-INSTANCE-01 \u2014 ADR-7 single-instance).\n\nResources reconciled (D-07-ORDER-01 ordering:\nlibraries \u2192 users \u2192 server_config \u2192 plugins):\n- libraries: POST /Library/VirtualFolders/Paths (Pitfall 2 set-membership shim)\n- users.admin: POST /Users/{id}/Policy (Pitfall 4 POST not PUT,\n  Pitfall 6 re-inject providerids)\n- server_config: POST /System/Configuration (Pitfall 1 full REPLACE,\n  allowlist-merge cluster-side)\n- plugins: POST /Plugins/{id}/{version}/Enable (Pitfall 5 version in path)",
+      "properties": {
+        "base_url": {
+          "description": "Jellyfin base URL e.g. http://jellyfin.selfhost.svc.cluster.local:8096",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "libraries": {
+          "$ref": "#/$defs/JellyfinLibrariesSection"
+        },
+        "plugins": {
+          "$ref": "#/$defs/JellyfinPluginsSection"
+        },
+        "server_config": {
+          "$ref": "#/$defs/JellyfinServerConfigSection"
+        },
+        "users": {
+          "$ref": "#/$defs/JellyfinUsersSection"
+        }
+      },
+      "required": [
+        "base_url"
+      ],
+      "title": "JellyfinInstance",
+      "type": "object"
+    },
+    "JellyfinLibrariesSection": {
+      "additionalProperties": false,
+      "description": "Jellyfin libraries reconciliation (D-07-LIB-01: 2 libraries multi-path merge).\n\nScope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions\nsub-fields stay operator-managed.\n\nprune: FALSE hardcoded \u2014 D-07-LIB-01 explicitly disallows automatic DELETE\nof paths from cluster libraries (Pitfall 3 \u2014 DELETE removes ALL matching\nentries; reconciler refuses to ever DELETE in Phase 7).",
+      "properties": {
+        "enable": {
+          "default": true,
+          "description": "Opt-in default-ON for the 2 merged libraries.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "items": {
+          "description": "List of libraries to reconcile. Phase 7 D-07-LIB-01: exactly 2 entries (S\u00e9ries + Films).",
+          "items": {
+            "$ref": "#/$defs/JellyfinLibrary"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in deletion (D-04). MUST be False in Phase 7 (D-07-LIB-01).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "JellyfinLibrariesSection",
+      "type": "object"
+    },
+    "JellyfinLibrary": {
+      "additionalProperties": true,
+      "description": "Jellyfin VirtualFolder library (D-07-LIB-02 scope: name + collection_type + paths).\n\nReconciliation: GET /Library/VirtualFolders, match by Name, ADD missing\npaths via POST /Library/VirtualFolders/Paths with body {Name, Path, PathInfo: {Path}}.\nPitfall 2 mitigation (set-membership skip) happens reconciler-side in Plan 07-04.",
+      "properties": {
+        "collection_type": {
+          "title": "Collection Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Paths",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "collection_type"
+      ],
+      "title": "JellyfinLibrary",
+      "type": "object"
+    },
+    "JellyfinPluginsSection": {
+      "additionalProperties": false,
+      "description": "Jellyfin plugins reconciliation (D-07-PLUGINS-01: activation-only).\n\nNo prune field \u2014 D-07-PLUGINS-01 is activation-only by design (no install,\nno uninstall). Operator manages plugin lifecycle via UI Dashboard.",
+      "properties": {
+        "enable": {
+          "default": true,
+          "description": "Opt-in default-ON for plugin activation checks.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "required": {
+          "description": "Plugins whose Status must be 'Active' (or 'Restart' = no-op). Match by Name + optional Id fallback.",
+          "items": {
+            "$ref": "#/$defs/PluginEntry"
+          },
+          "title": "Required",
+          "type": "array"
+        }
+      },
+      "title": "JellyfinPluginsSection",
+      "type": "object"
+    },
+    "JellyfinServerConfigSection": {
+      "additionalProperties": false,
+      "description": "Jellyfin server config reconciliation (D-07-CONFIG-01: 7-field allowlist).",
+      "properties": {
+        "activity_log_retention_days": {
+          "default": 30,
+          "title": "Activity Log Retention Days",
+          "type": "integer"
+        },
+        "enable": {
+          "default": true,
+          "description": "Opt-in default-ON for the 7-field allowlist.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "log_file_retention_days": {
+          "default": 3,
+          "title": "Log File Retention Days",
+          "type": "integer"
+        },
+        "metadata_country_code": {
+          "default": "FR",
+          "title": "Metadata Country Code",
+          "type": "string"
+        },
+        "plugin_repositories": {
+          "description": "PluginRepositories list \u2014 diff comparison is set-by-URL (Pitfall 7).",
+          "items": {
+            "$ref": "#/$defs/PluginRepository"
+          },
+          "title": "Plugin Repositories",
+          "type": "array"
+        },
+        "preferred_metadata_language": {
+          "default": "fr",
+          "title": "Preferred Metadata Language",
+          "type": "string"
+        },
+        "server_name": {
+          "default": "jellyfin",
+          "title": "Server Name",
+          "type": "string"
+        },
+        "ui_culture": {
+          "default": "fr",
+          "description": "UICulture \u2014 Jellyfin Dashboard locale.",
+          "title": "Ui Culture",
+          "type": "string"
+        }
+      },
+      "title": "JellyfinServerConfigSection",
+      "type": "object"
+    },
+    "JellyfinUserPolicy": {
+      "additionalProperties": true,
+      "description": "Jellyfin user Policy block (~30 writable fields + 2 exclude=True OpenAPI-required).\n\nField list extracted from baseline-2026-05-07/jellyfin/users.json Policy block.\nextra=\"allow\" for forward-compat \u2014 Jellyfin may add Policy fields in future versions.",
+      "properties": {
+        "AccessSchedules": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Accessschedules",
+          "type": "array"
+        },
+        "AllowedTags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowedtags",
+          "type": "array"
+        },
+        "AuthenticationProviderId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Authenticationproviderid"
+        },
+        "BlockUnratedItems": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockunrateditems",
+          "type": "array"
+        },
+        "BlockedChannels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockedchannels",
+          "type": "array"
+        },
+        "BlockedMediaFolders": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockedmediafolders",
+          "type": "array"
+        },
+        "BlockedTags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockedtags",
+          "type": "array"
+        },
+        "EnableAllChannels": {
+          "default": true,
+          "title": "Enableallchannels",
+          "type": "boolean"
+        },
+        "EnableAllDevices": {
+          "default": true,
+          "title": "Enablealldevices",
+          "type": "boolean"
+        },
+        "EnableAllFolders": {
+          "default": true,
+          "title": "Enableallfolders",
+          "type": "boolean"
+        },
+        "EnableAudioPlaybackTranscoding": {
+          "default": true,
+          "title": "Enableaudioplaybacktranscoding",
+          "type": "boolean"
+        },
+        "EnableCollectionManagement": {
+          "default": false,
+          "title": "Enablecollectionmanagement",
+          "type": "boolean"
+        },
+        "EnableContentDeletion": {
+          "default": false,
+          "title": "Enablecontentdeletion",
+          "type": "boolean"
+        },
+        "EnableContentDeletionFromFolders": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Enablecontentdeletionfromfolders",
+          "type": "array"
+        },
+        "EnableContentDownloading": {
+          "default": true,
+          "title": "Enablecontentdownloading",
+          "type": "boolean"
+        },
+        "EnableLiveTvAccess": {
+          "default": true,
+          "title": "Enablelivetvaccess",
+          "type": "boolean"
+        },
+        "EnableLiveTvManagement": {
+          "default": false,
+          "title": "Enablelivetvmanagement",
+          "type": "boolean"
+        },
+        "EnableLyricManagement": {
+          "default": false,
+          "title": "Enablelyricmanagement",
+          "type": "boolean"
+        },
+        "EnableMediaConversion": {
+          "default": true,
+          "title": "Enablemediaconversion",
+          "type": "boolean"
+        },
+        "EnableMediaPlayback": {
+          "default": true,
+          "title": "Enablemediaplayback",
+          "type": "boolean"
+        },
+        "EnablePlaybackRemuxing": {
+          "default": true,
+          "title": "Enableplaybackremuxing",
+          "type": "boolean"
+        },
+        "EnablePublicSharing": {
+          "default": false,
+          "title": "Enablepublicsharing",
+          "type": "boolean"
+        },
+        "EnableRemoteAccess": {
+          "default": true,
+          "title": "Enableremoteaccess",
+          "type": "boolean"
+        },
+        "EnableRemoteControlOfOtherUsers": {
+          "default": false,
+          "title": "Enableremotecontrolofotherusers",
+          "type": "boolean"
+        },
+        "EnableSharedDeviceControl": {
+          "default": true,
+          "title": "Enableshareddevicecontrol",
+          "type": "boolean"
+        },
+        "EnableSubtitleManagement": {
+          "default": false,
+          "title": "Enablesubtitlemanagement",
+          "type": "boolean"
+        },
+        "EnableSyncTranscoding": {
+          "default": true,
+          "title": "Enablesynctranscoding",
+          "type": "boolean"
+        },
+        "EnableUserPreferenceAccess": {
+          "default": true,
+          "title": "Enableuserpreferenceaccess",
+          "type": "boolean"
+        },
+        "EnableVideoPlaybackTranscoding": {
+          "default": true,
+          "title": "Enablevideoplaybacktranscoding",
+          "type": "boolean"
+        },
+        "EnabledChannels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Enabledchannels",
+          "type": "array"
+        },
+        "EnabledDevices": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Enableddevices",
+          "type": "array"
+        },
+        "EnabledFolders": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Enabledfolders",
+          "type": "array"
+        },
+        "ForceRemoteSourceTranscoding": {
+          "default": false,
+          "title": "Forceremotesourcetranscoding",
+          "type": "boolean"
+        },
+        "InvalidLoginAttemptCount": {
+          "default": 0,
+          "title": "Invalidloginattemptcount",
+          "type": "integer"
+        },
+        "IsAdministrator": {
+          "default": false,
+          "title": "Isadministrator",
+          "type": "boolean"
+        },
+        "IsDisabled": {
+          "default": false,
+          "title": "Isdisabled",
+          "type": "boolean"
+        },
+        "IsHidden": {
+          "default": true,
+          "title": "Ishidden",
+          "type": "boolean"
+        },
+        "LoginAttemptsBeforeLockout": {
+          "default": -1,
+          "title": "Loginattemptsbeforelockout",
+          "type": "integer"
+        },
+        "MaxActiveSessions": {
+          "default": 0,
+          "title": "Maxactivesessions",
+          "type": "integer"
+        },
+        "PasswordResetProviderId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passwordresetproviderid"
+        },
+        "RemoteClientBitrateLimit": {
+          "default": 0,
+          "title": "Remoteclientbitratelimit",
+          "type": "integer"
+        },
+        "SyncPlayAccess": {
+          "default": "CreateAndJoinGroups",
+          "title": "Syncplayaccess",
+          "type": "string"
+        }
+      },
+      "title": "JellyfinUserPolicy",
+      "type": "object"
+    },
+    "JellyfinUsersSection": {
+      "additionalProperties": false,
+      "description": "Jellyfin users reconciliation (D-07-USERS-01: admin only).\n\nprune: FALSE hardcoded \u2014 D-07-USERS-01 explicitly protects emilie user\n(operator-managed via UI). MUST never be True.",
+      "properties": {
+        "admin": {
+          "$ref": "#/$defs/JellyfinUserPolicy",
+          "description": "Admin user Policy block. Match by Name='moi' (Id 82fd95db72904569b08d83271823ceaa) at runtime."
+        },
+        "enable": {
+          "default": true,
+          "description": "Opt-in default-ON \u2014 admin 'moi' Policy only.",
+          "title": "Enable",
+          "type": "boolean"
+        },
+        "prune": {
+          "default": false,
+          "description": "Opt-in deletion (D-04). MUST be False in Phase 7 (D-07-USERS-01 \u2014 emilie protection).",
+          "title": "Prune",
+          "type": "boolean"
+        }
+      },
+      "title": "JellyfinUsersSection",
+      "type": "object"
+    },
     "MovieTagsSection": {
       "additionalProperties": false,
       "description": "D-05-SPLIT-02: retroactive default-tag for untagged movies in Radarr.\n\nMirror of SeriesTagsSection with default_tag='movies' (Radarr convention:\n'movies' not 'tv', matching qBit category 'radarr-movies').",
@@ -806,6 +1241,58 @@
         }
       },
       "title": "NotificationsSection",
+      "type": "object"
+    },
+    "PluginEntry": {
+      "additionalProperties": true,
+      "description": "A required-activate plugin reference (read-mostly resolver target).",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "PluginEntry",
+      "type": "object"
+    },
+    "PluginRepository": {
+      "additionalProperties": true,
+      "description": "A single entry in ServerConfiguration.PluginRepositories list.",
+      "properties": {
+        "Enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "Name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "Url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Name",
+        "Url"
+      ],
+      "title": "PluginRepository",
       "type": "object"
     },
     "PreferencesSection": {
@@ -1763,8 +2250,15 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.\n\nPhase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.",
+  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.\n\nPhase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.\n\nPhase 7 (D-07-INSTANCE-01): adds ``jellyfin`` dict following the same flat-root convention.",
   "properties": {
+    "jellyfin": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JellyfinInstance"
+      },
+      "title": "Jellyfin",
+      "type": "object"
+    },
     "prowlarr": {
       "additionalProperties": {
         "$ref": "#/$defs/ProwlarrInstance"

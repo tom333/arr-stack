@@ -19,6 +19,12 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
+from arrconf.resources.jellyfin import (
+    JellyfinLibrary,
+    JellyfinUserPolicy,
+    PluginEntry,
+    PluginRepository,
+)
 from arrconf.resources.qbittorrent.category import Category
 from arrconf.resources.qbittorrent.preferences import QbitPreferences
 from arrconf.resources.seerr import (
@@ -491,6 +497,123 @@ class SeerrInstance(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Phase 7 instance models — Jellyfin (D-07-INSTANCE-01, D-07-LIB-01,
+# D-07-USERS-01, D-07-CONFIG-01, D-07-PLUGINS-01).
+# ---------------------------------------------------------------------------
+
+
+class JellyfinLibrariesSection(BaseModel):
+    """Jellyfin libraries reconciliation (D-07-LIB-01: 2 libraries multi-path merge).
+
+    Scope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions
+    sub-fields stay operator-managed.
+
+    prune: FALSE hardcoded — D-07-LIB-01 explicitly disallows automatic DELETE
+    of paths from cluster libraries (Pitfall 3 — DELETE removes ALL matching
+    entries; reconciler refuses to ever DELETE in Phase 7).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(default=True, description="Opt-in default-ON for the 2 merged libraries.")
+    prune: bool = Field(
+        default=False,
+        description="Opt-in deletion (D-04). MUST be False in Phase 7 (D-07-LIB-01).",
+    )
+    items: list[JellyfinLibrary] = Field(
+        default_factory=list,
+        description=(
+            "List of libraries to reconcile. Phase 7 D-07-LIB-01: exactly 2 entries"
+            " (Séries + Films)."
+        ),
+    )
+
+
+class JellyfinUsersSection(BaseModel):
+    """Jellyfin users reconciliation (D-07-USERS-01: admin only).
+
+    prune: FALSE hardcoded — D-07-USERS-01 explicitly protects emilie user
+    (operator-managed via UI). MUST never be True.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(default=True, description="Opt-in default-ON — admin 'moi' Policy only.")
+    prune: bool = Field(
+        default=False,
+        description=(
+            "Opt-in deletion (D-04). MUST be False in Phase 7 (D-07-USERS-01 — emilie protection)."
+        ),
+    )
+    admin: JellyfinUserPolicy = Field(
+        default_factory=JellyfinUserPolicy,
+        description=(
+            "Admin user Policy block. Match by Name='moi'"
+            " (Id 82fd95db72904569b08d83271823ceaa) at runtime."
+        ),
+    )
+
+
+class JellyfinServerConfigSection(BaseModel):
+    """Jellyfin server config reconciliation (D-07-CONFIG-01: 7-field allowlist)."""
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(default=True, description="Opt-in default-ON for the 7-field allowlist.")
+    ui_culture: str = Field(default="fr", description="UICulture — Jellyfin Dashboard locale.")
+    metadata_country_code: str = Field(default="FR")
+    preferred_metadata_language: str = Field(default="fr")
+    activity_log_retention_days: int = Field(default=30)
+    log_file_retention_days: int = Field(default=3)
+    server_name: str = Field(default="jellyfin")
+    plugin_repositories: list[PluginRepository] = Field(
+        default_factory=list,
+        description="PluginRepositories list — diff comparison is set-by-URL (Pitfall 7).",
+    )
+
+
+class JellyfinPluginsSection(BaseModel):
+    """Jellyfin plugins reconciliation (D-07-PLUGINS-01: activation-only).
+
+    No prune field — D-07-PLUGINS-01 is activation-only by design (no install,
+    no uninstall). Operator manages plugin lifecycle via UI Dashboard.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enable: bool = Field(
+        default=True,
+        description="Opt-in default-ON for plugin activation checks.",
+    )
+    required: list[PluginEntry] = Field(
+        default_factory=list,
+        description=(
+            "Plugins whose Status must be 'Active' (or 'Restart' = no-op)."
+            " Match by Name + optional Id fallback."
+        ),
+    )
+
+
+class JellyfinInstance(BaseModel):
+    """A single Jellyfin instance (Phase 7, D-07-INSTANCE-01 — ADR-7 single-instance).
+
+    Resources reconciled (D-07-ORDER-01 ordering:
+    libraries → users → server_config → plugins):
+    - libraries: POST /Library/VirtualFolders/Paths (Pitfall 2 set-membership shim)
+    - users.admin: POST /Users/{id}/Policy (Pitfall 4 POST not PUT,
+      Pitfall 6 re-inject providerids)
+    - server_config: POST /System/Configuration (Pitfall 1 full REPLACE,
+      allowlist-merge cluster-side)
+    - plugins: POST /Plugins/{id}/{version}/Enable (Pitfall 5 version in path)
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    base_url: str = Field(
+        description="Jellyfin base URL e.g. http://jellyfin.selfhost.svc.cluster.local:8096"
+    )
+    libraries: JellyfinLibrariesSection = Field(default_factory=JellyfinLibrariesSection)
+    users: JellyfinUsersSection = Field(default_factory=JellyfinUsersSection)
+    server_config: JellyfinServerConfigSection = Field(default_factory=JellyfinServerConfigSection)
+    plugins: JellyfinPluginsSection = Field(default_factory=JellyfinPluginsSection)
+
+
+# ---------------------------------------------------------------------------
 # Root config — Phase 3 monolithic shape (D-03-05).
 # ---------------------------------------------------------------------------
 
@@ -506,6 +629,8 @@ class RootConfig(BaseModel):
     convention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.
 
     Phase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.
+
+    Phase 7 (D-07-INSTANCE-01): adds ``jellyfin`` dict following the same flat-root convention.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -514,6 +639,7 @@ class RootConfig(BaseModel):
     prowlarr: dict[str, ProwlarrInstance] = Field(default_factory=dict)
     qbittorrent: dict[str, QbittorrentInstance] = Field(default_factory=dict)
     seerr: dict[str, SeerrInstance] = Field(default_factory=dict)
+    jellyfin: dict[str, JellyfinInstance] = Field(default_factory=dict)
 
 
 def load_config(path: Path) -> RootConfig:
