@@ -1,0 +1,16 @@
+# JELLYFIN_API_KEY bootstrap check (REQ-bootstrap-exception)
+# Captured: 2026-05-17T13:14:31+11:00
+
+## kubectl get secret arrconf-env keys:
+[
+  "JELLYFIN_API_KEY",
+  "PROWLARR_API_KEY",
+  "QBT_PASS",
+  "QBT_USER",
+  "RADARR_API_KEY",
+  "SEERR_API_KEY",
+  "SONARR_API_KEY"
+]
+
+## JELLYFIN_API_KEY length (base64 chars, >30 proves presence):
+44
