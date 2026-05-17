@@ -22,9 +22,9 @@ SuggestArr analyzes Jellyfin/Plex watch history and automatically creates Sonarr
 
 ## Why this is a fit for arr-stack
 
-- **Completes the discovery layer.** Today the user opens Seerr and types titles manually. SuggestArr automates this for the multi-user homelab pattern that v0.3.0 establishes.
-- **Multi-user-aware natively.** Per-user watch history → per-user suggestions → per-user Seerr requests (which already have per-user permissions in v0.3.0).
-- **Per-category routing reuse.** SuggestArr can route a "new anime suggestion" request through the `animeTags` mechanism the v0.3.0 Categories model already wires up.
+- **Completes the discovery layer.** Today the operator opens Seerr and types titles manually. SuggestArr automates this based on Jellyfin watch history → automatically files Seerr requests for similar content.
+- **Per-category routing reuse.** SuggestArr can route a "new anime suggestion" request through the `animeTags` mechanism the v0.3.0 Categories model already wires up — a suggested anime lands in the right Sonarr root folder + qBittorrent category automatically.
+- **No new auth/permissions complexity.** Per v0.3.0 scope clarification (2026-05-17), arr-stack stays single-tenant from a permissions perspective — SuggestArr doesn't need per-user wiring, just collective watch-history-driven suggestions routed by category type.
 
 ## When to surface
 
@@ -35,11 +35,11 @@ SuggestArr analyzes Jellyfin/Plex watch history and automatically creates Sonarr
 ## Open questions for the future milestone
 
 - Does SuggestArr run as a CronJob (like arrconf/configarr) or a persistent Deployment?
-- Does it need its own SealedSecret entries (Jellyfin API key per-user? Seerr API key?), or can it reuse arrconf-env?
-- Should it be a 7th declarative reconciler in arrconf (`suggestarr.py`), or kept as an opaque sidecar?
-- Per-user routing: does SuggestArr respect the Categories model (anime-zoe → only zoe gets her own suggestions) or is it global?
+- Does it need its own SealedSecret entries (Jellyfin API key? Seerr API key?), or can it reuse arrconf-env?
+- Should it be a 7th declarative reconciler in arrconf (`suggestarr.py`), or kept as an opaque sidecar managed only via Helm values?
+- Category-aware suggestion routing: when SuggestArr emits "you watched this anime → here's a similar one", does it auto-route to the existing `anime` Category (default), or can the operator override per-suggestion?
 
 ## Notes
 
 - Planted during v0.3.0 scoping conversation when the user clarified "j'avais cité preparr mais en fait je pensais à SuggestArr — note pour plus tard".
-- The user's actual v0.3.0 focus is Categories first-class + multi-tenant — SuggestArr is the next-but-one milestone candidate.
+- The user's actual v0.3.0 focus is **Categories first-class as pure video organization** — explicitly NOT multi-user / NOT permissions. SuggestArr is the next-but-one milestone candidate, building on top of the Categories propagation model.
