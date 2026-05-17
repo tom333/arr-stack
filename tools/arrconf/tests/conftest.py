@@ -242,3 +242,73 @@ def seerr_settings_main_fixture() -> dict[str, Any]:
     flow through untouched. apiKey is excluded from POST body (Pitfall 1).
     """
     return _load_fixture("seerr/settings_main.json")
+
+
+# ---------------------------------------------------------------------------
+# Phase 7 — Jellyfin fixtures (D-07-INSTANCE-01).
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def jellyfin_library_virtualfolders_fixture() -> list[dict[str, Any]]:
+    """Jellyfin GET /Library/VirtualFolders response (2 libraries — Séries + Films).
+
+    Shape: bare list (NO pagination wrapper). Each library has `Name` (match key
+    per D-07-LIB-01 — Plan 07-04 reconciler matches by Name, NOT ItemId),
+    `CollectionType` (out of scope D-07-LIB-02 — read-only), `LibraryOptions.PathInfos[].Path`
+    (the source-of-truth set Pitfall 2 idempotence shim uses), and `Locations`
+    (display projection, Pitfall 8 — reconciler IGNORES this field).
+    """
+    return _load_fixture("jellyfin/library_virtualfolders.json")
+
+
+@pytest.fixture
+def jellyfin_users_fixture() -> list[dict[str, Any]]:
+    """Jellyfin GET /Users response (2 users — admin moi + restricted emilie).
+
+    Shape: bare list (NO pagination). admin user matched by Name="moi" → Id
+    82fd95db72904569b08d83271823ceaa (D-07-USERS-01 single-user scope). emilie
+    present in baseline for operator-managed-coverage proof but Plan 07-04
+    reconciler test asserts emilie is NEVER touched (`prune=False` hardcoded).
+    """
+    return _load_fixture("jellyfin/users.json")
+
+
+@pytest.fixture
+def jellyfin_user_moi_full_fixture() -> dict[str, Any]:
+    """Jellyfin GET /Users/{id} response for moi — full Policy block.
+
+    Shape: single dict (Jellyfin's per-user endpoint returns one user, not a list).
+    Critical: `Policy.AuthenticationProviderId` and `Policy.PasswordResetProviderId`
+    are set to the Jellyfin default class names. Plan 07-04 reconciler test
+    asserts these 2 values appear VERBATIM in the POST body (Pitfall 6 / D-06-OPENAPI-01
+    carry-forward — pydantic-excluded fields re-injected from this exact GET response).
+    """
+    return _load_fixture("jellyfin/user_moi_full.json")
+
+
+@pytest.fixture
+def jellyfin_system_configuration_fixture() -> dict[str, Any]:
+    """Jellyfin GET /System/Configuration response (56-field body baseline).
+
+    Pitfall 1 contract: POST /System/Configuration is FULL REPLACE. Plan 07-04
+    reconciler test mocks this GET, builds a merged body (cluster GET + 7-field
+    allowlist override from YAML), and asserts the POST body contains BOTH the
+    7 allowlist overrides AND the 49 non-allowlist cluster fields preserved.
+    DO NOT shrink this fixture — the 49 non-allowlist fields are load-bearing
+    for the preservation test.
+    """
+    return _load_fixture("jellyfin/system_configuration.json")
+
+
+@pytest.fixture
+def jellyfin_plugins_fixture() -> list[dict[str, Any]]:
+    """Jellyfin GET /Plugins response (6 plugins baseline — all Status=Active).
+
+    Shape: bare list. Each plugin has `Name`, `Id`, `Version`, `Status`, `CanUninstall`.
+    Plan 07-04 reconciler tests MUTATE a copy of this fixture (e.g. flip TMDb
+    Status to "Disabled") to assert the Enable POST goes to the right URL
+    with the right version (Pitfall 5 — `/Plugins/{id}/{version}/Enable`,
+    NOT `/Plugins/{id}/Enable`).
+    """
+    return _load_fixture("jellyfin/plugins.json")
