@@ -535,6 +535,6 @@ jellyfin:
         - name: "TMDb"
         - name: "OMDb"
         - name: "MusicBrainz"
-        - name: "AudioDb"
+        - name: "AudioDB"
         - name: "Studio Images"
         - name: "Kodi Sync Queue"
