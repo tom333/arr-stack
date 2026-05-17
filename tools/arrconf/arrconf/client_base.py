@@ -182,6 +182,49 @@ class SeerrClient(ArrApiClient):
     name = "seerr"
 
 
+class JellyfinClient(ArrApiClient):
+    """Jellyfin 10.11.8 REST client — Phase 7 (D-07-AUTH-01).
+
+    Diverges from ArrApiClient default in 3 ways:
+    1. api_path = "" — Jellyfin uses bare /System/Info, /Library/VirtualFolders,
+       etc. (no /api/v3 prefix). Setting api_path="" makes httpx.Client.base_url
+       equal self.base_url exactly.
+    2. auth_headers() returns the MediaBrowser format (D-07-AUTH-01 + Q9 probe
+       verified 2026-05-17 HTTP 200 on GET /System/Info, HTTP 204 on POST writes).
+       Registers arrconf as a distinct device in /Devices (auditable separately
+       from Seerr, Kodi, Firefox, Android).
+    3. Does NOT inherit from _ArrV3Client — Jellyfin has no forceSave mechanism
+       (ADR-8 explicitly scopes forceSave to *arr v3 only; spec.md §895).
+    """
+
+    api_path = ""  # Jellyfin endpoints at /<resource>, not /api/v3/<resource>
+    name = "jellyfin"
+
+    def auth_headers(self) -> dict[str, str]:
+        """MediaBrowser Token header — Jellyfin 10.11+ recommended (Q9 / D-07-AUTH-01).
+
+        Verified live 2026-05-17 (evidence: 07-RESEARCH.md §142-171 +
+        .planning/phases/07-reconciler-jellyfin/evidence/q9-put-probe.txt):
+        - GET /System/Info → HTTP 200
+        - POST /System/Configuration → HTTP 204
+        - POST /Users/{id}/Policy → HTTP 204
+        - POST /Library/VirtualFolders/Paths → HTTP 204
+        - POST /Plugins/{id}/{version}/Enable → HTTP 204
+
+        The Client/Device/DeviceId triple makes arrconf visible in /Devices
+        (operator audit lane). Version is cosmetic — Jellyfin accepts any string.
+        """
+        return {
+            "Authorization": (
+                f'MediaBrowser Token="{self.api_key}", '
+                f'Client="arrconf", '
+                f'Device="arrconf", '
+                f'DeviceId="arrconf", '
+                f'Version="0.5.0"'
+            )
+        }
+
+
 class QbittorrentClient:
     """qBittorrent WebUI API v2 client (D-05-QBT-01 — cookie auth).
 

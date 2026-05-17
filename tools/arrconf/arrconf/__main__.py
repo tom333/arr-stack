@@ -39,7 +39,9 @@ app = typer.Typer(
 )
 
 
-_VALID_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "prowlarr", "qbittorrent", "seerr"})
+_VALID_APPS: frozenset[str] = frozenset(
+    {"sonarr", "radarr", "prowlarr", "qbittorrent", "seerr", "jellyfin"}
+)
 
 
 def _selected_apps(apps: str | None) -> set[str]:
@@ -265,6 +267,32 @@ def apply(
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="seerr", error=str(e))
             failures.append("seerr")
+
+    # Phase 7: Jellyfin branch (D-07-INSTANCE-01, D-07-AUTH-01, REQ-app-coverage).
+    if "jellyfin" in targets and "main" in root.jellyfin:
+        if not settings.jellyfin_api_key:
+            log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
+            raise typer.Exit(code=2)
+        try:
+            from arrconf.client_base import JellyfinClient  # noqa: PLC0415
+            from arrconf.reconcilers.jellyfin import reconcile_jellyfin  # noqa: PLC0415
+
+            jellyfin_instance = root.jellyfin["main"]
+            jellyfin_api_key = settings.jellyfin_api_key.get_secret_value()
+            jellyfin_client = JellyfinClient(
+                base_url=jellyfin_instance.base_url,
+                api_key=jellyfin_api_key,
+            )
+            jellyfin_result = reconcile_jellyfin(
+                jellyfin_client, jellyfin_instance, dry_run=dry_run or settings.arrconf_dry_run
+            )
+            if not jellyfin_result.actions_taken:
+                log.info("no-op", app="jellyfin")
+            else:
+                log.info("apply_complete", app="jellyfin", actions=jellyfin_result.actions_taken)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="jellyfin", error=str(e))
+            failures.append("jellyfin")
 
     if failures:
         raise typer.Exit(code=1)
