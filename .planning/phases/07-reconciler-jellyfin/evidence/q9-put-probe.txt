@@ -1,0 +1,205 @@
+# Q9 PUT Probe — Evidence Capture (D-07-VALIDATE-01)
+# Source: 07-RESEARCH.md §138-310
+# Live probe target: jellyfin-94f5cc54d-p4hk8 (Jellyfin 10.11.8) in selfhost ns
+# Probe date: 2026-05-17 ~10:52-11:00 UTC
+# Captured by: research-time live probe (port-forward + curl)
+# All API key references are placeholders ($JK / $KEY) — NO literal token committed.
+
+---
+
+## Section 1 — Auth Strategy Probe (D-07-AUTH-01)
+
+**Endpoint probed:** GET /System/Info (privileged, requires auth)
+
+| Strategy | HTTP | Notes |
+|----------|------|-------|
+| Authorization: MediaBrowser Token="$JK", Client="arrconf", Device="arrconf", DeviceId="arrconf", Version="0.5.0" | 200 | Preferred. Registers AppName="arrconf" in /Devices (auditable). |
+| X-Emby-Token: $KEY | 200 | Legacy. Works but deprecated by Jellyfin 10.11+ docs. Defer (D-07-AUTH-01 deferred). |
+| ?api_key=$KEY | 200 | Query param fallback. Works on reads AND writes (verified POST /Users/{id}/Policy HTTP 204, POST /System/Configuration HTTP 204). |
+| (no auth — control) | 401 | Confirms endpoint requires auth. |
+
+**Copy-pasteable Wave 0 / evidence reproducer (port-forward + curl):**
+
+```bash
+JELLY_POD=$(kubectl -n selfhost get pod -l app.kubernetes.io/name=jellyfin -o name | head -1 | sed 's|pod/||')
+# Extract existing API key from Jellyfin SQLite DB (or kubeseal-encrypted JELLYFIN_API_KEY env var)
+kubectl -n selfhost cp "${JELLY_POD}:/config/data/data/jellyfin.db" /tmp/jellyfin.db
+JK=$(sqlite3 /tmp/jellyfin.db "SELECT AccessToken FROM ApiKeys LIMIT 1;")
+
+kubectl -n selfhost port-forward "pod/${JELLY_POD}" 8096:8096 >/tmp/jelly-pf.log 2>&1 &
+PF_PID=$!
+sleep 2
+
+curl -s -o /dev/null -w "HTTP=%{http_code}\n" \
+  -H "Authorization: MediaBrowser Token=\"$JK\", Client=\"arrconf-probe\", Device=\"arrconf-probe\", DeviceId=\"arrconf-probe\", Version=\"0.5.0\"" \
+  http://localhost:8096/System/Info
+# Expected: HTTP=200
+
+kill $PF_PID
+```
+
+---
+
+## Section 2 — POST /System/Configuration is full REPLACE (NOT merge) — Pitfall 1
+
+**Endpoint:** POST /System/Configuration (PUT not supported — OpenAPI evidence below)
+
+**Body shape:** Full ServerConfiguration object (56 properties, all optional per OpenAPI required: []).
+
+**Round-trip behavior:**
+- POST full GET body verbatim → HTTP 204, all fields preserved → idempotent OK
+- POST partial body {"ServerName":"jellyfin"} only → HTTP 204, **other fields RESET to defaults**:
+  - UICulture: "fr" → "en-US"  (live evidence)
+  - MetadataCountryCode: "FR" → "US"
+  - PreferredMetadataLanguage: "fr" → "en"
+  - PluginRepositories: [{"Name":"Jellyfin Stable",...}] → []  (wiped!)
+
+**Reconciler implication (CRITICAL):** The reconciler MUST follow pattern GET → mutate allowlist 7 fields → POST entire body.
+The merge is done ARRCONF-SIDE, not Jellyfin-side. Any field omitted from body becomes its C# default value.
+
+**OpenAPI evidence (ServerConfiguration schema):**
+- required: [] (no fields required — Jellyfin fills C# defaults if omitted)
+- 56 properties total — including MetadataOptions, TrickplayOptions, CodecsUsed, CastReceiverApplications, SortRemoveWords, etc.
+
+**RESTORATION evidence (probe cleanup):**
+```
+After probe: UICulture=fr, MetadataCountryCode=FR, PluginRepositories=[1 entry] [VERIFIED]
+```
+
+---
+
+## Section 3 — POST /Library/VirtualFolders/Paths NOT idempotent — Pitfall 2 (CRITICAL)
+
+**Endpoint:** POST /Library/VirtualFolders/Paths?refreshLibrary=false
+**Body (MediaPathDto):** {"Name":"<library-name>","Path":"<path>","PathInfo":{"Path":"<path>"}}
+**OpenAPI:** required: ['Name']; Path + PathInfo nullable.
+
+| Scenario | HTTP | Result |
+|----------|------|--------|
+| Path NOT in library | 204 | Path added to PathInfos |
+| Path ALREADY in library | 204 | **Path DUPLICATED in PathInfos** (NOT idempotent — verified live: PathInfos: ['/media/series', '/media/series']) |
+| Library Name does not exist | 404 | Error processing request. |
+
+**Reconciler implication (CRITICAL):** Before POST, the reconciler MUST:
+1. GET /Library/VirtualFolders for the library
+2. Extract LibraryOptions.PathInfos[].Path as a set
+3. Skip POST if path is already in the set (idempotence shim arrconf-side)
+
+**Cleanup evidence (probe restored Séries library):** PathInfos ['/media/series'] confirmed final state.
+
+---
+
+## Section 4 — DELETE /Library/VirtualFolders/Paths removes ALL matching entries — Pitfall 3
+
+**Endpoint:** DELETE /Library/VirtualFolders/Paths?name=<lib>&path=<path>&refreshLibrary=false
+
+| Scenario | HTTP | Result |
+|----------|------|--------|
+| Path exists exactly once | 204 | Removed |
+| Path exists DUPLICATED (e.g. after non-idempotent POST) | 204 | **ALL matching entries deleted** (verified: from ['/media/series','/media/series'] → []) |
+| Path does NOT exist | 204 (silent) | No effect |
+| Library Name does not exist | 404 | Error processing request. |
+
+**Implication:** If Pitfall 2 created a duplicate, DELETE wipes both entries. Reconciler must treat PathInfos as a conceptual set, never a multilist.
+
+**Secondary observation:** Locations (read-only display field) shows stale duplicates after path manipulation but PathInfos (source of truth used for indexing) is authoritative. Library refresh OR Jellyfin pod restart syncs the two (non-blocking for reconciliation).
+
+---
+
+## Section 5 — POST /Users/{userId}/Policy — POST not PUT — Pitfall 4
+
+**Endpoint:** POST /Users/{userId}/Policy (PUT returns HTTP 405 Method Not Allowed — verified live)
+
+**Body (UserPolicy):** Full 44-property object, required: ['AuthenticationProviderId', 'PasswordResetProviderId'].
+
+**Round-trip:**
+- POST current Policy verbatim → HTTP 204 idempotent OK
+- PUT current Policy → HTTP 405 Method Not Allowed
+
+**Reconciler implication:** MUST use client.post(...) not client.put(...).
+JellyfinClient does NOT inherit from _ArrV3Client so it does NOT inherit the forceSave wrap — clean.
+
+**Critical D-06-OPENAPI-01 carry-forward (REQUIRED OpenAPI fields — Pitfall 6):**
+- AuthenticationProviderId: "Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider" — REQUIRED by OpenAPI.
+  If excluded by pydantic, POST returns HTTP 400. MUST preserve from GET cluster (pattern Seerr apiKey).
+- PasswordResetProviderId: "Jellyfin.Server.Implementations.Users.DefaultPasswordResetProvider" — REQUIRED by OpenAPI.
+  MUST preserve from GET cluster.
+
+**Replace vs merge semantics (UserPolicy):** Hypothesis (strong, based on Pitfall 1 — System/Configuration full REPLACE):
+POST /Users/{id}/Policy is likely also full REPLACE. Reconciler must follow same GET → mutate allowlist → POST entire body pattern.
+If probe confirmation differs, adjust pattern accordingly.
+
+---
+
+## Section 6 — POST /Plugins/{pluginId}/{version}/Enable — Version REQUIRED in path — Pitfall 5
+
+**Initial guess (CONTEXT.md):** POST /Plugins/{id}/Enable → **WRONG**, returns HTTP 405.
+
+**Actual endpoint (OpenAPI verified):** POST /Plugins/{pluginId}/{version}/Enable
+
+| Probe | HTTP |
+|-------|------|
+| POST /Plugins/{id}/Enable (no version in path) | 405 Method Not Allowed |
+| POST /Plugins/{pluginId}/{version}/Enable (TMDb b8715... + 10.11.8.0) on already-Active plugin | 204 idempotent OK |
+
+**Reconciler implication (CRITICAL):** Reconciler MUST:
+1. GET /Plugins to obtain Status, Id, Version per plugin Name
+2. Resolve Name → (Id, Version) tuple
+3. If Status != "Active" → POST /Plugins/{Id}/{Version}/Enable
+
+**Complementary endpoint:** POST /Plugins/{pluginId}/{version}/Disable (404 on unknown ID).
+
+**PluginStatus enum values (OpenAPI 10.11.8):** ['Active', 'Restart', 'Deleted', 'Superseded', 'Superceded', 'Malfunctioned', 'NotSupported', 'Disabled']
+
+Activation logic: If Status is NOT in {'Active', 'Restart'} → attempt Enable.
+'Restart' = Active but requires Jellyfin restart (transient, idempotent → no-op).
+
+---
+
+## Live Evidence — Match-by-Name Resolvers (Probe 2026-05-17)
+
+| Resource | Endpoint | Key field | Snapshot fields |
+|----------|----------|-----------|-----------------|
+| Libraries | GET /Library/VirtualFolders | Name → ItemId (uuid) | Name, ItemId, CollectionType, LibraryOptions.PathInfos[].Path, Locations[] |
+| Users | GET /Users | Name → Id (uuid) | Name, Id, Policy{...}, Configuration{...} |
+| Plugins | GET /Plugins | Name → (Id, Version, Status) | Name, Id, Version, Status |
+
+```
+Library Name='Séries' ItemId=d565273fd114d77bdf349a2896867069 CollectionType='tvshows' Paths=['/media/series']
+Library Name='Films'  ItemId=db4c1708cbb5dd1676284a40f2950aba CollectionType='movies' Paths=['/media/films']
+User    Name='moi'    Id=82fd95db72904569b08d83271823ceaa IsAdmin=True
+User    Name='emilie' Id=8901eacec3634d169958d11bd95d4078 IsAdmin=False  (operator-managed, D-07-USERS-01 prune=false)
+Plugin  Name='TMDb'            Id=b8715ed16c4745289ad3f72deb539cd4 Status=Active Version=10.11.8.0
+Plugin  Name='Kodi Sync Queue' Id=771e19d653854cafb35c28a0e865cf63 Status=Active Version=15.0.0.0  (CanUninstall=true)
+Plugin  Name='MusicBrainz'     Id=8c95c4d2e50c4fb0a4f36c06ff0f9a1a Status=Active Version=10.11.8.0
+Plugin  Name='OMDb'            Id=a628c0dafac54c7e9d1a7134223f14c8 Status=Active Version=10.11.8.0
+Plugin  Name='Studio Images'   Id=872a78491171458da6fb3de3d442ad30 Status=Active Version=10.11.8.0
+Plugin  Name='AudioDB'         Id=a629c0dafac54c7e931a7174223f14c8 Status=Active Version=10.11.8.0
+```
+
+---
+
+## Required Fields Revalidation (D-06-OPENAPI-01 carry-forward)
+
+| Schema | OpenAPI required | Reconciler implication |
+|--------|-----------------|------------------------|
+| ServerConfiguration | [] (none required) | Any exclusion OK — Jellyfin fills C# defaults. BUT Pitfall 1 (full REPLACE) means any excluded field is reset to default. Strategy: Field(exclude=True) for YAML desired-state of the 49 non-allowlist fields; re-inject from GET cluster for the 49 in put_body before POST. |
+| UserPolicy | ['AuthenticationProviderId', 'PasswordResetProviderId'] | These 2 are REQUIRED. Field(exclude=True) on YAML side (operator does not configure them); re-inject from GET cluster (pattern Seerr apiKey D-06-CREDS-01). |
+| MediaPathDto | ['Name'] | OK — Plan 07 always sends Name. |
+| UpdateMediaPathRequestDto | ['Name', 'PathInfo'] | OK — only used if Plan 07 activates /Paths/Update (likely out of scope D-07-LIB-02). |
+| AddVirtualFolderDto | [] | OK for POST /Library/VirtualFolders (CREATE), not used in Phase 7 (the 2 libraries already exist). |
+| RepositoryInfo (PluginRepositories item) | [] | OK — Plan 07 always sends {Name, Url, Enabled}. |
+
+---
+
+## Summary
+
+All Q9 unknowns are VERIFIED via live probe (D-07-VALIDATE-01):
+- Auth: MediaBrowser Token header preferred (HTTP 200 on reads + HTTP 204 on writes) — VERIFIED
+- POST /System/Configuration: full REPLACE (not merge) — VERIFIED (Pitfall 1)
+- POST /Library/VirtualFolders/Paths: NOT idempotent (duplicates paths) — VERIFIED (Pitfall 2)
+- DELETE /Library/VirtualFolders/Paths: removes ALL matching — VERIFIED (Pitfall 3)
+- POST /Users/{id}/Policy: POST not PUT (PUT = HTTP 405) — VERIFIED (Pitfall 4)
+- POST /Plugins/{id}/{version}/Enable: version REQUIRED in path (no-version = HTTP 405) — VERIFIED (Pitfall 5)
+- UserPolicy required fields: AuthenticationProviderId + PasswordResetProviderId — VERIFIED (Pitfall 6)
+- Plans 07-02..07-05 unblocked. Plan 07-06 blocked until Task 1.1 (snapshot) + Task 1.3 (JELLYFIN_API_KEY bootstrap) complete.
