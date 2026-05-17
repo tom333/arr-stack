@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: forceSave fix
-status: ready_to_plan
-stopped_at: Phase 7 context gathered
-last_updated: "2026-05-17T02:21:42.116Z"
+status: phase_complete
+stopped_at: Phase 7 closed (Jellyfin reconciler live in production)
+last_updated: "2026-05-17T04:20:00.000Z"
 last_activity: 2026-05-17
 progress:
   total_phases: 12
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 66
-  completed_plans: 62
-  percent: 94
+  completed_plans: 65
+  percent: 98
 ---
 
 # Project State
@@ -21,14 +21,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 7 — reconciler-jellyfin
+**Current focus:** Phase 7 closed 2026-05-17 — Jellyfin reconciler live; next phase = 08 ESO/Akeyless (post-MVP, optional) OR milestone v0.2.0 ship.
 
 ## Current Position
 
-Phase: 7 (reconciler-jellyfin) — EXECUTING
-Plan: 1 of 6
-Plans complete: 06-01 → 06-07 (all 7 Phase 6 plans)
-Plans pending: (none for Phase 6 ; next phase = 07 Reconciler Jellyfin)
+Phase: 7 (reconciler-jellyfin) — COMPLETE
+Plans complete: 07-01 → 07-06 (all 6 Phase 7 plans)
+Plans pending: (none for Phase 7 ; milestone v0.2.0 ready to ship — Phase 8 ESO/Akeyless is optional post-MVP)
+
+**Phase 7 outcome (closed 2026-05-17, see `.planning/phases/07-reconciler-jellyfin/07-06-SUMMARY.md`):**
+
+  - ✅ SC#1 (REQ-bootstrap-exception) — JELLYFIN_API_KEY sealed into arrconf-env; `apply_complete app=jellyfin` event with 0 `missing_api_key`
+  - ✅ SC#2 (snapshot baseline) — `snapshots/before-phase-7-2026-05-17/jellyfin/` (9 files, anti-leak clean, devices.json dropped)
+  - ✅ SC#3 (Q9 auth resolved) — `evidence/q9-put-probe.txt` archived; `Authorization: MediaBrowser Token=` codified in `client_base.py` JellyfinClient
+  - ✅ SC#4 (round-trip idempotence) — `arrconf dump --apps jellyfin | arrconf diff --apps jellyfin` DIFF_EXIT=0, 0 plan_actions, 1 `no_drift` event (Pattern B: local port-forward + `kubectl get cm arrconf-config`)
+  - ✅ SC#5 (libraries on NFS) — Séries=[/media/series,/media/anime,/media/family], Films=[/media/films,/media/films-anime,/media/films-family] visible in post-apply snapshot
+  - ✅ SC#6 (admin + 1 user managed) — admin "moi" Policy reconciled (27 managed fields); emilie Policy IDENTICAL pre→post (D-07-USERS-01 production-verified)
+  - Cluster state: arr-stack chart `v0.5.1` rendered, arrconf image `:0.5.0` (Phase 7 reconciler code), JELLYFIN_API_KEY sealed in arrconf-env
+  - 5 Phase 7 deviations documented (D-07-CHART-PIN-LOOP, D-07-RUFF-FORMAT-CI, D-07-CRONJOB-CRUFT, D-07-PLAYLIST-MGMT-NULL, D-07-CRONJOB-DRIFT-NOTE)
+
+**Phase 6 outcome (closed 2026-05-17, see `.planning/phases/06-reconciler-seerr/06-07-SUMMARY.md`):**
 
 **Phase 6 outcome (closed 2026-05-17, see `.planning/phases/06-reconciler-seerr/06-07-SUMMARY.md`):**
 
@@ -54,7 +66,15 @@ Plans pending: (none for Phase 6 ; next phase = 07 Reconciler Jellyfin)
   - ✅ D-05-CI-AUTOTAG-CHAIN resolved. `repository_dispatch` chain operational since PR #9.
   - ✅ All 6 SC dispositives green (see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`).
 
-**Milestone v0.2.0 (forceSave fix) ready to ship.** Next phase: **07 Reconciler Jellyfin** (Q9 auth-strategy validation, then reconciler implementation — apply D-06-VALIDATE-01 pattern to PUT-probe Jellyfin API before code).
+**Milestone v0.2.0 (forceSave fix) shippable.** Phase 7 (Jellyfin) closes the 6-app reconciler coverage (Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin) for the MVP. Phase 8 (ESO/Akeyless) is optional and post-MVP; can be deferred or skipped if sealed-secrets continues to be acceptable.
+
+### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
+
+12. **CF-07-1 (D-07-CHART-PIN-LOOP)** — When arrconf code changes, the chart's `arrconf.image.tag` in `charts/arr-stack/values.yaml` must be bumped manually because the auto-tag chain tags BEFORE that pin is updated. Net effect: 2 arr-stack commits and 2 my-kluster `targetRevision` bumps per phase. Phase 8 should test pre-bumping the image.tag in the same commit that adds the reconciler code (reduces to 1 my-kluster bump).
+13. **CF-07-2 (D-07-RUFF-FORMAT-CI)** — `ruff check` is NOT the same as `ruff format --check`. CI runs both; Plan 07-04 executor only ran the first, push to main FAILED tests workflow. Update gsd-executor agent prompt + CLAUDE.md to require BOTH commands.
+14. **CF-07-3 (D-07-CRONJOB-CRUFT)** — Two ConfigMaps coexist in `selfhost`: legacy `arrconf` (8d, sonarr-only, 1349B) and current `arrconf-config` (umbrella, 18.8KB). Same for `configarr` vs `configarr-config`. Operator action: `kubectl -n selfhost delete cm arrconf configarr` (Phase 4 cleanup leftover).
+15. **CF-07-4 (D-07-PLAYLIST-MGMT-NULL)** — Jellyfin 10.11.8 silently drops/renames `EnablePlaylistManagement`: YAML sets True, cluster GET returns None. Non-fatal but re-verify on next Jellyfin major upgrade. Possibly add to Field(exclude=True) allowlist if Jellyfin 11.x renames the field.
+16. **CF-07-5** — Dispositive run also caught benign drift on prowlarr (2 app updates), qbittorrent (6 category updates), seerr (1 user). Brief operator review of `evidence/cluster-apply-log.txt` recommended to confirm none were unintended UI changes.
 
 ### Phase 5 deviations + follow-ups (operator-deferred — items also reproduced in Phase 6, see 06-07-SUMMARY.md for details)
 

@@ -22,7 +22,7 @@ Chaque phase commence par une discipline obligatoire de **snapshot baseline** (A
 - [x] **Phase 5: Reconciler qBittorrent + split tv/anime/family** - 6 catégories qBit + 3 tags + 3 root folders + 3 download clients par instance Sonarr/Radarr (ADR-7), 3 quality profiles configarr correspondants (completed 2026-05-16, all 6 SC dispositives green)
 - [x] **Phase 5.1: CI auto-tag → image-build chain repair (INSERTED)** - Réparer la chaîne `chart-lint.yml tag job → arrconf-image.yml` via `repository_dispatch` (Option C), accepter v0.3.0 comme orphelin (pas d'image GHCR semver), shipper v0.3.1 comme première image Phase-5 correctement publiée. Débloque Plan 05-08. (completed 2026-05-15)
 - [x] **Phase 6: Reconciler Seerr** - Validation Q1 (compat API Seerr vs Overseerr/Jellyseerr) + Q10 (routing tags), reconciler `seerr.py` (services connectés, users, requests config) (completed 2026-05-17, all 5 SC dispositives green except SC#4 partial — operator-override Elena of Avalor, native animeTags routing untested in this session; 4 deviations documented inc. D-06-OPENAPI-01 hotfix shipped in :0.4.4)
-- [ ] **Phase 7: Reconciler Jellyfin** - Bootstrap admin manuel préalable, validation Q9 (auth header), reconciler libraries / users / server config / plugins (best effort)
+- [x] **Phase 7: Reconciler Jellyfin** - Bootstrap admin manuel préalable, validation Q9 (auth header), reconciler libraries / users / server config / plugins (best effort) (completed 2026-05-17)
 - [ ] **Phase 8: Migration ESO/Akeyless (optionnelle, post-MVP)** - ExternalSecret pour les API keys, suppression du secret manuel, alignement avec chantier ESO global du cluster
 
 ## Phase Details
@@ -254,7 +254,7 @@ Plans:
 - [x] 07-03-PLAN.md — Wave 1 (parallel to 02): test fixtures (5 sanitized JSON files) + conftest.py loaders
 - [x] 07-04-PLAN.md — Wave 2: JellyfinClient (MediaBrowser auth override) + reconcile_jellyfin (4 step functions, 9 Pitfalls mitigated) + 13 respx tests + CLI dispatch branch
 - [x] 07-05-PLAN.md — Wave 3: chart YAMLs (arrconf.yml jellyfin.main + values.yaml --apps list D-07-CHART-ARGS-01) + test_arrconf_yml_validates extension
-- [ ] 07-06-PLAN.md — Wave 4: cluster apply via auto-tag → my-kluster Renovate-or-manual → ArgoCD sync + SC#1-#6 dispositive evidence + post-apply snapshot + Phase 7 closure SUMMARY
+- [x] 07-06-PLAN.md — Wave 4: cluster apply via auto-tag → my-kluster Renovate-or-manual → ArgoCD sync + SC#1-#6 dispositive evidence + post-apply snapshot + Phase 7 closure SUMMARY
 **UI hint**: yes
 **Open questions to resolve**: (all resolved — Q9 dispositively probed live in 07-RESEARCH.md §138-310, codified in JellyfinClient.auth_headers via D-07-AUTH-01)
 
@@ -287,5 +287,5 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 →
 | 5. Reconciler qBittorrent + split tv/anime/family | 0/8 | Not started | - |
 | 5.1. CI auto-tag → image-build chain repair (INSERTED) | 0/2 | Not started | - |
 | 6. Reconciler Seerr | 0/TBD | Not started | - |
-| 7. Reconciler Jellyfin | 5/6 | In Progress|  |
+| 7. Reconciler Jellyfin | 6/6 | Complete   | 2026-05-17 |
 | 8. Migration ESO/Akeyless (optionnelle) | 0/TBD | Not started | - |
