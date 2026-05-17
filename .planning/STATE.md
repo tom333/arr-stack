@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: forceSave fix
-status: phase_complete
-stopped_at: Phase 7 closed (Jellyfin reconciler live in production)
-last_updated: "2026-05-17T04:20:00.000Z"
-last_activity: 2026-05-17
+status: Awaiting next milestone
+stopped_at: Phase 7 context gathered
+last_updated: "2026-05-17T04:53:59.174Z"
+last_activity: 2026-05-17 — Milestone v0.2.0 completed and archived
 progress:
   total_phases: 12
   completed_phases: 10
@@ -25,48 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 7 (reconciler-jellyfin) — COMPLETE
-Plans complete: 07-01 → 07-06 (all 6 Phase 7 plans)
-Plans pending: (none for Phase 7 ; milestone v0.2.0 ready to ship — Phase 8 ESO/Akeyless is optional post-MVP)
-
-**Phase 7 outcome (closed 2026-05-17, see `.planning/phases/07-reconciler-jellyfin/07-06-SUMMARY.md`):**
-
-  - ✅ SC#1 (REQ-bootstrap-exception) — JELLYFIN_API_KEY sealed into arrconf-env; `apply_complete app=jellyfin` event with 0 `missing_api_key`
-  - ✅ SC#2 (snapshot baseline) — `snapshots/before-phase-7-2026-05-17/jellyfin/` (9 files, anti-leak clean, devices.json dropped)
-  - ✅ SC#3 (Q9 auth resolved) — `evidence/q9-put-probe.txt` archived; `Authorization: MediaBrowser Token=` codified in `client_base.py` JellyfinClient
-  - ✅ SC#4 (round-trip idempotence) — `arrconf dump --apps jellyfin | arrconf diff --apps jellyfin` DIFF_EXIT=0, 0 plan_actions, 1 `no_drift` event (Pattern B: local port-forward + `kubectl get cm arrconf-config`)
-  - ✅ SC#5 (libraries on NFS) — Séries=[/media/series,/media/anime,/media/family], Films=[/media/films,/media/films-anime,/media/films-family] visible in post-apply snapshot
-  - ✅ SC#6 (admin + 1 user managed) — admin "moi" Policy reconciled (27 managed fields); emilie Policy IDENTICAL pre→post (D-07-USERS-01 production-verified)
-  - Cluster state: arr-stack chart `v0.5.1` rendered, arrconf image `:0.5.0` (Phase 7 reconciler code), JELLYFIN_API_KEY sealed in arrconf-env
-  - 5 Phase 7 deviations documented (D-07-CHART-PIN-LOOP, D-07-RUFF-FORMAT-CI, D-07-CRONJOB-CRUFT, D-07-PLAYLIST-MGMT-NULL, D-07-CRONJOB-DRIFT-NOTE)
-
-**Phase 6 outcome (closed 2026-05-17, see `.planning/phases/06-reconciler-seerr/06-07-SUMMARY.md`):**
-
-**Phase 6 outcome (closed 2026-05-17, see `.planning/phases/06-reconciler-seerr/06-07-SUMMARY.md`):**
-
-  - ✅ SC#1 pre-write snapshot (Plan 06-01, Seerr-only baseline, anti-leak clean)
-  - ✅ SC#2 Seerr reconciler `apply_complete` on image `:0.4.4` (4 resources scoped per D-06-SCOPE-01)
-  - ✅ SC#3 content_tags step ran on Sonarr + Radarr; live family-tag retag of Elena of Avalor confirmed
-  - ⚠️ SC#4 partial — Elena of Avalor smoke test via Seerr UI; native `animeTags` routing not exercised for a TVDB-anime-classified series in this session (deferred)
-  - ✅ SC#5 idempotence (0 add events, 13 no_op events, 1 user re-PUT same-shape FP)
-  - ✅ Post-apply snapshot committed: `snapshots/after-phase-6-2026-05-16/` (seerr+sonarr+radarr, 5 leak files redacted)
-  - 4 Phase 6 deviations documented: D-06-OPENAPI-01 (hotfixed in `:0.4.4`), D-06-CHART-ARGS-01 (seerr added to --apps), D-06-QBIT-MOVE-01 (hostPath move to sdb1), D-06-SEERR-USER-FP (false-positive)
-  - Cluster currently on arr-stack `v0.4.4`, sealed-secrets contains `SEERR_API_KEY`, qBit data on `/media/data/torrents`
-
-**Phase 5 outcome (closed 2026-05-16, see `.planning/phases/05-reconciler-qbittorrent-split-tv-anime-family/05-08-SUMMARY.md`):**
-
-  - ✅ All 6 ROADMAP SC dispositives green (qBit categories, Sonarr/Radarr split, anime E2E, idempotence, configarr profiles, snapshot diff)
-  - ✅ 9 qBit categories live with correct savePaths (6 Phase-5 + 3 legacy preserved)
-  - ✅ D-05-MIG-01 retroactive tagging: 8/8 series tagged `tv`, 11/11 movies tagged `movies`
-  - ✅ configarr CronJob produces 3 Phase-5 quality profiles per instance (MULTi.VF, Anime, Family)
-  - ✅ Post-apply snapshot committed: `snapshots/after-phase-5-2026-05-16/` (3/4 apps, qBit verified live)
-
-**Phase 5.1 outcome (closed 2026-05-15):**
-
-  - ✅ D-05-CI-AUTOTAG-CHAIN resolved. `repository_dispatch` chain operational since PR #9.
-  - ✅ All 6 SC dispositives green (see `.planning/phases/05.1-ci-autotag-chain-repair/05.1-02-SUMMARY.md`).
-
-**Milestone v0.2.0 (forceSave fix) shippable.** Phase 7 (Jellyfin) closes the 6-app reconciler coverage (Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin) for the MVP. Phase 8 (ESO/Akeyless) is optional and post-MVP; can be deferred or skipped if sealed-secrets continues to be acceptable.
+Phase: Milestone v0.2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-17 — Milestone v0.2.0 completed and archived
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
@@ -330,3 +292,7 @@ Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge 
 ### NOTE TO ORCHESTRATOR
 
 This worktree commits the STATE.md update for traceability, but the worktree-merge logic restores main's STATE.md on merge. The orchestrator MUST re-apply this STATE.md content (or selected diffs) to main after merging this worktree. The diff is captured in the Plan 02.1-04 SUMMARY for re-application.
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
