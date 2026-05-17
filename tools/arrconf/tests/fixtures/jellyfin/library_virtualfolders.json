@@ -1,0 +1,34 @@
+[
+  {
+    "Name": "Séries",
+    "ItemId": "d565273fd114d77bdf349a2896867069",
+    "CollectionType": "tvshows",
+    "Locations": [
+      "/media/series"
+    ],
+    "LibraryOptions": {
+      "PathInfos": [
+        {
+          "Path": "/media/series"
+        }
+      ]
+    },
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Films",
+    "ItemId": "db4c1708cbb5dd1676284a40f2950aba",
+    "CollectionType": "movies",
+    "Locations": [
+      "/media/films"
+    ],
+    "LibraryOptions": {
+      "PathInfos": [
+        {
+          "Path": "/media/films"
+        }
+      ]
+    },
+    "RefreshStatus": "Idle"
+  }
+]
