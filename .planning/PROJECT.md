@@ -99,10 +99,11 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 ## Current State
 
 **Shipped:** v0.2.0 forceSave fix (2026-05-17)
+**In flight:** v0.3.0 Phase 9 complete at code level (2026-05-18) — pydantic `Category` model + 10 production categories in `arrconf.yml` + pre-install/pre-upgrade Helm Job + filesystem migration runbook. Cluster-time UAT pending (SC#3: `kubectl exec deployment/jellyfin -- ls /media/<name>` after next ArgoCD sync) — tracked in `09-HUMAN-UAT.md`.
 
 The MVP of arr-stack is live in production. All 6 *arr-stack apps (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin) are managed declaratively via `arrconf` + the Helm umbrella chart. UI-free configuration achieved end-to-end. `arrconf dump | arrconf diff` round-trip returns 0 drift on every reconciler. CI auto-tag → GHCR build → ArgoCD sync loop operational. 17/19 v1 requirements validated; 2 carried to v0.3.0 (REQ-readme-onboarding + REQ-secret-management).
 
-**Cluster state:** arr-stack chart `v0.5.2`, arrconf image `:0.5.0`, `arrconf-env` SealedSecret with 7 keys, 9 apps + 2 CronJobs running in `selfhost` namespace.
+**Cluster state:** arr-stack chart `v0.5.2`, arrconf image `:0.5.0`, `arrconf-env` SealedSecret with 7 keys, 9 apps + 2 CronJobs running in `selfhost` namespace. **Next release `0.5.3`** (chart pin pre-bumped in Phase 9) once the Categories Job lands.
 
 **Code stats:** ~6,000 LOC Python + ~2,000 lines Helm/YAML + 65 SUMMARY.md docs across 11 phases. Test coverage 94.94% on reconciler code.
 
@@ -202,4 +203,4 @@ Frontière dure dérivée de **ADR-5**. Les ✅ sont obligatoires, les ❌ inter
 | App sync Prowlarr | ❌ | ✅ |
 
 ---
-*Last updated: 2026-05-17 after v0.2.0 milestone close*
+*Last updated: 2026-05-18 after v0.3.0 Phase 9 completion (Categories data model + chart init Job)*
