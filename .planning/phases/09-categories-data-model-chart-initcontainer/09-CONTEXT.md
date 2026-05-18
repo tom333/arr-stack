@@ -113,7 +113,10 @@ Phase 9 reconciliation behaviour is byte-equivalent to v0.2.0 (proven dispositiv
   hook creation (and after each successful completion). Failed Jobs persist in the
   namespace for debugging.
 
-- **D-08 (Job source of truth):** The Job template renders the list of `base_path`s
+- **D-08 (Job source of truth):**
+  **Amended 2026-05-18:** Single-source `.Files.Get | fromYaml` pattern adopted per RESEARCH.md Q1 dispositive VIABLE verdict. Original D-08 values.yaml-driven approach below not implemented — the Job reads `categories[]` directly from `charts/arr-stack/files/arrconf.yml` at template-render time. The CI sync gate this constraint required is therefore moot (eliminated by single-source). The text below preserves the original D-08 intent for audit-trail purposes only.
+
+  ~~Original D-08 (superseded):~~ The Job template renders the list of `base_path`s
   via Helm `tpl` from `values.yaml`. The chart introduces a new values key, exact
   shape TBD in research (see "Open for research" §1), but the locked principle is:
   the Job does NOT parse arrconf.yml at runtime, does NOT mount the
