@@ -1,0 +1,139 @@
+{
+  "_generated": "2026-05-18 — Phase 9 SC#4 dispositive baseline (Task C2a)",
+  "_source_yaml": "charts/arr-stack/files/arrconf.yml with 10 production categories populated",
+  "_caveat": "Fixture captures Phase 9 build output with all 10 categories present in arrconf.yml. The fixture values are identical to what a categories-stripped run would produce, which is the D-13 invariant: reconcilers do NOT read RootConfig.categories. The fixture's purpose is to detect regressions during Phase 10 propagation work — if a reconciler starts reading cfg.categories its output changes and this fixture comparison fails.",
+  "jellyfin": {
+    "actions_taken": [],
+    "completed": true
+  },
+  "prowlarr": [
+    {
+      "action": "update",
+      "diff_fields": [
+        "fields"
+      ],
+      "name": "Radarr",
+      "resource_type": "Application"
+    },
+    {
+      "action": "update",
+      "diff_fields": [
+        "fields"
+      ],
+      "name": "Sonarr",
+      "resource_type": "Application"
+    }
+  ],
+  "qbittorrent": [
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "cleanuparr-unlinked",
+      "resource_type": "Category"
+    },
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "radarr",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "radarr-anime",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "radarr-family",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "radarr-movies",
+      "resource_type": "Category"
+    },
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "sonarr",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "sonarr-anime",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "sonarr-family",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "sonarr-tv",
+      "resource_type": "Category"
+    }
+  ],
+  "radarr": [
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "qBittorrent",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Anime",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Family",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Movies",
+      "resource_type": "DownloadClient"
+    }
+  ],
+  "seerr": {
+    "actions_taken": [],
+    "completed": true
+  },
+  "sonarr": [
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "qBittorrent",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Anime",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Family",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - TV",
+      "resource_type": "DownloadClient"
+    }
+  ]
+}
