@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: Categories first-class
-status: ready_to_plan
-stopped_at: Phase 9 context gathered
-last_updated: "2026-05-18T08:22:30.040Z"
-last_activity: 2026-05-18 -- Phase 09 execution started
+status: planning
+stopped_at: Phase 10 context gathered
+last_updated: "2026-05-18T20:24:50.554Z"
+last_activity: 2026-05-18
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 4
-  completed_plans: 0
-  percent: 33
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -272,9 +272,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-18T06:56:29.731Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-categories-data-model-chart-initcontainer/09-CONTEXT.md
+Last session: 2026-05-18T20:24:50.544Z
+Stopped at: Phase 10 context gathered
+Resume file: .planning/phases/10-categories-6-app-propagation/10-CONTEXT.md
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
