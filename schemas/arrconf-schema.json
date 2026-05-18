@@ -76,7 +76,7 @@
       "properties": {
         "items": {
           "items": {
-            "$ref": "#/$defs/Category"
+            "$ref": "#/$defs/arrconf__resources__qbittorrent__category__Category"
           },
           "title": "Items",
           "type": "array"
@@ -89,28 +89,6 @@
         }
       },
       "title": "CategoriesSection",
-      "type": "object"
-    },
-    "Category": {
-      "additionalProperties": true,
-      "description": "A qBittorrent category (POST /api/v2/torrents/createCategory).\n\nPitfall 3 (RESEARCH.md line 851): qBit treats empty savePath as\n\"use default save path\" (/data/complete in cluster). The reconciler\nMUST send the explicit savePath in createCategory/editCategory.\n\nextra=\"allow\" \u2014 qBit 5.1+ may add a download_path field on GET; we\naccept it on the way in but never write it out (only name + savePath\ngo into form-encoded POST bodies).",
-      "properties": {
-        "name": {
-          "description": "Category name (stable match key for differ).",
-          "title": "Name",
-          "type": "string"
-        },
-        "savePath": {
-          "default": "",
-          "description": "qBit-side path where torrents in this category land. MUST be explicit (e.g. /data/anime), never empty.",
-          "title": "Savepath",
-          "type": "string"
-        }
-      },
-      "required": [
-        "name"
-      ],
-      "title": "Category",
       "type": "object"
     },
     "ContentRoutingRule": {
@@ -2246,12 +2224,91 @@
       },
       "title": "TagsSection",
       "type": "object"
+    },
+    "arrconf__resources__categories__Category": {
+      "additionalProperties": false,
+      "description": "A single Category \u2014 declarative input for Phase 10's 6-app propagation.\n\nMatch key: ``name`` (kebab-case slug, stable across reconcile runs).\nD-04 invariant: ``base_path`` MUST equal ``f\"/media/{name}\"``.",
+      "properties": {
+        "base_path": {
+          "description": "Absolute path under /media \u2014 MUST be /media/{name} (D-04).",
+          "title": "Base Path",
+          "type": "string"
+        },
+        "display": {
+          "description": "Title Case human label (e.g. 'S\u00e9ries - \u00c9milie').",
+          "title": "Display",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Media kind \u2014 drives Sonarr vs Radarr propagation.",
+          "enum": [
+            "movies",
+            "series"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "description": "Kebab-case slug (e.g. 'series-emilie'). Stable match key.",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "profile": {
+          "description": "Quality profile group \u2014 drives configarr profile selection (Phase 10) and Seerr animeTags routing for profile=anime.",
+          "enum": [
+            "general",
+            "anime",
+            "family"
+          ],
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "profile",
+        "display",
+        "base_path"
+      ],
+      "title": "Category",
+      "type": "object"
+    },
+    "arrconf__resources__qbittorrent__category__Category": {
+      "additionalProperties": true,
+      "description": "A qBittorrent category (POST /api/v2/torrents/createCategory).\n\nPitfall 3 (RESEARCH.md line 851): qBit treats empty savePath as\n\"use default save path\" (/data/complete in cluster). The reconciler\nMUST send the explicit savePath in createCategory/editCategory.\n\nextra=\"allow\" \u2014 qBit 5.1+ may add a download_path field on GET; we\naccept it on the way in but never write it out (only name + savePath\ngo into form-encoded POST bodies).",
+      "properties": {
+        "name": {
+          "description": "Category name (stable match key for differ).",
+          "title": "Name",
+          "type": "string"
+        },
+        "savePath": {
+          "default": "",
+          "description": "qBit-side path where torrents in this category land. MUST be explicit (e.g. /data/anime), never empty.",
+          "title": "Savepath",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Category",
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.\n\nPhase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.\n\nPhase 7 (D-07-INSTANCE-01): adds ``jellyfin`` dict following the same flat-root convention.",
+  "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.\n\nPhase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.\n\nPhase 7 (D-07-INSTANCE-01): adds ``jellyfin`` dict following the same flat-root convention.\n\nPhase 9 (D-05): adds top-level ``categories`` list \u2014 cross-cutting,\ndrives Phase 10 propagation to qBit/Sonarr/Radarr/configarr/Seerr/Jellyfin.",
   "properties": {
+    "categories": {
+      "items": {
+        "$ref": "#/$defs/arrconf__resources__categories__Category"
+      },
+      "title": "Categories",
+      "type": "array"
+    },
     "jellyfin": {
       "additionalProperties": {
         "$ref": "#/$defs/JellyfinInstance"
