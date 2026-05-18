@@ -336,6 +336,96 @@ Décision spec ADR-7 : **1 seule instance Sonarr et 1 seule Radarr**, différenc
 
 ---
 
+## Filesystem migration: v0.2.0 flat → v0.3.0 Categories
+
+Procédure manuelle, opérateur-driven, à exécuter UNE FOIS après le merge du PR Phase 9 (qui crée les 10 nouveaux répertoires vides `/media/<name>`). arrconf n'orchestre PAS cette migration — il crée des répertoires vides et n'y touche jamais après.
+
+**Discipline ADR-6** : snapshot AVANT et APRÈS. Lossless, versionné dans Git.
+
+### Mapping v0.2.0 → v0.3.0 (validé contre arrconf.yml 2026-05-18)
+
+| v0.2.0 dir | v0.3.0 dir(s) | Action opérateur |
+|------------|---------------|-------------------|
+| `/media/series` | `/media/series` (default) + `mv` sélectif vers `/media/series-emilie`, `/media/series-thomas`, `/media/series-garcons` | Déplacer manuellement les sous-dossiers d'Émilie, Thomas et des garçons dans leurs buckets nommés. Le reste reste dans `/media/series`. |
+| `/media/anime` | `/media/series-zoe` (l'anime de Zoé est le bulk de ce dossier) | Déplacer le contenu en wholesale. Si du non-Zoé anime existe, opérateur juge (souvent retour à `/media/series`). |
+| `/media/family` | `/media/series-garcons` (bucket family-rated kids' series) | `mv` wholesale vers le bucket des garçons. |
+| `/media/films` | `/media/films` (default) + `mv` sélectif vers `/media/nouveaux-films` | Le bulk reste ; opérateur déplace les "nouveaux" selon sa propre définition de date. |
+| `/media/films-anime` | `/media/films-zoe` (films de Zoé) + `/media/films-animation-enfants` | Split par jugement opérateur : Studio Ghibli → Zoé ; Disney/Pixar → enfants. |
+| `/media/films-family` | `/media/films-enfants` | Rename, `mv` wholesale. |
+
+### Étape 1 — Pre-check (snapshot baseline)
+
+```bash
+# Capture l'état API actuel des 6 apps (root_folders, library paths, etc.)
+tools/snapshot/snapshot.sh --output snapshots/before-categories-migration-$(date +%F)/
+git add snapshots/before-categories-migration-* && git commit -m "snapshot(pre-categories-migration): baseline"
+
+# Vérifier que les 10 nouveaux /media/<name> dirs existent (créés par le Job Phase 9 au helm upgrade) :
+kubectl exec -n selfhost deployment/jellyfin -- ls /media/ | sort | column
+# Attendu : films, films-animation-enfants, films-enfants, films-zoe, nouveaux-films,
+#           series, series-emilie, series-garcons, series-thomas, series-zoe
+#           (+ éventuellement les legacy v0.2.0 : anime, family, films-anime, films-family)
+```
+
+### Étape 2 — Execution (kubectl exec dans Jellyfin)
+
+Le pod Jellyfin monte déjà `media-nas-pvc` à `/media` en RW — pas besoin de pod de maintenance dédié.
+
+```bash
+kubectl exec -n selfhost -it deployment/jellyfin -- bash
+
+# Dans le pod :
+cd /media
+mv anime/* series-zoe/ 2>/dev/null         # bulk anime → bucket Zoé
+mv family/* series-garcons/                # bulk family series → bucket garçons
+mv films-family/* films-enfants/           # bulk family films → bucket enfants
+
+# films-anime nécessite jugement opérateur :
+ls films-anime/ | head -20                 # eyeball le contenu
+# Exemple (Studio Ghibli → Zoé) :
+mv films-anime/Studio*Ghibli films-zoe/
+# Exemple (Disney/Pixar → enfants) :
+mv films-anime/Disney films-anime/Pixar films-animation-enfants/
+
+# series : split manuel (Émilie/Thomas/Garçons selon le contenu réel)
+# ex: mv series/<la-série-d-émilie> series-emilie/
+
+# films : split manuel (nouveaux selon date)
+# ex: mv films/<film-récent> nouveaux-films/
+
+exit
+```
+
+### Étape 3 — Post-check (rescan + diff snapshot)
+
+```bash
+# 1. Déclencher un rescan Sonarr (sur les root_folders qui ont gagné/perdu du contenu) :
+curl -X POST -H "X-Api-Key: $SONARR_API_KEY" "http://sonarr.selfhost.svc.cluster.local:8989/api/v3/command" \
+  -d '{"name":"RescanSeries"}'
+
+# 2. Idem Radarr :
+curl -X POST -H "X-Api-Key: $RADARR_API_KEY" "http://radarr.selfhost.svc.cluster.local:7878/api/v3/command" \
+  -d '{"name":"RescanMovie"}'
+
+# 3. Snapshot après migration + diff :
+tools/snapshot/snapshot.sh --output snapshots/after-categories-migration-$(date +%F)/
+diff -r snapshots/before-categories-migration-*/ snapshots/after-categories-migration-*/
+# Attendu : changements sur paths root_folder / library PathInfos uniquement ;
+#          pas de drift sur tags, download_clients, ou notifications.
+```
+
+### Étape 4 — Rollback (si nécessaire)
+
+Le rollback est l'inverse des `mv` de l'Étape 2 — opérateur reconstitue manuellement à partir du snapshot pre-migration s'il identifie un fichier déplacé par erreur. Pas de script fourni : v0.3.0 garde le runbook high-trust, low-automation.
+
+### Notes
+
+- arrconf est insensible à si la migration a été exécutée ou non. Il crée les 10 `/media/<name>` (vides) ; le contenu vient soit du `mv` opérateur, soit des futurs imports Sonarr/Radarr.
+- Les anciens dirs (`/media/anime`, `/media/family`, `/media/films-anime`, `/media/films-family`) restent intacts tant que l'opérateur ne les supprime pas — Phase 9 n'a aucune logique `rmdir`.
+- Pour supprimer un legacy dir une fois vidé : `rm -rf /media/anime` depuis le pod Jellyfin (opérateur, manuel).
+
+---
+
 ## Intégration avec my-kluster (post-Phase 4)
 
 - **Une seule** ArgoCD Application (`my-kluster/argocd/argocd-apps/arr-stack-app.yaml`) pointe vers ce repo, `path: charts/arr-stack/`, `valueFile: examples/values-prod.yaml`.
