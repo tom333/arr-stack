@@ -71,8 +71,8 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
 **Plans**: 4 plans
 - [x] 09-A-python-schema-PLAN.md — Category pydantic model + RootConfig field + schema regen + parametric tests
 - [x] 09-B-helm-job-PLAN.md — Helm-hooked Job with single-source .Files.Get | fromYaml + busybox:1.36.1 + uid 1000
-- [ ] 09-C-arrconf-yml-tests-PLAN.md — 10-entry categories block in arrconf.yml + SC#4 dispositive pytest (no-regression)
-- [ ] 09-D-docs-release-PLAN.md — CLAUDE.md migration runbook + values.yaml arrconf.image.tag pre-bump (CF-07 closure pilot)
+- [x] 09-C-arrconf-yml-tests-PLAN.md — 10-entry categories block in arrconf.yml + SC#4 dispositive pytest (no-regression)
+- [x] 09-D-docs-release-PLAN.md — CLAUDE.md migration runbook + values.yaml arrconf.image.tag pre-bump (CF-07 closure pilot)
 **UI hint**: no
 
 ### Phase 10: Categories → 6-app propagation
