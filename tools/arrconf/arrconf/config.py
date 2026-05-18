@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.resources.jellyfin import (
     JellyfinLibrary,
     JellyfinUserPolicy,
@@ -631,9 +632,13 @@ class RootConfig(BaseModel):
     Phase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.
 
     Phase 7 (D-07-INSTANCE-01): adds ``jellyfin`` dict following the same flat-root convention.
+
+    Phase 9 (D-05): adds top-level ``categories`` list — cross-cutting,
+    drives Phase 10 propagation to qBit/Sonarr/Radarr/configarr/Seerr/Jellyfin.
     """
 
     model_config = ConfigDict(extra="forbid")
+    categories: list[MediaCategory] = Field(default_factory=list)
     sonarr: dict[str, SonarrInstance] = Field(default_factory=dict)
     radarr: dict[str, RadarrInstance] = Field(default_factory=dict)
     prowlarr: dict[str, ProwlarrInstance] = Field(default_factory=dict)
