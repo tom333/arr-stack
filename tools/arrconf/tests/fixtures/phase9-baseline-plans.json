@@ -1,0 +1,136 @@
+{
+  "jellyfin": {
+    "actions_taken": [],
+    "completed": true
+  },
+  "prowlarr": [
+    {
+      "action": "update",
+      "diff_fields": [
+        "fields"
+      ],
+      "name": "Radarr",
+      "resource_type": "Application"
+    },
+    {
+      "action": "update",
+      "diff_fields": [
+        "fields"
+      ],
+      "name": "Sonarr",
+      "resource_type": "Application"
+    }
+  ],
+  "qbittorrent": [
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "cleanuparr-unlinked",
+      "resource_type": "Category"
+    },
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "radarr",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "radarr-anime",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "radarr-family",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "radarr-movies",
+      "resource_type": "Category"
+    },
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "sonarr",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "sonarr-anime",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "sonarr-family",
+      "resource_type": "Category"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "sonarr-tv",
+      "resource_type": "Category"
+    }
+  ],
+  "radarr": [
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "qBittorrent",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Anime",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Family",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Movies",
+      "resource_type": "DownloadClient"
+    }
+  ],
+  "seerr": {
+    "actions_taken": [],
+    "completed": true
+  },
+  "sonarr": [
+    {
+      "action": "prune-skip",
+      "diff_fields": [],
+      "name": "qBittorrent",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Anime",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - Family",
+      "resource_type": "DownloadClient"
+    },
+    {
+      "action": "add",
+      "diff_fields": [],
+      "name": "qBittorrent - TV",
+      "resource_type": "DownloadClient"
+    }
+  ]
+}
