@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: Categories first-class
-status: planning
-last_updated: "2026-05-17T20:40:34.122Z"
-last_activity: 2026-05-17
+status: Defining requirements
+stopped_at: Phase 9 context gathered
+last_updated: "2026-05-18T06:56:29.742Z"
+last_activity: 2026-05-17 — Milestone v0.3.0 started
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State
@@ -270,9 +270,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-16T22:14:30.696Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-reconciler-jellyfin/07-CONTEXT.md
+Last session: 2026-05-18T06:56:29.731Z
+Stopped at: Phase 9 context gathered
+Resume file: .planning/phases/09-categories-data-model-chart-initcontainer/09-CONTEXT.md
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
