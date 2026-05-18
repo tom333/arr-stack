@@ -4,8 +4,8 @@ milestone: v0.3.0
 milestone_name: Categories first-class
 status: executing
 stopped_at: Phase 9 context gathered
-last_updated: "2026-05-18T08:17:48.796Z"
-last_activity: 2026-05-18 -- Phase 09 planning complete
+last_updated: "2026-05-18T08:22:30.040Z"
+last_activity: 2026-05-18 -- Phase 09 execution started
 progress:
   total_phases: 3
   completed_phases: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 7 closed 2026-05-17 — Jellyfin reconciler live; next phase = 08 ESO/Akeyless (post-MVP, optional) OR milestone v0.2.0 ship.
+**Current focus:** Phase 09 — categories-data-model-chart-initcontainer
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-18 -- Phase 09 planning complete
+Phase: 09 (categories-data-model-chart-initcontainer) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 09
+Last activity: 2026-05-18 -- Phase 09 execution started
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
