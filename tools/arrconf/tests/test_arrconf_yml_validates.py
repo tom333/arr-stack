@@ -264,6 +264,55 @@ def test_arrconf_yml_validates_jellyfin() -> None:
     assert "Kodi Sync Queue" in plugin_names
 
 
+# -- Phase 9 assertions (D-01, D-02, D-03, D-04 — categories block) ----------
+
+
+def test_arrconf_yml_has_10_categories() -> None:
+    """REQ-categories-10-target: production arrconf.yml declares exactly 10 categories.
+
+    Asserts count, order, (name, kind, profile) tuples (D-01 + D-02), and the
+    D-04 base_path invariant (/media/{name}). W-03: ruyaml parse-roundtrip check
+    follows immediately after in test_arrconf_yml_categories_ruyaml_roundtrip.
+    """
+    cfg = load_config(ARRCONF_YML)
+    assert len(cfg.categories) == 10, f"Expected 10 categories, got {len(cfg.categories)}"
+
+    expected = [
+        ("series", "series", "general"),
+        ("series-emilie", "series", "general"),
+        ("series-thomas", "series", "general"),
+        ("series-garcons", "series", "family"),
+        ("series-zoe", "series", "anime"),
+        ("films", "movies", "general"),
+        ("nouveaux-films", "movies", "general"),
+        ("films-enfants", "movies", "family"),
+        ("films-animation-enfants", "movies", "family"),
+        ("films-zoe", "movies", "anime"),
+    ]
+    actual = [(c.name, c.kind, c.profile) for c in cfg.categories]
+    assert actual == expected, f"Categories order/values mismatch: {actual}"
+
+    for cat in cfg.categories:
+        assert cat.base_path == f"/media/{cat.name}", (
+            f"D-04 violation: base_path {cat.base_path!r} != /media/{cat.name!r}"
+        )
+
+
+def test_arrconf_yml_categories_ruyaml_roundtrip() -> None:
+    """W-03 belt-and-suspenders: ruyaml can parse arrconf.yml + categories validates raw."""
+    from ruyaml import YAML
+
+    yaml = YAML(typ="safe")
+    with ARRCONF_YML.open("r", encoding="utf-8") as f:
+        data = yaml.load(f)
+    cats = data.get("categories", [])
+    assert len(cats) == 10, f"ruyaml saw {len(cats)} categories, expected 10"
+    for cat in cats:
+        assert cat["base_path"] == f"/media/{cat['name']}", (
+            f"D-04 ruyaml-roundtrip violation: {cat}"
+        )
+
+
 def test_arrconf_yml_no_provider_ids_in_jellyfin_users() -> None:
     """Pitfall 6 / D-06-OPENAPI-01 carry-forward — defensive parse-level check.
 
