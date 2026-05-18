@@ -1,0 +1,75 @@
+{{- /*
+categories-init-job.yaml — Phase 9 D-06..D-12.
+
+A Helm pre-install/pre-upgrade Job that creates one /media/<name> directory
+per Category declared in charts/arr-stack/files/arrconf.yml. Idempotent
+(mkdir -p + [ -d ] guard), runs as uid:gid 1000:1000 to match the linuxserver
+PUID/PGID convention every media-app uses.
+
+Single-source pattern (D-08 pivot, 09-RESEARCH.md Q1): the Job reads the
+canonical categories[] list directly from files/arrconf.yml at template-
+render time via .Files.Get | fromYaml. No values.yaml duplication, no CI
+sync gate. When files/arrconf.yml has no categories[] block (Phase 9 Wave 1
+state, before Plan C), the range is over a nil map and emits zero mkdir
+steps. After Plan C lands the 10-entry block, the same template renders
+10 mkdir steps with no further code change.
+
+NOTE: busybox does NOT honor PUID/PGID env vars (those are a linuxserver-
+image convention). uid/gid is set by the pod-level securityContext below.
+*/ -}}
+{{- $cfg := .Files.Get "files/arrconf.yml" | fromYaml -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-categories-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "arr-stack.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "0"
+spec:
+  activeDeadlineSeconds: 120
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        {{- include "arr-stack.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: mkdir
+          # renovate: image=docker.io/busybox
+          image: busybox:1.36.1
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              {{- range $cat := $cfg.categories }}
+              if [ -d {{ $cat.base_path | quote }} ]; then
+                printf '{"event":"media_dir_ensured","path":"%s","created":false,"existed":true}\n' {{ $cat.base_path | quote }}
+              else
+                mkdir -p {{ $cat.base_path | quote }}
+                printf '{"event":"media_dir_ensured","path":"%s","created":true,"existed":false}\n' {{ $cat.base_path | quote }}
+              fi
+              {{- end }}
+          volumeMounts:
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nas-pvc
