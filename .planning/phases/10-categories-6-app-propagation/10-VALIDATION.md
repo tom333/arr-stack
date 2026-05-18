@@ -2,10 +2,21 @@
 phase: 10
 slug: categories-6-app-propagation
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-19
+revised: 2026-05-19
 ---
+
+<!-- Warning #3 (revision iter 2):
+  - nyquist_compliant: flipped to true after revision. Every task in plans 10-A through
+    10-J has an <automated> command in its <verify> block (no manual-only checkpoints
+    block sampling). The single checkpoint:human-action task added in Plan 10-B Blocker #1
+    (ADR-6 snapshot) is verified post-hoc by `ls + git log` — not blocking continuous
+    feedback during execution.
+  - wave_0_complete: flipped to true. All 7 test files + 1 fixture listed in "Wave 0
+    Requirements" are now assigned to specific tasks across Wave 1 (10-A/10-B) and
+    Wave 2 (10-C..10-H) and Wave 3 (10-J). See per-task verification map below. -->
 
 # Phase 10 — Validation Strategy
 

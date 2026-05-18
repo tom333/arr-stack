@@ -290,6 +290,7 @@ def test_sonarr_per_resource_override_rpm_only() -> None:
     - `grep "generate_sonarr_resources" tools/arrconf/arrconf/__main__.py` exits 0
     - `grep -c "app=\"sonarr\"" tools/arrconf/arrconf/__main__.py` ≥ 4  (4 merge_with_manual calls for the 4 resources)
     - `grep -c "resource=\"tags\"\|resource=\"root_folders\"\|resource=\"download_clients\"\|resource=\"remote_path_mappings\"" tools/arrconf/arrconf/__main__.py` ≥ 4
+    - `grep -c 'generate_sonarr_resources' tools/arrconf/arrconf/__main__.py` ≥ 2  (Pitfall 5: apply branch + diff branch BOTH call the generator; dump branch documented in <action> if not applicable)
     - `test -f tools/arrconf/tests/test_sonarr_categories.py` exits 0
     - `grep -c "^def test_" tools/arrconf/tests/test_sonarr_categories.py` ≥ 6
     - The verify command exits 0 (all tests pass + full suite green + Phase 9 no-regression intact)

@@ -31,7 +31,7 @@ must_haves:
   truths:
     - "`tools/arrconf/arrconf/reconcilers/seerr.py` declares a module-level `SEERR_USER_MANAGED_FIELDS: frozenset[str] = frozenset({\"displayName\", \"permissions\", \"movieQuotaDays\", \"movieQuotaLimit\", \"tvQuotaDays\", \"tvQuotaLimit\"})` constant (FP fix #3 — B2 allowlist per RESEARCH.md)."
     - "`_reconcile_user` filters `admin_current` to `SEERR_USER_MANAGED_FIELDS` BEFORE `_payloads_equivalent(admin_current, put_body)` so server-side extra keys (`requestCount`, `warnings`, `settings`, etc.) no longer cause spurious UPDATEs."
-    - "`tools/arrconf/arrconf/__main__.py` Seerr branch resolves animeTags AFTER `reconcile_sonarr` completes: (1) issue `sonarr_client.get('/api/v3/tag')` to retrieve the freshly-reconciled tag list with integer IDs; (2) call `generate_anime_tag_labels(root)` to get labels for profile=anime categories with `kind=series` (since Seerr.animeTags drives Sonarr routing); (3) build the integer ID list by matching labels to tag IDs; (4) replace `seerr_instance.sonarr_service.animeTags` via `merge_with_manual(seerr_instance.sonarr_service.animeTags, resolved_ids, app=\"seerr\", resource=\"animeTags\")`."
+    - "`tools/arrconf/arrconf/__main__.py` Seerr branch resolves animeTags AFTER `reconcile_sonarr` completes: (1) issue `sonarr_client.get('/api/v3/tag')` to retrieve the freshly-reconciled tag list with integer IDs; (2) call `generate_anime_tag_labels(root)` which returns labels for ALL `profile=anime` categories regardless of kind (both `series-zoe` AND `films-zoe`); (3) the `kind==\"series\"` filter is applied INSIDE `_resolve_seerr_anime_tag_ids` because `Seerr.sonarr_service.animeTags` only governs Sonarr-side routing (Radarr animeTags is not exposed by the Seerr API); (4) build the integer ID list by matching the kind-filtered series-anime labels to Sonarr tag IDs from step (1); (5) replace `seerr_instance.sonarr_service.animeTags` via `merge_with_manual(seerr_instance.sonarr_service.animeTags, resolved_ids, app=\"seerr\", resource=\"animeTags\")`."
     - "`tools/arrconf/tests/test_seerr_animetags.py` proves the 4-step resolution chain end-to-end with respx mocks for Sonarr `/api/v3/tag` and Seerr `/api/v1/settings/sonarr`."
     - "`tools/arrconf/tests/test_idempotence_fp.py::test_seerr_user_fp_fix_no_op_on_extras` proves cluster GET with extras (`requestCount`, `warnings`, `settings`, etc.) yields no UPDATE."
     - "Phase 9 no-regression test still passes (override semantics: production YAML has `animeTags: [3]` non-empty → manual wins → Phase 9 fixture byte-equivalent)."
@@ -598,6 +598,9 @@ def test_animetags_merge_empty_manual_uses_generated() -> None:
   <acceptance_criteria>
     - `grep "_resolve_seerr_anime_tag_ids\|generate_anime_tag_labels" tools/arrconf/arrconf/__main__.py | wc -l` ≥ 2
     - `grep "app=\"seerr\", resource=\"animeTags\"" tools/arrconf/arrconf/__main__.py` exits 0
+    - `grep -c 'generate_anime_tag_labels' tools/arrconf/arrconf/__main__.py` ≥ 2  (Pitfall 5: apply branch + diff branch BOTH call the generator)
+    - `grep -c '_resolve_seerr_anime_tag_ids' tools/arrconf/arrconf/__main__.py` ≥ 2  (Pitfall 5: helper invoked in BOTH apply and diff branches per the same dispatch shape)
+    - `grep -A 10 'def _resolve_seerr_anime_tag_ids' tools/arrconf/arrconf/__main__.py | grep -E 'kind == "series"|c\.kind == "series"'` exits 0  (Blocker #3: kind=="series" filter is INSIDE the resolver helper, not in `generate_anime_tag_labels`; this proves the contract documented in must_haves)
     - `test -f tools/arrconf/tests/test_seerr_animetags.py` exits 0
     - `grep -c "^def test_" tools/arrconf/tests/test_seerr_animetags.py` ≥ 6
     - The verify command exits 0 (all tests pass + full suite green + Phase 9 no-regression intact)
@@ -649,11 +652,19 @@ git show HEAD --stat
 - Lints + mypy clean.
 </success_criteria>
 
+<executor_notes>
+**Warning #1 (scope_sanity) — Plan 10-F complexity:** Tasks 10-F-01 (FP fix #3) and 10-F-02 (animeTags resolution chain) should be completed in SEPARATE executor passes. Run `pytest tools/arrconf/tests/ -x` between them to validate that the FP fix #3 regression test stays green when the animeTags wiring lands. The two tasks share `tools/arrconf/arrconf/__main__.py` and `tools/arrconf/tests/test_idempotence_fp.py` — running them in one shot inflates context cost beyond the 50% target. The chart-pin co-bump (Task 10-F-03) is the final atomic-commit step that bundles both passes.
+
+**Warning #5 (SC#3 verification automation split):** SC#3 (anime TVDB-anime live routing in Seerr UI) has TWO verification halves:
+- **AUTOMATED (this plan):** `animeTags: list[int]` is populated correctly in the Seerr settings/sonarr payload. Proven by `test_seerr_animetags.py` (Task 10-F-02) + the Plan 10-J sweep test (`test_sweep_categories_derived_path`). This automated half closes the wiring contract.
+- **HUMAN-UAT (post-merge):** A live TVDB-anime request submitted in the Seerr UI must route to the correct Sonarr anime-profile category (`series-zoe`). This requires post-merge ArgoCD sync + manual test in the deployed cluster. Flag this as a UAT item in `.planning/phases/10-categories-6-app-propagation/10-VALIDATION.md` "Manual-Only Verifications" table.
+</executor_notes>
+
 <output>
 After completion, create `.planning/phases/10-categories-6-app-propagation/10-F-seerr-animetags-fp-SUMMARY.md` documenting:
 - Commit SHA covering all 3 tasks
 - Test counts (idempotence FP #3 + animeTags chain)
-- D-06-Q10-01 closure note: the animeTags resolution chain is now testable end-to-end (although live-cluster verification with a TVDB-anime Seerr request remains a HUMAN-UAT item — flag for the verifier)
+- D-06-Q10-01 closure note: the animeTags resolution chain is now testable end-to-end (although live-cluster verification with a TVDB-anime Seerr request remains a HUMAN-UAT item — see SC#3 split in `<executor_notes>` above and the UAT table in 10-VALIDATION.md)
 - Note that production `arrconf.yml` line 445 currently has `animeTags: [3]` (manual override active). To activate Categories-derived routing, operator must edit `arrconf.yml` to set `animeTags: []` in a separate content-side commit. Document this in the SUMMARY as a follow-up operator action.
 - Pointer to Plan 10-G (Jellyfin) as the next Wave 2 plan
 </output>

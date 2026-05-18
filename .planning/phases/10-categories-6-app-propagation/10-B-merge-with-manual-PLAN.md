@@ -7,7 +7,7 @@ depends_on: []
 files_modified:
   - tools/arrconf/arrconf/reconcilers/_shared.py
   - tools/arrconf/tests/test_merge_with_manual.py
-autonomous: true
+autonomous: false
 requirements:
   - REQ-categories-qbit-propagation
   - REQ-categories-sonarr-propagation
@@ -29,6 +29,7 @@ must_haves:
     - "Behaviour B: `manual_items` empty → function returns `generated_items` and emits `merge_decision` with `source=\"categories\"`, `n=len(generated_items)`."
     - "Both empty → returns `[]` (empty list); log emits `source=\"categories\"`, `n=0`."
     - "Signature is keyword-only for `app` and `resource` (forces explicit naming at call sites)."
+    - "Before Wave 2 opens, the operator has run `tools/snapshot/snapshot.sh --output snapshots/before-phase-10-$(date +%F)/` and committed the snapshot directory to git (ADR-6 baseline safety net for any cluster-touch test in Wave 2)."
     - "Unit tests in `tests/test_merge_with_manual.py` cover the three D-02 cases (manual-wins, generated-wins, both-empty) plus log event structure verification."
   artifacts:
     - path: "tools/arrconf/arrconf/reconcilers/_shared.py"
@@ -315,6 +316,45 @@ Run:
     - The verify command exits 0 (all 6 tests pass + ruff + format + mypy clean)
   </acceptance_criteria>
   <done>6 unit tests pass exercising the D-02 toggle's behaviour, log events, and signature; ruff + format + mypy clean.</done>
+</task>
+
+<task id="10-B-03" type="checkpoint:human-action" autonomous="false">
+  <name>Task 10-B-03: ADR-6 baseline snapshot before Wave 2 (operator)</name>
+  <files>snapshots/before-phase-10-YYYY-MM-DD/ (operator creates via tools/snapshot/snapshot.sh; date varies)</files>
+  <read_first>
+    - CLAUDE.md §"Workflow snapshot (CRITIQUE — à respecter avant tout test risqué)"
+    - spec.md §11 ADR-6
+    - tools/snapshot/snapshot.sh (verify it exists and is executable)
+  </read_first>
+  <action>
+    BEFORE Wave 2 starts: capture a pre-phase-10 cluster snapshot per ADR-6.
+
+    This is an OPERATOR step (requires cluster API keys + reachable cluster — port-forward or in-cluster):
+    - Required env vars: SONARR_API_KEY, RADARR_API_KEY, PROWLARR_API_KEY, QBT_USER+QBT_PASS, SEERR_API_KEY, JELLYFIN_API_KEY
+
+    Steps:
+
+    ```bash
+    tools/snapshot/snapshot.sh --output snapshots/before-phase-10-$(date +%F)/
+
+    git add snapshots/before-phase-10-*/
+    git commit -m "snapshot(pre-phase-10): baseline before Categories wiring"
+    ```
+
+    This is the project's safety net before any cluster-touch test in Wave 2 (Plans 10-C..10-H).
+    The autonomous executor of Plan 10-B CANNOT perform this step (no cluster keys, no cluster reachability).
+    The task pauses; operator runs the snapshot + commit; operator confirms; Wave 2 may then proceed.
+  </action>
+  <verify>
+    <automated>ls snapshots/before-phase-10-*/ 2>/dev/null | head -1 &amp;&amp; git log --oneline -10 | grep -F "snapshot(pre-phase-10): baseline before Categories wiring"</automated>
+  </verify>
+  <acceptance_criteria>
+    - `ls snapshots/before-phase-10-*/` lists at least 1 directory (snapshot captured)
+    - `git log --oneline -10 | grep -F "snapshot(pre-phase-10): baseline before Categories wiring"` exits 0 (snapshot commit recorded)
+    - The snapshot directory contains JSON files from at least 6 apps (sonarr, radarr, prowlarr, qbittorrent, seerr, jellyfin)
+  </acceptance_criteria>
+  <resume-signal>Operator confirms "snapshot captured and committed" — Wave 2 may then proceed</resume-signal>
+  <done>Pre-phase-10 ADR-6 baseline snapshot captured + committed; Wave 2 plans (10-C..10-H) can now run cluster-touching tests safely.</done>
 </task>
 
 </tasks>

@@ -15,8 +15,8 @@
 | `tools/arrconf/arrconf/reconcilers/_shared.py` (extend) | utility | transform | `tools/arrconf/arrconf/reconcilers/_shared.py` itself | exact (same file, additive) |
 | `tools/arrconf/arrconf/__main__.py` (extend) | entrypoint | request-response | `tools/arrconf/arrconf/__main__.py` itself | exact |
 | `tools/arrconf/arrconf/reconcilers/qbittorrent.py` (extend) | reconciler | CRUD + transform | `tools/arrconf/arrconf/reconcilers/qbittorrent.py` itself | exact |
-| `tools/arrconf/arrconf/reconcilers/sonarr.py` (extend) | reconciler | CRUD | `tools/arrconf/arrconf/reconcilers/sonarr.py` itself | exact |
-| `tools/arrconf/arrconf/reconcilers/radarr.py` (extend) | reconciler | CRUD | `tools/arrconf/arrconf/reconcilers/radarr.py` itself | exact |
+| `tools/arrconf/arrconf/reconcilers/sonarr.py` (read-only in Phase 10 — wiring via __main__.py pre-merge per D-01) | reconciler | CRUD | `tools/arrconf/arrconf/reconcilers/sonarr.py` itself | exact |
+| `tools/arrconf/arrconf/reconcilers/radarr.py` (read-only in Phase 10 — wiring via __main__.py pre-merge per D-01) | reconciler | CRUD | `tools/arrconf/arrconf/reconcilers/radarr.py` itself | exact |
 | `tools/arrconf/arrconf/reconcilers/seerr.py` (extend) | reconciler | CRUD + transform | `tools/arrconf/arrconf/reconcilers/seerr.py` itself | exact |
 | `tools/arrconf/arrconf/reconcilers/jellyfin.py` (extend) | reconciler | CRUD | `tools/arrconf/arrconf/reconcilers/jellyfin.py` itself | exact |
 | `tools/arrconf/arrconf/reconcilers/prowlarr.py` (extend) | reconciler | CRUD | `tools/arrconf/arrconf/reconcilers/prowlarr.py` + jellyfin.py | role-match (FP fix only) |

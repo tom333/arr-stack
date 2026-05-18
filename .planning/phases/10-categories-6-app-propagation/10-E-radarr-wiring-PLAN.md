@@ -255,6 +255,7 @@ def test_radarr_no_movies_in_cfg() -> None:
   <acceptance_criteria>
     - `grep "generate_radarr_resources" tools/arrconf/arrconf/__main__.py` exits 0
     - `grep -c "app=\"radarr\"" tools/arrconf/arrconf/__main__.py` ≥ 4
+    - `grep -c 'generate_radarr_resources' tools/arrconf/arrconf/__main__.py` ≥ 2  (Pitfall 5: apply branch + diff branch BOTH call the generator; dump branch documented in <action> if not applicable)
     - `test -f tools/arrconf/tests/test_radarr_categories.py` exits 0
     - `grep -c "^def test_" tools/arrconf/tests/test_radarr_categories.py` ≥ 6
     - The verify command exits 0 (all tests pass + full suite green)

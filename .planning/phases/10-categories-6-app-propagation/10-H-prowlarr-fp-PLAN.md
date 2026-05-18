@@ -5,10 +5,11 @@ type: execute
 wave: 2
 depends_on:
   - 10-C-qbit-wiring-fp
-  - 10-D-sonarr-wiring
-  - 10-E-radarr-wiring
-  - 10-F-seerr-animetags-fp
-  - 10-G-jellyfin-wiring
+# Warning #2 (revision iter 2): Reduced from [10-C..10-G] to [10-C] only. The other
+# Wave 2 plans share `tools/arrconf/arrconf/__main__.py` as files_modified; the executor
+# sequentializes them automatically via files_modified conflict detection. Plan 10-H
+# only depends on Plan 10-C semantically (10-C established the FP-fix B2 allowlist
+# pattern that 10-H mirrors).
 files_modified:
   - tools/arrconf/arrconf/reconcilers/prowlarr.py
   - tools/arrconf/tests/test_idempotence_fp.py

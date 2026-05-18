@@ -249,6 +249,7 @@ def test_jellyfin_only_series_no_movies() -> None:
   <acceptance_criteria>
     - `grep "generate_jellyfin_libraries" tools/arrconf/arrconf/__main__.py` exits 0
     - `grep "app=\"jellyfin\", resource=\"libraries\"" tools/arrconf/arrconf/__main__.py` exits 0
+    - `grep -c 'generate_jellyfin_libraries' tools/arrconf/arrconf/__main__.py` ≥ 2  (Pitfall 5: apply branch + diff branch BOTH call the generator; dump branch documented in <action> if not applicable. The generator name matches Plan 10-A's frozen export `generate_jellyfin_libraries`.)
     - `test -f tools/arrconf/tests/test_jellyfin_categories.py` exits 0
     - `grep -c "^def test_" tools/arrconf/tests/test_jellyfin_categories.py` ≥ 5
     - The verify command exits 0 (all tests pass + full suite green + Phase 9 no-regression intact)

@@ -412,6 +412,7 @@ Run:
     - `grep "from arrconf.reconcilers._shared import merge_with_manual" tools/arrconf/arrconf/__main__.py` exits 0
     - `grep -c "merge_with_manual" tools/arrconf/arrconf/__main__.py` ≥ 1
     - `grep -c "app=\"qbittorrent\", resource=\"categories\"" tools/arrconf/arrconf/__main__.py` ≥ 1
+    - `grep -c 'generate_qbit_categories' tools/arrconf/arrconf/__main__.py` ≥ 2  (Pitfall 5: apply branch + diff branch BOTH call the generator; if `dump` does not emit qBit categories, document in <action> with reasoning — otherwise extend the count to ≥ 3)
     - `test -f tools/arrconf/tests/test_qbittorrent_categories.py` exits 0
     - `grep -c "^def test_" tools/arrconf/tests/test_qbittorrent_categories.py` ≥ 3
     - `cd tools/arrconf && uv run pytest tests/test_phase9_no_regression.py -x` exits 0 (D-13 no-regression preserved)
