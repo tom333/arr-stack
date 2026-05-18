@@ -1,4 +1,7 @@
 {
+  "_generated": "2026-05-18 — Phase 9 SC#4 dispositive baseline (Task C2a)",
+  "_source_yaml": "charts/arr-stack/files/arrconf.yml with 10 production categories populated",
+  "_caveat": "Fixture captures Phase 9 build output with all 10 categories present in arrconf.yml. The fixture values are identical to what a categories-stripped run would produce, which is the D-13 invariant: reconcilers do NOT read RootConfig.categories. The fixture's purpose is to detect regressions during Phase 10 propagation work — if a reconciler starts reading cfg.categories its output changes and this fixture comparison fails.",
   "jellyfin": {
     "actions_taken": [],
     "completed": true
