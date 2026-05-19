@@ -24,7 +24,9 @@ from arrconf.exceptions import (
     ReconcileError,
     ScopeViolationError,
 )
+from arrconf.generators.categories import generate_qbit_categories
 from arrconf.logging import configure_logging
+from arrconf.reconcilers._shared import merge_with_manual
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
@@ -215,6 +217,16 @@ def apply(
             )
 
             qbit_instance = root.qbittorrent["main"]
+            # Phase 10 pre-merge (D-01/D-02): Categories->qBit categories.
+            # When instance.categories.items is empty, use Categories-derived
+            # list. When non-empty, manual section wins entirely (merge_with_manual).
+            qbit_generated = generate_qbit_categories(root)
+            qbit_instance.categories.items = merge_with_manual(
+                qbit_instance.categories.items,
+                qbit_generated,
+                app="qbittorrent",
+                resource="categories",
+            )
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_client = QbittorrentClient(
                 base_url=qbit_instance.base_url,
@@ -446,6 +458,15 @@ def diff(
             from arrconf.diff_cmd import diff_qbittorrent  # noqa: PLC0415
 
             qbit_diff_instance = root.qbittorrent["main"]
+            # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape
+            # as apply to avoid false drift between the two commands.
+            qbit_diff_generated = generate_qbit_categories(root)
+            qbit_diff_instance.categories.items = merge_with_manual(
+                qbit_diff_instance.categories.items,
+                qbit_diff_generated,
+                app="qbittorrent",
+                resource="categories",
+            )
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_diff_client = QbittorrentClient(
                 base_url=qbit_diff_instance.base_url,
