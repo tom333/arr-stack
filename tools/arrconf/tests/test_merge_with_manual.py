@@ -9,21 +9,53 @@ Three behavioural cases covering the per-resource toggle:
 from __future__ import annotations
 
 import logging
+from collections.abc import Generator
 
 import pytest
 import structlog
+import structlog._config as _sc
 
 from arrconf.reconcilers._shared import merge_with_manual
 
 
 @pytest.fixture(autouse=True)
-def configure_structlog_capture(caplog: pytest.LogCaptureFixture) -> None:
+def configure_structlog_capture(caplog: pytest.LogCaptureFixture) -> Generator[None]:
     """Route structlog output through the standard logger so caplog can capture it.
 
     Note: structlog in the arrconf project is wired in arrconf.logging.configure_logging().
     For tests we keep the default ProcessorFormatter pass-through so log records carry
     the structured kv pairs as attributes on the LogRecord (structlog >= 23).
+
+    Uses structlog.reset_defaults() before reconfiguring to clear any cached bound
+    loggers set by a prior test (e.g. test_cli.py calls configure_logging() with
+    cache_logger_on_first_use=True, caching a JSON-to-stdout chain; without the reset
+    the caplog handler never receives the log records).
+
+    Yields so the teardown block restores the original structlog configuration AND
+    the original module-level ``log`` in _shared.py, preventing this fixture from
+    breaking tests in other modules that run after test_merge_with_manual.py
+    (e.g. test_reconcilers_jellyfin.py::test_reconcile_jellyfin_step_order_invariant
+    uses structlog.testing.capture_logs() which requires the pre-configured structlog
+    chain from configure_logging(), not the stdlib chain set here).
     """
+    import arrconf.reconcilers._shared as _shared_mod
+
+    # Save original _shared.log binding before patching.
+    original_log = _shared_mod.log
+
+    # Save a snapshot of the original structlog _Configuration state so we can
+    # restore it exactly after these tests. The _Configuration object stores the
+    # active config fields as instance attributes.
+    original_config = {
+        "default_processors": _sc._CONFIG.default_processors,
+        "default_context_class": _sc._CONFIG.default_context_class,
+        "default_wrapper_class": _sc._CONFIG.default_wrapper_class,
+        "logger_factory": _sc._CONFIG.logger_factory,
+        "cache_logger_on_first_use": _sc._CONFIG.cache_logger_on_first_use,
+    }
+
+    # Reconfigure structlog to route through stdlib so caplog can capture.
+    structlog.reset_defaults()
     structlog.configure(
         processors=[
             structlog.stdlib.add_log_level,
@@ -34,6 +66,28 @@ def configure_structlog_capture(caplog: pytest.LogCaptureFixture) -> None:
         cache_logger_on_first_use=False,
     )
     caplog.set_level(logging.INFO)
+
+    # Patch the module-level log in _shared to a fresh BoundLogger that binds to
+    # the newly configured stdlib LoggerFactory (cache_logger_on_first_use=False
+    # ensures the next get_logger() call re-evaluates the factory).
+    _shared_mod.log = structlog.get_logger()
+
+    yield
+
+    # Teardown: restore original _shared.log so other test files are not affected.
+    _shared_mod.log = original_log
+
+    # Restore original structlog configuration exactly so tests that run after this
+    # file and use structlog.testing.capture_logs() work correctly.
+    structlog.reset_defaults()
+    _sc._CONFIG.default_processors = original_config["default_processors"]
+    _sc._CONFIG.default_context_class = original_config["default_context_class"]
+    _sc._CONFIG.default_wrapper_class = original_config["default_wrapper_class"]
+    _sc._CONFIG.logger_factory = original_config["logger_factory"]
+    _sc._CONFIG.cache_logger_on_first_use = original_config["cache_logger_on_first_use"]
+    # Re-mark as configured if it was configured before (so subsequent tests that
+    # call configure_logging() don't silently skip due to already-configured guard).
+    _sc._CONFIG.is_configured = True
 
 
 def test_manual_non_empty_wins() -> None:

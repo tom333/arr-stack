@@ -1,7 +1,7 @@
 {
-  "_caveat": "Fixture captures Phase 9 build output with all 10 categories present in arrconf.yml. The fixture values are identical to what a categories-stripped run would produce, which is the D-13 invariant: reconcilers do NOT read RootConfig.categories. The fixture's purpose is to detect regressions during Phase 10 propagation work \u2014 if a reconciler starts reading cfg.categories its output changes and this fixture comparison fails.",
-  "_generated": "2026-05-18 \u2014 Phase 9 SC#4 dispositive baseline (Task C2a)",
-  "_source_yaml": "charts/arr-stack/files/arrconf.yml with 10 production categories populated",
+  "_caveat": "Phase 10 baseline: 10 categories present in arrconf.yml + flat sections also present. Override merge default-empty path means Categories-derived items take effect ONLY where the flat-section items[] list is empty. Production has BOTH active during the transition window \u2014 this baseline captures that mixed state.\nFixture uses v0.2.0 cluster state mocks (Phase 9 fixtures). ADD actions for Phase 10 resources are expected (not yet in cluster). If UPDATE/DELETE appear here, that is a regression (FP bug).",
+  "_generated": "2026-05-20",
+  "_source_yaml": "charts/arr-stack/files/arrconf.yml",
   "jellyfin": {
     "actions_taken": [],
     "completed": true

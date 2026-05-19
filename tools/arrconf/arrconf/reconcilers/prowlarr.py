@@ -74,6 +74,14 @@ PROWLARR_APP_MANAGED_FIELDS: frozenset[str] = frozenset(
     }
 )
 
+# B2b sub-field allowlist: names of FieldKV entries that the reconciler manages.
+# Prowlarr's GET /applications response carries many extra fields (syncCategories,
+# importListSyncInterval, animeSyncCategories, etc.) that _build_desired_application
+# never sets. Without this filter, diff_models compares the full cluster fields[]
+# list against the 3 desired entries and flags "fields" as drifted on every run.
+# This is the sub-key complement to the top-level PROWLARR_APP_MANAGED_FIELDS filter.
+PROWLARR_APP_MANAGED_FIELD_NAMES: frozenset[str] = frozenset({"prowlarrUrl", "baseUrl", "apiKey"})
+
 
 @dataclass
 class ProwlarrResult:
@@ -209,10 +217,21 @@ def reconcile_prowlarr(
     # Pass "id" through alongside PROWLARR_APP_MANAGED_FIELDS: it is exclude=True
     # (not a diff key) but _execute needs p.current.id for PUT routing.
     _app_keep = PROWLARR_APP_MANAGED_FIELDS | {"id"}
-    current_apps = [
-        Application.model_validate({k: v for k, v in x.items() if k in _app_keep})
-        for x in raw_current
-    ]
+    current_apps = []
+    for x in raw_current:
+        filtered = {k: v for k, v in x.items() if k in _app_keep}
+        # B2b (sub-field allowlist): also filter cluster fields[] to managed names only.
+        # Prowlarr returns 10+ FieldKV entries per application (syncCategories,
+        # importListSyncInterval, etc.); desired only has 3 (prowlarrUrl, baseUrl,
+        # apiKey). Without this filter, diff_models flags "fields" as drifted on
+        # every reconcile even when the 3 managed fields are unchanged.
+        if "fields" in filtered and isinstance(filtered["fields"], list):
+            filtered["fields"] = [
+                f
+                for f in filtered["fields"]
+                if isinstance(f, dict) and f.get("name") in PROWLARR_APP_MANAGED_FIELD_NAMES
+            ]
+        current_apps.append(Application.model_validate(filtered))
 
     plan = reconcile(
         current=current_apps,

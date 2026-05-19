@@ -407,6 +407,18 @@
           "default": null,
           "title": "Order"
         },
+        "placeholder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Placeholder"
+        },
         "privacy": {
           "anyOf": [
             {

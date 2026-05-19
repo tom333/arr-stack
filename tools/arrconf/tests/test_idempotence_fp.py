@@ -177,7 +177,10 @@ def test_seerr_user_fp_fix_no_op_on_extras() -> None:
 
 # ===== FP #2: Prowlarr Application =====
 
-from arrconf.reconcilers.prowlarr import PROWLARR_APP_MANAGED_FIELDS  # noqa: E402
+from arrconf.reconcilers.prowlarr import (  # noqa: E402
+    PROWLARR_APP_MANAGED_FIELD_NAMES,
+    PROWLARR_APP_MANAGED_FIELDS,
+)
 
 
 def test_prowlarr_app_managed_fields_constant() -> None:
@@ -193,6 +196,11 @@ def test_prowlarr_app_managed_fields_constant() -> None:
             "tags",
         }
     )
+
+
+def test_prowlarr_app_managed_field_names_constant() -> None:
+    """PROWLARR_APP_MANAGED_FIELD_NAMES exposes the 3 managed sub-fields (B2b allowlist)."""
+    assert PROWLARR_APP_MANAGED_FIELD_NAMES == frozenset({"prowlarrUrl", "baseUrl", "apiKey"})
 
 
 def test_prowlarr_app_fp_fix_no_op_on_extras() -> None:
@@ -247,6 +255,85 @@ def test_prowlarr_app_fp_fix_no_op_on_extras() -> None:
         assert p.action == Action.NO_OP, (
             f"FP #2 NOT FIXED: plan action {p.action} for {p.name} "
             f"(diff_fields={p.diff_fields}). Expected NO_OP."
+        )
+
+
+def test_prowlarr_app_subfield_fp_fix_no_op_on_extra_fields() -> None:
+    """FP #2 sub-field filter (B2b): cluster fields[] with extras does not trigger UPDATE.
+
+    Prowlarr GET /applications returns 10+ FieldKV entries per app
+    (syncCategories, importListSyncInterval, animeSyncCategories, etc.).
+    The reconciler only manages 3 (prowlarrUrl, baseUrl, apiKey).
+    Without the sub-field allowlist, diff_models flags "fields" as drifted
+    on every run even when the 3 managed fields are unchanged.
+
+    Mirrors the callsite logic in reconcile_prowlarr: filter cluster fields[]
+    to PROWLARR_APP_MANAGED_FIELD_NAMES before model_validate.
+    """
+    from arrconf.differ import Action, reconcile
+    from arrconf.resources.prowlarr.application import Application
+    from arrconf.resources.sonarr.download_client import FieldKV
+
+    # Cluster response with 3 managed fields + many extras (realistic production shape):
+    cluster_with_extra_fields = [
+        {
+            "id": 1,
+            "name": "Sonarr",
+            "enable": True,
+            "implementation": "Sonarr",
+            "configContract": "SonarrSettings",
+            "syncLevel": "fullSync",
+            "tags": [],
+            "fields": [
+                {"name": "prowlarrUrl", "value": "http://prowlarr:9696"},
+                {"name": "baseUrl", "value": "http://sonarr:8989"},
+                {"name": "apiKey", "value": "secret-key", "privacy": "apiKey"},
+                # extras causing FP #2 sub-field drift:
+                {"name": "syncCategories", "value": [5000, 5030]},
+                {"name": "importListSyncInterval", "value": 60},
+                {"name": "animeSyncCategories", "value": [5070]},
+                {"name": "searchFallback", "value": False},
+                {"name": "syncRejectBlocklistedTorrentHashesWhileGrabbing", "value": False},
+            ],
+        }
+    ]
+
+    desired = [
+        Application(
+            name="Sonarr",
+            enable=True,
+            implementation="Sonarr",
+            configContract="SonarrSettings",
+            syncLevel="fullSync",
+            fields=[
+                FieldKV(name="prowlarrUrl", value="http://prowlarr:9696"),
+                FieldKV(name="baseUrl", value="http://sonarr:8989"),
+                FieldKV(name="apiKey", value="secret-key", privacy="apiKey"),
+            ],
+            tags=[],
+        ),
+    ]
+
+    # Mirror the reconcile_prowlarr filter callsite (B2 + B2b):
+    _app_keep = PROWLARR_APP_MANAGED_FIELDS | {"id"}
+    current_apps = []
+    for x in cluster_with_extra_fields:
+        filtered = {k: v for k, v in x.items() if k in _app_keep}
+        if "fields" in filtered and isinstance(filtered["fields"], list):
+            filtered["fields"] = [
+                f
+                for f in filtered["fields"]
+                if isinstance(f, dict) and f.get("name") in PROWLARR_APP_MANAGED_FIELD_NAMES
+            ]
+        current_apps.append(Application.model_validate(filtered))
+
+    plan = reconcile(current=current_apps, desired=desired, match_key="name", prune=False)
+    assert plan, "reconcile returned empty plan"
+    for p in plan:
+        assert p.action == Action.NO_OP, (
+            f"FP #2 sub-field NOT FIXED: plan action {p.action} for {p.name} "
+            f"(diff_fields={p.diff_fields}). Expected NO_OP — extra fields[] entries "
+            "must be filtered before model_validate."
         )
 
 

@@ -34,6 +34,10 @@ class FieldKV(BaseModel):
     privacy: str | None = Field(default=None, exclude=True)
     selectOptions: list[dict[str, Any]] | None = Field(default=None, exclude=True)
     isFloat: bool | None = Field(default=None, exclude=True)
+    # placeholder is a UI-only hint shown in empty text boxes (e.g., "http://localhost:9696").
+    # It is returned by Prowlarr's GET /applications but is not a managed field — exclude
+    # from diff and dump (same rationale as label/helpText/order).
+    placeholder: str | None = Field(default=None, exclude=True)
 
 
 class DownloadClient(BaseModel):
