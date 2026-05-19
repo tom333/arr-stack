@@ -1,0 +1,83 @@
+{
+  "cleanuparr-unlinked": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "cleanuparr-unlinked",
+    "ratio_limit": -2,
+    "savePath": "",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr",
+    "ratio_limit": -2,
+    "savePath": "",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr-anime": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr-anime",
+    "ratio_limit": -2,
+    "savePath": "/data/films-anime",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr-family": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr-family",
+    "ratio_limit": -2,
+    "savePath": "/data/films-family",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr-movies": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr-movies",
+    "ratio_limit": -2,
+    "savePath": "/data/films",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr",
+    "ratio_limit": -2,
+    "savePath": "",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr-anime": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr-anime",
+    "ratio_limit": -2,
+    "savePath": "/data/anime",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr-family": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr-family",
+    "ratio_limit": -2,
+    "savePath": "/data/family",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr-tv": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr-tv",
+    "ratio_limit": -2,
+    "savePath": "/data/series",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  }
+}

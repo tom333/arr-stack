@@ -1,0 +1,14 @@
+[
+  {
+    "disabledTill": "2026-05-19T20:21:27Z",
+    "indexerId": 1,
+    "initialFailure": "2026-05-12T19:52:03Z",
+    "mostRecentFailure": "2026-05-18T20:21:27Z"
+  },
+  {
+    "disabledTill": "2026-05-19T22:26:57Z",
+    "indexerId": 3,
+    "initialFailure": "2026-04-24T17:49:26Z",
+    "mostRecentFailure": "2026-05-18T22:26:57Z"
+  }
+]
