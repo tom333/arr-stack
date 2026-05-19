@@ -24,7 +24,11 @@ from arrconf.exceptions import (
     ReconcileError,
     ScopeViolationError,
 )
-from arrconf.generators.categories import generate_qbit_categories, generate_sonarr_resources
+from arrconf.generators.categories import (
+    generate_qbit_categories,
+    generate_radarr_resources,
+    generate_sonarr_resources,
+)
 from arrconf.logging import configure_logging
 from arrconf.reconcilers._shared import merge_with_manual
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -175,6 +179,35 @@ def apply(
     # NEW: Radarr branch (Plan 06 wiring — D-03-01 full parity).
     if "radarr" in targets and "main" in root.radarr:
         radarr_instance = root.radarr["main"]
+        # Phase 10 pre-merge (D-01/D-02): Categories->Radarr 4 resources.
+        # Mirror of Sonarr pre-merge (Plan 10-D) — kind="movies" filter in generator.
+        # Each resource has its own merge_with_manual toggle so the operator
+        # can override one resource (e.g. tags) without losing the others.
+        radarr_derived = generate_radarr_resources(root)
+        radarr_instance.tags.items = merge_with_manual(
+            radarr_instance.tags.items,
+            radarr_derived.tags,
+            app="radarr",
+            resource="tags",
+        )
+        radarr_instance.root_folders.items = merge_with_manual(
+            radarr_instance.root_folders.items,
+            radarr_derived.root_folders,
+            app="radarr",
+            resource="root_folders",
+        )
+        radarr_instance.download_clients.items = merge_with_manual(
+            radarr_instance.download_clients.items,
+            radarr_derived.download_clients,
+            app="radarr",
+            resource="download_clients",
+        )
+        radarr_instance.remote_path_mappings.items = merge_with_manual(
+            radarr_instance.remote_path_mappings.items,
+            radarr_derived.remote_path_mappings,
+            app="radarr",
+            resource="remote_path_mappings",
+        )
         if not settings.radarr_api_key:
             log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
             raise typer.Exit(code=2)
@@ -466,6 +499,33 @@ def diff(
     # NEW: Radarr diff.
     if "radarr" in targets and "main" in root.radarr:
         radarr_diff_instance = root.radarr["main"]
+        # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape
+        # as apply to avoid false drift between the two commands (D-01/D-02).
+        radarr_diff_derived = generate_radarr_resources(root)
+        radarr_diff_instance.tags.items = merge_with_manual(
+            radarr_diff_instance.tags.items,
+            radarr_diff_derived.tags,
+            app="radarr",
+            resource="tags",
+        )
+        radarr_diff_instance.root_folders.items = merge_with_manual(
+            radarr_diff_instance.root_folders.items,
+            radarr_diff_derived.root_folders,
+            app="radarr",
+            resource="root_folders",
+        )
+        radarr_diff_instance.download_clients.items = merge_with_manual(
+            radarr_diff_instance.download_clients.items,
+            radarr_diff_derived.download_clients,
+            app="radarr",
+            resource="download_clients",
+        )
+        radarr_diff_instance.remote_path_mappings.items = merge_with_manual(
+            radarr_diff_instance.remote_path_mappings.items,
+            radarr_diff_derived.remote_path_mappings,
+            app="radarr",
+            resource="remote_path_mappings",
+        )
         if not settings.radarr_api_key:
             log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
             raise typer.Exit(code=2)
