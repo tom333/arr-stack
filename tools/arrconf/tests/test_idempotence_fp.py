@@ -173,3 +173,117 @@ def test_seerr_user_fp_fix_no_op_on_extras() -> None:
 
     # FP fix dispositive: no actions taken because cluster_filtered == put_body.
     assert result == [], f"FP #3 NOT FIXED: _reconcile_user emitted {result}"
+
+
+# ===== FP #2: Prowlarr Application =====
+
+from arrconf.reconcilers.prowlarr import PROWLARR_APP_MANAGED_FIELDS  # noqa: E402
+
+
+def test_prowlarr_app_managed_fields_constant() -> None:
+    """PROWLARR_APP_MANAGED_FIELDS exposes the 7 managed top-level fields."""
+    assert PROWLARR_APP_MANAGED_FIELDS == frozenset(
+        {
+            "name",
+            "enable",
+            "implementation",
+            "configContract",
+            "syncLevel",
+            "fields",
+            "tags",
+        }
+    )
+
+
+def test_prowlarr_app_fp_fix_no_op_on_extras() -> None:
+    """FP #2: cluster GET with server-side extras (presets, message, etc.) -> no UPDATE.
+
+    Verifies that filtering to PROWLARR_APP_MANAGED_FIELDS before model_validate
+    drops the extra top-level keys so the differ doesn't see them as drift.
+    """
+    from arrconf.differ import Action, reconcile
+    from arrconf.reconcilers.prowlarr import PROWLARR_APP_MANAGED_FIELDS
+    from arrconf.resources.prowlarr.application import Application
+
+    cluster_with_extras = [
+        {
+            "id": 1,
+            "name": "Sonarr",
+            "enable": True,
+            "implementation": "Sonarr",
+            "configContract": "SonarrSettings",
+            "syncLevel": "fullSync",
+            "fields": [],
+            "tags": [],
+            # extras causing FP #2:
+            "implementationName": "Sonarr",
+            "infoLink": "https://wiki.servarr.com/prowlarr/applications",
+            "presets": None,
+            "message": None,
+        },
+    ]
+
+    desired = [
+        Application(
+            name="Sonarr",
+            enable=True,
+            implementation="Sonarr",
+            configContract="SonarrSettings",
+            syncLevel="fullSync",
+            fields=[],
+            tags=[],
+        ),
+    ]
+
+    # Apply the FP fix filter (mirrors the prowlarr.py callsite):
+    current_apps = [
+        Application.model_validate({k: v for k, v in x.items() if k in PROWLARR_APP_MANAGED_FIELDS})
+        for x in cluster_with_extras
+    ]
+
+    plan = reconcile(current=current_apps, desired=desired, match_key="name", prune=False)
+    assert plan, "reconcile returned empty plan"
+    for p in plan:
+        assert p.action == Action.NO_OP, (
+            f"FP #2 NOT FIXED: plan action {p.action} for {p.name} "
+            f"(diff_fields={p.diff_fields}). Expected NO_OP."
+        )
+
+
+def test_prowlarr_app_real_change_still_detected() -> None:
+    """Sanity: managed field drift (syncLevel: fullSync -> disabled) still fires UPDATE."""
+    from arrconf.differ import Action, reconcile
+    from arrconf.reconcilers.prowlarr import PROWLARR_APP_MANAGED_FIELDS
+    from arrconf.resources.prowlarr.application import Application
+
+    cluster = [
+        {
+            "id": 1,
+            "name": "Sonarr",
+            "enable": True,
+            "implementation": "Sonarr",
+            "configContract": "SonarrSettings",
+            "syncLevel": "fullSync",
+            "fields": [],
+            "tags": [],
+        },
+    ]
+    desired = [
+        Application(
+            name="Sonarr",
+            enable=True,
+            implementation="Sonarr",
+            configContract="SonarrSettings",
+            syncLevel="disabled",
+            fields=[],
+            tags=[],
+        )
+    ]
+
+    current_apps = [
+        Application.model_validate({k: v for k, v in x.items() if k in PROWLARR_APP_MANAGED_FIELDS})
+        for x in cluster
+    ]
+    plan = reconcile(current=current_apps, desired=desired, match_key="name", prune=False)
+    update_actions = [p for p in plan if p.action == Action.UPDATE]
+    assert len(update_actions) == 1, f"Real change not detected; plan={plan}"

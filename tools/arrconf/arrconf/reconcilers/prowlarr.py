@@ -51,6 +51,29 @@ log = structlog.get_logger()
 
 APPLICATIONS_PATH = "/applications"
 
+# B2 allowlist: top-level managed fields on Prowlarr Application (D-04b FP fix #2).
+# Why a frozenset and not Model.model_fields.keys() (B1)?
+# Application uses extra="allow" — cluster GET responses carry server-side
+# fields (presets, message, plus implementationName/infoLink/id which are
+# already exclude=True). Those keys round-trip via __pydantic_extra__ and
+# cause spurious UPDATE plans on every run (Phase 5 deviation context).
+# Filter the cluster dict to managed fields BEFORE Application.model_validate.
+#
+# Note: this allowlist is TOP-LEVEL only. Drift inside fields[] (FieldKV
+# sub-object extras like helpText, advanced, order, type) is already handled
+# by FieldKV's existing exclude=True on those metadata fields.
+PROWLARR_APP_MANAGED_FIELDS: frozenset[str] = frozenset(
+    {
+        "name",
+        "enable",
+        "implementation",
+        "configContract",
+        "syncLevel",
+        "fields",
+        "tags",
+    }
+)
+
 
 @dataclass
 class ProwlarrResult:
@@ -180,7 +203,16 @@ def reconcile_prowlarr(
     ]
 
     raw_current = client.get(APPLICATIONS_PATH)
-    current_apps = [Application.model_validate(x) for x in raw_current]
+    # FP fix #2 (D-04b B2): filter cluster dict to managed top-level fields BEFORE
+    # model_validate. Application is extra="allow" so unmanaged keys (presets, message,
+    # etc.) would round-trip and cause spurious UPDATE on every reconcile.
+    # Pass "id" through alongside PROWLARR_APP_MANAGED_FIELDS: it is exclude=True
+    # (not a diff key) but _execute needs p.current.id for PUT routing.
+    _app_keep = PROWLARR_APP_MANAGED_FIELDS | {"id"}
+    current_apps = [
+        Application.model_validate({k: v for k, v in x.items() if k in _app_keep})
+        for x in raw_current
+    ]
 
     plan = reconcile(
         current=current_apps,
