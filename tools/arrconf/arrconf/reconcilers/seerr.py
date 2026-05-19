@@ -60,6 +60,24 @@ SETTINGS_RADARR_PATH = "/settings/radarr"
 SETTINGS_MAIN_PATH = "/settings/main"
 USER_PATH = "/user"
 
+# B2 allowlist: writable fields on SeerrUser (D-04b FP fix #3).
+# Why a frozenset and not Model.model_fields.keys() (B1)?
+# SeerrUser uses extra="allow" — cluster GET responses carry server-side
+# fields not in our model (settings, avatar*, requestCount, warnings,
+# timestamps). Those keys round-trip through __pydantic_extra__ and used
+# to cause spurious UPDATE plans on every reconcile run (D-06-SEERR-USER-FP).
+# Filter admin_current to managed fields BEFORE _payloads_equivalent.
+SEERR_USER_MANAGED_FIELDS: frozenset[str] = frozenset(
+    {
+        "displayName",
+        "permissions",
+        "movieQuotaDays",
+        "movieQuotaLimit",
+        "tvQuotaDays",
+        "tvQuotaLimit",
+    }
+)
+
 
 @dataclass
 class SeerrResult:
@@ -253,8 +271,11 @@ def _reconcile_user(
     desired_user: SeerrUser = section.admin
     put_body = desired_user.model_dump()  # 16 read-only fields excluded
 
-    # Compare against the cluster row on the desired keys only.
-    if _payloads_equivalent(admin_current, put_body):
+    # FP fix #3 (D-06-SEERR-USER-FP): filter cluster dict to managed fields
+    # BEFORE comparison. extra="allow" lets server-side keys (settings, avatar*,
+    # requestCount, etc.) leak through and cause spurious UPDATEs on every run.
+    cluster_filtered = {k: v for k, v in admin_current.items() if k in SEERR_USER_MANAGED_FIELDS}
+    if _payloads_equivalent(cluster_filtered, put_body):
         log.info("user_no_op", user_id=user_id)
         return []
 

@@ -4,8 +4,8 @@ Each FP fix gets one focused test asserting that cluster GET responses with
 extra (server-side) fields no longer cause spurious UPDATE plans.
 
 Coverage:
-- test_qbit_category_fp_fix (FP #1 — Plan 10-C) <- THIS TASK
-- test_seerr_user_fp_fix    (FP #3 — Plan 10-F, to be added)
+- test_qbit_category_fp_fix (FP #1 — Plan 10-C)
+- test_seerr_user_fp_fix    (FP #3 — Plan 10-F)
 - test_prowlarr_app_fp_fix  (FP #2 — Plan 10-H, to be added)
 """
 
@@ -89,3 +89,87 @@ def test_qbit_category_fp_fix_no_op_on_extras() -> None:
             f"FP #1 NOT FIXED: plan action {p.action} for {p.name} "
             f"(diff_fields={p.diff_fields}). Expected NO_OP."
         )
+
+
+# ===== FP #3: Seerr user =====
+
+from arrconf.reconcilers.seerr import SEERR_USER_MANAGED_FIELDS  # noqa: E402
+
+
+def test_seerr_user_managed_fields_constant() -> None:
+    """SEERR_USER_MANAGED_FIELDS exposes exactly the 6 writable fields."""
+    assert SEERR_USER_MANAGED_FIELDS == frozenset(
+        {
+            "displayName",
+            "permissions",
+            "movieQuotaDays",
+            "movieQuotaLimit",
+            "tvQuotaDays",
+            "tvQuotaLimit",
+        }
+    )
+
+
+def test_seerr_user_fp_fix_no_op_on_extras() -> None:
+    """FP #3: cluster GET returns extras (settings, avatar, requestCount, timestamps).
+
+    Pre-fix: admin_current carried all extra keys → _payloads_equivalent saw
+    them in current but not in put_body → returned False → spurious UPDATE.
+    Post-fix: cluster_filtered limited to SEERR_USER_MANAGED_FIELDS → equivalent.
+    """
+    import respx
+
+    from arrconf.client_base import SeerrClient
+    from arrconf.config import SeerrUsersSection
+    from arrconf.reconcilers.seerr import _reconcile_user
+    from arrconf.resources.seerr import SeerrUser
+
+    base_url = "http://seerr.test:5055"
+    cluster_with_extras = [
+        {
+            "id": 1,
+            "displayName": "Admin",
+            "permissions": 2,
+            "movieQuotaDays": None,
+            "movieQuotaLimit": None,
+            "tvQuotaDays": None,
+            "tvQuotaLimit": None,
+            # extras that USED to cause FP:
+            "username": "admin",
+            "email": "admin@example.com",
+            "userType": 1,
+            "plexId": None,
+            "jellyfinUserId": None,
+            "avatar": "/avatars/1.png",
+            "avatarETag": "abc123",
+            "avatarVersion": 5,
+            "createdAt": "2026-01-01T00:00:00Z",
+            "updatedAt": "2026-05-19T12:00:00Z",
+            "requestCount": 14,
+            "warnings": [],
+            "settings": {"notifications": True},
+        }
+    ]
+
+    with respx.mock(base_url=f"{base_url}/api/v1") as router:
+        router.get("/user").respond(json=cluster_with_extras)
+        # No PUT mock — if FP fires, the test fails because the unhandled request raises.
+
+        client = SeerrClient(base_url=base_url, api_key="test-key")
+
+        section = SeerrUsersSection(
+            enable=True,
+            admin=SeerrUser(
+                displayName="Admin",
+                permissions=2,
+                movieQuotaDays=None,
+                movieQuotaLimit=None,
+                tvQuotaDays=None,
+                tvQuotaLimit=None,
+            ),
+        )
+
+        result = _reconcile_user(client, section, dry_run=False)
+
+    # FP fix dispositive: no actions taken because cluster_filtered == put_body.
+    assert result == [], f"FP #3 NOT FIXED: _reconcile_user emitted {result}"
