@@ -24,7 +24,7 @@ from arrconf.exceptions import (
     ReconcileError,
     ScopeViolationError,
 )
-from arrconf.generators.categories import generate_qbit_categories
+from arrconf.generators.categories import generate_qbit_categories, generate_sonarr_resources
 from arrconf.logging import configure_logging
 from arrconf.reconcilers._shared import merge_with_manual
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -123,6 +123,34 @@ def apply(
 
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
+        # Phase 10 pre-merge (D-01/D-02): Categories->Sonarr 4 resources.
+        # Each resource has its own merge_with_manual toggle so the operator
+        # can override one resource (e.g. tags) without losing the others.
+        sonarr_derived = generate_sonarr_resources(root)
+        instance.tags.items = merge_with_manual(
+            instance.tags.items,
+            sonarr_derived.tags,
+            app="sonarr",
+            resource="tags",
+        )
+        instance.root_folders.items = merge_with_manual(
+            instance.root_folders.items,
+            sonarr_derived.root_folders,
+            app="sonarr",
+            resource="root_folders",
+        )
+        instance.download_clients.items = merge_with_manual(
+            instance.download_clients.items,
+            sonarr_derived.download_clients,
+            app="sonarr",
+            resource="download_clients",
+        )
+        instance.remote_path_mappings.items = merge_with_manual(
+            instance.remote_path_mappings.items,
+            sonarr_derived.remote_path_mappings,
+            app="sonarr",
+            resource="remote_path_mappings",
+        )
         # Fast-fail when SONARR_API_KEY missing — no silent fallback to "" (CLAUDE.md
         # "no silent failures"). Symptom of the old fallback: 401 from upstream with
         # no clear hint that env was missing.
@@ -391,6 +419,33 @@ def diff(
     max_code = 0
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
+        # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape
+        # as apply to avoid false drift between the two commands (D-01/D-02).
+        sonarr_diff_derived = generate_sonarr_resources(root)
+        instance.tags.items = merge_with_manual(
+            instance.tags.items,
+            sonarr_diff_derived.tags,
+            app="sonarr",
+            resource="tags",
+        )
+        instance.root_folders.items = merge_with_manual(
+            instance.root_folders.items,
+            sonarr_diff_derived.root_folders,
+            app="sonarr",
+            resource="root_folders",
+        )
+        instance.download_clients.items = merge_with_manual(
+            instance.download_clients.items,
+            sonarr_diff_derived.download_clients,
+            app="sonarr",
+            resource="download_clients",
+        )
+        instance.remote_path_mappings.items = merge_with_manual(
+            instance.remote_path_mappings.items,
+            sonarr_diff_derived.remote_path_mappings,
+            app="sonarr",
+            resource="remote_path_mappings",
+        )
         # Fast-fail when SONARR_API_KEY missing — mirrors apply/dump branches.
         if not settings.sonarr_api_key:
             log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
