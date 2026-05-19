@@ -27,6 +27,7 @@ from arrconf.exceptions import (
 )
 from arrconf.generators.categories import (
     generate_anime_tag_labels,
+    generate_jellyfin_libraries,
     generate_qbit_categories,
     generate_radarr_resources,
     generate_sonarr_resources,
@@ -432,6 +433,17 @@ def apply(
             from arrconf.reconcilers.jellyfin import reconcile_jellyfin  # noqa: PLC0415
 
             jellyfin_instance = root.jellyfin["main"]
+            # Phase 10 pre-merge (D-01/D-02): Categories->Jellyfin 2 super-libraries.
+            # 'Séries' = kind=series base_paths (5); 'Films' = kind=movies base_paths (5).
+            # Existing _reconcile_libraries set-membership shim (Pitfall 2) handles
+            # the path-already-present case correctly — no change to reconciler needed.
+            jellyfin_generated = generate_jellyfin_libraries(root)
+            jellyfin_instance.libraries.items = merge_with_manual(
+                jellyfin_instance.libraries.items,
+                jellyfin_generated,
+                app="jellyfin",
+                resource="libraries",
+            )
             jellyfin_api_key = settings.jellyfin_api_key.get_secret_value()
             jellyfin_client = JellyfinClient(
                 base_url=jellyfin_instance.base_url,
@@ -722,6 +734,15 @@ def diff(
     # Phase 7: Jellyfin diff branch (D-07-INSTANCE-01, SC#4 dispositive).
     if "jellyfin" in targets and "main" in root.jellyfin:
         jellyfin_diff_instance = root.jellyfin["main"]
+        # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape as apply
+        # to avoid false drift between the two commands (D-01/D-02).
+        jellyfin_diff_generated = generate_jellyfin_libraries(root)
+        jellyfin_diff_instance.libraries.items = merge_with_manual(
+            jellyfin_diff_instance.libraries.items,
+            jellyfin_diff_generated,
+            app="jellyfin",
+            resource="libraries",
+        )
         if not settings.jellyfin_api_key:
             log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
             raise typer.Exit(code=2)
