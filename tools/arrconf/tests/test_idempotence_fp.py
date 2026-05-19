@@ -11,6 +11,8 @@ Coverage:
 
 from __future__ import annotations
 
+from typing import Any
+
 from arrconf.differ import Action, reconcile
 from arrconf.reconcilers.qbittorrent import (
     QBIT_CATEGORY_MANAGED_FIELDS,
@@ -22,10 +24,10 @@ from arrconf.resources.qbittorrent.category import Category
 class _StubClient:
     """Minimal QbittorrentClient stand-in for unit testing _fetch_current_categories."""
 
-    def __init__(self, raw: dict[str, dict[str, object]]) -> None:
+    def __init__(self, raw: dict[str, dict[str, Any]]) -> None:
         self._raw = raw
 
-    def get(self, _path: str) -> dict[str, dict[str, object]]:
+    def get(self, _path: str) -> dict[str, dict[str, Any]]:
         return self._raw
 
 

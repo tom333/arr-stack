@@ -49,6 +49,16 @@ REMOVE_CATEGORIES_PATH = "/torrents/removeCategories"
 APP_PREFERENCES_PATH = "/app/preferences"
 SET_PREFERENCES_PATH = "/app/setPreferences"
 
+# B2 allowlist: fields arrconf manages on qBit Category (D-04b FP fix #1).
+# Why a frozenset and not Model.model_fields.keys() (B1)?
+# Category uses extra="allow" — cluster GET responses carry download_path,
+# ratio_limit, inactive_seeding_time_limit, seeding_time_limit,
+# share_limit_action (verified in tests/fixtures/qbittorrent/categories.json).
+# Those extra keys round-trip via __pydantic_extra__ and cause spurious
+# UPDATE plans on every run (FP #1). Filter the cluster dict to the managed
+# fields BEFORE Category.model_validate() so the comparator sees a clean view.
+QBIT_CATEGORY_MANAGED_FIELDS: frozenset[str] = frozenset({"name", "savePath"})
+
 
 # ---------------------------------------------------------------------------
 # Result type
@@ -79,10 +89,16 @@ def _fetch_current_categories(client: QbittorrentClient) -> list[Category]:
     qBit returns a dict keyed by category name:
         {"sonarr-tv": {"name": "sonarr-tv", "savePath": "/data/series"}, ...}
 
-    We normalize to list[Category] using model_validate on each value.
+    qBit 5.1+ adds extra keys (download_path, ratio_limit, seeding_time_limit,
+    share_limit_action) — Category model is extra="allow" so they round-trip
+    through model_dump and cause FP #1 (Phase 5 SC#5 deviation, 14 update events).
+    Filter to QBIT_CATEGORY_MANAGED_FIELDS BEFORE model_validate (D-04b B2 fix).
     """
     raw = client.get(CATEGORIES_PATH)
-    return [Category.model_validate(v) for v in raw.values()]
+    return [
+        Category.model_validate({k: v for k, v in obj.items() if k in QBIT_CATEGORY_MANAGED_FIELDS})
+        for obj in raw.values()
+    ]
 
 
 # ---------------------------------------------------------------------------
