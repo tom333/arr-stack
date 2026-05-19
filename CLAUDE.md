@@ -146,6 +146,50 @@ Une convention par app, MAJUSCULE :
 
 **Aucune** lecture de fichier de secrets — uniquement env. Le wrapping K8s (`envFrom: secretRef`) injecte tout.
 
+### Release pin co-bump pattern
+
+**Règle :** lorsqu'un commit modifie des fichiers sous `tools/arrconf/**` (code Python, Dockerfile, pyproject.toml), il doit **également** bumper `charts/arr-stack/values.yaml#arrconf.image.tag` dans **le même commit**. Clôture D-07-CHART-PIN-LOOP (CF-07-1, STATE.md §"Phase 7 deviations").
+
+**Pourquoi ?** Le workflow `chart-lint.yml` utilise `mathieudutour/github-tag-action` pour créer automatiquement un tag semver sur chaque push vers `main` — AVANT que les `values.yaml` ne soient réévalués. Sans co-bump, la chaîne de release devient :
+
+1. Push → auto-tag `vX.Y.(Z+1)` créé
+2. Renovate sur my-kluster ouvre une PR `targetRevision: vX.Y.(Z+1)`
+3. ArgoCD sync → le pod arrconf démarre avec l'image `vX.Y.(Z+1)` **mais** `values.yaml#arrconf.image.tag` pointe encore sur `vX.Y.Z` → arrconf pod reste sur l'ancienne version
+4. Un second commit sur arr-stack doit bumper `values.yaml`, déclenchant un deuxième auto-tag et une deuxième PR Renovate sur my-kluster
+
+Avec le co-bump, le nouveau tag d'image est déjà inscrit dans `values.yaml` au moment où l'auto-tag se crée → **un seul cycle de release** (1 PR Renovate, 1 ArgoCD sync).
+
+**Comment :**
+
+```yaml
+# charts/arr-stack/values.yaml
+arrconf:
+  image:
+    # renovate: image=ghcr.io/tom333/arr-stack-arrconf
+    repository: ghcr.io/tom333/arr-stack-arrconf
+    tag: 0.6.6   # ← bumper ici dans le même commit que le code Python
+```
+
+- **Patch bump** (e.g. `0.6.5 → 0.6.6`) : correctif ou fix idempotence (FP fix)
+- **Minor bump** (e.g. `0.6.x → 0.7.0`) : nouveau reconciler ou nouvelle feature
+- **Major bump** (e.g. `0.x → 1.0`) : jalon majeur ou breaking change d'API
+
+**Historique de référence :**
+
+| Commit | Transition | Contexte |
+|--------|-----------|----------|
+| `de904c9` | `0.5.0 → 0.5.3` | Phase 9-D — pilote CF-07-1 (D-07-CHART-PIN-LOOP closure) |
+| Phase 10-C | `0.5.3 → 0.6.0` | qBittorrent categories wiring |
+| Phase 10-D | `0.6.0 → 0.6.1` | Sonarr categories wiring |
+| Phase 10-E | `0.6.1 → 0.6.2` | Radarr categories wiring |
+| Phase 10-F | `0.6.2 → 0.6.3` | Seerr anime tags FP fix |
+| Phase 10-G | `0.6.3 → 0.6.4` | Jellyfin categories wiring |
+| Phase 10-H | `0.6.4 → 0.6.5` | Prowlarr FP fix |
+
+**Exception :** un commit qui ne modifie que des fichiers `.md`, `values.yaml` (hors arrconf), ou des fichiers hors `tools/arrconf/**` **ne doit PAS** bumper `arrconf.image.tag`. Le tag n'évolue pas si l'image n'évolue pas.
+
+**Critique :** ne jamais supprimer ni déplacer l'annotation `# renovate: image=ghcr.io/tom333/arr-stack-arrconf` au-dessus de `repository:` — Renovate en a besoin pour suivre l'image. Voir § "Annotations Renovate" dans "Conventions Helm".
+
 ---
 
 ## Conventions Helm — umbrella chart
