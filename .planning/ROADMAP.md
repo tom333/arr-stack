@@ -53,7 +53,7 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
 ### Phase checklist
 
 - [ ] **Phase 9: Categories data model + chart initContainer** — Pydantic schema, 10-category declaration, progressive migration coexistence, chart initContainer, operator migration procedure
-- [ ] **Phase 10: Categories → 6-app propagation** — qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin reconcilers extended; idempotence FP fix; chart-pin pre-bump pattern
+- [x] **Phase 10: Categories → 6-app propagation** — qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin reconcilers extended; idempotence FP fix; chart-pin pre-bump pattern (completed 2026-05-19)
 - [ ] **Phase 11: Operational polish bundle** — ArgoCD selfHeal/prune re-enable, ConfigMap cruft cleanup, ruff-format CI gate, paths-filter, Renovate App install, snapshot redaction harden, README onboarding refresh
 
 ## Phase Details
@@ -86,16 +86,16 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
   4. configarr config in `charts/arr-stack/files/configarr.yml` references exactly 3 quality profiles per instance (`General`, `Anime`, `Family`) derived from the union of `profile` values in `categories[]`; the frontière ADR-5 is intact (no quality_profiles written by arrconf).
   5. Each Phase 10 arrconf-code commit includes a simultaneous `charts/arr-stack/values.yaml#arrconf.image.tag` pre-bump in the same commit, producing a single my-kluster `targetRevision` bump per phase (D-07-CHART-PIN-LOOP closure evidence).
 **Plans**: 10 plans
-- [ ] 10-A-generators-categories-PLAN.md — Pure-function generator module (D-01)
-- [ ] 10-B-merge-with-manual-PLAN.md — Per-resource override toggle helper (D-02)
-- [ ] 10-C-qbit-wiring-fp-PLAN.md — qBit wiring + FP fix #1 (chart-pin 0.5.3→0.6.0)
-- [ ] 10-D-sonarr-wiring-PLAN.md — Sonarr 4-resource wiring (chart-pin 0.6.0→0.6.1)
-- [ ] 10-E-radarr-wiring-PLAN.md — Radarr 4-resource wiring (chart-pin 0.6.1→0.6.2)
-- [ ] 10-F-seerr-animetags-fp-PLAN.md — Seerr animeTags chain + FP fix #3 (chart-pin 0.6.2→0.6.3)
-- [ ] 10-G-jellyfin-wiring-PLAN.md — Jellyfin 2-superlib wiring (chart-pin 0.6.3→0.6.4)
-- [ ] 10-H-prowlarr-fp-PLAN.md — Prowlarr FP fix #2 (chart-pin 0.6.4→0.6.5)
-- [ ] 10-I-chart-pin-docs-PLAN.md — CLAUDE.md + gsd-executor.md chart-pin docs (REQ-chart-pin-prebump)
-- [ ] 10-J-sweep-requirements-PLAN.md — SC#2 sweep test + REQUIREMENTS.md D-03a fix (chart-pin 0.6.5→0.6.6)
+- [x] 10-A-generators-categories-PLAN.md — Pure-function generator module (D-01)
+- [x] 10-B-merge-with-manual-PLAN.md — Per-resource override toggle helper (D-02)
+- [x] 10-C-qbit-wiring-fp-PLAN.md — qBit wiring + FP fix #1 (chart-pin 0.5.3→0.6.0)
+- [x] 10-D-sonarr-wiring-PLAN.md — Sonarr 4-resource wiring (chart-pin 0.6.0→0.6.1)
+- [x] 10-E-radarr-wiring-PLAN.md — Radarr 4-resource wiring (chart-pin 0.6.1→0.6.2)
+- [x] 10-F-seerr-animetags-fp-PLAN.md — Seerr animeTags chain + FP fix #3 (chart-pin 0.6.2→0.6.3)
+- [x] 10-G-jellyfin-wiring-PLAN.md — Jellyfin 2-superlib wiring (chart-pin 0.6.3→0.6.4)
+- [x] 10-H-prowlarr-fp-PLAN.md — Prowlarr FP fix #2 (chart-pin 0.6.4→0.6.5)
+- [x] 10-I-chart-pin-docs-PLAN.md — CLAUDE.md + gsd-executor.md chart-pin docs (REQ-chart-pin-prebump)
+- [x] 10-J-sweep-requirements-PLAN.md — SC#2 sweep test + REQUIREMENTS.md D-03a fix (chart-pin 0.6.5→0.6.6)
 **UI hint**: no
 
 ### Phase 11: Operational polish bundle

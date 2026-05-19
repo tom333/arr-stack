@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: Categories first-class
-status: planning
+status: executing
 stopped_at: Phase 10 context gathered
-last_updated: "2026-05-18T20:24:50.554Z"
-last_activity: 2026-05-18
+last_updated: "2026-05-19T21:12:09.088Z"
+last_activity: 2026-05-19
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 14
+  completed_plans: 14
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 09 — categories-data-model-chart-initcontainer
+**Current focus:** Phase 10 — categories-6-app-propagation
 
 ## Current Position
 
-Phase: 10
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-18
+Phase: 10 (categories-6-app-propagation) — EXECUTING
+Plan: 2 of 10
+Status: Ready to execute
+Last activity: 2026-05-19
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
@@ -57,7 +57,7 @@ Last activity: 2026-05-18
 
 Last activity: 2026-05-17
 
-Progress: 7/7 Phase 6 plans + 8/8 Phase 5 plans + 2/2 Phase 5.1 plans (milestone v0.2.0 has 9 phases complete out of 12)
+Progress: [██████████] 100%
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 
@@ -208,6 +208,7 @@ After plan 02-05: phase verification (gsd-verifier on phase 02 OR manual ROADMAP
 | Phase 02.2 P05 | 130 | 2 tasks | 0 files (cross-repo: my-kluster PR #1371 +1/-1) |
 | Phase 02.2 P06 | 13min | 3 tasks | 44 files |
 | Phase 03 P06 | 20 | 4 tasks | 4 files |
+| Phase 10 PJ | 40m | 4 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -272,9 +273,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-18T20:24:50.544Z
+Last session: 2026-05-19T21:12:09.077Z
 Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-categories-6-app-propagation/10-CONTEXT.md
+Resume file: None
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
