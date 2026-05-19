@@ -10,12 +10,13 @@ Exit code contract (CLAUDE.md CLI section):
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import structlog
 import typer
 
 from arrconf.client_base import JellyfinClient, ProwlarrClient, RadarrClient, SonarrClient
-from arrconf.config import load_config
+from arrconf.config import RootConfig, load_config
 from arrconf.diff_cmd import diff_jellyfin, diff_prowlarr, diff_radarr, diff_sonarr
 from arrconf.dump import dump_jellyfin, dump_sonarr
 from arrconf.exceptions import (
@@ -25,6 +26,7 @@ from arrconf.exceptions import (
     ScopeViolationError,
 )
 from arrconf.generators.categories import (
+    generate_anime_tag_labels,
     generate_qbit_categories,
     generate_radarr_resources,
     generate_sonarr_resources,
@@ -36,6 +38,61 @@ from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.schema_gen import write_schema
 from arrconf.settings import Settings
+
+
+def _resolve_seerr_anime_tag_ids(
+    root: RootConfig,
+    sonarr_client: SonarrClient,
+    log: structlog.BoundLogger,
+) -> list[int]:
+    """Seerr animeTags resolution chain (Plan 10-F, RESEARCH.md Pattern 5).
+
+    Returns Sonarr integer tag IDs for every cfg.categories entry where
+    kind=='series' AND profile=='anime'. Returns [] if no anime series
+    categories exist or if the tags haven't been created in Sonarr yet
+    (caller decides what to do via merge_with_manual override semantics).
+
+    Issues ONE extra GET to Sonarr /tag — cheap, idempotent.
+
+    kind=='series' filter is applied HERE (not in generate_anime_tag_labels)
+    because Seerr.sonarr_service.animeTags is Sonarr-side routing only;
+    Radarr has no animeTags field (RESEARCH §Pattern 5, Pitfall 3).
+    """
+    # generate_anime_tag_labels returns ALL anime-profile labels (series + movies).
+    # Filter to kind=="series" — Seerr.animeTags is Sonarr-side only; Radarr-side
+    # has no animeTags field (RESEARCH §Pattern 5, Pitfall 3).
+    all_anime_labels = set(generate_anime_tag_labels(root))
+    series_anime_labels = [
+        c.name
+        for c in root.categories
+        if c.profile == "anime" and c.kind == "series" and c.name in all_anime_labels
+    ]
+    if not series_anime_labels:
+        return []
+
+    raw_tags: list[dict[str, Any]] = sonarr_client.get("/tag")
+    resolved: list[int] = []
+    missing: list[str] = []
+    for label in series_anime_labels:
+        match = next((t for t in raw_tags if t.get("label") == label), None)
+        if match is None or match.get("id") is None:
+            missing.append(label)
+            continue
+        resolved.append(int(match["id"]))
+
+    if missing:
+        log.warning(
+            "seerr_animetags_label_unresolved",
+            labels=missing,
+            hint=(
+                "Anime-profile category labels not yet present in Sonarr's tag list. "
+                "They will be created on this reconcile run; rerun arrconf apply to "
+                "populate Seerr.animeTags with the new IDs (D-02 transition step)."
+            ),
+        )
+
+    return resolved
+
 
 app = typer.Typer(
     name="arrconf",
@@ -325,6 +382,30 @@ def apply(
             from arrconf.reconcilers.seerr import reconcile_seerr  # noqa: PLC0415
 
             seerr_instance = root.seerr["main"]
+
+            # Phase 10 animeTags resolution chain (Plan 10-F, REQ-categories-seerr-routing).
+            # Requires Sonarr to have reconciled first so the freshly-created tags are
+            # GET-able via /api/v3/tag. Sonarr client reconstructed here for the second GET.
+            # Skip resolution if Sonarr wasn't in scope (operator --apps seerr without
+            # sonarr) or SONARR_API_KEY is missing — keep YAML animeTags as-is.
+            if "sonarr" in targets and "main" in root.sonarr and settings.sonarr_api_key:
+                sonarr_for_resolution = SonarrClient(
+                    base_url=root.sonarr["main"].base_url,
+                    api_key=settings.sonarr_api_key.get_secret_value(),
+                )
+                resolved_anime_ids = _resolve_seerr_anime_tag_ids(root, sonarr_for_resolution, log)
+                seerr_instance.sonarr_service.animeTags = merge_with_manual(
+                    seerr_instance.sonarr_service.animeTags,
+                    resolved_anime_ids,
+                    app="seerr",
+                    resource="animeTags",
+                )
+            else:
+                log.info(
+                    "seerr_animetags_resolution_skipped",
+                    reason="sonarr not in --apps scope or missing SONARR_API_KEY",
+                )
+
             seerr_api_key = settings.seerr_api_key.get_secret_value()
             seerr_client = SeerrClient(
                 base_url=seerr_instance.base_url,
@@ -600,6 +681,43 @@ def diff(
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="qbittorrent", error=str(e))
             raise typer.Exit(code=1) from e
+
+    # Phase 6: Seerr diff branch (Pitfall 5 — diff must use same merged shape as apply).
+    # animeTags resolution runs here so that `diff` produces the same Seerr desired-state
+    # as `apply`. The actual diff_seerr function is deferred to a future plan (Phase 10-J
+    # sweep or equivalent) — this branch performs the pre-merge only.
+    if "seerr" in targets and "main" in root.seerr:
+        if not settings.seerr_api_key:
+            log.error("missing_api_key", app="seerr", env_var="SEERR_API_KEY")
+            raise typer.Exit(code=2)
+        seerr_diff_instance = root.seerr["main"]
+        # Phase 10 animeTags pre-merge (Pitfall 5): diff must use the same merged shape
+        # as apply to avoid false drift between the two commands (D-01/D-02).
+        if "sonarr" in targets and "main" in root.sonarr and settings.sonarr_api_key:
+            sonarr_for_diff_resolution = SonarrClient(
+                base_url=root.sonarr["main"].base_url,
+                api_key=settings.sonarr_api_key.get_secret_value(),
+            )
+            diff_resolved_anime_ids = _resolve_seerr_anime_tag_ids(
+                root, sonarr_for_diff_resolution, log
+            )
+            seerr_diff_instance.sonarr_service.animeTags = merge_with_manual(
+                seerr_diff_instance.sonarr_service.animeTags,
+                diff_resolved_anime_ids,
+                app="seerr",
+                resource="animeTags",
+            )
+        else:
+            log.info(
+                "seerr_animetags_resolution_skipped",
+                reason="sonarr not in --apps scope or missing SONARR_API_KEY",
+            )
+        # diff_seerr is not yet wired (deferred to Phase 10-J sweep plan).
+        log.info(
+            "diff_not_implemented",
+            app="seerr",
+            hint="Seerr diff is deferred to Phase 10-J; animeTags pre-merge applied above",
+        )
 
     # Phase 7: Jellyfin diff branch (D-07-INSTANCE-01, SC#4 dispositive).
     if "jellyfin" in targets and "main" in root.jellyfin:
