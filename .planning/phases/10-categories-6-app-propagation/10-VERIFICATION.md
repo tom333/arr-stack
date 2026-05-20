@@ -2,7 +2,7 @@
 phase: 10-categories-6-app-propagation
 verified: 2026-05-20T09:00:00Z
 status: human_needed
-score: 4/5 must-haves verified (SC#1 and SC#3 cluster UAT deferred to human)
+score: 3/5 must-haves verified automatically; 2/5 (SC#1 + SC#3) cluster UAT deferred to human
 overrides_applied: 0
 human_verification:
   - test: "Run `arrconf apply --dry-run` against the live cluster and verify 10 qBit categories, 5×4 Sonarr resources, 5×4 Radarr resources, 2 Jellyfin libraries with 5 PathInfos each are created without manual edits"
@@ -32,7 +32,7 @@ human_verification:
 | 4 | configarr config references exactly 3 quality profiles per instance derived from union of `profile` values; ADR-5 frontière intact | ✓ VERIFIED | `test_three_profiles_per_instance` passes: Sonarr=[Anime, Family, MULTi.VF], Radarr=[Anime, Family, MULTi.VF]. ADR-5: no `configarr.yml` file reads in arrconf reconcilers (only ScopeViolationError messages). Note: ROADMAP SC#4 names the profiles as "General/Anime/Family" but production uses "MULTi.VF/Anime/Family" — intent satisfied (3 profiles per instance). |
 | 5 | Each Phase 10 arrconf-code commit includes a `values.yaml#arrconf.image.tag` pre-bump in the same commit | ✓ VERIFIED (with caveat) | Per-plan co-bump pattern verified: each plan wave ends with an atomic chart-pin commit (0.5.3→0.6.0→0.6.1→0.6.2→0.6.3→0.6.4→0.6.5→0.6.6→0.6.7). Final tag is `"0.6.7"`. CI is safe: `chart-lint.yml` only triggers on `charts/**` paths, so intermediate arrconf commits (without co-bump) cannot trigger stale auto-tags. ROADMAP says "same commit" literally; implementation is "same plan's final commit". CI path filter makes this equivalent in practice. |
 
-**Score:** 4/5 automated truths verified (including live-cluster SC#2 dispositive); 1/5 require human cluster UAT
+**Score:** 3/5 truths fully verified (SC#2 dispositive on live cluster + SC#4 + SC#5); 2/5 (SC#1 cluster materialization + SC#3 live TVDB-anime routing) require human UAT post-release
 
 ### Deferred Items
 
@@ -57,7 +57,7 @@ Items not yet met but explicitly addressed in later milestone phases.
 | `tools/arrconf/tests/test_phase10_idempotence_sweep.py` | `test_sweep_categories_derived_path` + `test_sweep_manual_override_path` | ✓ VERIFIED | Both sweep tests pass + baseline fixture test; 3/3 |
 | `tools/arrconf/tests/_arrconf_helpers.py` | Renamed/forked from `_phase9_helpers.py` | ✓ VERIFIED | File exists at 19.3K |
 | `tools/arrconf/tests/fixtures/phase10-baseline-plans.json` | Committed baseline fixture | ✓ VERIFIED | File exists |
-| `charts/arr-stack/values.yaml` | `arrconf.image.tag: "0.6.6"` with `# renovate:` annotation | ✓ VERIFIED | `tag: "0.6.6"` with `# renovate: image=ghcr.io/tom333/arr-stack-arrconf` annotation intact |
+| `charts/arr-stack/values.yaml` | `arrconf.image.tag: "0.6.7"` with `# renovate:` annotation | ✓ VERIFIED | `tag: "0.6.7"` with `# renovate: image=ghcr.io/tom333/arr-stack-arrconf` annotation intact (bumped from 0.6.6 by `310aebf` for the prowlarr_url FP-from-UAT fix) |
 | `CLAUDE.md` | "Release pin co-bump pattern" section | ✓ VERIFIED | Section present: "lorsqu'un commit modifie des fichiers sous tools/arrconf/**... il doit également bumper charts/arr-stack/values.yaml#arrconf.image.tag dans le même commit" |
 | `/home/moi/.claude/agents/gsd-executor.md` | Co-bump rule injected | ✓ VERIFIED | Release-pin co-bump rule paragraph present in `<project_context>` section |
 | `.planning/REQUIREMENTS.md` | `REQ-categories-qbit-propagation` uses bare `<name>` (D-03a fix) | ✓ VERIFIED | `grep -F '<kind>-<name>' .planning/REQUIREMENTS.md` returns no match; wording now uses bare `<name>` |
