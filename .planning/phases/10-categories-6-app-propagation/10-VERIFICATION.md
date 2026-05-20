@@ -27,12 +27,12 @@ human_verification:
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
 | 1 | `arrconf apply` materializes all 10 categories across qBit (10), Sonarr (5×4), Radarr (5×4), Jellyfin (2 libs × 5 PathInfos) without manual UI edits | ? UNCERTAIN (HUMAN) | Code fully wired in apply branch for all 5 apps; verified via code inspection. Cluster-level materialization requires live UAT. |
-| 2 | 2nd-run `arrconf apply` emits 0 `plan_action` events across all 6 apps | ✓ VERIFIED | `test_sweep_categories_derived_path` + `test_sweep_manual_override_path` both pass (3/3 sweep tests); 381 tests pass; `QBIT_CATEGORY_MANAGED_FIELDS`, `SEERR_USER_MANAGED_FIELDS`, `PROWLARR_APP_MANAGED_FIELDS`, `PROWLARR_APP_MANAGED_FIELD_NAMES` frozensets all verified in code + 9 FP regression tests green |
+| 2 | 2nd-run `arrconf apply` emits 0 `plan_action` events across all 6 apps | ✓ VERIFIED (live cluster) | `test_sweep_categories_derived_path` + `test_sweep_manual_override_path` both pass; 384 tests pass; FP regression tests green. Live-cluster SC#2 dispositive confirmed 2026-05-20: dry-run against live cluster emits ZERO `plan_action` events across all apps. D-10-FP3-PROWLARR-URL fix in commit that bumped chart-pin 0.6.6→0.6.7: `ProwlarrInstance.prowlarr_url` field separates API access URL from in-cluster `prowlarrUrl` field value; `SONARR_API_KEY`/`RADARR_API_KEY` env vars feed test-sonarr-key/test-radarr-key; `_build_desired_application` now takes `prowlarr_url` arg. |
 | 3 | Seerr `animeTags` populated with tag IDs for every `profile: anime` Category; TVDB-anime request routes correctly | ? UNCERTAIN (HUMAN) | `_resolve_seerr_anime_tag_ids` with `c.kind == "series"` filter verified in `__main__.py:69`; 6 unit tests pass in `test_seerr_animetags.py`. Live TVDB routing requires cluster UAT. |
 | 4 | configarr config references exactly 3 quality profiles per instance derived from union of `profile` values; ADR-5 frontière intact | ✓ VERIFIED | `test_three_profiles_per_instance` passes: Sonarr=[Anime, Family, MULTi.VF], Radarr=[Anime, Family, MULTi.VF]. ADR-5: no `configarr.yml` file reads in arrconf reconcilers (only ScopeViolationError messages). Note: ROADMAP SC#4 names the profiles as "General/Anime/Family" but production uses "MULTi.VF/Anime/Family" — intent satisfied (3 profiles per instance). |
-| 5 | Each Phase 10 arrconf-code commit includes a `values.yaml#arrconf.image.tag` pre-bump in the same commit | ✓ VERIFIED (with caveat) | Per-plan co-bump pattern verified: each plan wave ends with an atomic chart-pin commit (0.5.3→0.6.0→0.6.1→0.6.2→0.6.3→0.6.4→0.6.5→0.6.6). Final tag is `"0.6.6"`. CI is safe: `chart-lint.yml` only triggers on `charts/**` paths, so intermediate arrconf commits (without co-bump) cannot trigger stale auto-tags. ROADMAP says "same commit" literally; implementation is "same plan's final commit". CI path filter makes this equivalent in practice. |
+| 5 | Each Phase 10 arrconf-code commit includes a `values.yaml#arrconf.image.tag` pre-bump in the same commit | ✓ VERIFIED (with caveat) | Per-plan co-bump pattern verified: each plan wave ends with an atomic chart-pin commit (0.5.3→0.6.0→0.6.1→0.6.2→0.6.3→0.6.4→0.6.5→0.6.6→0.6.7). Final tag is `"0.6.7"`. CI is safe: `chart-lint.yml` only triggers on `charts/**` paths, so intermediate arrconf commits (without co-bump) cannot trigger stale auto-tags. ROADMAP says "same commit" literally; implementation is "same plan's final commit". CI path filter makes this equivalent in practice. |
 
-**Score:** 3/5 automated truths verified; 2/5 require human cluster UAT
+**Score:** 4/5 automated truths verified (including live-cluster SC#2 dispositive); 1/5 require human cluster UAT
 
 ### Deferred Items
 
@@ -92,8 +92,9 @@ Items not yet met but explicitly addressed in later milestone phases.
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
 | SC#2 sweep: 0 plan_action on run 2 | `uv run pytest tests/test_phase10_idempotence_sweep.py -v` | 3 passed in 2.83s | ✓ PASS |
-| All 381 tests pass | `uv run pytest -v` | 381 passed in 8.27s | ✓ PASS |
-| FP regression tests | `uv run pytest tests/test_idempotence_fp.py -v` | 9 passed | ✓ PASS |
+| All 384 tests pass | `uv run pytest -v` | 384 passed in 7.82s | ✓ PASS |
+| FP regression tests | `uv run pytest tests/test_idempotence_fp.py -v` | 12 passed | ✓ PASS |
+| Live cluster SC#2 dry-run ×2 | `uv run arrconf --config ... apply --dry-run` ×2 | 0 plan_action, prowlarr count=2 no-op | ✓ PASS (2026-05-20) |
 | Seerr animeTags unit tests | `uv run pytest tests/test_seerr_animetags.py -v` | 6 passed | ✓ PASS |
 | configarr 3-profile test | `uv run pytest tests/test_configarr_three_profiles.py -v` | 4 passed | ✓ PASS |
 | SC#1 cluster apply | Requires live cluster | Not runnable offline | ? SKIP — needs live cluster |

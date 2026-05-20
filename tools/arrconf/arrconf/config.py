@@ -387,10 +387,33 @@ class ProwlarrInstance(BaseModel):
 
     Indexer definitions (the catalog of newsnab / torznab endpoints) remain
     managed in the Prowlarr UI — they are out of Phase 3 scope.
+
+    ``base_url`` is the URL used to reach the Prowlarr API (may be an external
+    reverse-proxy URL when testing outside the cluster).
+
+    ``prowlarr_url`` — optional — is the URL injected into the ``prowlarrUrl``
+    FieldKV of each Application record so Sonarr/Radarr know how to reach Prowlarr
+    from inside the cluster. When omitted it falls back to ``base_url``. Set this
+    field when the operator accesses Prowlarr via an external URL (tunnel / reverse-
+    proxy) but the applications must use the in-cluster service URL.
+    Example::
+
+        prowlarr:
+          main:
+            base_url: https://prowlarr.tgu.ovh          # external access
+            prowlarr_url: http://prowlarr.selfhost.svc.cluster.local:9696  # in-cluster
     """
 
     model_config = ConfigDict(extra="forbid")
-    base_url: str = Field(description="Prowlarr base URL e.g. http://prowlarr.svc:9696")
+    base_url: str = Field(description="Prowlarr API access URL e.g. http://prowlarr.svc:9696")
+    prowlarr_url: str | None = Field(
+        default=None,
+        description=(
+            "URL that Sonarr/Radarr will use to reach Prowlarr (stored in Application "
+            "prowlarrUrl field). Defaults to base_url when unset. Override when the API "
+            "access URL (base_url) differs from the in-cluster service URL."
+        ),
+    )
     apps: AppsSection = Field(default_factory=AppsSection)
 
 

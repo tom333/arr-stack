@@ -374,3 +374,140 @@ def test_prowlarr_app_real_change_still_detected() -> None:
     plan = reconcile(current=current_apps, desired=desired, match_key="name", prune=False)
     update_actions = [p for p in plan if p.action == Action.UPDATE]
     assert len(update_actions) == 1, f"Real change not detected; plan={plan}"
+
+
+# ===== FP #4: Prowlarr prowlarr_url vs base_url separation =====
+
+
+def test_prowlarr_url_override_no_op_with_live_fixture() -> None:
+    """FP #4 (D-10-FP3-PROWLARR-URL): prowlarr_url field prevents prowlarrUrl field drift.
+
+    When the operator accesses Prowlarr via an external URL (e.g. a reverse-proxy
+    or tunnel) but the cluster stores the in-cluster service URL in the Application's
+    prowlarrUrl field, the reconciler MUST inject the in-cluster URL (prowlarr_url)
+    into the desired Application — NOT the external access URL (base_url).
+
+    Pre-fix: _build_desired_application always used instance.base_url as prowlarrUrl,
+    so external-URL configs caused diff_fields=['fields'] on EVERY run (prowlarrUrl
+    in cluster = in-cluster URL; desired = external URL → never converges).
+
+    Post-fix: reconcile_prowlarr passes instance.prowlarr_url or instance.base_url
+    to _build_desired_application — operators set prowlarr_url to the in-cluster URL
+    and the diff converges to NO_OP.
+
+    Uses the live cluster fixture captured 2026-05-20 (tests/fixtures/prowlarr/
+    applications_live_2026-05-20.json) — real Prowlarr GET /applications shape.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    from arrconf.config import AppEntry
+    from arrconf.differ import Action, reconcile
+    from arrconf.reconcilers.prowlarr import (
+        PROWLARR_APP_MANAGED_FIELD_NAMES,
+        PROWLARR_APP_MANAGED_FIELDS,
+        _build_desired_application,
+    )
+    from arrconf.resources.prowlarr.application import Application
+
+    fixture_path = (
+        Path(__file__).parent / "fixtures" / "prowlarr" / "applications_live_2026-05-20.json"
+    )
+    raw_current = json.loads(fixture_path.read_text())
+
+    # Apply B2 + B2b filter (mirrors reconcile_prowlarr callsite):
+    _app_keep = PROWLARR_APP_MANAGED_FIELDS | {"id"}
+    current_apps = []
+    for x in raw_current:
+        filtered = {k: v for k, v in x.items() if k in _app_keep}
+        if "fields" in filtered and isinstance(filtered["fields"], list):
+            filtered["fields"] = [
+                f
+                for f in filtered["fields"]
+                if isinstance(f, dict) and f.get("name") in PROWLARR_APP_MANAGED_FIELD_NAMES
+            ]
+        current_apps.append(Application.model_validate(filtered))
+
+    # Desired built using the production in-cluster prowlarr_url (same as stored in cluster):
+    os.environ.setdefault("SONARR_API_KEY", "test-sonarr-key")
+    os.environ.setdefault("RADARR_API_KEY", "test-radarr-key")
+
+    prowlarr_url = "http://prowlarr.selfhost.svc.cluster.local:9696"  # in-cluster URL
+    entries = [
+        AppEntry(
+            name="Sonarr",
+            type="sonarr",
+            base_url="http://sonarr.selfhost.svc.cluster.local:8989",
+            api_key_env="SONARR_API_KEY",
+            sync_level="fullSync",
+        ),
+        AppEntry(
+            name="Radarr",
+            type="radarr",
+            base_url="http://radarr.selfhost.svc.cluster.local:7878",
+            api_key_env="RADARR_API_KEY",
+            sync_level="fullSync",
+        ),
+    ]
+    desired_apps = [_build_desired_application(e, prowlarr_url=prowlarr_url) for e in entries]
+
+    plan = reconcile(current=current_apps, desired=desired_apps, match_key="name", prune=False)
+    assert plan, "reconcile returned empty plan — fixture mismatch"
+    for p in plan:
+        assert p.action == Action.NO_OP, (
+            f"FP #4 NOT FIXED: plan action {p.action} for {p.name} "
+            f"(diff_fields={p.diff_fields}). Expected NO_OP.\n"
+            "If this fails, prowlarr_url separation is broken or the live fixture "
+            "values have changed."
+        )
+
+
+def test_prowlarr_url_fallback_to_base_url() -> None:
+    """When prowlarr_url is None, _build_desired_application uses base_url (backward compat).
+
+    This covers the production chart case: base_url IS the in-cluster URL, so no
+    prowlarr_url override is needed. The fallback in reconcile_prowlarr
+    (instance.prowlarr_url or instance.base_url) must pass base_url when prowlarr_url=None.
+    """
+    import os
+
+    from arrconf.config import AppEntry
+    from arrconf.reconcilers.prowlarr import _build_desired_application
+
+    os.environ.setdefault("SONARR_API_KEY", "test-key")
+    entry = AppEntry(
+        name="Sonarr",
+        type="sonarr",
+        base_url="http://sonarr.selfhost.svc.cluster.local:8989",
+        api_key_env="SONARR_API_KEY",
+        sync_level="fullSync",
+    )
+    # When prowlarr_url IS the base_url (production chart scenario):
+    app = _build_desired_application(
+        entry,
+        prowlarr_url="http://prowlarr.selfhost.svc.cluster.local:9696",
+    )
+    prowlarr_url_field = next(f for f in app.fields if f.name == "prowlarrUrl")
+    assert prowlarr_url_field.value == "http://prowlarr.selfhost.svc.cluster.local:9696", (
+        "prowlarrUrl field should equal the prowlarr_url argument"
+    )
+
+
+def test_prowlarr_instance_prowlarr_url_field() -> None:
+    """ProwlarrInstance accepts optional prowlarr_url field (schema regression)."""
+    from arrconf.config import ProwlarrInstance
+
+    # Without prowlarr_url (backward-compat — production chart):
+    inst_no_override = ProwlarrInstance(
+        base_url="http://prowlarr.selfhost.svc.cluster.local:9696",
+    )
+    assert inst_no_override.prowlarr_url is None
+
+    # With prowlarr_url (tunnel/reverse-proxy scenario):
+    inst_with_override = ProwlarrInstance(
+        base_url="https://prowlarr.tgu.ovh",
+        prowlarr_url="http://prowlarr.selfhost.svc.cluster.local:9696",
+    )
+    assert inst_with_override.prowlarr_url == "http://prowlarr.selfhost.svc.cluster.local:9696"
+    assert inst_with_override.base_url == "https://prowlarr.tgu.ovh"

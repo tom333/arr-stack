@@ -107,13 +107,19 @@ _IMPLEMENTATION_BY_TYPE: dict[str, tuple[str, str]] = {
 
 def _build_desired_application(
     entry: AppEntry,
-    prowlarr_base_url: str,
+    prowlarr_url: str,
 ) -> Application:
     """Construct an Application object from an AppEntry + os.environ lookup.
 
     Resolves ``entry.api_key_env`` via ``os.environ.get``. If the env var is
     not set or is empty, raises ReconcileError (Pitfall 5 — fail-fast before
     any POST/PUT).
+
+    ``prowlarr_url`` is the URL injected into the ``prowlarrUrl`` FieldKV — the
+    URL that Sonarr/Radarr use to reach Prowlarr. The caller passes
+    ``instance.prowlarr_url or instance.base_url`` so the two access paths
+    (external operator URL vs in-cluster service URL) can be separated when
+    needed (D-10-FP3-PROWLARR-URL).
     """
     api_key = os.environ.get(entry.api_key_env)
     if not api_key:
@@ -129,7 +135,7 @@ def _build_desired_application(
         configContract=config_contract,
         syncLevel=entry.sync_level,
         fields=[
-            FieldKV(name="prowlarrUrl", value=prowlarr_base_url),
+            FieldKV(name="prowlarrUrl", value=prowlarr_url),
             FieldKV(name="baseUrl", value=entry.base_url),
             FieldKV(name="apiKey", value=api_key, privacy="apiKey"),
         ],
@@ -203,10 +209,15 @@ def reconcile_prowlarr(
     review): the plan is needed so the diff CLI can detect drift in dry-run
     mode, where ``actions_taken`` is empty by definition.
     """
+    # D-10-FP3-PROWLARR-URL: use instance.prowlarr_url when set, else fall back
+    # to instance.base_url. This separates the API access URL (base_url — may be
+    # an external reverse-proxy) from the in-cluster URL injected into the
+    # Application's prowlarrUrl field (what Sonarr/Radarr use to reach Prowlarr).
     # Build desired BEFORE issuing the GET so missing-env errors fail fast
     # without unnecessary HTTP traffic (Pitfall 5):
+    _prowlarr_url_for_apps = instance.prowlarr_url or instance.base_url
     desired_apps: list[Application] = [
-        _build_desired_application(entry, prowlarr_base_url=instance.base_url)
+        _build_desired_application(entry, prowlarr_url=_prowlarr_url_for_apps)
         for entry in instance.apps.items
     ]
 

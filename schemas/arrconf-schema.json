@@ -1304,15 +1304,28 @@
     },
     "ProwlarrInstance": {
       "additionalProperties": false,
-      "description": "A single Prowlarr instance (Phase 3, D-03-02 \u2014 app sync only).\n\nIndexer definitions (the catalog of newsnab / torznab endpoints) remain\nmanaged in the Prowlarr UI \u2014 they are out of Phase 3 scope.",
+      "description": "A single Prowlarr instance (Phase 3, D-03-02 \u2014 app sync only).\n\nIndexer definitions (the catalog of newsnab / torznab endpoints) remain\nmanaged in the Prowlarr UI \u2014 they are out of Phase 3 scope.\n\n``base_url`` is the URL used to reach the Prowlarr API (may be an external\nreverse-proxy URL when testing outside the cluster).\n\n``prowlarr_url`` \u2014 optional \u2014 is the URL injected into the ``prowlarrUrl``\nFieldKV of each Application record so Sonarr/Radarr know how to reach Prowlarr\nfrom inside the cluster. When omitted it falls back to ``base_url``. Set this\nfield when the operator accesses Prowlarr via an external URL (tunnel / reverse-\nproxy) but the applications must use the in-cluster service URL.\nExample::\n\n    prowlarr:\n      main:\n        base_url: https://prowlarr.tgu.ovh          # external access\n        prowlarr_url: http://prowlarr.selfhost.svc.cluster.local:9696  # in-cluster",
       "properties": {
         "apps": {
           "$ref": "#/$defs/AppsSection"
         },
         "base_url": {
-          "description": "Prowlarr base URL e.g. http://prowlarr.svc:9696",
+          "description": "Prowlarr API access URL e.g. http://prowlarr.svc:9696",
           "title": "Base Url",
           "type": "string"
+        },
+        "prowlarr_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "URL that Sonarr/Radarr will use to reach Prowlarr (stored in Application prowlarrUrl field). Defaults to base_url when unset. Override when the API access URL (base_url) differs from the in-cluster service URL.",
+          "title": "Prowlarr Url"
         }
       },
       "required": [
