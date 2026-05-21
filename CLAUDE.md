@@ -185,10 +185,42 @@ arrconf:
 | Phase 10-F | `0.6.2 → 0.6.3` | Seerr anime tags FP fix |
 | Phase 10-G | `0.6.3 → 0.6.4` | Jellyfin categories wiring |
 | Phase 10-H | `0.6.4 → 0.6.5` | Prowlarr FP fix |
+| Phase 10-J | `0.6.5 → 0.6.6` | SC#2 sweep + REQUIREMENTS wording |
+| `310aebf` | `0.6.6 → 0.6.7` | Prowlarr `prowlarr_url` field — SC#2 dispositive live cluster |
 
 **Exception :** un commit qui ne modifie que des fichiers `.md`, `values.yaml` (hors arrconf), ou des fichiers hors `tools/arrconf/**` **ne doit PAS** bumper `arrconf.image.tag`. Le tag n'évolue pas si l'image n'évolue pas.
 
 **Critique :** ne jamais supprimer ni déplacer l'annotation `# renovate: image=ghcr.io/tom333/arr-stack-arrconf` au-dessus de `repository:` — Renovate en a besoin pour suivre l'image. Voir § "Annotations Renovate" dans "Conventions Helm".
+
+### Accumulated-bumps escape hatch (push explicite du tag final)
+
+**Le piège :** quand plusieurs plans accumulent des co-bumps `arrconf.image.tag` AVANT le premier push vers `main`, l'auto-tag `mathieudutour/github-tag-action` n'a aucun moyen de "rattraper" — il ne crée qu'**un seul** tag par push, calculé depuis le dernier tag distant + le bump conventionnel inféré des commits (`feat:` → minor, `fix:` → patch). Le tag créé sera donc `vX.(Y+1).0` ou `vX.Y.(Z+1)`, **pas** `vX.Y.Z` où Z = la valeur finale de `values.yaml#arrconf.image.tag`.
+
+Exemple vécu Phase 10 :
+- Dernier tag distant : `v0.5.2`
+- Local : 8 plans ont bumpé `values.yaml` de `0.5.3` → `0.6.7` en 8 commits successifs
+- Push de `main` (68 commits) → auto-tag crée `v0.6.0` (minor bump car `feat:` détectés)
+- `values.yaml` attend `0.6.7` → pod ArgoCD entre en `ImagePullBackOff` car `ghcr.io/...:0.6.7` n'existe pas
+
+**La règle :**
+
+À la fin d'une phase ayant accumulé ≥ 2 bumps de `arrconf.image.tag` **sans push intermédiaire**, pousser **explicitement** le tag final pour aligner GHCR avec `values.yaml` :
+
+```bash
+# 1. Lire la valeur attendue
+TAG=$(yq '.arrconf.image.tag' charts/arr-stack/values.yaml)   # ex: 0.6.7
+
+# 2. Push main (déclenche l'auto-tag intermédiaire — ignorer-le)
+git push origin main
+
+# 3. Tag manuel + push (déclenche le build GHCR de la bonne image)
+git tag "v${TAG}" HEAD -m "release v${TAG}: <phase context>"
+git push origin "v${TAG}"
+```
+
+**Quand l'éviter :** si tu pushes plan-par-plan (chaque commit feat suivi de `git push`), l'auto-tag crée exactement la bonne séquence et tu n'as RIEN à faire manuellement — le co-bump suffit. C'est l'idéal pour les phases lentes ; l'escape hatch sert aux phases batch.
+
+**Bug-piège associé (corrigé `12c05da`) :** `arrconf-image.yml` utilisait `github.ref` (chemin complet `refs/tags/v0.6.7`) au lieu de `github.ref_name` (`v0.6.7`) dans `docker/metadata-action type=semver`. Sur push de tag, le workflow tournait OK (exit 0) mais ne publiait que `:latest` + `:sha-<short>` — pas `:0.6.7`. Symptôme : ArgoCD synced + healthy, mais CronJob arrconf en `ImagePullBackOff`. Diagnostic via `kubectl -n selfhost get pod -l job-name=arrconf-XXX -o jsonpath='{.items[0].status.containerStatuses[0].state}'`.
 
 ---
 
