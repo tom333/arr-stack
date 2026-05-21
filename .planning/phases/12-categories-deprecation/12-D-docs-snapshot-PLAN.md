@@ -22,6 +22,7 @@ must_haves:
     - "Snapshot is committed (lossless, redacted per snapshot.sh built-in redaction logic) — ADR-6 discipline preserved"
     - "NO arrconf code changes in this plan (code already shipped in Plan A)"
     - "NO additional values.yaml bump in this plan (co-bump already in Plan A's commit per CLAUDE.md `Release pin co-bump pattern`)"
+    - "NO helper migration script created (D-12) — the homelab single-tenant operator (= user) edits arrconf.yml in the same PR that ships Plan B's YAML deletions; external operators (none exist) would self-migrate from the CLAUDE.md deprecation section alone"
   artifacts:
     - path: "CLAUDE.md"
       provides: "## v0.3.0 → v0.4.0 deprecation section"

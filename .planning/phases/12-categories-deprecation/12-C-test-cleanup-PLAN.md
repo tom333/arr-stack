@@ -24,7 +24,7 @@ must_haves:
     - "`test_sweep_categories_derived_path` renamed to `test_sweep` with updated SC#3-dispositive docstring (D-08)"
     - "~8 `*_wiring_empty_manual` tests renamed to `*_wiring` (D-09)"
     - "No test asserts on `merge_decision` structlog event (deferred ideas #5 verified)"
-    - "conftest.py fixtures audited; unreferenced ones deleted; `production_cfg` is NOT in conftest.py (lives inline in test_phase10_idempotence_sweep.py — leave it alone)"
+    - "conftest.py fixtures audited per D-10; unreferenced ones deleted; `production_cfg` is NOT in conftest.py (lives inline in test_phase10_idempotence_sweep.py — leave it alone, per D-10 explicit carve-out)"
     - "Pytest run is fully green WITHOUT the `-k` filter that Plan A used (Plan C removes the need for the filter)"
   artifacts:
     - path: "tools/arrconf/tests/test_phase10_idempotence_sweep.py"
