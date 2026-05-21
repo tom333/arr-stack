@@ -1,8 +1,10 @@
-"""Phase 10 SC#2 dispositive pytest: 2nd-run idempotence sweep across all 6 apps.
+"""Phase 12 SC#3 dispositive pytest: 2nd-run idempotence sweep across all 6 apps.
 
-Strategy (mirrors test_phase9_no_regression.py shape):
-  1. Load arrconf.yml (production: 10 categories present, flat sections still
-     present per CONTEXT.md "leave flat sections in place").
+Phase 12 removed `merge_with_manual` entirely; this file now contains a single
+sweep test (`test_sweep`) that proves idempotence on the Categories-derived path.
+
+Strategy:
+  1. Load arrconf.yml (production: 10 categories — 5 series + 5 movies).
   2. Run dry_run_all_apps(cfg) once → first-run plans.
   3. Run dry_run_all_apps(cfg) a SECOND time with the same respx mock setup
      → second-run plans. Assert all plans are byte-identical (determinism) AND
@@ -12,8 +14,9 @@ Strategy (mirrors test_phase9_no_regression.py shape):
 
 Pre-fix (Phase 5/6 deviations): qBit categories had FP #1 (UPDATE every run),
 Seerr user had FP #3 (UPDATE every run), Prowlarr app-sync had FP #2.
-Post-fix (Plans 10-C, 10-F, 10-H): all 3 FPs eliminated; second-run produces
-zero UPDATE or DELETE actions — the cluster is not changed by a second apply.
+Post-fix (Plans 10-C, 10-F, 10-H, Phase 12): all 3 FPs eliminated; second-run
+produces zero UPDATE or DELETE actions — the cluster is not changed by a
+second apply.
 
 Fixture strategy (Option A — minimal fork): The helper uses the existing Phase 9
 fixtures for GET responses. Since dry_run=True, reconcilers only READ and PLAN.
@@ -25,11 +28,10 @@ not ADD actions (genuinely new resources). The dispositive proof is:
   - run2 has 0 UPDATE/DELETE actions (no FP-style false mutations)
 
 ADD actions on both runs are expected because test fixtures use v0.2.0 cluster
-state — this is the natural state before Phase 10 resources are applied in prod.
-PRUNE-SKIP actions are expected and healthy (extra cluster items preserved by
-prune=false default).
+state. PRUNE-SKIP actions are expected and healthy (extra cluster items preserved
+by prune=false default).
 
-REQ: REQ-idempotence-fp-fix (SC#2 dispositive).
+REQ: REQ-categories-deprecation (SC#3 dispositive).
 """
 
 from __future__ import annotations
@@ -88,61 +90,36 @@ def production_cfg() -> RootConfig:
     return load_config(PRODUCTION_YAML)
 
 
-def _empty_fp_affected_sections(cfg: RootConfig) -> RootConfig:
-    """Blocker #5 helper: produce a config variant with the 5 FP-affected flat
-    sections emptied so the merge_with_manual toggle activates Categories-derived
-    items in the sweep. Mirrors the production arrconf.yml shape but forces the
-    generator path for all 3 FP fixes (qBit #1, Sonarr/Radarr DCs+RPMs, Seerr #3,
-    Prowlarr #2 — Prowlarr's apps section may stay populated since the FP is on
-    cluster GET response shape, not on the desired list).
+def test_sweep(production_cfg: RootConfig) -> None:
+    """Phase 12 SC#3 dispositive — idempotence sweep on Categories-derived path.
 
-    Note: sonarr/radarr Tags are also emptied so tag-label resolution flows through
-    Categories-derived tag names rather than the manually declared tv/anime/family names.
+    This is the SOLE sweep test post-Phase-12: `merge_with_manual` is gone, the
+    transition layer is dead code, and the generators in `arrconf.generators.categories`
+    are the only source of truth for the 12 generator-derived resources (sonarr/radarr
+    tags+root_folders+download_clients+remote_path_mappings, qbit categories, jellyfin
+    libraries, seerr animeTags).
+
+    Run twice against `production_cfg` (10 categories — 5 series + 5 movies):
+    - Round 1 produces the initial plan.
+    - Round 2 must be byte-identical to round 1.
+    - Round 2 must emit 0 UPDATE/DELETE actions (any such action would prove a FP-style
+      false mutation in the differ comparators).
+
+    Proves the 3 v0.3.0 FP fixes survived deprecation:
+    - FP #1 (qBit): `generate_qbit_categories` emits 10 entries; allowlist comparator
+      filters cluster-side extras.
+    - FP #2 (Prowlarr Application): allowlist filters cluster extras.
+    - FP #3 (Seerr user): allowlist filters cluster extras.
+
+    ADD actions ARE expected (test fixtures use v0.2.0 cluster state; new Categories
+    resources like series-emilie/films-zoe don't yet exist in fixtures).
+    PRUNE-SKIP actions are healthy (prune=false default).
+
+    If this test fails, Phase 12 cannot close (D-17 — SC#3 + SC#5 both required for
+    VERIFICATION PASSED).
     """
-    import copy
-
-    variant = copy.deepcopy(cfg)
-    if "main" in variant.qbittorrent:
-        variant.qbittorrent["main"].categories.items = []
-    if "main" in variant.sonarr:
-        s = variant.sonarr["main"]
-        s.tags.items = []
-        s.root_folders.items = []
-        s.download_clients.items = []
-        s.remote_path_mappings.items = []
-    if "main" in variant.radarr:
-        r = variant.radarr["main"]
-        r.tags.items = []
-        r.root_folders.items = []
-        r.download_clients.items = []
-        r.remote_path_mappings.items = []
-    if "main" in variant.seerr:
-        variant.seerr["main"].sonarr_service.animeTags = []
-    # Prowlarr: leave apps.items populated; FP #2 is on Application.model_validate
-    # of cluster GET response, not on desired list. The sweep already exercises it
-    # via the respx fixture which returns extras.
-    return variant
-
-
-def test_sweep_categories_derived_path(production_cfg: RootConfig) -> None:
-    """Blocker #5 (Categories-derived path): SC#2 dispositive — when the 5 FP-affected
-    flat sections are emptied, the merge_with_manual toggle activates Categories-derived
-    items via the generators from Plan 10-A. Run twice; round 2 must be byte-identical
-    to round 1 AND must emit 0 UPDATE/DELETE actions (no FP-style false mutations).
-
-    Proves the 3 FP fixes work on the Categories-derived path:
-    - FP #1 (qBit): generate_qbit_categories → 10 entries, allowlist filters cluster extras
-    - FP #3 (Seerr user): allowlist filters cluster extras (independent of Categories path)
-    - FP #2 (Prowlarr Application): allowlist filters cluster extras (independent)
-    - Sonarr/Radarr Categories wiring: 5 tags/RFs/DCs/RPMs per side, all deterministic
-
-    ADD actions are expected (test cluster fixtures use v0.2.0 state; Phase 10
-    resources like series-emilie/films-zoe don't exist in fixtures yet).
-    PRUNE-SKIP actions are expected and healthy (prune=false default).
-    """
-    cfg_no_manual = _empty_fp_affected_sections(production_cfg)
-    run1 = dry_run_all_apps(cfg_no_manual)
-    run2 = dry_run_all_apps(cfg_no_manual)
+    run1 = dry_run_all_apps(production_cfg)
+    run2 = dry_run_all_apps(production_cfg)
 
     # Assert byte-equivalence: same planning inputs must produce identical plans.
     assert _strip_metadata(run1) == _strip_metadata(run2), (
@@ -154,38 +131,11 @@ def test_sweep_categories_derived_path(production_cfg: RootConfig) -> None:
     # when the reconciler incorrectly thinks cluster state differs from desired.
     fp_drift = _find_update_or_delete_actions(run2)
     assert not fp_drift, (
-        f"SC#2 FAILED on CATEGORIES-DERIVED PATH: UPDATE/DELETE actions on 2nd run.\n"
+        f"SC#3 FAILED: UPDATE/DELETE actions on 2nd run.\n"
         f"Drift: {fp_drift}\n"
         "One of the FP fixes (qBit #1 / Prowlarr #2 / Seerr #3) is NOT working "
-        "when the generator path is active. Check allowlist comparators in "
+        "on the Categories-derived path. Check allowlist comparators in "
         "differ.py and _reconcile_user in seerr.py."
-    )
-
-
-def test_sweep_manual_override_path(production_cfg: RootConfig) -> None:
-    """Blocker #5 (Manual-override path): D-13 no-regression on the production-shape
-    config where flat sections are non-empty. merge_with_manual returns MANUAL items
-    (Categories-derived path is SKIPPED). Run twice; round 2 must be byte-identical
-    to round 1 AND must emit 0 UPDATE/DELETE actions.
-
-    Proves the override merge default-empty path preserves the Phase 9 byte-equivalent
-    plan output (carry-forward of D-13 invariant).
-    """
-    run1 = dry_run_all_apps(production_cfg)
-    run2 = dry_run_all_apps(production_cfg)
-
-    # Assert byte-equivalence: same planning inputs must produce identical plans.
-    assert _strip_metadata(run1) == _strip_metadata(run2), (
-        "Manual-override path: run 1 and run 2 differ — non-deterministic output "
-        "or Phase 10 wiring introduced a timestamp/ordering dependency."
-    )
-
-    # Assert no UPDATE/DELETE on run 2: FP bugs manifest as spurious updates.
-    fp_drift = _find_update_or_delete_actions(run2)
-    assert not fp_drift, (
-        f"SC#2 FAILED on MANUAL-OVERRIDE PATH (D-13 carry-forward broken).\n"
-        f"Drift: {fp_drift}\n"
-        "Phase 10 wiring regressed Phase 9's no-regression invariant."
     )
 
 

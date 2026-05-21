@@ -91,7 +91,7 @@ def _build_cfg() -> RootConfig:
     return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
 
 
-def test_radarr_tags_wiring_empty_manual() -> None:
+def test_radarr_tags_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_radarr_resources(cfg)
     assert len(derived.tags) == 5
@@ -104,7 +104,7 @@ def test_radarr_tags_wiring_empty_manual() -> None:
     ]
 
 
-def test_radarr_root_folders_wiring_empty_manual() -> None:
+def test_radarr_root_folders_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_radarr_resources(cfg)
     assert len(derived.root_folders) == 5
@@ -131,7 +131,7 @@ def test_radarr_download_clients_have_movieCategory() -> None:
         )
 
 
-def test_radarr_rpm_wiring_empty_manual() -> None:
+def test_radarr_rpm_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_radarr_resources(cfg)
     assert len(derived.remote_path_mappings) == 5

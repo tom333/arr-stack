@@ -89,7 +89,7 @@ def _build_cfg() -> RootConfig:
     return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
 
 
-def test_sonarr_tags_wiring_empty_manual() -> None:
+def test_sonarr_tags_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_sonarr_resources(cfg)
     assert len(derived.tags) == 5
@@ -103,7 +103,7 @@ def test_sonarr_tags_wiring_empty_manual() -> None:
     ]
 
 
-def test_sonarr_root_folders_wiring_empty_manual() -> None:
+def test_sonarr_root_folders_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_sonarr_resources(cfg)
     assert len(derived.root_folders) == 5
@@ -117,7 +117,7 @@ def test_sonarr_root_folders_wiring_empty_manual() -> None:
     ]
 
 
-def test_sonarr_download_clients_wiring_empty_manual() -> None:
+def test_sonarr_download_clients_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_sonarr_resources(cfg)
     assert len(derived.download_clients) == 5
@@ -127,7 +127,7 @@ def test_sonarr_download_clients_wiring_empty_manual() -> None:
         assert len(dc.tag_labels) == 1
 
 
-def test_sonarr_rpm_wiring_empty_manual() -> None:
+def test_sonarr_rpm_wiring() -> None:
     cfg = _build_cfg()
     derived = generate_sonarr_resources(cfg)
     assert len(derived.remote_path_mappings) == 5
