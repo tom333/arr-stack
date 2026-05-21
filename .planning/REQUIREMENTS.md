@@ -85,14 +85,14 @@ Mapping `REQ-* → Phase`. Each requirement is mapped to exactly one phase (its 
 | REQ-migration-progressive | Phase 9 | Pending |
 | REQ-filesystem-initcontainer | Phase 9 | Pending |
 | REQ-filesystem-operator-migration | Phase 9 | Pending |
-| REQ-04-09-argocd-selfheal | Phase 11 | Pending |
-| REQ-cm-cruft-cleanup | Phase 11 | Pending |
-| REQ-chart-pin-prebump | Phase 10 | Pending |
+| REQ-04-09-argocd-selfheal | Phase 11 | Complete |
+| REQ-cm-cruft-cleanup | Phase 11 | Complete |
+| REQ-chart-pin-prebump | Phase 10 | Complete |
 | REQ-ruff-format-ci-gate | Phase 11 | Complete |
 | REQ-paths-filter-arrconf | Phase 11 | Complete |
-| REQ-renovate-app-install | Phase 11 | Pending |
+| REQ-renovate-app-install | Phase 11 | Complete |
 | REQ-snapshot-redaction-harden | Phase 11 | Complete |
-| REQ-idempotence-fp-fix | Phase 10 | Pending |
+| REQ-idempotence-fp-fix | Phase 10 | Complete |
 | REQ-readme-onboarding-v030 | Phase 11 | Complete |
 
 **Coverage:**
