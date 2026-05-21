@@ -15,11 +15,13 @@
 
 Le projet est consommé par le cluster `my-kluster` (sister repo) via une seule ArgoCD Application qui pull ce repo.
 
-**État actuel** : Phase 4 terminée — umbrella chart déployé, 1 ArgoCD Application, 9 apps en production. Voir [`spec.md`](./spec.md) §7 pour la roadmap.
+**État actuel** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin). Production cluster tourne sur l'image `:0.6.7`. Idempotence dispositive sur cluster réel (SC#2). Phase 11 (polish bundle) à suivre. Voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) pour le détail.
+
+> 📚 Site GitHub Pages (à venir) pour la doc complète. Ce fichier reste l'index "comment".
 
 ---
 
-## Structure actuelle (post-Phase 4)
+## Structure actuelle (post-Phase 10)
 
 ```
 arr-stack/
@@ -27,18 +29,21 @@ arr-stack/
 ├── CLAUDE.md                        # ce fichier — HOW
 ├── README.md                        # entrée publique GitHub
 │
-├── tools/arrconf/                   # ★ script Python reconciler
+├── tools/arrconf/                   # ★ script Python reconciler (6 apps couvertes en v0.3.0)
 │   ├── pyproject.toml
 │   ├── Dockerfile                   # multi-stage, USER 1000:1000
 │   ├── arrconf/
-│   │   ├── __main__.py              # entrypoint CLI
-│   │   ├── config.py
+│   │   ├── __main__.py              # entrypoint CLI ; pré-merge Categories ici (apply + diff)
+│   │   ├── config.py                # incl. ProwlarrInstance.prowlarr_url (sépare URL accès vs URL injectée)
 │   │   ├── client_base.py           # ArrApiClient + _ArrV3Client mixin (ADR-8)
 │   │   ├── differ.py
 │   │   ├── merge.py                 # field-merge helpers (Phase 2.1 + 2.2)
-│   │   ├── reconcilers/{sonarr,radarr,prowlarr}.py
-│   │   └── resources/               # pydantic schémas par resource type
-│   └── tests/
+│   │   ├── generators/              # ★ v0.3.0 — pure functions categories → resources
+│   │   │   └── categories.py        # generate_qbit/sonarr/radarr/jellyfin + animeTags
+│   │   ├── reconcilers/             # qbittorrent, sonarr, radarr, prowlarr, seerr, jellyfin
+│   │   │   └── _shared.py           # incl. merge_with_manual() (D-02 per-resource toggle)
+│   │   └── resources/               # pydantic schémas par resource type + categories.py
+│   └── tests/                       # 384 tests passants (incl. SC#2 sweep dual-path)
 │
 ├── tools/scripts/                   # helper scripts (Phase 4)
 │   ├── check-renovate-annotations.sh
@@ -382,8 +387,12 @@ Côté `my-kluster` : Renovate ouvre une PR sur `argocd/argocd-apps/arr-stack-ap
 | Tags | ❌ | ✅ | Y compris `arrconf-managed` |
 | Host config (UI port, auth) | ❌ | ✅ | |
 | qBittorrent settings | ❌ | ✅ | |
+| qBittorrent categories | ❌ | ✅ | v0.3.0 — Categories-derived (`<name>` bare, savePath `/data/torrents/<name>`) |
 | Seerr settings | ❌ | ✅ | |
+| Seerr animeTags (Sonarr service) | ❌ | ✅ | v0.3.0 — résolu post-Sonarr-reconcile via GET `/api/v3/tag` |
 | App sync Prowlarr | ❌ | ✅ | |
+| Jellyfin super-libraries (Séries+Films) | ❌ | ✅ | v0.3.0 — 2 libs × 5 PathInfos depuis `categories[]` |
+| **Categories (`categories[]`)** | ❌ | ✅ | v0.3.0 — propage sur qBit/Sonarr/Radarr/Seerr/Jellyfin via générateurs purs + `merge_with_manual` |
 
 **Les reconcilers arrconf doivent refuser explicitement** de toucher aux endpoints quality_profiles / custom_formats / quality_definitions / media_naming. Ajouter une garde dans le code (raise `ScopeViolationError` si configuré). Décision documentée : spec §10 Q5 et ADR-5.
 

@@ -2,13 +2,15 @@
 
 > Plateforme média fully-as-code (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin + arrconf + configarr) déployée sur le cluster MicroK8s personnel `my-kluster`.
 
-**Statut** : Phase 4 terminée — 1 chart Helm umbrella déploie les 9 apps (8 médias + 2 CronJobs arrconf/configarr) via une seule ArgoCD Application côté `my-kluster`. Roadmap complète : voir [`spec.md`](./spec.md) §7.
+**Statut** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[i]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin) sans aucune édition UI manuelle. Idempotence dispositive sur cluster réel (2ᵉ run = 0 plan_action). Roadmap : voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md).
+
+> 📚 Documentation complète : site GitHub Pages (à venir). Ce README est l'entrée rapide.
 
 ## Vue d'ensemble
 
 arr-stack est structuré autour de deux composants :
 
-1. **`tools/arrconf/`** — script Python (CronJob in-cluster, toutes les 4 h) qui réconcilie la configuration des apps *arr et apparentées (Sonarr, Radarr, Prowlarr) depuis des fichiers YAML vers leurs APIs REST. Idempotent, diff-before-PUT, `prune: false` par défaut. Couverture Phase 4 : Sonarr, Radarr, Prowlarr (download clients, root folders, notifications, tags, indexers).
+1. **`tools/arrconf/`** — script Python (CronJob in-cluster, toutes les 4 h) qui réconcilie la configuration des 6 apps depuis `arrconf.yml` vers leurs APIs REST. Idempotent, diff-before-PUT, `prune: false` par défaut. Couverture v0.3.0 : qBit (categories), Sonarr (tags/root_folders/download_clients/RPMs), Radarr (idem), Prowlarr (app-sync/indexers/download clients/notifications), Seerr (settings/animeTags routing), Jellyfin (super-libraries 2×5 PathInfos). Pattern central depuis v0.3.0 : générateurs purs `categories → resources` + helper `merge_with_manual` (toggle per-resource pour transition).
 
 2. **`charts/arr-stack/`** — chart Helm umbrella qui empaquette toute la stack (8 apps médias + arrconf + configarr = 10 aliases `bjw-s/app-template@5.0.0`) en un déploiement atomique versionné, consommé par une seule ArgoCD Application côté `my-kluster`.
 
@@ -182,11 +184,12 @@ Total cible : 25-30 min sans toucher au cluster.
 
 ## Documentation
 
-- [`spec.md`](./spec.md) — quoi et pourquoi (architecture, ADRs 1-8, phases 0-8, frontières)
-- [`CLAUDE.md`](./CLAUDE.md) — comment (conventions, workflows, garde-fous)
+- 📚 **GitHub Pages** (à venir) — site complet (architecture, ADRs, runbooks, API)
+- [`spec.md`](./spec.md) — quoi et pourquoi (architecture, ADRs 1-8, frontières)
+- [`CLAUDE.md`](./CLAUDE.md) — comment (conventions, workflows, garde-fous, release co-bump pattern)
 - [`.planning/`](./.planning/) — pilotage GSD (PROJECT.md, ROADMAP.md, REQUIREMENTS.md, phases/)
 - [`tools/snapshot/README.md`](./tools/snapshot/README.md) — snapshot raw avant un test risqué (ADR-6)
-- [`tools/arrconf/`](./tools/arrconf/) — code Python du reconciler
+- [`tools/arrconf/`](./tools/arrconf/) — code Python du reconciler (incl. `arrconf/generators/` v0.3.0)
 - [`charts/arr-stack/`](./charts/arr-stack/) — chart Helm umbrella (10 aliases app-template 5.0.0)
 - [`my-kluster`](https://github.com/tom333/my-kluster) — repo cluster (`argocd/argocd-apps/arr-stack-app.yaml` pointe ici)
 
