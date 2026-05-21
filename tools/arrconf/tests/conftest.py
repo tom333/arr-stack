@@ -94,49 +94,9 @@ def sonarr_hostconfig_fixture() -> dict[str, Any]:
     return _load_fixture("sonarr/config_host.json")
 
 
-@pytest.fixture
-def sonarr_base_url() -> str:
-    return "http://sonarr.test"
-
-
 # ---------------------------------------------------------------------------
 # Phase 5 fixtures — qBittorrent reconciler + Sonarr/Radarr split
 # ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def qbit_categories_fixture() -> dict[str, Any]:
-    """qBit GET /api/v2/torrents/categories — dict keyed by category name.
-
-    Baseline: 3 pre-existing entries (cleanuparr-unlinked, radarr, sonarr)
-    all with empty savePath (R-04 mitigation context — no per-category paths
-    were configured before the Phase 5 reconciler runs).
-    """
-    return _load_fixture("qbittorrent/categories.json")
-
-
-@pytest.fixture
-def qbit_preferences_fixture() -> dict[str, Any]:
-    """qBit GET /api/v2/app/preferences — singleton (trimmed to allowlist + peripheral keys).
-
-    Allowlist keys (Q2 resolution): auto_tmm_enabled, category_changed_tmm_enabled,
-    torrent_changed_tmm_enabled, save_path, temp_path.
-    Peripheral keys for realism: locale, max_active_downloads, max_active_uploads,
-    queueing_enabled.
-    Sensitive fields (web_ui_password, web_ui_username, etc.) are intentionally omitted.
-    """
-    return _load_fixture("qbittorrent/preferences.json")
-
-
-@pytest.fixture
-def qbit_login_response_body() -> str:
-    """Body fixture for qBit login success — single line 'Ok.' (no trailing newline).
-
-    Used by respx login mocks per Pitfall 1 (qBit returns plain-text 'Ok.' on
-    successful cookie-based auth, not JSON).
-    """
-    path = Path(__file__).parent / "fixtures" / "qbittorrent" / "auth_login_ok.txt"
-    return path.read_text().rstrip("\n")
 
 
 @pytest.fixture
@@ -179,16 +139,6 @@ def radarr_movie_with_no_tags_fixture() -> list[dict[str, Any]]:
     the Radarr movie library. All 11 movies have no tags assigned.
     """
     return _load_fixture("radarr/movie_with_no_tags.json")
-
-
-@pytest.fixture
-def radarr_remotepathmapping_fixture() -> list[dict[str, Any]]:
-    """Radarr GET /api/v3/remotepathmapping — 1 entry mirroring Sonarr.
-
-    Baseline: same remote path mapping configuration as Sonarr — single entry
-    pointing qBittorrent's complete path to Radarr's import path.
-    """
-    return _load_fixture("radarr/remotepathmapping.json")
 
 
 # ---------------------------------------------------------------------------
