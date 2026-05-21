@@ -16,7 +16,9 @@ must_haves:
   truths:
     - "CLAUDE.md gains `## v0.3.0 → v0.4.0 deprecation` section after `## Release pin co-bump pattern` (D-11)"
     - "Section contents: rationale + verbatim list of deleted YAML paths + sample ValidationError text + operator one-shot fix instructions (D-11 + D-13)"
+    - "The ValidationError text quoted in CLAUDE.md is the verbatim output of `tools/arrconf/tests/test_config_validation.py::test_load_config_rejects_legacy_items_field` (created in Plan B Task B.2) — copied from `12-B-pydantic-yaml-schema-SUMMARY.md`'s `## Captured D-13 ValidationError` section. NO hand-written prose error string."
     - "Pre-merge snapshot captured: `snapshots/before-phase-12-YYYY-MM-DD/` produced by `tools/snapshot/snapshot.sh` (D-14, ADR-6)"
+    - "**The pre-merge snapshot is captured BEFORE Plan A's local changes are committed** — against the cluster currently running image `:0.6.7`, NOT against new local code. This makes the SC#5 diff a true v0.3.0-vs-v0.4.0 measurement, not a tautological self-diff (see Task D.2 step 1)."
     - "Snapshot is committed (lossless, redacted per snapshot.sh built-in redaction logic) — ADR-6 discipline preserved"
     - "NO arrconf code changes in this plan (code already shipped in Plan A)"
     - "NO additional values.yaml bump in this plan (co-bump already in Plan A's commit per CLAUDE.md `Release pin co-bump pattern`)"
@@ -25,22 +27,38 @@ must_haves:
       provides: "## v0.3.0 → v0.4.0 deprecation section"
       contains: "v0.3.0 → v0.4.0 deprecation"
     - path: "snapshots/before-phase-12-YYYY-MM-DD/"
-      provides: "Pre-merge cluster API state for SC#5 diff against Plan E's after-snapshot"
+      provides: "Pre-merge cluster API state for SC#5 diff against Plan E's after-snapshot. Captured against the v0.3.0 cluster (image :0.6.7), NOT against new local Plan-A code."
   key_links:
     - from: "CLAUDE.md deprecation section"
-      to: "ValidationError emitted by load_config when an operator keeps old-shape YAML"
-      via: "extra='forbid' on Section models"
-      pattern: "extra=\"forbid\"|Extra inputs are not permitted"
+      to: "tools/arrconf/tests/test_config_validation.py::test_load_config_rejects_legacy_items_field (Plan B Task B.2)"
+      via: "Plan D executor copies the captured pytest -v output from Plan B's SUMMARY verbatim into the CLAUDE.md doc block"
+      pattern: "extra_forbidden|Extra inputs are not permitted"
     - from: "snapshots/before-phase-12-*/"
       to: "snapshots/after-phase-12-* (Plan E)"
       via: "diff -r"
       pattern: "plan_action"
 ---
 
-<objective>
-Document the deprecation for the project's only operator (the user himself) via a new CLAUDE.md section, and capture the pre-merge baseline snapshot per ADR-6.
+<note>
 
-Purpose: The doc closes D-11 (operator migration guidance). The snapshot anchors SC#5 — Plan E will capture an `after-` snapshot post-merge against the live cluster and diff it against this baseline. The diff must show zero `plan_action` changes (Categories-derived was already in use during v0.3.0; deprecation removes dead code only).
+**Autonomous contract:**
+
+Plan-level `autonomous: false` denotes that the plan as a whole cannot complete without operator action — Task D.2's snapshot capture requires cluster port-forward and live API keys, which only the human operator can provide.
+
+Task D.1 (CLAUDE.md edit) IS auto-driven by the executor: `type="auto"`, no checkpoint, no human input needed (the doc content is fully derived from Plan B's SUMMARY).
+
+Task D.2 IS human-blocking: `type="checkpoint:human-action"`, gate="blocking".
+
+**Execution order:** `/gsd-execute-phase` should drive D.1 first (purely automated), then pause at D.2 for operator confirmation. The two tasks are independent — D.1 does NOT depend on D.2's snapshot capture (the doc content depends on Plan B's already-committed SUMMARY, not on the snapshot).
+
+**Wave-0 timing for D.2 step 1 (CRITICAL):** Although Plan D's `wave: 3` reflects the doc-writing dependency on Plan B's SUMMARY, the *snapshot capture* itself (Task D.2 step 1) MUST happen on a clean `main` BEFORE Plan A's code changes exist locally. This is enforced by Task D.2 step 1's explicit warning + the use of `git worktree` or `git stash` to obtain a pre-Plan-A working tree if changes have already started landing.
+
+</note>
+
+<objective>
+Document the deprecation for the project's only operator (the user himself) via a new CLAUDE.md section, and capture the pre-merge baseline snapshot per ADR-6 — captured against the live v0.3.0 cluster running image `:0.6.7`, before any Plan-A local code changes are committed.
+
+Purpose: The doc closes D-11 (operator migration guidance) using the canonical ValidationError text captured by Plan B's D-13 unit test. The snapshot anchors SC#5 — Plan E will capture an `after-` snapshot post-merge against the cluster running image `:0.7.0` and diff it against this baseline. The diff measures actual v0.3.0 → v0.4.0 cluster-API behaviour (NOT a same-code self-diff, which would be structurally trivial).
 
 Output: 1 modified file (CLAUDE.md) + 1 new directory of redacted JSON snapshots.
 
@@ -59,6 +77,7 @@ Note: This plan does NOT touch arrconf code or values.yaml. The chart-pin co-bum
 @.planning/phases/12-categories-deprecation/12-A-reconciler-refactor-SUMMARY.md
 @.planning/phases/12-categories-deprecation/12-B-pydantic-yaml-schema-SUMMARY.md
 @.planning/phases/12-categories-deprecation/12-C-test-cleanup-SUMMARY.md
+@tools/arrconf/tests/test_config_validation.py
 
 <interfaces>
 <!-- CLAUDE.md deprecation section template (D-11 contents 1-4) -->
@@ -74,7 +93,7 @@ The section body, in writing-with-codebase voice (FR/EN mix per existing CLAUDE.
 
 La couche de transition v0.2.0 (`merge_with_manual` + sections plates `*.items`)
 est retirée. À partir de v0.4.0, les générateurs purs de
-`arrconf/generators/categories.py` sont la **seule source** pour 12 ressources
+`arrconf/generators/categories.py` sont la **seule source** pour 11 ressources
 (sonarr/radarr × {tags, root_folders, download_clients, remote_path_mappings},
 qbittorrent.categories, jellyfin.libraries, seerr.sonarr_service.animeTags).
 Le toggle par ressource n'existe plus — pas de fallback, pas de cycle de
@@ -104,17 +123,16 @@ Les sections parentes (e.g. `sonarr.main.tags:`) survivent avec uniquement
 
 Si un opérateur (homelab fork / Categories non-encore-réconciliées) garde
 e.g. `sonarr.main.tags.items` dans son `arrconf.yml` post-upgrade, le prochain
-`arrconf apply` exit code 2 avec une `ValidationError` pydantic du type :
+`arrconf apply` exit code 2 avec une `ValidationError` pydantic. L'erreur
+exacte est pinguée par le test unitaire
+`tools/arrconf/tests/test_config_validation.py::test_load_config_rejects_legacy_items_field`
+(introduit en Phase 12 Plan B) :
 
 ```
-arrconf.exceptions.ConfigError: Config validation error in
-  /etc/arrconf/arrconf.yml:
-  1 validation error for RootConfig
-  sonarr.main.tags.items
-    Extra inputs are not permitted [type=extra_forbidden, ...]
+<PASTE-VERBATIM-FROM-12-B-SUMMARY.md-CAPTURED-D13-VALIDATION-ERROR-SECTION>
 ```
 
-Le path `sonarr.main.tags.items` pointe la ligne à supprimer.
+Le path `sonarr.main.tags.items` dans le message pointe la ligne à supprimer.
 
 ### Fix one-shot pour l'opérateur
 
@@ -133,9 +151,11 @@ Pas de script de migration livré — l'opérateur est unique (le user), l'édit
 se fait dans le PR qui ship le code v0.4.0 lui-même (D-12, D-15, D-18).
 ```
 
+**Executor handoff:** the `<PASTE-VERBATIM-FROM-12-B-SUMMARY.md-CAPTURED-D13-VALIDATION-ERROR-SECTION>` placeholder MUST be replaced by the literal terminal output recorded in `12-B-pydantic-yaml-schema-SUMMARY.md` under the `## Captured D-13 ValidationError` heading. NO paraphrasing, NO hand-editing. If the SUMMARY does not contain that section, STOP and route back to Plan B for completion (Task B.2 acceptance criteria requires that section to exist).
+
 <!-- Snapshot capture command (D-14, ADR-6) -->
 
-The pre-merge snapshot is OPERATOR action (no API key available in CI), captured BEFORE the PR merges to main:
+The pre-merge snapshot is OPERATOR action (no API key available in CI), captured BEFORE Plan A's local code changes are committed, against the cluster currently running image `:0.6.7`. See Task D.2 step 1 for the git-worktree / git-stash escape hatch if Plan A has already been started locally.
 
 ```bash
 # Pre-flight: ensure secrets are exported in the operator's shell
@@ -171,8 +191,9 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
   <files>CLAUDE.md</files>
   <read_first>
     - CLAUDE.md (full file — locate the existing `### Release pin co-bump pattern` section, around line 70-200 region. The new section goes IMMEDIATELY after the closing of the existing co-bump section and BEFORE the next H3 or H2 boundary)
+    - tools/arrconf/tests/test_config_validation.py (the D-13 unit test introduced by Plan B Task B.2 — confirms the doc and test are coupled)
     - .planning/phases/12-categories-deprecation/12-A-reconciler-refactor-SUMMARY.md (confirm the actual code state Plan A landed — the doc must reflect reality, not the plan)
-    - .planning/phases/12-categories-deprecation/12-B-pydantic-yaml-schema-SUMMARY.md (confirm the exact YAML paths deleted — must match the doc verbatim)
+    - .planning/phases/12-categories-deprecation/12-B-pydantic-yaml-schema-SUMMARY.md (confirm the exact YAML paths deleted — must match the doc verbatim. **Most importantly**: read the `## Captured D-13 ValidationError` section — that block is the literal text the executor pastes into CLAUDE.md replacing the `<PASTE-VERBATIM…>` placeholder.)
   </read_first>
   <action>
     Insert the markdown section in `<interfaces>` block above into `CLAUDE.md`. Placement rule:
@@ -183,7 +204,9 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
 
     3. Copy the markdown block from `<interfaces>` VERBATIM as the new section content. The verbatim list of 11 deleted paths MUST match Plan B's SUMMARY.
 
-    4. Update the `**État actuel**` line at the very top of CLAUDE.md (if it currently references "milestone v0.3.0 — Categories first-class livré") to add a forward-reference: append `Phase 12 deprecation livré — flat sections retirées de arrconf.yml, generators sont la seule source.` to the existing sentence. Keep the rest of the line intact.
+    4. **Replace `<PASTE-VERBATIM-FROM-12-B-SUMMARY.md-CAPTURED-D13-VALIDATION-ERROR-SECTION>`** with the literal block recorded in `.planning/phases/12-categories-deprecation/12-B-pydantic-yaml-schema-SUMMARY.md` under the `## Captured D-13 ValidationError` heading. The substitution is mechanical — read that section of the SUMMARY, copy its code-fenced block verbatim, and paste it into the CLAUDE.md placeholder. Do NOT paraphrase, do NOT trim, do NOT edit error line numbers. **If the SUMMARY does not contain that section, STOP** — Plan B Task B.2 did not complete fully, and Plan D cannot proceed until it does (the doc cross-reference is load-bearing per the must_haves.truths).
+
+    5. Update the `**État actuel**` line at the very top of CLAUDE.md (if it currently references "milestone v0.3.0 — Categories first-class livré") to add a forward-reference: append `Phase 12 deprecation livré — flat sections retirées de arrconf.yml, generators sont la seule source.` to the existing sentence. Keep the rest of the line intact.
   </action>
   <verify>
     <automated>
@@ -193,9 +216,11 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
       grep -q "jellyfin.main.libraries.items" CLAUDE.md ; \
       grep -q "seerr.main.sonarr_service.animeTags" CLAUDE.md ; \
       grep -q "qbittorrent.main.categories.items" CLAUDE.md ; \
-      grep -q "extra_forbidden\|Extra inputs are not permitted" CLAUDE.md ; \
+      grep -qE "extra_forbidden|Extra inputs are not permitted" CLAUDE.md ; \
+      grep -q "test_load_config_rejects_legacy_items_field" CLAUDE.md ; \
       grep -q "merge_with_manual" CLAUDE.md ; \
       grep -q "arrconf/generators/categories.py" CLAUDE.md ; \
+      ! grep -q "PASTE-VERBATIM-FROM-12-B-SUMMARY" CLAUDE.md ; \
       echo "DOC OK"
     </automated>
   </verify>
@@ -205,28 +230,57 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
     - `grep -q "jellyfin.main.libraries.items" CLAUDE.md` exits 0 (verbatim path #11 present)
     - `grep -q "seerr.main.sonarr_service.animeTags" CLAUDE.md` exits 0
     - `grep -q "qbittorrent.main.categories.items" CLAUDE.md` exits 0
-    - `grep -qE "extra_forbidden|Extra inputs are not permitted" CLAUDE.md` exits 0 (sample ValidationError present)
+    - `grep -qE "extra_forbidden|Extra inputs are not permitted" CLAUDE.md` exits 0 (D-13 dispositive error string present)
+    - `grep -q "test_load_config_rejects_legacy_items_field" CLAUDE.md` exits 0 (doc cross-references the Plan B test)
     - `grep -q "merge_with_manual" CLAUDE.md` exits 0 (deprecation context mentions the removed function)
+    - `! grep -q "PASTE-VERBATIM-FROM-12-B-SUMMARY" CLAUDE.md` (placeholder was replaced — no template leakage)
     - The new section sits AFTER the `### Release pin co-bump pattern` section (verify by `awk '/^###?\s+Release pin co-bump/,/^### v0\.3\.0|^## v0\.3\.0/' CLAUDE.md | wc -l` returns > 0 lines)
   </acceptance_criteria>
-  <done>CLAUDE.md gains the deprecation section with all 4 D-11 contents; the verbatim path list matches Plan B's actual edits; placement respects existing heading hierarchy.</done>
+  <done>CLAUDE.md gains the deprecation section with all 4 D-11 contents; the verbatim path list matches Plan B's actual edits; the ValidationError block is the literal pytest -v output from Plan B Task B.2 (no hand-written prose); placement respects existing heading hierarchy.</done>
 </task>
 
 <task type="checkpoint:human-action" gate="blocking">
-  <name>Task D.2 (HUMAN): Capture pre-merge cluster snapshot</name>
+  <name>Task D.2 (HUMAN): Capture pre-merge cluster snapshot — against v0.3.0 cluster, BEFORE Plan A's local code lands</name>
   <what-built>
-    The CLAUDE.md deprecation section is committed in Task D.1. Plans A/B/C have landed code/YAML/schema/test changes. Before merging the phase PR, the operator must capture the live cluster's API state as the SC#5 baseline.
+    The CLAUDE.md deprecation section is committed in Task D.1. Plans A/B/C have prepared local code/YAML/schema/test changes — possibly already committed locally. Before merging the phase PR, the operator must capture the live cluster's API state as the SC#5 baseline.
+
+    **CRITICAL TIMING:** This snapshot MUST be captured against the cluster currently running image `:0.6.7` (v0.3.0 code path), NOT against new local Plan-A code. The capture is read-only (snapshot.sh is GET-only against the live API), so the cluster state IS the v0.3.0 baseline regardless of what local code looks like — but the operator's `arrconf apply --dry-run` (step 6 below) IS sensitive to local code and MUST be run from a pre-Plan-A working tree.
   </what-built>
   <how-to-verify>
     Operator runs the following from the arr-stack repo root. Each step is non-skippable.
 
-    1. Confirm cluster connectivity:
+    1. **Establish a pre-Plan-A working tree.**
+
+       This is the critical timing step that avoids the SC#5 tautology (running the post-refactor code against the same cluster as the post-refactor code = trivially zero diff).
+
+       Pick ONE of:
+       - **Option 1A (cleanest):** create a separate worktree pinned to a pre-Plan-A commit.
+         ```bash
+         # Find the last commit BEFORE Plan A landed locally:
+         git log --oneline -- tools/arrconf/arrconf/__main__.py | head -5
+         # Pick the SHA immediately before the "phase 12 Plan A" or "feat(12):" commit.
+         PRE_PLAN_A_SHA=<that SHA>
+         git worktree add ../arr-stack-baseline ${PRE_PLAN_A_SHA}
+         cd ../arr-stack-baseline
+         ```
+       - **Option 1B (if you have not yet started Plan A locally):** you are already on the pre-Plan-A working tree; just verify with `git log --oneline -3` showing no "Phase 12" commits yet.
+       - **Option 1C (stash-based fallback):** if Plan A's changes are uncommitted local edits, `git stash push -u -m "phase-12-plan-a-wip"` then operate from clean main. Re-apply with `git stash pop` AFTER step 7.
+
+       After this step the working tree MUST reflect v0.3.0 code (image `:0.6.7` Python path).
+
+    2. Confirm cluster connectivity (one-time check, independent of local working tree):
        ```bash
        kubectl -n selfhost get pods | grep -E "sonarr|radarr|prowlarr|qbittorrent|jellyfin|seerr"
        ```
        All 6 pods MUST show `Running`.
 
-    2. Export secrets from the operator's local secret stash (or copy from `kubectl get secret arrconf-env -n selfhost -o yaml | grep -A6 data` after `base64 -d`):
+       Also confirm the deployed image:
+       ```bash
+       kubectl -n selfhost get cronjob arrconf -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].image}'
+       # Expected: ghcr.io/tom333/arr-stack-arrconf:0.6.7
+       ```
+
+    3. Export secrets from the operator's local secret stash (or copy from `kubectl get secret arrconf-env -n selfhost -o yaml | grep -A6 data` after `base64 -d`):
        ```bash
        export SONARR_API_KEY=<value>
        export RADARR_API_KEY=<value>
@@ -237,7 +291,7 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
        export QBT_PASS=<value>
        ```
 
-    3. Set up port-forwards (one terminal per app, or use a multiplexer):
+    4. Set up port-forwards (one terminal per app, or use a multiplexer):
        ```bash
        kubectl -n selfhost port-forward svc/sonarr 8989:8989 &
        kubectl -n selfhost port-forward svc/radarr 7878:7878 &
@@ -247,37 +301,51 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
        kubectl -n selfhost port-forward svc/seerr 5055:5055 &
        ```
 
-    4. Capture snapshot:
+    5. Capture snapshot (snapshot.sh is GET-only; it walks the live cluster API and writes raw JSON files to the output directory):
        ```bash
        DATE=$(date +%F)
        tools/snapshot/snapshot.sh --output snapshots/before-phase-12-${DATE}/
        ```
 
-    5. Verify redaction (post-Phase-6 fix should be in effect; manual safety check):
+       The output directory contains raw cluster-API JSON files (sonarr_*.json, radarr_*.json, etc.). These represent the **v0.3.0 cluster state** independent of local code. This is the true SC#5 baseline.
+
+    6. Verify redaction (post-Phase-6 fix should be in effect; manual safety check):
        ```bash
        grep -rniE "(api[-_]?key|password|passkey|token).*:.*[a-z0-9]{16,}" snapshots/before-phase-12-${DATE}/ || echo "REDACTION CLEAN"
        ```
        Output MUST be `REDACTION CLEAN` (no real secrets found). If real secret-looking strings appear, manually redact before commit.
 
-    6. Confirm `arrconf apply --dry-run` (run against port-forwarded URLs) produces a stable plan_action log (this is the pre-Phase-12 baseline behavior):
+    7. Capture the v0.3.0 dry-run plan-action log (against the v0.3.0 working tree from step 1):
        ```bash
        cd tools/arrconf && uv run arrconf apply \
          --config ../../charts/arr-stack/files/arrconf.yml --dry-run \
-         > ../../snapshots/before-phase-12-${DATE}/dry-run-plan-actions.log 2>&1
+         > ../../snapshots/before-phase-12-${DATE}/dry-run-plan-actions-v030.log 2>&1
        ```
-       (At this point the operator is on the new code — Plan A's signature refactor is already merged locally. The dry-run is the "what plan_action will the post-deprecation code emit AGAINST the current cluster state" measurement.)
 
-    7. Stage + commit (NOT push — push happens with the full PR):
+       **Why this log matters:** Plan E's after-snapshot will capture the v0.4.0 equivalent (`dry-run-plan-actions-v040.log`) using the new code against the same cluster. Plan E's SC#5 dispositive diff compares these two logs. By capturing the v0.3.0 log here (from the v0.3.0 working tree, against the v0.3.0 cluster), we get a TRUE before/after measurement — not a same-code self-diff. The log file name is suffixed `-v030.log` to make the source-version explicit; Plan E mirrors with `-v040.log`.
+
+    8. If you used Option 1A (worktree), commit/copy the snapshot back into the main working tree:
+       ```bash
+       cd /data/projets/perso/arr-stack   # back to main worktree
+       mkdir -p snapshots/before-phase-12-${DATE}
+       cp -r ../arr-stack-baseline/snapshots/before-phase-12-${DATE}/* \
+             snapshots/before-phase-12-${DATE}/
+       git worktree remove ../arr-stack-baseline   # cleanup
+       ```
+
+       If you used Option 1C (stash), just `git stash pop` to restore Plan A's WIP.
+
+    9. Stage + commit (NOT push — push happens with the full PR):
        ```bash
        git add snapshots/before-phase-12-${DATE}/
        git status
-       git commit -m "snapshot(12): pre-merge cluster baseline for SC#5 (ADR-6, D-14)"
+       git commit -m "snapshot(12): pre-merge v0.3.0 cluster baseline for SC#5 (ADR-6, D-14)"
        ```
 
-    8. Report back: paste the output of `ls snapshots/before-phase-12-${DATE}/` (file count) and `cat snapshots/before-phase-12-${DATE}/dry-run-plan-actions.log | tail -20` (the operator's confidence anchor before merging).
+    10. Report back: paste the output of `ls snapshots/before-phase-12-${DATE}/` (file count) and `cat snapshots/before-phase-12-${DATE}/dry-run-plan-actions-v030.log | tail -20` (the operator's confidence anchor before merging).
   </how-to-verify>
   <resume-signal>
-    Reply `approved` after the snapshot is committed and the dry-run log captured. Reply `redaction-failure: <details>` if step 5 surfaces unredacted secrets — that blocks the PR until snapshot.sh is patched.
+    Reply `approved` after the snapshot is committed and the v0.3.0 dry-run log captured. Reply `redaction-failure: <details>` if step 6 surfaces unredacted secrets — that blocks the PR until snapshot.sh is patched. Reply `working-tree-uncertain: <details>` if you cannot confirm step 1's pre-Plan-A working tree (Plan E's SC#5 diff will become tautological if Plan A's code influenced step 7's log).
   </resume-signal>
 </task>
 
@@ -290,37 +358,45 @@ The snapshot.sh script already includes built-in password/API-key redaction (pos
 |----------|-------------|
 | Operator laptop ↔ cluster API | Port-forwarded HTTPS/HTTP; API keys flow as headers. |
 | snapshot.sh stdout → committed JSON | Built-in redaction is the trust gate against secret leak (ADR-6). |
-| CLAUDE.md → future-operator (future user, future fork) | Documentation accuracy = mitigation against repeating v0.3.0→v0.4.0 confusion. |
+| CLAUDE.md → future-operator (future user, future fork) | Documentation accuracy = mitigation against repeating v0.3.0→v0.4.0 confusion. The doc-test coupling (Plan B `test_load_config_rejects_legacy_items_field` ↔ CLAUDE.md error block) prevents stale doc drift. |
+| Pre-Plan-A working tree ↔ v0.3.0 baseline log | If step 1 fails to establish a v0.3.0 tree, step 7's log is computed by v0.4.0 code and the SC#5 diff becomes a same-code self-diff (structurally zero by construction, dispositive of nothing). |
 
 ## STRIDE Threat Register
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-12D-01 | Information Disclosure | snapshot capture | mitigate | `tools/snapshot/snapshot.sh` already includes post-Phase-6 password+API-key redaction. Task D.2 step 5 enforces a re-grep audit before commit (operator gate). |
-| T-12D-02 | Tampering | CLAUDE.md edit | mitigate | Doc lands as part of the PR; reviewer (= user, same person) cross-checks against actual code state via the SUMMARY references. |
-| T-12D-03 | Repudiation | snapshot vs Plan E after-snapshot | mitigate | `snapshots/before-phase-12-DATE/` committed before merge; Plan E captures `snapshots/after-phase-12-DATE/` post-merge; `diff -r` between them is the dispositive SC#5 evidence. |
+| T-12D-01 | Information Disclosure | snapshot capture | mitigate | `tools/snapshot/snapshot.sh` already includes post-Phase-6 password+API-key redaction. Task D.2 step 6 enforces a re-grep audit before commit (operator gate). |
+| T-12D-02 | Tampering | CLAUDE.md edit | mitigate | Doc lands as part of the PR; reviewer (= user, same person) cross-checks against actual code state via the SUMMARY references. The error block is mechanically copied from Plan B's pytest -v output (no hand-edited prose). |
+| T-12D-03 | Repudiation | snapshot vs Plan E after-snapshot | mitigate | `snapshots/before-phase-12-DATE/` committed before merge with `dry-run-plan-actions-v030.log` produced from a pre-Plan-A working tree; Plan E captures `snapshots/after-phase-12-DATE/` with `dry-run-plan-actions-v040.log`; `diff` between them is the dispositive SC#5 evidence (true v030-vs-v040 measurement). |
 | T-12D-04 | Denial of Service | port-forward + snapshot | accept | Single-operator workflow; if a port-forward dies mid-snapshot, operator restarts. No production impact. |
 | T-12D-05 | Spoofing | None applicable | n/a | Snapshot is read-only against cluster APIs; no PUT/POST issued. |
+| T-12D-06 | Repudiation | doc-test coupling drift | mitigate | The CLAUDE.md error block IS the test output. If Plan B's test is later edited without updating CLAUDE.md (or vice versa), a future Plan B re-run will produce a different captured output and the doc-vs-test drift will be visible. |
 </threat_model>
 
 <verification>
 - `grep -q "v0.3.0 → v0.4.0 deprecation" CLAUDE.md` exits 0
+- `grep -q "test_load_config_rejects_legacy_items_field" CLAUDE.md` exits 0
+- `! grep -q "PASTE-VERBATIM-FROM-12-B-SUMMARY" CLAUDE.md` (placeholder substituted)
 - `ls snapshots/before-phase-12-*/` lists ≥ 6 subdirectories (one per app)
-- `cat snapshots/before-phase-12-*/dry-run-plan-actions.log | grep -E "ValidationError|missing_api_key"` returns ZERO matches (the YAML loaded cleanly under the new shape)
+- `cat snapshots/before-phase-12-*/dry-run-plan-actions-v030.log | grep -E "ValidationError|missing_api_key"` returns ZERO matches (the YAML loaded cleanly under the pre-Plan-B shape — note: from the pre-Plan-A working tree, arrconf.yml still has the flat items blocks)
 - The snapshot diff vs `snapshots/post-phase2.2-hotfix-*` (most recent prior snapshot) shows ONLY expected drift (Phase 11+ Categories resources, no surprise mutations)
 </verification>
 
 <success_criteria>
-- SC#4 (CLAUDE.md deprecation section) — SATISFIED by Task D.1.
-- SC#5 prerequisite (before-snapshot for diff) — SATISFIED by Task D.2.
+- SC#4 (CLAUDE.md deprecation section, coupled to the D-13 unit test) — SATISFIED by Task D.1.
+- SC#5 prerequisite (before-snapshot for diff, captured from v0.3.0 working tree against v0.3.0 cluster) — SATISFIED by Task D.2.
 - D-11, D-12, D-13, D-14 closed in this plan.
 </success_criteria>
 
 <output>
 After completion, create `.planning/phases/12-categories-deprecation/12-D-docs-snapshot-SUMMARY.md` documenting:
 - Confirmation CLAUDE.md section landed at the chosen heading level
+- Confirmation that the verbatim ValidationError block in CLAUDE.md matches Plan B Task B.2's captured pytest -v output (no drift)
 - Path to the committed `snapshots/before-phase-12-DATE/` directory
 - File count of the snapshot directory
-- Last 20 lines of the captured dry-run log
+- Which Option (1A worktree / 1B already-pre-PlanA / 1C stash) the operator used in step 1 and why
+- Last 20 lines of the captured `dry-run-plan-actions-v030.log` (clearly labelled as "v0.3.0 working tree against v0.3.0 cluster")
 - Confirmation that redaction grep returned `REDACTION CLEAN`
 </output>
+</content>
+</invoke>

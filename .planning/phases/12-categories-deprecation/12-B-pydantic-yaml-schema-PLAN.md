@@ -8,6 +8,7 @@ files_modified:
   - tools/arrconf/arrconf/config.py
   - tools/arrconf/arrconf/diff_cmd.py
   - tools/arrconf/arrconf/__main__.py
+  - tools/arrconf/tests/test_config_validation.py
   - charts/arr-stack/files/arrconf.yml
   - schemas/arrconf-schema.json
 autonomous: true
@@ -19,20 +20,24 @@ must_haves:
   truths:
     - "`items: list[...]` field removed from the 6 generator-fed Section models in `config.py` (D-01)"
     - "`prune: bool` kept on every Section model (D-02)"
-    - "Flat `items:` lists deleted from `charts/arr-stack/files/arrconf.yml` for 12 generator-derived resources (D-01 + REQ-categories-deprecation)"
+    - "Flat `items:` lists deleted from `charts/arr-stack/files/arrconf.yml` for the **11** generator-derived resources (D-01 + REQ-categories-deprecation). Note: CONTEXT Phase Boundary §2 says '12' but enumerates 11 — the enumeration is authoritative; 11 generator-derived YAML blocks are slimmed in this plan, not 12."
     - "`schemas/arrconf-schema.json` regenerated and committed; matches `arrconf schema-gen` output byte-for-byte (D-05)"
     - "`arrconf apply --config charts/arr-stack/files/arrconf.yml --dry-run` loads the new YAML without ValidationError (D-13 — pydantic `extra=forbid` confirms the new shape is valid)"
+    - "New unit test `tests/test_config_validation.py::test_load_config_rejects_legacy_items_field` exercises the D-13 failure path: a YAML fragment with `sonarr.main.tags.items` MUST raise `ValidationError` with `type='extra_forbidden'`. The captured error string is the **same text** quoted verbatim in Plan D Task D.1's CLAUDE.md edit (cross-reference)."
     - "The Plan-A intra-function shim (`instance.<section>.items = derived.<field>`) is removed from `__main__.py` diff branches and `diff_cmd.py` is refactored to accept Derived dataclasses (continuation of D-03)"
   artifacts:
     - path: "tools/arrconf/arrconf/config.py"
       provides: "6 Section models without items field"
       excludes: "items: list[TagItem]|items: list[RootFolder]|items: list[DownloadClient]|items: list[RemotePathMapping]|items: list[Category]|items: list[JellyfinLibrary]"
     - path: "charts/arr-stack/files/arrconf.yml"
-      provides: "Categories-driven shape — no flat items lists for 12 generator-derived resources"
+      provides: "Categories-driven shape — no flat items lists for 11 generator-derived resources"
     - path: "schemas/arrconf-schema.json"
       provides: "JSON Schema reflecting post-deprecation shape; matches a fresh schema-gen"
     - path: "tools/arrconf/arrconf/diff_cmd.py"
       provides: "diff_sonarr/diff_radarr/diff_qbittorrent/diff_jellyfin take Derived params"
+    - path: "tools/arrconf/tests/test_config_validation.py"
+      provides: "D-13 enforcement test — captures the canonical ValidationError text for CLAUDE.md docs reuse"
+      contains: "test_load_config_rejects_legacy_items_field"
   key_links:
     - from: "charts/arr-stack/files/arrconf.yml"
       to: "tools/arrconf/arrconf/config.py RootConfig"
@@ -42,14 +47,18 @@ must_haves:
       to: "schemas/arrconf-schema.json"
       via: "arrconf schema-gen"
       pattern: "schema-gen"
+    - from: "tools/arrconf/tests/test_config_validation.py::test_load_config_rejects_legacy_items_field"
+      to: "CLAUDE.md ## v0.3.0 → v0.4.0 deprecation section (Plan D Task D.1)"
+      via: "Plan D executor copies the captured error string verbatim from pytest -v output into the CLAUDE.md doc block"
+      pattern: "extra_forbidden"
 ---
 
 <objective>
-Remove the `items` field from the 6 generator-fed pydantic Section models, delete the 12 corresponding flat YAML blocks from production `arrconf.yml`, regenerate the JSON Schema to match, and refactor `diff_cmd.py` to accept the Derived dataclasses (so the temporary Plan-A shim in `__main__.py` diff branches can be removed).
+Remove the `items` field from the 6 generator-fed pydantic Section models, delete the 11 corresponding flat YAML blocks from production `arrconf.yml`, regenerate the JSON Schema to match, refactor `diff_cmd.py` to accept the Derived dataclasses (so the temporary Plan-A shim in `__main__.py` diff branches can be removed), and add a unit test that exercises the D-13 failure path (legacy `items:` block raises `ValidationError`).
 
-Purpose: After Plan B, the YAML is shape-locked to Categories-only. The `extra="forbid"` invariant turns any leftover `items:` block into a hard ValidationError at load time (D-13). The schema lives as the immutable source-of-truth for `# yaml-language-server: $schema=` directives.
+Purpose: After Plan B, the YAML is shape-locked to Categories-only. The `extra="forbid"` invariant turns any leftover `items:` block into a hard ValidationError at load time (D-13) — and the new unit test pins the canonical error string so Plan D's CLAUDE.md doc can quote it verbatim instead of hand-waving prose. The schema lives as the immutable source-of-truth for `# yaml-language-server: $schema=` directives.
 
-Output: `config.py` slimmer by 6 `items` fields; `arrconf.yml` shorter (every Categories-derived flat block deleted); `schemas/arrconf-schema.json` regenerated and committed; `diff_cmd.py` entry-point signatures aligned with the reconciler signatures from Plan A.
+Output: `config.py` slimmer by 6 `items` fields; `arrconf.yml` shorter (every Categories-derived flat block deleted); `schemas/arrconf-schema.json` regenerated and committed; `diff_cmd.py` entry-point signatures aligned with the reconciler signatures from Plan A; new `tests/test_config_validation.py` with the D-13 dispositive test.
 </objective>
 
 <execution_context>
@@ -113,7 +122,7 @@ class JellyfinLibrariesSection(BaseModel):
 
 <!-- YAML flat sections to delete from charts/arr-stack/files/arrconf.yml (verbatim section paths) -->
 
-Sections to delete (the `items:` list under each — the parent Section dict survives with just `prune: false`):
+Sections to delete (the `items:` list under each — the parent Section dict survives with just `prune: false`). **Authoritative count = 11**, NOT 12 (CONTEXT Phase Boundary §2 inflates by one when introducing the topic but enumerates 11 in the same paragraph). The enumeration below is canonical:
 
 1. `sonarr.main.tags.items`
 2. `sonarr.main.root_folders.items`
@@ -126,7 +135,8 @@ Sections to delete (the `items:` list under each — the parent Section dict sur
 9. `qbittorrent.main.categories.items`
 10. `seerr.main.sonarr_service.animeTags` (the list itself — animeTags is a `list[int]` on `SeerrSonarrServiceSection`, NOT an `items:` list)
 11. `jellyfin.main.libraries.items`
-12. (No 12th — CONTEXT §"Phase Boundary" lists 12 but enumerates 11; the missing one is the `sonarr.main.tags.items` vs the broader Categories-derived count. Stick to the 11 above and verify via grep that no `items:` block remains under generator-derived sections.)
+
+Verify post-edit via grep that no `items:` block remains under generator-derived sections.
 
 <!-- Sections to KEEP in arrconf.yml (operator-owned, generator does NOT produce these): -->
 
@@ -149,6 +159,65 @@ def diff_qbittorrent(client: QbittorrentClient, root: RootConfig, categories: li
 def diff_jellyfin(client: JellyfinClient, root: RootConfig, libraries: list[JellyfinLibrary]) -> int: ...
 def diff_prowlarr(client: ProwlarrClient, root: RootConfig) -> int:   # UNCHANGED — no Categories derivation
 ```
+
+<!-- D-13 unit test contract (new file: tools/arrconf/tests/test_config_validation.py) -->
+
+```python
+# tools/arrconf/tests/test_config_validation.py — NEW FILE in Plan B
+"""D-13 dispositive: confirms `extra="forbid"` on Section models rejects legacy
+v0.3.0 YAML shape (flat `*.items` blocks under generator-fed sections).
+
+The exact error string captured by this test is the **canonical** sample
+quoted verbatim in CLAUDE.md's `## v0.3.0 → v0.4.0 deprecation` section
+(Plan D Task D.1). Do not edit the test's assertions without updating
+the doc — they are intentionally coupled.
+"""
+from __future__ import annotations
+
+import pytest
+from pydantic import ValidationError
+
+from arrconf.config import RootConfig  # or whichever top-level model load_config() uses
+
+
+def test_load_config_rejects_legacy_items_field() -> None:
+    """A YAML fragment with legacy sonarr.main.tags.items must raise
+    ValidationError(type='extra_forbidden') after Plan B removes the items field.
+
+    The plan's executor MUST capture the exc.errors() output and paste it
+    into CLAUDE.md's deprecation section verbatim (see Plan D Task D.1)."""
+
+    # Minimal RootConfig fixture: keep required scaffolding small but valid,
+    # except for the one offending field. The exact shape depends on
+    # RootConfig's required-fields tree — executor inspects load_config()
+    # to determine the minimal valid surrounding dict, then injects the
+    # offending key under sonarr.main.tags.items.
+    legacy_shape = {
+        # ... minimal-valid scaffolding produced by inspecting RootConfig ...
+        "sonarr": {
+            "main": {
+                # ... required SonarrInstance scaffolding ...
+                "tags": {
+                    "prune": False,
+                    "items": [{"label": "tv"}],   # ← D-13 trigger: legacy v0.3.0 field
+                },
+            }
+        },
+    }
+
+    with pytest.raises(ValidationError) as exc_info:
+        RootConfig.model_validate(legacy_shape)
+
+    # At least one error in the chain must be extra_forbidden on the items field
+    errors = exc_info.value.errors()
+    extra_forbidden = [e for e in errors if e["type"] == "extra_forbidden"]
+    assert extra_forbidden, f"expected extra_forbidden error, got: {errors}"
+
+    # The error's location must point at the items field — anchors the CLAUDE.md
+    # "field-path resolution" claim.
+    paths = [tuple(e["loc"]) for e in extra_forbidden]
+    assert any("items" in p for p in paths), f"items not in any error loc: {paths}"
+```
 </interfaces>
 </context>
 
@@ -163,7 +232,7 @@ def diff_prowlarr(client: ProwlarrClient, root: RootConfig) -> int:   # UNCHANGE
     - .planning/phases/12-categories-deprecation/12-A-reconciler-refactor-SUMMARY.md (verify Plan A landed and reconcilers no longer depend on `instance.<section>.items` after the intra-function shim is removed)
   </read_first>
   <action>
-    Edit `tools/arrconf/arrconf/config.py`. For each of the 6 models listed in `<interfaces>`, delete the `items: list[...] = Field(default_factory=list)` line (or its multi-line equivalent for JellyfinLibrariesSection which has a longer description). Keep `prune: bool = Field(default=False, ...)`. Keep `model_config = ConfigDict(extra="forbid")`. Keep any other field that is NOT `items` (e.g. JellyfinLibrariesSection's `enable: bool` survives).
+    Edit `tools/arrconf/arrconf/config.py`. For each of the 6 models listed in `<interfaces>`, delete the `items: list[...] = Field(default_factory=list)` line (or its multi-line equivalent for JellyfinLibrariesSection which has a longer description). Keep `prune: bool = Field(default=False, ...)`. Keep `model_config = ConfigDict(extra="forbid")` (verified: every Section already has `ConfigDict(extra="forbid")` — this is the D-13 trust gate). Keep any other field that is NOT `items` (e.g. JellyfinLibrariesSection's `enable: bool` survives).
 
     Concretely, the 6 lines/blocks to delete:
 
@@ -235,7 +304,49 @@ print('OK')
 </task>
 
 <task type="auto">
-  <name>Task B.2: Delete flat YAML sections from arrconf.yml + regenerate schema + refactor diff_cmd.py + remove Plan-A shim</name>
+  <name>Task B.2: Add D-13 dispositive unit test — `test_load_config_rejects_legacy_items_field`</name>
+  <files>tools/arrconf/tests/test_config_validation.py</files>
+  <read_first>
+    - tools/arrconf/arrconf/config.py (post-Task-B.1 — confirm the 6 Section models no longer carry `items` AND `ConfigDict(extra="forbid")` is still in place on each)
+    - tools/arrconf/arrconf/config.py — locate `load_config()` or `RootConfig.model_validate()` entry point + inspect `RootConfig`'s required-fields tree to determine the minimal valid scaffolding for the YAML fragment in the test
+    - tools/arrconf/tests/conftest.py (existing fixtures — reuse if a minimal-valid root config fixture exists; otherwise build inline)
+  </read_first>
+  <action>
+    Create the new file `tools/arrconf/tests/test_config_validation.py` using the template in `<interfaces>` above as the skeleton. The minimal-valid YAML scaffolding must be inferred from `RootConfig`'s required fields (look for `Field(...)` without `default` or `default_factory`).
+
+    Steps:
+    1. Read `tools/arrconf/arrconf/config.py` to identify all required (no-default) fields on `RootConfig` and its required sub-models.
+    2. Build a minimal-valid `dict[str, Any]` that satisfies those required fields.
+    3. Inject the offending key `sonarr.main.tags.items = [{"label": "tv"}]` — this triggers the D-13 enforcement because Plan B's Task B.1 removed `items` from `TagsSection`.
+    4. Use `pytest.raises(ValidationError)` to capture the exception.
+    5. Assert at least one error has `type == "extra_forbidden"` and the error's `loc` contains `"items"`.
+    6. After implementing the test, run it locally and copy the EXACT output of `cd tools/arrconf && uv run pytest tests/test_config_validation.py::test_load_config_rejects_legacy_items_field -v 2>&1 | head -40` — paste this output into the SUMMARY of Plan B (the SUMMARY is consumed by Plan D Task D.1 which copies the error block verbatim into CLAUDE.md, so the SUMMARY's "captured ValidationError output" section is the cross-plan handoff).
+
+    **If the minimal-valid scaffolding is non-trivial** (RootConfig has many required sub-models), the alternative is to load `charts/arr-stack/files/arrconf.yml` directly via `load_config()` and inject the offending key only into the loaded dict — but `arrconf.yml` is itself post-Plan-B-edited by Task B.3, creating a chicken-and-egg ordering issue if this test runs in CI before B.3 lands. **Mitigation:** keep the test inline-scaffolded (no file dependency), so test ordering inside this plan is irrelevant.
+
+    No edits to other files in this task.
+  </action>
+  <verify>
+    <automated>
+      cd /data/projets/perso/arr-stack && \
+      test -f tools/arrconf/tests/test_config_validation.py && \
+      cd tools/arrconf && uv run pytest tests/test_config_validation.py::test_load_config_rejects_legacy_items_field -v && echo "D-13 TEST GREEN" ; \
+      uv run ruff format --check tests/test_config_validation.py && uv run ruff check tests/test_config_validation.py && uv run mypy tests/test_config_validation.py && echo "TRIADE OK"
+    </automated>
+  </verify>
+  <acceptance_criteria>
+    - `test -f tools/arrconf/tests/test_config_validation.py` exits 0 (file exists)
+    - `grep -q "def test_load_config_rejects_legacy_items_field" tools/arrconf/tests/test_config_validation.py` exits 0
+    - `grep -q "extra_forbidden" tools/arrconf/tests/test_config_validation.py` exits 0
+    - `cd tools/arrconf && uv run pytest tests/test_config_validation.py::test_load_config_rejects_legacy_items_field -v` exits 0
+    - Triade Python on the new file: `cd tools/arrconf && uv run ruff format --check tests/test_config_validation.py && uv run ruff check tests/test_config_validation.py && uv run mypy tests/test_config_validation.py` exits 0
+    - The captured pytest -v output is recorded in `12-B-pydantic-yaml-schema-SUMMARY.md` under a `## Captured D-13 ValidationError` heading (for Plan D Task D.1 to consume verbatim)
+  </acceptance_criteria>
+  <done>D-13 enforcement now has a single dispositive test; the test passes; the captured error string is committed in the plan's SUMMARY for Plan D's CLAUDE.md edit to reference verbatim.</done>
+</task>
+
+<task type="auto">
+  <name>Task B.3: Delete flat YAML sections from arrconf.yml + regenerate schema + refactor diff_cmd.py + remove Plan-A shim</name>
   <files>
     charts/arr-stack/files/arrconf.yml,
     schemas/arrconf-schema.json,
@@ -243,7 +354,7 @@ print('OK')
     tools/arrconf/arrconf/__main__.py
   </files>
   <read_first>
-    - charts/arr-stack/files/arrconf.yml (full file — 592 lines; locate each section listed in `<interfaces>` and delete only the `items:` sub-block, keep the parent block with `prune: false`)
+    - charts/arr-stack/files/arrconf.yml (full file — ~592 lines; locate each section listed in `<interfaces>` and delete only the `items:` sub-block, keep the parent block with `prune: false`)
     - tools/arrconf/arrconf/diff_cmd.py (full file — to refactor diff_* entry points)
     - tools/arrconf/arrconf/__main__.py (full file post-Plan-A — to remove the diff-branch Plan-A shim once diff_cmd accepts Derived params)
     - tools/arrconf/arrconf/schema_gen.py (the schema export function — confirm `write_schema` writes from `RootConfig.model_json_schema()`)
@@ -409,15 +520,16 @@ print('OK')
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-12B-01 | Tampering | arrconf.yml editor flow | mitigate | `extra="forbid"` on Section models rejects unknown fields; old-shape YAML cannot silently survive (D-13). |
+| T-12B-01 | Tampering | arrconf.yml editor flow | mitigate | `extra="forbid"` on Section models rejects unknown fields; old-shape YAML cannot silently survive (D-13). The new `test_load_config_rejects_legacy_items_field` test pins the contract. |
 | T-12B-02 | Information Disclosure | schema regen | accept | JSON Schema contains no secrets; output goes to public path `schemas/arrconf-schema.json` already committed. |
-| T-12B-03 | Denial of Service | apply path on operator's legacy fork | mitigate | Clear ValidationError points at the dead field path; CLAUDE.md deprecation section (Plan D) gives the fix command. |
+| T-12B-03 | Denial of Service | apply path on operator's legacy fork | mitigate | Clear ValidationError points at the dead field path; CLAUDE.md deprecation section (Plan D) gives the fix command. The error text quoted in CLAUDE.md is the literal output of the D-13 unit test (captured during Plan B execution, copied verbatim into the doc). |
 | T-12B-04 | Spoofing | None applicable | n/a | YAML edits land via PR review; chart pull from GHCR uses anonymous read (ADR-3) — no impersonation vector introduced. |
 | T-12B-05 | Repudiation | schema regen reproducibility | mitigate | CI `tests.yml:54-57` already enforces `git diff --exit-code` against a fresh `arrconf schema-gen` — non-reproducible schema fails CI. |
 </threat_model>
 
 <verification>
 - `cd tools/arrconf && uv run pytest tests/ -k "not (sweep_manual_override_path or per_resource_override_tags_only or per_resource_override_rpm_only or manual_override_wins or animetags_merge_manual_wins or animetags_merge_empty_manual_uses_generated)" --tb=short -x` exits 0
+- `cd tools/arrconf && uv run pytest tests/test_config_validation.py::test_load_config_rejects_legacy_items_field -v` exits 0 (D-13 dispositive)
 - `cd tools/arrconf && uv run arrconf apply --config /data/projets/perso/arr-stack/charts/arr-stack/files/arrconf.yml --dry-run 2>&1 | tail -20` shows NO `ValidationError` (may show `missing_api_key` exit 2 — that's fine, it confirms YAML validation passed)
 - `cd tools/arrconf && uv run arrconf schema-gen --output /tmp/regen.json && diff schemas/arrconf-schema.json /tmp/regen.json` exits 0
 </verification>
@@ -425,7 +537,7 @@ print('OK')
 <success_criteria>
 - SC#2 (flat sections deleted; schema regen confirms simplified shape) — SATISFIED.
 - SC#5 (dry-run plan_action shape unchanged) — structurally enabled; Plan E validates against live cluster.
-- D-01, D-02, D-05, D-13 all closed in this plan.
+- D-01, D-02, D-05, D-13 all closed in this plan (D-13 closure includes the unit-test enforcement, not just the runtime behaviour).
 </success_criteria>
 
 <output>
@@ -434,5 +546,8 @@ After completion, create `.planning/phases/12-categories-deprecation/12-B-pydant
 - The pre/post line counts of `charts/arr-stack/files/arrconf.yml` (expected: ~592 → ~400 lines)
 - Schema regen byte-diff (must be `diff schemas/arrconf-schema.json /tmp/regen.json` exit 0)
 - Confirmation that `diff_cmd.py` signature now matches Plan A's reconciler signatures
+- **A `## Captured D-13 ValidationError` section** with the verbatim output of `cd tools/arrconf && uv run pytest tests/test_config_validation.py::test_load_config_rejects_legacy_items_field -v 2>&1 | head -40` — this is the canonical error string Plan D Task D.1 quotes verbatim in CLAUDE.md (do NOT paraphrase or hand-edit; copy the literal terminal output)
 - Confirmation Triade Python is green
 </output>
+</content>
+</invoke>

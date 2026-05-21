@@ -69,6 +69,10 @@ Purpose: After this plan, the apply/diff code paths funnel the categories genera
 Output: 7 modified Python files + values.yaml bumped + 1 deleted test file. Triade Python passes locally; no test references `merge_with_manual` (the file deletion plus the import removal ensures `pytest` collection still passes).
 </objective>
 
+## Note on callsite count
+
+CONTEXT.md D-04 and Phase Boundary §1 reference `24 callsites`. The canonical count is **22** (verified via `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py`). The discrepancy was already flagged in CONTEXT Specifics line 166. Executor: trust the grep result and the explicit line lists in Task A.2's `<action>`. Decomposition: apply=11 callsites (sonarr=4, radarr=4, qbit=1, seerr=1, jellyfin=1), diff=11 callsites (mirror); total 22.
+
 <execution_context>
 @$HOME/.claude/get-shit-done/workflows/execute-plan.md
 @$HOME/.claude/get-shit-done/templates/summary.md
@@ -237,12 +241,14 @@ Reconciler internals (UNCHANGED in this plan — only the entry-point reads the 
   </files>
   <read_first>
     - tools/arrconf/arrconf/reconcilers/_shared.py (full file — `merge_with_manual` lives at lines 148-208; everything else stays)
-    - tools/arrconf/arrconf/__main__.py (full file — 22 `merge_with_manual(` callsites distributed as: apply=lines 192/198/204/210/245/251/257/263/343/398/441 (11 callsites); diff=lines 551/557/563/569/598/604/610/616/672/716/740 (11 callsites). The `from arrconf.reconcilers._shared import merge_with_manual` line at line 36 must also be deleted)
+    - tools/arrconf/arrconf/__main__.py (full file — **22 invocations** of `merge_with_manual(` distributed as: apply=lines 192/198/204/210/245/251/257/263/343/398/441 (11 callsites); diff=lines 551/557/563/569/598/604/610/616/672/716/740 (11 callsites). The `from arrconf.reconcilers._shared import merge_with_manual` line at line 36 must also be deleted, plus the 3 narrative comment references at lines 54/189/242/341 that name the function in prose. The unfiltered `grep -c "merge_with_manual" __main__.py` reports 27 because it counts the import line + 4 prose-comment mentions on top of the 22 invocations.)
     - tools/arrconf/tests/test_merge_with_manual.py (the file you are about to delete — read once to confirm it tests ONLY the removed function; do not skip this step)
     - CLAUDE.md §"Release pin co-bump pattern" (executor must understand the co-bump rule lives in THIS plan because it is the first/only code-touching commit of the phase)
     - charts/arr-stack/values.yaml (locate `arrconf:` block — `image: { repository: ghcr.io/tom333/arr-stack-arrconf, tag: "0.6.7" }`)
   </read_first>
   <action>
+    **Canonical invocation count: 22** — re-verify in your shell before editing with `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py`. Post-deletion the same grep must return `0`.
+
     Four file operations in this single task:
 
     **(1) Delete `merge_with_manual` from `_shared.py`:**
@@ -250,7 +256,8 @@ Reconciler internals (UNCHANGED in this plan — only the entry-point reads the 
 
     **(2) Delete the import and rewrite the 22 callsites in `__main__.py`:**
     a. Delete line 36: `from arrconf.reconcilers._shared import merge_with_manual`.
-    b. In the **apply** function (`def apply` starting at line 166), replace each of the 11 callsite-blocks. The pattern transformation is:
+    b. Delete the narrative comment references at lines 54, 189, 242, 341 that mention `merge_with_manual` in prose — these become misleading once the function is gone. Replace with a single-line note where natural (e.g. `# Phase 12: generator output is passed directly to the reconciler`).
+    c. In the **apply** function (`def apply` starting at line 166), replace each of the 11 callsite-blocks. The pattern transformation is:
 
     **Sonarr apply (currently lines 188-215) — replace this block:**
     ```python
@@ -298,7 +305,7 @@ Reconciler internals (UNCHANGED in this plan — only the entry-point reads the 
     ```
     and update reconcile_jellyfin call to pass `jellyfin_generated` as 3rd arg.
 
-    c. In the **diff** function (`def diff` starting at line 532), apply the same 6 transformations to the mirror branches (sonarr lines 549-574, radarr lines 597-621, qbit lines 671-677, seerr lines 706-721, jellyfin lines 739-745). The diff branches do NOT call the reconcilers — they call `diff_sonarr(client, root)`, `diff_radarr(client, root)`, etc. Those `diff_*` helpers currently rely on `instance.<section>.items` being pre-merged. After this refactor, the diff helpers must receive the derived inputs too — **but Pitfall 5 (same merged shape in apply and diff) is now structurally guaranteed because the generators are deterministic and called the same way in both branches**. To preserve the contract without touching `diff_cmd.py`, the diff branches keep a temporary one-line shim that assigns the generator output onto the instance attributes (mirroring the in-function shim the reconcilers will do):
+    d. In the **diff** function (`def diff` starting at line 532), apply the same 6 transformations to the mirror branches (sonarr lines 549-574, radarr lines 597-621, qbit lines 671-677, seerr lines 706-721, jellyfin lines 739-745). The diff branches do NOT call the reconcilers — they call `diff_sonarr(client, root)`, `diff_radarr(client, root)`, etc. Those `diff_*` helpers currently rely on `instance.<section>.items` being pre-merged. After this refactor, the diff helpers must receive the derived inputs too — **but Pitfall 5 (same merged shape in apply and diff) is now structurally guaranteed because the generators are deterministic and called the same way in both branches**. To preserve the contract without touching `diff_cmd.py`, the diff branches keep a temporary one-line shim that assigns the generator output onto the instance attributes (mirroring the in-function shim the reconcilers will do):
 
     ```python
     # sonarr diff branch
@@ -332,8 +339,8 @@ Reconciler internals (UNCHANGED in this plan — only the entry-point reads the 
     </automated>
   </verify>
   <acceptance_criteria>
+    - `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py` returns `0` (canonical invocation count after deletion — was 22 pre-deletion)
     - `grep -c "^def merge_with_manual" tools/arrconf/arrconf/reconcilers/_shared.py` returns 0
-    - `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py` returns 0
     - `grep -q "from arrconf.reconcilers._shared import merge_with_manual" tools/arrconf/arrconf/__main__.py` exits 1 (no match)
     - `test ! -f tools/arrconf/tests/test_merge_with_manual.py` exits 0 (file is gone)
     - `grep -q "_resolve_anime_tag_labels\|_reconcile_remote_path_mappings\|_resolve_download_client_tag_labels" tools/arrconf/arrconf/reconcilers/_shared.py` exits 0 (other helpers survive)
@@ -371,7 +378,7 @@ Reconciler internals (UNCHANGED in this plan — only the entry-point reads the 
 - `cd tools/arrconf && uv run pytest tests/ -k "not (sweep_manual_override_path or per_resource_override_tags_only or per_resource_override_rpm_only or manual_override_wins or animetags_merge_manual_wins or animetags_merge_empty_manual_uses_generated)" --tb=short -x` exits 0
   - The `-k` filter excludes the manual-path tests that Plans B and C will delete formally; this temporary exclusion lets Plan A's verification pass while leaving the test files untouched until those plans run.
 - `cd tools/arrconf && uv run ruff format --check . && uv run ruff check . && uv run mypy .` exits 0
-- `grep -c "merge_with_manual" tools/arrconf/arrconf/` (recursive grep over the source tree) returns 0
+- `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py` returns 0 (post-deletion canonical invocation count; pre-deletion was 22)
 - `grep -c "merge_with_manual" tools/arrconf/tests/` returns matches ONLY in tests Plan C will clean up (test_phase10_idempotence_sweep.py docstring + test names + override variants). Those references are NOT executed by the filtered pytest above.
 </verification>
 
@@ -383,8 +390,10 @@ Reconciler internals (UNCHANGED in this plan — only the entry-point reads the 
 
 <output>
 After completion, create `.planning/phases/12-categories-deprecation/12-A-reconciler-refactor-SUMMARY.md` documenting:
-- The actual final callsite count (verify with `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py` post-edit — must be 0)
+- The actual final callsite count (verify with `grep -cE "merge_with_manual\(" tools/arrconf/arrconf/__main__.py` post-edit — must be 0; pre-deletion canonical count was 22)
 - The Plan A intra-function shim approach (`instance.<section>.items = derived.<field>` at the top of each reconciler) and why it stays until Plan B removes the `.items` field
 - Confirmation Triade Python is green
 - Confirmation values.yaml tag is `0.7.0` and renovate annotation survived
 </output>
+</content>
+</invoke>
