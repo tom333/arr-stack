@@ -8,8 +8,13 @@ trigger_when:
   - "user mentions wanting more automated content discovery"
   - "Seerr usage stabilized and operator wants to reduce manual request work"
 source: https://github.com/giuseppe99barchetta/SuggestArr
-status: parked
-target_milestone: v0.4.0 (or later)
+status: active
+target_milestone: v0.4.0 (Phases 13-14)
+activated_at: 2026-05-22
+activated_during: /gsd-new-milestone v0.4.0
+mapped_to_requirements:
+  - REQ-suggestarr-research (Phase 13 — research spike, arch decision)
+  - REQ-suggestarr-integration (Phase 14 — deployment + Categories routing)
 ---
 
 # SEED-001: SuggestArr — automated content suggestions

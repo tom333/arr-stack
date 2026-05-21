@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3.0
-milestone_name: Categories first-class
-status: executing
-stopped_at: Phase 10 context gathered
-last_updated: "2026-05-21T08:15:50.914Z"
+milestone: v0.4.0
+milestone_name: Categories cleanup + content discovery + local config UI
+status: planning
+last_updated: "2026-05-21T21:40:06.429Z"
 last_activity: 2026-05-21
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 16
-  completed_plans: 15
-  percent: 94
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 11 (operational-polish-bundle) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-05-21
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-21 — Milestone v0.4.0 started
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
