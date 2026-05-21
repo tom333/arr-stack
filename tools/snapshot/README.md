@@ -137,6 +137,8 @@ Ne pas overrider pour Jellyfin 10.11.8 (version en production dans le cluster).
 
 ## Audit anti-leak (CRITIQUE avant le premier `git add snapshots/`)
 
+> **Note (v0.3.0+)** : la redaction Option A est désormais appliquée AUTOMATIQUEMENT par `snapshot.sh` à la fin de chaque run (sauf en `--dry-run`). Le script ci-dessous reste documenté comme recette manuelle pour les snapshots forensic / re-redaction d'un snapshot existant.
+
 > Le premier snapshot peut contenir des champs sensibles dans certains endpoints. **Lire avant `git add snapshots/`.**
 
 Les endpoints suivants sont connus pour exposer des credentials :

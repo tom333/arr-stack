@@ -391,6 +391,31 @@ for app in "${TARGET_APPS[@]}"; do
   esac
 done
 
+# ─── REQ-snapshot-redaction-harden ─────────────────────────────────────────
+# Inline jq redaction: overwrite all *.json in OUTPUT_DIR with secrets blanked.
+# Skipped in dry-run (no files written). Uses mv -f to avoid interactive prompts
+# (Phase 10 lesson: bare mv alias prompts on overwrite → silent redaction failure).
+
+if (( ! DRY_RUN )); then
+  JQ_REDACT='walk(if type == "object" then with_entries(
+    if (.key | test("(?i)apiKey|password|token|webhookUrl|sessionKey"))
+       and .value != null and .value != ""
+    then .value = "<redacted>"
+    else . end) else . end)'
+
+  shopt -s nullglob
+  for f in "${OUTPUT_DIR}"/*/*.json; do
+    if jq --sort-keys "$JQ_REDACT" "$f" > "${f}.tmp" 2>/dev/null; then
+      mv -f "${f}.tmp" "$f"
+    else
+      rm -f "${f}.tmp"
+      warn "  ✗ redaction skipped (invalid JSON?): $f"
+    fi
+  done
+  shopt -u nullglob
+  log "  ✓ redaction applied (apiKey/password/token/webhookUrl/sessionKey → <redacted>)"
+fi
+
 # ─── Final report ───────────────────────────────────────────────────────────
 
 if (( FAILED_APPS == TOTAL_APPS )); then
@@ -402,5 +427,5 @@ local_ok=$((TOTAL_APPS - FAILED_APPS))
 log "snapshot complete : ${local_ok}/${TOTAL_APPS} app(s) OK, ${FAILED_APPS} with warnings"
 log "output: ${OUTPUT_DIR}"
 log ""
-log "next: review for secret leaks before commit (see tools/snapshot/README.md § 'Audit anti-leak')"
+log "next: secrets auto-redacted (see tools/snapshot/README.md § 'Audit anti-leak') — verify before commit"
 exit 0
