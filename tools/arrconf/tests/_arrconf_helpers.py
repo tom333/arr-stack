@@ -77,6 +77,7 @@ from arrconf.client_base import (
     SonarrClient,
 )
 from arrconf.config import RootConfig
+from arrconf.generators.categories import RadarrDerived, SonarrDerived
 from arrconf.reconcilers.jellyfin import reconcile_jellyfin
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
@@ -160,7 +161,17 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         sonarr_plans: list[dict[str, Any]] = []
         for _sonarr_name, sonarr_instance in cfg.sonarr.items():
             sonarr_client = SonarrClient(base_url=sonarr_instance.base_url, api_key="fake")
-            sonarr_result = reconcile_sonarr(sonarr_client, sonarr_instance, dry_run=True)
+            sonarr_result = reconcile_sonarr(
+                sonarr_client,
+                sonarr_instance,
+                SonarrDerived(
+                    tags=sonarr_instance.tags.items,
+                    root_folders=sonarr_instance.root_folders.items,
+                    download_clients=sonarr_instance.download_clients.items,
+                    remote_path_mappings=sonarr_instance.remote_path_mappings.items,
+                ),
+                dry_run=True,
+            )
             sonarr_plans.extend(_plan_to_tuples(sonarr_result.plan))
         out["sonarr"] = sorted(
             sonarr_plans, key=lambda d: (d["resource_type"], d["name"], d["action"])
@@ -170,7 +181,17 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         radarr_plans: list[dict[str, Any]] = []
         for _radarr_name, radarr_instance in cfg.radarr.items():
             radarr_client = RadarrClient(base_url=radarr_instance.base_url, api_key="fake")
-            radarr_result = reconcile_radarr(radarr_client, radarr_instance, dry_run=True)
+            radarr_result = reconcile_radarr(
+                radarr_client,
+                radarr_instance,
+                RadarrDerived(
+                    tags=radarr_instance.tags.items,
+                    root_folders=radarr_instance.root_folders.items,
+                    download_clients=radarr_instance.download_clients.items,
+                    remote_path_mappings=radarr_instance.remote_path_mappings.items,
+                ),
+                dry_run=True,
+            )
             radarr_plans.extend(_plan_to_tuples(radarr_result.plan))
         out["radarr"] = sorted(
             radarr_plans, key=lambda d: (d["resource_type"], d["name"], d["action"])
@@ -199,7 +220,9 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
                 username="fake",
                 password="fake",
             )
-            qbt_result = reconcile_qbittorrent(qbt_client, qbt_instance, dry_run=True)
+            qbt_result = reconcile_qbittorrent(
+                qbt_client, qbt_instance, qbt_instance.categories.items, dry_run=True
+            )
             qbittorrent_plans.extend(_plan_to_tuples(qbt_result.plan))
         out["qbittorrent"] = sorted(
             qbittorrent_plans, key=lambda d: (d["resource_type"], d["name"], d["action"])
@@ -208,14 +231,21 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         # Seerr — no .plan field; capture completion status
         for _seerr_name, seerr_instance in cfg.seerr.items():
             seerr_client = SeerrClient(base_url=seerr_instance.base_url, api_key="fake")
-            _seerr_result = reconcile_seerr(seerr_client, seerr_instance, dry_run=True)
+            _seerr_result = reconcile_seerr(
+                seerr_client,
+                seerr_instance,
+                seerr_instance.sonarr_service.animeTags,
+                dry_run=True,
+            )
             # SeerrResult has no .plan — dry_run=True means actions_taken is empty
         out["seerr"] = {"completed": True, "actions_taken": []}
 
         # Jellyfin — no .plan field; capture completion status
         for _jf_name, jf_instance in cfg.jellyfin.items():
             jf_client = JellyfinClient(base_url=jf_instance.base_url, api_key="fake")
-            _jf_result = reconcile_jellyfin(jf_client, jf_instance, dry_run=True)
+            _jf_result = reconcile_jellyfin(
+                jf_client, jf_instance, jf_instance.libraries.items, dry_run=True
+            )
             # JellyfinResult has no .plan — dry_run=True means actions_taken is empty
         out["jellyfin"] = {"completed": True, "actions_taken": []}
 

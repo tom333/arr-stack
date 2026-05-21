@@ -19,6 +19,7 @@ import respx
 from arrconf.client_base import SonarrClient
 from arrconf.config import DownloadClientsSection, SonarrInstance
 from arrconf.differ import Action
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import _ensure_managed_tag, reconcile_sonarr
 from arrconf.resources.sonarr.download_client import DownloadClient
 
@@ -100,7 +101,17 @@ def test_managed_tag_added_to_download_client_on_apply(
         download_clients=DownloadClientsSection(prune=False, items=[desired_dc]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_dc.call_count == 1
     body = post_dc.calls.last.request.content.decode()
@@ -135,6 +146,16 @@ def test_managed_tag_never_deleted_in_prune_mode(
         download_clients=DownloadClientsSection(prune=True, items=[]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert delete_tag_route.call_count == 0

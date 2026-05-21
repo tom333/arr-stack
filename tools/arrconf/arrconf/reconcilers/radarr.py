@@ -56,7 +56,6 @@ from arrconf.config import (
     RadarrInstance,
     TagsSection,
 )
-from arrconf.generators.categories import RadarrDerived
 from arrconf.differ import (
     Action,
     PlannedAction,
@@ -65,6 +64,7 @@ from arrconf.differ import (
     reconcile,
 )
 from arrconf.exceptions import ReconcileError
+from arrconf.generators.categories import RadarrDerived
 from arrconf.reconcilers._shared import (
     _reconcile_remote_path_mappings,
     _resolve_download_client_tag_labels,

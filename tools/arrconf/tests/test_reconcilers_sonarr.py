@@ -26,6 +26,7 @@ from arrconf.config import (
     TagsSection,
 )
 from arrconf.differ import Action
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
@@ -101,7 +102,17 @@ def test_dump_apply_no_op(
     )
 
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert all(p.action == Action.NO_OP for p in result.plan if p.desired is not None)
     assert post_route.call_count == 0
@@ -125,7 +136,17 @@ def test_add_new_download_client(
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_route.call_count == 1
     body = post_route.calls.last.request.content.decode()
@@ -157,7 +178,17 @@ def test_update_existing_download_client(
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_route.call_count == 1
     body = put_route.calls.last.request.content.decode()
@@ -221,7 +252,17 @@ def test_update_omits_privacy_credential_fields_from_put_body(
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_route.call_count == 1
     body = put_route.calls.last.request.content.decode()
@@ -271,7 +312,17 @@ def test_prune_skip_default(
         download_clients=DownloadClientsSection(prune=False, items=[]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert delete_route.call_count == 0
     assert any(p.action == Action.PRUNE_SKIP for p in result.plan)
@@ -306,7 +357,17 @@ def test_prune_protected_without_managed_tag(
         download_clients=DownloadClientsSection(prune=True, items=[]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert delete_route.call_count == 0
     assert any(p.action == Action.PRUNE_PROTECTED for p in result.plan)
@@ -343,7 +404,17 @@ def test_prune_executes_with_managed_tag(
         download_clients=DownloadClientsSection(prune=True, items=[]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=False)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert delete_route.call_count == 1
     assert any(p.action == Action.DELETE and p.name == "old-qbit" for p in result.plan)
@@ -366,7 +437,17 @@ def test_dry_run_logs_no_writes(
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client, instance, dry_run=True)
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=True,
+    )
 
     assert post_route.call_count == 0
     assert put_route.call_count == 0
@@ -405,7 +486,17 @@ def test_update_passes_forceSave_query_param(  # noqa: N802 — `forceSave` matc
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_route.call_count == 1
     last_request = put_route.calls.last.request
@@ -429,7 +520,17 @@ def test_add_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSave` 
         download_clients=DownloadClientsSection(prune=False, items=[new_dc]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_route.call_count == 1
     assert "forceSave" not in post_route.calls.last.request.url.params
@@ -456,7 +557,17 @@ def test_delete_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSav
         download_clients=DownloadClientsSection(prune=True, items=[]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert delete_route.call_count == 1
     assert "forceSave" not in delete_route.calls.last.request.url.params
@@ -524,7 +635,17 @@ def test_add_new_indexer(
         indexers=IndexersSection(prune=False, items=[indexer]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_indexer.call_count == 1
 
@@ -545,7 +666,17 @@ def test_indexer_no_op_when_identical(
         indexers=IndexersSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_indexer.call_count == 0
 
@@ -571,7 +702,17 @@ def test_add_new_notification(
         notifications=NotificationsSection(prune=False, items=[notif]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_notif.call_count == 1
 
@@ -594,7 +735,17 @@ def test_notification_no_op_when_identical(
         notifications=NotificationsSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_notif.call_count == 0
 
@@ -616,7 +767,17 @@ def test_add_new_root_folder(
         root_folders=RootFoldersSection(prune=False, items=[rf]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_rf.call_count == 1
 
@@ -643,7 +804,17 @@ def test_root_folder_no_update_action_ever(
         root_folders=RootFoldersSection(prune=False, items=desired),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_rf.call_count == 0, "Pitfall 1: root folders must never receive a PUT"
 
@@ -663,7 +834,17 @@ def test_host_config_skipped_when_enable_false(
         host_config=HostConfigSection(enable=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert get_host.call_count == 0, (
         "D-03-04: host_config reconcile must not GET /config/host when enable=False"
@@ -690,7 +871,17 @@ def test_host_config_no_op_when_identical(
     )
     instance = SonarrInstance(base_url="http://sonarr.test", host_config=section)
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_host.call_count == 0
 
@@ -716,7 +907,17 @@ def test_host_config_update_when_different(
     )
     instance = SonarrInstance(base_url="http://sonarr.test", host_config=section)
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_host.call_count == 1
     last_req = put_host.calls.last.request
@@ -836,7 +1037,17 @@ def test_split_three_tags_three_root_folders_three_download_clients(
         download_clients=DownloadClientsSection(items=[tv_dc, anime_dc, family_dc]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     # 3 tag POSTs (tv, anime, family).
     tag_posts = [
@@ -893,7 +1104,17 @@ def test_reconcile_order(
     step_events: list[dict[str, Any]] = []
 
     with structlog.testing.capture_logs() as cap_logs:
-        reconcile_sonarr(client, instance, dry_run=False)
+        reconcile_sonarr(
+            client,
+            instance,
+            SonarrDerived(
+                tags=instance.tags.items,
+                root_folders=instance.root_folders.items,
+                download_clients=instance.download_clients.items,
+                remote_path_mappings=instance.remote_path_mappings.items,
+            ),
+            dry_run=False,
+        )
 
     step_events = [e for e in cap_logs if e.get("event") == "step_begin" and "step_index" in e]
 
@@ -1002,7 +1223,17 @@ def test_download_client_tags_label_resolution_uses_just_created_id(
         series_tags=SeriesTagsSection(enable=False),  # disable to keep test focused
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert len(dc_post_bodies) == 1, "Expected exactly one download client POST"
     tags_in_body = dc_post_bodies[0].get("tags", [])

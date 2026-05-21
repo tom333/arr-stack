@@ -51,9 +51,9 @@ from arrconf.config import (
     SonarrInstance,
     TagsSection,
 )
-from arrconf.generators.categories import SonarrDerived
 from arrconf.differ import Action, PlannedAction, diff_models, merge_fields_for_put, reconcile
 from arrconf.exceptions import ReconcileError
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers._shared import (
     _reconcile_remote_path_mappings,
     _resolve_download_client_tag_labels,

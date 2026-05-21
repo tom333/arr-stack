@@ -362,7 +362,7 @@ def test_libraries_path_idempotent_pitfall2(
         plugins=jellyfin_plugins_fixture,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     # POST must be called EXACTLY ONCE (for /media/anime, not for /media/series).
     assert add_path_route.called
@@ -426,7 +426,7 @@ def test_libraries_set_membership_uses_pathinfos_not_locations_pitfall8(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     # Must have posted once for /media/anime (PathInfos said it was absent).
     assert add_path_route.called
@@ -482,7 +482,7 @@ def test_users_policy_uses_post_not_put_pitfall4(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert post_policy_route.called, "POST /Users/{id}/Policy must be called"
     assert not put_policy_route.called, (
@@ -539,7 +539,7 @@ def test_users_policy_reinjects_required_providerids_pitfall6(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert captured_body, "POST /Users/{id}/Policy must have been called"
     assert captured_body["AuthenticationProviderId"] == DEFAULT_AUTH_PROVIDER, (
@@ -585,7 +585,7 @@ def test_users_emilie_never_touched_d_07_users_01(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert not emilie_policy_route.called, (
         f"emilie ({EMILIE_USER_ID}) Policy must NEVER be touched (D-07-USERS-01)"
@@ -656,7 +656,7 @@ def test_server_config_full_replace_preserves_49_non_allowlist_fields_pitfall1(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert captured_body, "POST /System/Configuration must be called"
     # Allowlist field updated:
@@ -737,7 +737,7 @@ def test_server_config_plugin_repositories_set_by_url_pitfall7(
         plugins=jellyfin_plugins_fixture,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert not post_config_route.called, (
         "POST /System/Configuration must NOT be called — reversed repo order is a no-op (Pitfall 7)"
@@ -799,7 +799,7 @@ def test_plugin_enable_includes_version_in_path_pitfall5(
         plugins=plugins,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert enable_with_version.called, (
         f"POST /Plugins/{TMDB_PLUGIN_ID}/{TMDB_PLUGIN_VERSION}/Enable must be called (Pitfall 5)"
@@ -860,7 +860,7 @@ def test_plugin_active_status_skipped(
         plugins=plugins,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert not enable_route.called, "Enable must NOT be called when Status=Active"
     assert not any("plugin_enabled" in a for a in result.actions_taken)
@@ -900,7 +900,7 @@ def test_reconcile_jellyfin_step_order_invariant(
     )
 
     with structlog.testing.capture_logs() as logs:
-        reconcile_jellyfin(client, instance, dry_run=False)
+        reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     step_events = [e for e in logs if e.get("event") == "step_begin"]
     assert len(step_events) == 4, f"Expected 4 step_begin events, got {len(step_events)}"
@@ -993,7 +993,7 @@ def test_reconcile_jellyfin_dry_run_zero_writes(
         plugins=plugins,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=True)
+    result = reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=True)
 
     assert not post_lib_route.called, "Library POST must not fire in dry_run"
     assert not post_policy_route.called, "User Policy POST must not fire in dry_run"
@@ -1043,7 +1043,7 @@ def test_jellyfin_does_not_call_arr_v3_quality_endpoints(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, instance.libraries.items, dry_run=False)
 
     assert not sentinel_qualityprofile.called, (
         "Jellyfin reconciler MUST NOT call /api/v3/qualityprofile (ADR-5 frontiere)"

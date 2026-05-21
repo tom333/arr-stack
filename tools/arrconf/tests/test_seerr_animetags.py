@@ -4,8 +4,7 @@ Verifies the 4-step chain:
   1. generate_anime_tag_labels(root) returns labels for ALL anime-profile categories
   2. kind="series" filter is applied INSIDE _resolve_seerr_anime_tag_ids (not in generator)
   3. sonarr_client.get('/tag') returns [{"id":7,"label":"series-zoe"}, ...]
-  4. resolved_ids = [7]
-  5. merge_with_manual([], [7], app='seerr', resource='animeTags') → [7]
+  4. resolved_ids = [7] — passed directly to reconcile_seerr (Phase 12 refactor)
 """
 
 from __future__ import annotations
@@ -173,21 +172,3 @@ def test_animetags_resolution_missing_label_warns_no_raise() -> None:
         resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
 
     assert resolved == []  # missing — operator runs apply again on next cycle
-
-
-def test_animetags_merge_manual_wins() -> None:
-    """D-02: production YAML has animeTags: [3] (non-empty) → manual wins."""
-    from arrconf.reconcilers._shared import merge_with_manual
-
-    manual = [3]
-    generated = [7]  # what would be resolved
-    merged = merge_with_manual(manual, generated, app="seerr", resource="animeTags")
-    assert merged == [3]
-
-
-def test_animetags_merge_empty_manual_uses_generated() -> None:
-    """D-02: when operator empties animeTags in YAML, Categories-derived takes effect."""
-    from arrconf.reconcilers._shared import merge_with_manual
-
-    merged = merge_with_manual([], [7], app="seerr", resource="animeTags")
-    assert merged == [7]
