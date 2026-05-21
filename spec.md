@@ -37,7 +37,7 @@ Objectif final : ne plus jamais ouvrir l'UI Sonarr/Radarr/qBit/Seerr pour config
   - `jellyfin` 10.11.8 (`lscr.io/linuxserver/jellyfin`) — média serveur ; auth interne Jellyfin (PAS d'oauth2-proxy) ; PVC config 10Gi local + `media-nas-pvc` NFS partagé avec Sonarr/Radarr
 - Toutes les apps déployées via le chart `bjw-s app-template 4.6.2`, fichiers individuels dans `argocd/argocd-apps/<service>-app.yaml`
 - Renovate auto-merge minor/patch sur ces fichiers
-- ESO + Akeyless dispo dans le cluster mais pas encore branché sur l'arr-stack (secret `configarr-env` manuel)
+- Bootstrap secrets gérés via Bitnami sealed-secrets côté my-kluster (`arrconf-env`, `configarr-env`) — baseline stable
 
 ### 2.2 Pourquoi un nouveau projet séparé
 
@@ -632,15 +632,9 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 
 **Estimation** : 1.5 journée (API plus exotique que les *arr — temps de découverte + tests)
 
-### Phase 8 — Migration ESO/Akeyless (optionnelle, alignée sur chantier global cluster)
+### Phase 8 — RETIRÉE (2026-05-22)
 
-**Livrables** :
-- ExternalSecret pour les API keys arr-stack pulled depuis Akeyless
-- Suppression du secret manuel `arrconf-secret.yaml` dans `my-kluster/secrets/`
-
-**Note** : à coordonner avec le chantier ESO global du cluster (TODO.md de my-kluster). Pas urgent.
-
-**Estimation** : 0.5 journée
+Le projet de migration ESO/Akeyless a été retiré de la roadmap. Bitnami sealed-secrets côté `my-kluster` est la solution de production stable et long-terme pour les bootstrap secrets `arrconf-env` + `configarr-env`. Aucune migration externe-secret n'est planifiée.
 
 ---
 
@@ -650,7 +644,7 @@ Approche progressive pour de-risker. Chaque phase est livrable indépendamment (
 - **CS2** — Une PR sur `arr-stack` modifiant un champ de config se matérialise en cluster en moins de 1h (sync ArgoCD + run CronJob arrconf).
 - **CS3** — Un drift en UI est détecté et corrigé au run suivant (max 4h selon schedule).
 - **CS4** — Renovate propose en auto-merge les bumps d'image minor/patch sans intervention.
-- **CS5** — Tous les bootstrap secrets restent maîtrisés dans `my-kluster/secrets/` jusqu'à migration ESO globale.
+- **CS5** — Tous les bootstrap secrets restent maîtrisés dans `my-kluster/secrets/` via Bitnami sealed-secrets (baseline stable long-terme — pas de migration externe-secret planifiée).
 - **CS6** — `helm template charts/arr-stack/ -f examples/values-prod.yaml` rend des manifestes valides (kubeconform OK).
 - **CS7** — `pytest` couvre ≥ 70 % du code arrconf, focus sur differ et reconcilers.
 - **CS8** — README permet à un autre dev (ou toi-dans-3-mois) de comprendre et déployer en moins de 30 min.
@@ -718,7 +712,7 @@ Suppression dans `my-kluster` :
 - `charts/configarr/` (déplacé dans `arr-stack/charts/arr-stack/files/configarr.yml` + templates)
 
 Conservation dans `my-kluster` :
-- `secrets/configarr-secret.yaml` (renommé `arr-stack-secret.yaml` ?) — bootstrap secret manuel jusqu'à ESO global
+- `secrets/arrconf-secret.yaml` + `secrets/configarr-secret.yaml` — bootstrap secrets gérés via Bitnami sealed-secrets (baseline stable long-terme)
 - Mise à jour de `CLAUDE.md` pour documenter le découplage et pointer sur le repo arr-stack
 
 ### 9.3 Compatibilité ascendante

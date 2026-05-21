@@ -395,7 +395,6 @@ and applied by the configarr CronJob from its own YAML.
   delete the v0.2.0 flat sections entirely. Categories become the only source of truth.
   Phase 10's per-resource toggle merge logic gets ripped out.
 - REQ-bazarr-addition — Bazarr (subtitles) as 7th *arr-stack app with its own reconciler.
-- Phase 8 ESO/Akeyless secret migration (depends on my-kluster ESO chantier maturity).
 - Multi-instance Sonarr/Radarr (ADR-7 reconsidered if BDD saturates).
 
 ### Cluster-side content migration (operator manual step, NOT arrconf scope)

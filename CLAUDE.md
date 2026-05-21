@@ -517,7 +517,7 @@ Le rollback est l'inverse des `mv` de l'Étape 2 — opérateur reconstitue manu
 - **Une seule** ArgoCD Application (`my-kluster/argocd/argocd-apps/arr-stack-app.yaml`) pointe vers ce repo, `path: charts/arr-stack/`, `valueFile: examples/values-prod.yaml`.
 - **syncOptions** : `[CreateNamespace=true, ServerSideApply=true, Replace=true]`. `Replace=true` est REQUIS car la migration cutover change `app.kubernetes.io/instance` (immutable Deployment selector) — sans Replace, ArgoCD échoue avec `field is immutable`. Voir D-04-CUTOVER-05 dans la section "Decisions" de `.planning/phases/04-umbrella-chart-migration-des-9-apps/04-RESEARCH.md`.
 - **Suppression post-Phase-4** : 10 fichiers `argocd/argocd-apps/{sonarr,radarr,prowlarr,cleanuparr,qbittorrent,seerr,flaresolverr,jellyfin,arrconf,configarr}-app.yaml` + `charts/arrconf/` + `charts/configarr/` retirés de my-kluster dans la même PR atomique (D-04-CUTOVER-01).
-- **Bootstrap secrets** restent dans `my-kluster/secrets/` (`arrconf-env`, `configarr-env` — manuels, `kubectl apply`). Migration ESO globale = Phase 8 (post-MVP).
+- **Bootstrap secrets** gérés via Bitnami sealed-secrets côté `my-kluster` (`arrconf-env`, `configarr-env`). Baseline stable, pas de migration externe-secret planifiée.
 - **Renovate côté my-kluster** suit `targetRevision: vX.Y.Z` dans `arr-stack-app.yaml` via le manager standard `argocd`. Bumps minor/patch automerge.
 
 Tout changement de scope arr-stack passe par PR sur **ce** repo. Toute modif côté `my-kluster` est limitée au bump `targetRevision` (auto par Renovate) ou à la gestion des secrets bootstrap.

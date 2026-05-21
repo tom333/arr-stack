@@ -34,7 +34,6 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
 **Carry-forward backlog from v0.2.0** (items absorbed into Phases 9-11 or explicitly deferred):
 
 - [ ] Re-enable ArgoCD `automated.selfHeal` + `automated.prune` → **Phase 11** (REQ-04-09-argocd-selfheal)
-- [ ] Migration ESO/Akeyless (was Phase 8 in v0.2.0) → **Deferred to v0.4.0+** (REQ-eso-akeyless-migration — Future)
 - [ ] arrconf download_client POST: inject QBT_USER/QBT_PASS when YAML values empty → **Deferred to v0.4.0+** (no v0.3.0 requirement captures this)
 - [ ] Chart pre-create `/media/` dirs via initContainer → **Phase 9** (REQ-filesystem-initcontainer)
 - [ ] Port qBit 5.x auth fix to `snapshot.sh` → subsumed by **Phase 11** (REQ-snapshot-redaction-harden)
@@ -54,7 +53,7 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
 
 - [ ] **Phase 9: Categories data model + chart initContainer** — Pydantic schema, 10-category declaration, progressive migration coexistence, chart initContainer, operator migration procedure
 - [x] **Phase 10: Categories → 6-app propagation** — qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin reconcilers extended; idempotence FP fix; chart-pin pre-bump pattern (completed 2026-05-19)
-- [ ] **Phase 11: Operational polish bundle** — ArgoCD selfHeal/prune re-enable, ConfigMap cruft cleanup, ruff-format CI gate, paths-filter, Renovate App install, snapshot redaction harden, README onboarding refresh
+- [x] **Phase 11: Operational polish bundle** — ArgoCD selfHeal/prune re-enable, ConfigMap cruft cleanup, ruff-format CI gate, paths-filter, Renovate App install, snapshot redaction harden, README onboarding refresh (completed 2026-05-21)
 
 ## Phase Details
 
@@ -110,7 +109,7 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
   5. A fresh operator following `README.md` from `git clone` completes a successful `arrconf diff` against the cluster in under 30 minutes.
 **Plans**: 2 plans
 - [x] 11-A-arrstack-repo-PLAN.md — Autonomous arr-stack repo items: pre-commit hook + chart-lint paths filter + snapshot.sh redaction + README spot-fix (REQ-ruff-format-ci-gate, REQ-paths-filter-arrconf, REQ-snapshot-redaction-harden, REQ-readme-onboarding-v030)
-- [ ] 11-B-cross-repo-operator-PLAN.md — Operator checkpoints: ArgoCD selfHeal drift UAT + legacy CM cleanup + Renovate App install (REQ-04-09-argocd-selfheal, REQ-cm-cruft-cleanup, REQ-renovate-app-install)
+- [x] 11-B-cross-repo-operator-PLAN.md — Operator checkpoints: ArgoCD selfHeal drift UAT + legacy CM cleanup + Renovate App install (REQ-04-09-argocd-selfheal, REQ-cm-cruft-cleanup, REQ-renovate-app-install)
 **UI hint**: no
 
 ## Progress

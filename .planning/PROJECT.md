@@ -39,7 +39,7 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 <!-- Carried to v0.3.0. -->
 
 - [ ] **REQ-readme-onboarding** — README exists but not yet operator-validated against the < 30-min onboarding metric. Targeted for v0.3.0 cleanup phase (likely paired with `gsd-extract-learnings` for arr-stack post-mortem).
-- [ ] **REQ-secret-management** — Currently using sealed-secrets (works fine). Phase 8 ESO/Akeyless migration deferred to v0.3.0 (or beyond) — depends on my-kluster ESO chantier maturity.
+- [x] **REQ-secret-management** — sealed-secrets baseline is stable. No external-secret migration planned (REQ-eso-akeyless-migration retired 2026-05-22). Considered closed.
 
 ### Out of Scope
 
@@ -64,7 +64,7 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 - 9 ArgoCD Applications déjà déployées dans `my-kluster/argocd/argocd-apps/` (sonarr 4.0.17, radarr 6.1.1, prowlarr 2.3.5, cleanuparr `latest`, configarr 1.16.0, qbittorrent `latest`, seerr v3.2.0, flaresolverr `latest`, jellyfin 10.11.8) — toutes via `bjw-s/app-template 4.6.2`
 - Chart custom `charts/configarr/` à migrer dans arr-stack (Phase 4)
 - hostPath partagé `/opt/media-stack/torrents` (qBit + Sonarr + Radarr) ; PVC NFS `media-nas-pvc` (Sonarr + Radarr + Jellyfin)
-- ESO + Akeyless dispo dans le cluster, pas encore branchés sur arr-stack (secret manuel jusqu'à Phase 8)
+- sealed-secrets baseline en place côté my-kluster (bootstrap secrets `arrconf-env` + `configarr-env` gérés via Bitnami sealed-secrets — pas de plan de migration externe-secret)
 - Stack technique imposée : Python 3.13 + httpx + pydantic v2 + ruyaml ; Helm 3 ; pas de Terraform ; pas de Kustomize
 
 **Existant pré-bootstrap** : repo arr-stack contient uniquement `spec.md`, `CLAUDE.md`, et `.planning/intel/*` au moment de l'ingestion (2026-05-07). Aucun code, aucun chart, aucune CI.
@@ -129,7 +129,7 @@ The MVP of arr-stack is live in production. All 6 *arr-stack apps (Sonarr / Rada
 - **`nouveaux-films` is a regular Category.** Not a temporary queue — operator manually moves to `films` after viewing.
 - **Web UI POC explicitly OUT of v0.3.0.** Sketch / discussion may surface during Phase 11 polish, but no React/Svelte code shipped. Re-evaluate for v0.4.0+.
 - **SuggestArr (SEED-001) parked for v0.4.0+.** Builds on v0.3.0's Categories foundation.
-- **ESO/Akeyless migration deferred.** sealed-secrets baseline is stable. REQ-secret-management stays Active for a future milestone (probably v0.4.0+ if the my-kluster ESO chantier matures).
+- **Secret management = sealed-secrets, considered closed.** No external-secret migration planned. REQ-secret-management closed in spirit (2026-05-22).
 
 **Projected phases:** 3
 - Phase 9 — Categories data model + chart initContainer

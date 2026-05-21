@@ -154,12 +154,12 @@ Extracted from `spec.md` §3 (Objectifs / Non-objectifs) and §8 (Critères de s
 
 ## REQ-secret-management
 
-- source: /home/moi/projets/perso/arr-stack/spec.md (§8 CS5, Phase 8)
-- description: Tous les bootstrap secrets restent maîtrisés dans `my-kluster/secrets/` jusqu'à migration ESO globale. Migration ESO/Akeyless explicitement Phase 8 (optionnelle, hors scope MVP).
+- source: /home/moi/projets/perso/arr-stack/spec.md (§8 CS5)
+- description: Tous les bootstrap secrets sont maîtrisés côté my-kluster via Bitnami sealed-secrets. Aucune migration externe-secret planifiée — la baseline sealed-secrets est considérée stable et long-terme.
 - acceptance:
-  - Aucun secret committé dans le repo arr-stack
+  - Aucun secret committé en clair dans le repo arr-stack
   - Le wrapping K8s injecte les secrets via `envFrom: secretRef`
-  - Phase 8 (post-MVP) : ExternalSecret pulled depuis Akeyless, suppression du secret manuel
+  - sealed-secrets reste la solution de production
 - scope: my-kluster/secrets/, charts/arr-stack/templates/
 
 ---
@@ -230,7 +230,6 @@ Extracted from `spec.md` §3 (Objectifs / Non-objectifs) and §8 (Critères de s
   - Phase 5 (1.5j) — Reconciler qBittorrent + split tv/anime/family (selon ADR-7)
   - Phase 6 (1j) — Reconciler Seerr (avec validation Q1 + Q10 préalable)
   - Phase 7 (1.5j) — Reconciler Jellyfin (avec bootstrap admin manuel + validation Q9)
-  - Phase 8 (0.5j, optionnelle) — Migration ESO/Akeyless
   - Critères de fin de chaque phase = ceux listés en §7
 - scope: roadmap globale
 

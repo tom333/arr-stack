@@ -26,7 +26,7 @@ The MVP of arr-stack: a Python reconciler (`arrconf`) that drives 6 *arr-stack a
 
 Closed: REQ-baseline-snapshot, REQ-config-as-code, REQ-idempotence, REQ-umbrella-deployment, REQ-renovate-image-tracking, REQ-configarr-coexistence, REQ-bootstrap-exception, REQ-pr-to-cluster-latency, REQ-helm-validation, REQ-test-coverage, REQ-cli-subcommands, REQ-yaml-autocomplete, REQ-prune-opt-in, REQ-managed-tag (Sonarr/Radarr/Prowlarr — Jellyfin N/A), REQ-phase-roadmap, REQ-app-coverage (6 apps), REQ-drift-detection.
 
-Carried to v0.3.0: REQ-readme-onboarding (README exists but not yet operator-validated for the < 30-min onboarding metric), REQ-secret-management (sealed-secrets working — ESO migration deferred).
+Carried to v0.3.0: REQ-readme-onboarding (README exists but not yet operator-validated for the < 30-min onboarding metric), REQ-secret-management (sealed-secrets working — closed in spirit, no migration planned).
 
 ### Known deferred items at close: 16
 

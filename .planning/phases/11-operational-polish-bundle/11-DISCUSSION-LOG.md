@@ -64,4 +64,4 @@
 
 ## No scope creep detected
 
-User stayed within Phase 11 boundary. Items déjà flaggés deferred (SuggestArr, Bazarr, ESO, multi-instance Sonarr/Radarr) restent deferred.
+User stayed within Phase 11 boundary. Items déjà flaggés deferred (SuggestArr, Bazarr, multi-instance Sonarr/Radarr) restent deferred.

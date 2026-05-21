@@ -31,7 +31,7 @@ Running notes captured from `CLAUDE.md` (project DOC, precedence 4) and the desc
 - Plus chart custom `charts/configarr/` dans my-kluster (sera migré dans arr-stack en Phase 4)
 - Toutes via `bjw-s/app-template 4.6.2`
 - Renovate auto-merge minor/patch sur ces fichiers
-- ESO + Akeyless dispo dans le cluster mais pas encore branchés sur arr-stack (secret `configarr-env` manuel)
+- Bootstrap secrets gérés via Bitnami sealed-secrets côté my-kluster (`arrconf-env`, `configarr-env`) — pas de plan de migration externe-secret
 - hostPath partagé `/opt/media-stack/torrents` (qBit + Sonarr + Radarr)
 - PVC NFS partagé `media-nas-pvc` (Sonarr + Radarr + Jellyfin)
 - Jellyfin sans oauth2-proxy (auth interne)

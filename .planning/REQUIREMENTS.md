@@ -48,7 +48,6 @@ Deferred to v0.4.0+ — tracked but explicitly out of v0.3.0 scope.
 
 - **REQ-web-ui-categories**: Browser UI for reading + editing `categories[]` + auto-opening a PR on `arr-stack` (POC discussion in Phase 11 polish if time; full delivery v0.4.0+).
 - **REQ-suggestarr-integration**: SuggestArr (github.com/giuseppe99barchetta/SuggestArr) as a 7th declarative reconciler or opaque sidecar — auto-creates Sonarr/Radarr/Seerr requests from Jellyfin watch history routed via the Categories anime/family profiles (SEED-001 — v0.4.0+).
-- **REQ-eso-akeyless-migration**: ExternalSecret(s) replacing sealed-secrets for `arrconf-env` — aligned with my-kluster ESO chantier maturity (was Phase 8 in v0.2.0 roadmap; **REQ-secret-management** closure).
 - **REQ-bazarr-addition**: Bazarr (subtitles) as a 7th *arr-stack app with its own reconciler `arrconf/reconcilers/bazarr.py`.
 - **REQ-categories-deprecation**: Once v0.3.0 stabilizes, deprecate the v0.2.0 flat sections (`sonarr.main.tags`, etc.) and remove the override path — Categories become the only source of truth.
 
@@ -62,7 +61,7 @@ Explicit boundaries for v0.3.0 — documented to prevent scope creep.
 | New users / accounts in any app (Jellyfin, Seerr, *arr) | Same reason as above. |
 | Web UI for Categories editing | Sketch / discussion may surface during Phase 11 but no production code shipped this milestone. Re-scoped for v0.4.0+. |
 | Filesystem migration of existing content | Operator-driven manual step, not arrconf's responsibility. arrconf creates new empty `/media/<name>` directories; physical `mv` of v0.2.0 content to v0.3.0 layout is a separate procedure documented in CLAUDE.md (REQ-filesystem-operator-migration). |
-| ESO/Akeyless migration | sealed-secrets baseline is stable. REQ-secret-management stays Future. Re-evaluate when my-kluster ESO chantier matures. |
+| Secret management overhaul | sealed-secrets baseline is stable and considered the long-term solution. REQ-secret-management closed in spirit — no migration planned. |
 | New *arr-stack apps (Bazarr, Lidarr, Whisparr, Readarr) | Future v0.4.0+. v0.3.0 stays at 6-app coverage from v0.2.0. |
 | SuggestArr integration | SEED-001 — builds on v0.3.0's Categories foundation; ship after this milestone. |
 | Multi-instance Sonarr or Radarr | ADR-7 single-instance + tags pattern continues; v0.3.0 Categories assumes ADR-7. |

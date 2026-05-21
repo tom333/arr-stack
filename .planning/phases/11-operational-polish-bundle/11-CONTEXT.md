@@ -20,7 +20,7 @@ Les 7 REQs :
 **Hors scope explicite** :
 - Toute nouvelle fonctionnalité arrconf (Categories est livré en v0.3.0, point)
 - Toute extension scope ADR-5 / ADR-6 / ADR-7 (frontières intactes)
-- v0.4.0 items (SuggestArr intégration, Bazarr 7e app, ESO/Akeyless migration) — propres milestones futurs
+- v0.4.0 items (SuggestArr intégration, Bazarr 7e app) — propres milestones futurs
 
 </domain>
 
@@ -216,7 +216,6 @@ Les 7 REQs :
 ### Out of Phase 11 scope (déjà flaggés mais réaffirmés)
 - **SuggestArr intégration** — milestone v0.4.0+ (cf. memory `suggestarr_future_milestone.md` ; SEED-001 planté)
 - **Bazarr (7e app)** — v0.4.0+ ; nouveau reconciler dédié
-- **ESO/Akeyless secret migration** — dépend de la maturité ESO côté my-kluster ; Phase 8 redéfinie
 - **REQ-categories-deprecation** — once v0.3.0 stable, ripout du chemin manual override (le `merge_with_manual` per-resource toggle disparaît) ; v0.4.0+
 - **Multi-instance Sonarr/Radarr** — si ADR-7 sature ; non-roadmap
 
