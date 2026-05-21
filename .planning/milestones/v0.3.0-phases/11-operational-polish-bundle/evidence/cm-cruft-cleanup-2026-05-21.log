@@ -1,0 +1,23 @@
+=== STEP 1: pre-cleanup CM inventory ===
+NAME               DATA   AGE
+arrconf-config     1      7d8h
+configarr-config   1      7d8h
+kube-root-ca.crt   1      205d
+
+=== STEP 2: safety check (refined — label-aware) ===
+The original plan's grep had a false positive on pod labels (app.kubernetes.io/name: arrconf/configarr
+on the CronJob pods is legitimate — those are the CURRENT umbrella-rendered pods, not legacy CMs).
+Refined check: look for actual configMap references in pod volumes by name (exact "name: arrconf$" / "name: configarr$" line that follows a "configMap:" key).
+OK: no pod mounts the legacy 'arrconf' or 'configarr' ConfigMap.
+
+=== STEP 3: deleting legacy CMs (idempotent — handles ArgoCD-already-pruned case) ===
+
+=== STEP 4: post-cleanup CM inventory ===
+NAME               DATA   AGE
+arrconf-config     1      7d8h
+configarr-config   1      7d8h
+kube-root-ca.crt   1      205d
+
+=== STEP 5: dispositive checks ===
+legacy CM count=0 (expect 0), current CM count=2 (expect 2)
+SC#2 PASS — legacy CMs absent (already pruned by ArgoCD prune:true, no manual action needed)

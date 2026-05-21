@@ -6,6 +6,21 @@ arr-stack est un projet de plateforme média **fully-as-code** déployée sur le
 
 Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable mais non multi-tenant.
 
+## Current State
+
+**Shipped: v0.3.0 Categories first-class** (2026-05-22). 1 declarative `categories[]` entry in `arrconf.yml` propagates to all 6 apps + chart initContainer + dispositive idempotence on live cluster. Production cluster running chart `v0.7.0` / image `:0.6.7`. Full archive: [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [audit](v0.3.0-MILESTONE-AUDIT.md) `passed_with_caveats`.
+
+## Next Milestone Goals
+
+**v0.4.0+ TBD** — start with `/gsd-new-milestone` to scope. Candidate themes (in priority order, deferred from v0.3.0):
+
+1. **REQ-categories-deprecation** (cleanup) — Rip out `merge_with_manual` toggle + v0.2.0 flat sections override path. Categories become the only source of truth.
+2. **REQ-bazarr-addition** (feature) — Bazarr (subtitles) as a 7th *arr-stack app.
+3. **REQ-suggestarr-integration** (feature, SEED-001) — SuggestArr connected to Jellyfin watch history + auto-requests routed via Categories anime/family profiles.
+4. **REQ-web-ui-categories** (ambitious) — Browser UI for reading + editing `categories[]` + auto-opening a PR.
+
+Plus deferred HUMAN-UAT items (not blocking, opt-in operator exercise): Phase 9 initContainer NFS write test, Phase 10 SC#1 + SC#3 live cluster validation.
+
 ## Core Value
 
 Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin après bootstrap — tout changement passe par une PR sur `arr-stack` et se matérialise en cluster en moins d'1 h via ArgoCD + CronJob arrconf.

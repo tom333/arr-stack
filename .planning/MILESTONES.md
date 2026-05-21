@@ -1,5 +1,57 @@
 # Milestones
 
+## v0.3.0 Categories first-class (Shipped: 2026-05-22)
+
+**Phases:** 3 (9-11) | **Plans:** 16/16 | **Commits:** 87 | **Cluster:** arr-stack chart `v0.7.0`, arrconf image `:0.6.7`
+
+### Delivered
+
+A single declarative `categories[i]` entry in `arrconf.yml` now propagates across all 6 apps (qBit categories + Sonarr 4-resources + Radarr 4-resources + Seerr animeTags + Jellyfin 2-superlibs) and auto-creates the matching `/media/<name>` directory via a chart-mounted initContainer Job. 10 production categories (5 movies + 5 series) reproduce the operator's real-world content organization. Plus closure on the 8-item operational carry-forward bundle from v0.2.0 — `arr-stack v0.3.0 is operationally complete`.
+
+### Key accomplishments
+
+1. **Categories first-class data model** (Phase 9) — Pydantic-validated `categories[]` block at `RootConfig` level with required fields `name`/`kind`/`profile`/`display`/`base_path`. JSON Schema regenerates via `arrconf schema-gen`. 10 production categories declared in `charts/arr-stack/files/arrconf.yml`. Helm-hooked initContainer Job creates `/media/<name>` dirs idempotently (busybox:1.36.1, uid 1000:1000, NFS-safe).
+
+2. **Pure-function generator architecture** (Phase 10-A + 10-B) — New `tools/arrconf/arrconf/generators/categories.py` module exposes 5 generators (qBit, Sonarr, Radarr, Jellyfin, anime-tag-labels). Pre-merge dispatch in `__main__.py` (apply + diff branches, Pitfall 5). `merge_with_manual` helper in `reconcilers/_shared.py` implements D-02 per-resource toggle: manual flat-section non-empty → manual wins; empty → Categories-derived. Reconciler signatures unchanged.
+
+3. **Dispositive idempotence on live cluster** (Phase 10-C/F/H/J + follow-up `310aebf`) — 2nd-run `arrconf apply` emits 0 `plan_action` events across all 6 apps. Three B2-allowlist FP fixes (qBit categories, Prowlarr Application + fields[] sub-allowlist, Seerr user) + `ProwlarrInstance.prowlarr_url` field separation (API-access URL vs in-cluster `prowlarrUrl` injection). 384 unit tests + dual-path SC#2 sweep + live cluster proof (2026-05-22).
+
+4. **Release pipeline hardening** (Phase 10-I + Phase 11 follow-ups) — Chart-pin co-bump pattern documented in CLAUDE.md "Release pin co-bump pattern" + injected into `gsd-executor` agent prompt. Practiced across 10 plans (0.5.3 → 0.6.7). Accumulated-bumps escape hatch documented for batch-push scenarios. CI workflow `github.ref_name` bug-fix (`12c05da`) ensures `:0.6.7` and similar tags publish correctly on git-tag pushes (previously only `:latest` + `:sha-<short>` were emitted).
+
+5. **Operational polish closeout** (Phase 11) — ArgoCD `selfHeal: true` + `prune: true` dispositive drift-UAT on live cluster (kubectl scale → auto-revert within 3 min). Legacy ConfigMaps (`arrconf`, `configarr`) absent (auto-pruned by ArgoCD). Pre-commit hook with `astral-sh/ruff-pre-commit` belt-and-suspenders alongside CI `ruff format --check`. `tools/snapshot/snapshot.sh` auto-redacts apiKey/password/token/webhookUrl/sessionKey via inline jq filter (with `mv -f` to bypass interactive prompt). Mend Renovate App installed → cross-repo loop validated end-to-end (my-kluster PR #1413 v0.7.0 MERGED).
+
+6. **Frontière integrity preserved** — ADR-5 (configarr quality_profiles frontière) intact: `ScopeViolationError` enforcement preserved on 4 resource types, 0 grep hits on `configarr.yml` in any reconciler. ADR-6 (snapshot baseline before risky tests) extended: snapshot.sh now auto-redacts secrets by default. ADR-7 (single-instance + tags) continues: 5 tags per side (Sonarr + Radarr), no multi-instance plumbing. ADR-8 (ArrApiClient + `_ArrV3Client` mixin) unchanged.
+
+### Validated v0.3.0 requirements (18/18)
+
+All 18 REQs marked Complete in [`milestones/v0.3.0-REQUIREMENTS.md`](milestones/v0.3.0-REQUIREMENTS.md): Categories Data Model (2), Propagation (6), Migration Strategy (3), Operational Polish (8 incl. REQ-chart-pin-prebump + REQ-idempotence-fp-fix), Documentation (1).
+
+### Retired requirement
+
+- **REQ-eso-akeyless-migration** (was Phase 8 in v0.2.0 roadmap) — retired 2026-05-22 by user decision. Bitnami sealed-secrets is the long-term baseline; no external-secret migration planned. REQ-secret-management closed in spirit.
+
+### Known deferred items at close: 3
+
+See [`STATE.md`](STATE.md) Deferred Items + [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md). All 3 are HUMAN-UAT operator-exercise items (Phase 9 initContainer NFS write test, Phase 10 SC#1 + SC#3 cluster materialization + TVDB-anime routing), not code defects. Non-blocking for v0.3.0 ship.
+
+### Cluster end state
+
+- arr-stack chart **v0.7.0** rendered by ArgoCD (chart's `arrconf.image.tag = "0.6.7"`)
+- 9 apps + 2 CronJobs (arrconf, configarr) running in `selfhost` namespace, all Synced + Healthy
+- ArgoCD `automated.selfHeal: true` + `automated.prune: true` (dispositive UAT 2026-05-21)
+- Mend Renovate App active on `tom333/arr-stack` — cross-repo loop validated
+- Snapshots: v0.2.0 baselines + `before-phase-10-2026-05-19/` + `before-argocd-selfheal-uat-2026-05-21/` (anti-leak auto-redaction baked in)
+
+### Archive references
+
+- [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) — full per-phase scope and success criteria
+- [`milestones/v0.3.0-REQUIREMENTS.md`](milestones/v0.3.0-REQUIREMENTS.md) — all 18 v0.3.0 requirements with final status
+- [`milestones/v0.3.0-phases/`](milestones/v0.3.0-phases/) — 3 phase directories (Phase 9 4 plans, Phase 10 10 plans, Phase 11 2 plans)
+- [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — cross-phase integration verdict `passed_with_caveats`
+- Git tag: `v0.3.0` (commit TBD after milestone-close commit)
+
+---
+
 ## v0.2.0 forceSave fix (Shipped: 2026-05-17)
 
 **Phases:** 11 | **Plans:** 65/66 | **Tasks:** ~109 | **Cluster:** arr-stack chart `v0.5.2`, arrconf image `:0.5.0`
