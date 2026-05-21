@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Categories cleanup + content discovery + local config UI
-status: planning
-last_updated: "2026-05-21T21:40:06.429Z"
-last_activity: 2026-05-21
+status: Defining requirements
+stopped_at: Phase 12 context gathered
+last_updated: "2026-05-21T21:58:31.852Z"
+last_activity: 2026-05-21 — Milestone v0.4.0 started
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 94
 ---
 
 # Project State
@@ -274,9 +275,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-21T08:15:50.904Z
-Stopped at: Phase 10 context gathered
-Resume file: None
+Last session: 2026-05-21T21:58:31.835Z
+Stopped at: Phase 12 context gathered
+Resume file: .planning/phases/12-categories-deprecation/12-CONTEXT.md
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary
