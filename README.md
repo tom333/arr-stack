@@ -60,7 +60,7 @@ La séparation de responsabilités avec **configarr** est stricte : configarr g�
 | Composant | Technologie | Version | Rôle |
 |-----------|-------------|---------|------|
 | Umbrella chart | [bjw-s/app-template](https://github.com/bjw-s-labs/helm-charts) | 5.0.0 | 10 aliases (8 médias + arrconf + configarr) |
-| Reconciler Python | arrconf (ce repo) | v0.2.x | Sonarr / Radarr / Prowlarr |
+| Reconciler Python | arrconf (ce repo) | v0.3.0 | qBit / Sonarr / Radarr / Prowlarr / Seerr / Jellyfin (6 apps) |
 | Quality profiles | [configarr](https://configarr.de/docs/intro/) | 1.28.x | TRaSH-Guides custom formats |
 | CI | GitHub Actions | — | `chart-lint.yml` + `arrconf-image.yml` + `tests.yml` |
 | Image arrconf | GHCR public | `ghcr.io/tom333/arr-stack-arrconf` | anonymous-pullable |
@@ -76,7 +76,7 @@ La séparation de responsabilités avec **configarr** est stricte : configarr g�
 
 - Cluster `my-kluster` opérationnel avec ArgoCD installé et `selfhost-project` créé
 - Secrets `arrconf-env` + `configarr-env` appliqués dans le namespace `selfhost` (cf `my-kluster/secrets/`)
-- PVCs existants pour les 8 apps + `configarr-cache` (déjà présents si migration depuis l'état pré-Phase 4)
+- PVCs existants pour les 8 apps + `configarr-cache` (provisionnés au premier sync ArgoCD ; persistent storage `Retain` policy assure leur survie cross-cutover)
 
 ### Vérification locale du chart
 
@@ -161,7 +161,7 @@ arrconf diff --apps sonarr,radarr,prowlarr
 diff -r snapshots/baseline-<date>/ snapshots/forensic-<date>/
 ```
 
-### Rollback du cutover (si regression post-Phase 4)
+### Rollback umbrella → ArgoCD Apps individuelles (si regression majeure)
 
 ```bash
 # Côté my-kluster : git revert la PR qui ajoutait arr-stack-app.yaml
