@@ -4,14 +4,14 @@ milestone: v0.3.0
 milestone_name: Categories first-class
 status: executing
 stopped_at: Phase 10 context gathered
-last_updated: "2026-05-19T21:12:09.088Z"
-last_activity: 2026-05-19
+last_updated: "2026-05-21T08:15:50.914Z"
+last_activity: 2026-05-21
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
+  total_plans: 16
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 10 — categories-6-app-propagation
+**Current focus:** Phase 11 — operational-polish-bundle
 
 ## Current Position
 
-Phase: 10 (categories-6-app-propagation) — EXECUTING
-Plan: 2 of 10
+Phase: 11 (operational-polish-bundle) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-05-19
+Last activity: 2026-05-21
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
@@ -57,7 +57,7 @@ Last activity: 2026-05-19
 
 Last activity: 2026-05-17
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ### Blocker — D-02.2-AUTH-REGRESSION (HIGH severity)
 
@@ -273,7 +273,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-19T21:12:09.077Z
+Last session: 2026-05-21T08:15:50.904Z
 Stopped at: Phase 10 context gathered
 Resume file: None
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.

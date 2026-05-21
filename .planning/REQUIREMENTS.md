@@ -32,15 +32,15 @@ Requirements for this milestone. Each maps to exactly one phase via the traceabi
 - [ ] **REQ-04-09-argocd-selfheal**: `my-kluster/argocd/argocd-apps/arr-stack-app.yaml` has `automated.selfHeal: true` + `automated.prune: true` re-enabled (closes Phase 4 plan 04-09 follow-up). SC#2 E2E evidence captured within 72h: a manual `kubectl edit` drift on the live chart auto-corrects on next ArgoCD sync.
 - [ ] **REQ-cm-cruft-cleanup**: The two legacy ConfigMaps `arrconf` (1349 B, sonarr-only) and `configarr` (9271 B) are removed from `selfhost` namespace (Phase 4 cutover leftovers). Verification: `kubectl -n selfhost get cm` lists only `arrconf-config` + `configarr-config` post-cleanup.
 - [ ] **REQ-chart-pin-prebump**: `gsd-executor` agent prompt + `CLAUDE.md` document the pattern "when a reconciler-code commit is needed, bump `charts/arr-stack/values.yaml#arrconf.image.tag` in the SAME commit so the auto-tag chain produces a chart whose pinned image matches the auto-created tag". v0.3.0 phases that touch arrconf code follow this pattern → 1 my-kluster targetRevision bump per phase instead of 2 (closes D-07-CHART-PIN-LOOP).
-- [ ] **REQ-ruff-format-ci-gate**: `gsd-executor` agent prompt template enforces `uv run ruff format --check .` AND `uv run ruff check .` as two distinct gates before claiming a Python edit complete. `CLAUDE.md` lists both commands in the "Conventions développement" section (closes D-07-RUFF-FORMAT-CI).
-- [ ] **REQ-paths-filter-arrconf**: `.github/workflows/chart-lint.yml`'s `paths:` filter includes `tools/arrconf/**` so commits that touch arrconf code but not charts/ still trigger the auto-tag chain. Verification: a no-chart commit that bumps a Python version produces a new tag (closes Phase 5.1 follow-up F1).
+- [x] **REQ-ruff-format-ci-gate**: `gsd-executor` agent prompt template enforces `uv run ruff format --check .` AND `uv run ruff check .` as two distinct gates before claiming a Python edit complete. `CLAUDE.md` lists both commands in the "Conventions développement" section (closes D-07-RUFF-FORMAT-CI).
+- [x] **REQ-paths-filter-arrconf**: `.github/workflows/chart-lint.yml`'s `paths:` filter includes `tools/arrconf/**` so commits that touch arrconf code but not charts/ still trigger the auto-tag chain. Verification: a no-chart commit that bumps a Python version produces a new tag (closes Phase 5.1 follow-up F1).
 - [ ] **REQ-renovate-app-install**: Mend Renovate App is installed on `github.com/tom333/arr-stack`. First auto-PR on `my-kluster/argocd/argocd-apps/arr-stack-app.yaml#targetRevision` lands within one Renovate scan cycle of a new arr-stack tag (closes D-05.1-BUMP-01 + Phase 5.1 follow-up F2).
-- [ ] **REQ-snapshot-redaction-harden**: `tools/snapshot/snapshot.sh` redacts `config_host.json`-style sensitive fields (apiKey, password, authToken) systematically across all apps before commit. Anti-leak grep returns 0 hits on every fresh snapshot without manual post-edit (closes Phase 5/6 carry-forward #4).
+- [x] **REQ-snapshot-redaction-harden**: `tools/snapshot/snapshot.sh` redacts `config_host.json`-style sensitive fields (apiKey, password, authToken) systematically across all apps before commit. Anti-leak grep returns 0 hits on every fresh snapshot without manual post-edit (closes Phase 5/6 carry-forward #4).
 - [ ] **REQ-idempotence-fp-fix**: `arrconf/differ.py` comparators eliminate the known idempotence false-positives where second-run produces `plan_action` events for unchanged resources (Phase 5 #5, Phase 6 D-06-SEERR-USER-FP). Verification: a 2nd-run `arrconf apply` on each of the 6 apps emits 0 `plan_action` events (no_drift only).
 
 ### Documentation
 
-- [ ] **REQ-readme-onboarding-v030**: `README.md` is refreshed to cover the v0.3.0 Categories-first model and validated by a fresh-eyes operator dry-run completing in < 30 min from clone to a successful `arrconf diff` against the cluster (closes REQ-readme-onboarding carried from v0.2.0).
+- [x] **REQ-readme-onboarding-v030**: `README.md` is refreshed to cover the v0.3.0 Categories-first model and validated by a fresh-eyes operator dry-run completing in < 30 min from clone to a successful `arrconf diff` against the cluster (closes REQ-readme-onboarding carried from v0.2.0).
 
 ## Future Requirements
 
@@ -88,12 +88,12 @@ Mapping `REQ-* → Phase`. Each requirement is mapped to exactly one phase (its 
 | REQ-04-09-argocd-selfheal | Phase 11 | Pending |
 | REQ-cm-cruft-cleanup | Phase 11 | Pending |
 | REQ-chart-pin-prebump | Phase 10 | Pending |
-| REQ-ruff-format-ci-gate | Phase 11 | Pending |
-| REQ-paths-filter-arrconf | Phase 11 | Pending |
+| REQ-ruff-format-ci-gate | Phase 11 | Complete |
+| REQ-paths-filter-arrconf | Phase 11 | Complete |
 | REQ-renovate-app-install | Phase 11 | Pending |
-| REQ-snapshot-redaction-harden | Phase 11 | Pending |
+| REQ-snapshot-redaction-harden | Phase 11 | Complete |
 | REQ-idempotence-fp-fix | Phase 10 | Pending |
-| REQ-readme-onboarding-v030 | Phase 11 | Pending |
+| REQ-readme-onboarding-v030 | Phase 11 | Complete |
 
 **Coverage:**
 - v0.3.0 requirements: 20 total

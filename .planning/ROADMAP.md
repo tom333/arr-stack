@@ -109,7 +109,7 @@ Phase artifacts: [`milestones/v0.2.0-phases/`](milestones/v0.2.0-phases/)
   4. A commit touching only `tools/arrconf/**` (no `charts/` change) triggers the `chart-lint.yml` auto-tag job and produces a new semver tag; the first Renovate scan after that tag opens a PR on `my-kluster/argocd/argocd-apps/arr-stack-app.yaml` bumping `targetRevision`.
   5. A fresh operator following `README.md` from `git clone` completes a successful `arrconf diff` against the cluster in under 30 minutes.
 **Plans**: 2 plans
-- [ ] 11-A-arrstack-repo-PLAN.md — Autonomous arr-stack repo items: pre-commit hook + chart-lint paths filter + snapshot.sh redaction + README spot-fix (REQ-ruff-format-ci-gate, REQ-paths-filter-arrconf, REQ-snapshot-redaction-harden, REQ-readme-onboarding-v030)
+- [x] 11-A-arrstack-repo-PLAN.md — Autonomous arr-stack repo items: pre-commit hook + chart-lint paths filter + snapshot.sh redaction + README spot-fix (REQ-ruff-format-ci-gate, REQ-paths-filter-arrconf, REQ-snapshot-redaction-harden, REQ-readme-onboarding-v030)
 - [ ] 11-B-cross-repo-operator-PLAN.md — Operator checkpoints: ArgoCD selfHeal drift UAT + legacy CM cleanup + Renovate App install (REQ-04-09-argocd-selfheal, REQ-cm-cruft-cleanup, REQ-renovate-app-install)
 **UI hint**: no
 
