@@ -106,6 +106,7 @@ Note historique : la section précédente ("Structure cible") était anticipativ
 ### Code style
 
 - **`ruff check` et `ruff format`** doivent passer avant commit. CI bloque sinon.
+- **Triade Python (obligatoire avant tout commit Python)** : `uv run ruff format --check . && uv run ruff check . && uv run mypy .` — exécuter depuis `tools/arrconf/`. C'est l'exact équivalent de ce que la CI teste dans `tests.yml`. Local enforcement via `pre-commit install` (utilise le `.pre-commit-config.yaml` à la racine du repo).
 - **`mypy`** doit passer sur les signatures publiques (mode strict configuré dans `pyproject.toml`). CI bloque sinon.
 - **Type hints partout** sur les signatures publiques. Variables locales : optionnelles.
 - **Docstrings** : sur `__main__`, classes publiques (clients, reconcilers), fonctions publiques. Pas sur les helpers privés évidents.

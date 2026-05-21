@@ -1,0 +1,20 @@
+# Pre-commit hooks for arr-stack Python (arrconf).
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+#
+# These hooks run against tools/arrconf/ only (mirrors CI scope in tests.yml).
+# CI enforces the same checks via `uv run ruff format --check .` + `uv run ruff check .`
+# in .github/workflows/tests.yml — this is the local belt-and-suspenders layer.
+#
+# Rev pinned to match pyproject.toml `ruff>=0.15,<0.16` dep range.
+# Renovate tracks this via the `pre-commit` manager (configured in renovate.json).
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.7
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^tools/arrconf/
+      - id: ruff-format
+        files: ^tools/arrconf/
