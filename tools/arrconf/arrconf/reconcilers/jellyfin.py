@@ -42,6 +42,7 @@ from arrconf.config import (
     JellyfinServerConfigSection,
     JellyfinUsersSection,
 )
+from arrconf.resources.jellyfin.library import JellyfinLibrary
 
 log = structlog.get_logger()
 
@@ -369,6 +370,8 @@ def _reconcile_plugins(
 def reconcile_jellyfin(
     client: JellyfinClient,
     instance: JellyfinInstance,
+    libraries: list[JellyfinLibrary],
+    *,
     dry_run: bool,
 ) -> JellyfinResult:
     """Reconcile a Jellyfin instance (Phase 7 — D-07-INSTANCE-01 + D-07-ORDER-01).
@@ -378,7 +381,15 @@ def reconcile_jellyfin(
 
     step_begin log events carry step_index for ordering regression tests
     (mirror Phase 5 D-05-ORDER-01 and Phase 6 reconcile_seerr pattern).
+
+    ``libraries`` carries the Categories-generator output (D-03, Phase 12-A).
+    The intra-function shim below wires it into instance so existing internal
+    helpers remain unchanged — Plan B removes the ``.items`` attribute and
+    this shim together.
     """
+    # Plan A shim — Plan B removes the .items attribute and refactors diff_cmd.py.
+    instance.libraries.items = libraries
+
     actions_taken: list[str] = []
     actions_taken += _reconcile_libraries(client, instance.libraries, dry_run)
     actions_taken += _reconcile_users(client, instance.users, dry_run)

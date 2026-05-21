@@ -202,7 +202,7 @@ def test_add_new_category(respx_mock: respx.MockRouter) -> None:
 
     instance = _build_instance(categories=[Category(name="sonarr-tv", savePath="/data/series")])
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert create_route.call_count == 1
@@ -227,7 +227,7 @@ def test_create_six_categories_with_correct_savepaths(respx_mock: respx.MockRout
 
     instance = _build_instance(categories=PHASE5_CATEGORIES)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert create_route.call_count == 6, (
@@ -273,7 +273,7 @@ def test_update_category_when_savePath_changes(respx_mock: respx.MockRouter) -> 
 
     instance = _build_instance(categories=[Category(name="sonarr-tv", savePath="/data/series")])
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert edit_route.call_count == 1, "Expected exactly 1 editCategory POST"
@@ -316,7 +316,7 @@ def test_idempotent_no_op(respx_mock: respx.MockRouter) -> None:
 
     instance = _build_instance(categories=PHASE5_CATEGORIES, pref_enable=False)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    result = reconcile_qbittorrent(client, instance, dry_run=False)
+    result = reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert create_route.call_count == 0, "SC#5: no createCategory on idempotent run"
@@ -362,7 +362,7 @@ def test_prune_false_keeps_unmanaged_categories(respx_mock: respx.MockRouter) ->
     # prune=False (default) — unmanaged categories survive
     instance = _build_instance(categories=PHASE5_CATEGORIES, prune=False)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert remove_route.call_count == 0, (
@@ -397,7 +397,7 @@ def test_prune_true_removes_unmanaged_categories(respx_mock: respx.MockRouter) -
     # prune=True (operator opt-in)
     instance = _build_instance(categories=PHASE5_CATEGORIES, prune=True)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert remove_route.call_count == 3, (
@@ -428,7 +428,7 @@ def test_preferences_skipped_when_disabled(respx_mock: respx.MockRouter) -> None
     # preferences.enable=False (default)
     instance = _build_instance(pref_enable=False)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert get_pref_route.call_count == 0, "No GET /app/preferences when preferences disabled"
@@ -469,7 +469,7 @@ def test_preferences_diff_uses_json_boolean_not_quoted(
     pref_values = QbitPreferences(auto_tmm_enabled=True)
     instance = _build_instance(pref_enable=True, pref_values=pref_values)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert set_pref_route.call_count == 1, "Expected 1 setPreferences POST"
@@ -520,7 +520,7 @@ def test_preferences_no_op_when_in_sync(respx_mock: respx.MockRouter) -> None:
     )
     instance = _build_instance(pref_enable=True, pref_values=pref_values)
     client = QbittorrentClient(base_url=QBIT_BASE, username="admin", password="testpass")
-    reconcile_qbittorrent(client, instance, dry_run=False)
+    reconcile_qbittorrent(client, instance, instance.categories.items, dry_run=False)
     client.close()
 
     assert set_pref_route.call_count == 0, (

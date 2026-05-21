@@ -34,6 +34,7 @@ from arrconf.config import (
     TagsSection,
 )
 from arrconf.differ import Action
+from arrconf.generators.categories import RadarrDerived
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
@@ -130,7 +131,17 @@ def test_add_new_download_client(respx_mock: respx.MockRouter) -> None:
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert post_route.call_count == 1
     body = post_route.calls.last.request.content.decode()
@@ -157,7 +168,17 @@ def test_update_existing_download_client_uses_forceSave(  # noqa: N802
         download_clients=DownloadClientsSection(prune=False, items=desired),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_route.call_count == 1
     assert put_route.calls.last.request.url.params["forceSave"] == "true"
@@ -180,7 +201,17 @@ def test_add_new_indexer(respx_mock: respx.MockRouter) -> None:
         indexers=IndexersSection(prune=False, items=[indexer]),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert post_route.call_count == 1
 
 
@@ -195,7 +226,17 @@ def test_indexer_no_op_when_identical(respx_mock: respx.MockRouter) -> None:
         indexers=IndexersSection(prune=False, items=desired),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert put_route.call_count == 0
 
 
@@ -218,7 +259,17 @@ def test_add_new_notification(respx_mock: respx.MockRouter) -> None:
         notifications=NotificationsSection(prune=False, items=[notif]),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert post_route.call_count == 1
 
 
@@ -249,7 +300,17 @@ def test_radarr_specific_notification_on_movie_added_parses(
         notifications=NotificationsSection(prune=False, items=desired),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert put_route.call_count == 0
 
 
@@ -270,7 +331,17 @@ def test_add_new_root_folder(respx_mock: respx.MockRouter) -> None:
         root_folders=RootFoldersSection(prune=False, items=[rf]),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert post_route.call_count == 1
 
 
@@ -286,7 +357,17 @@ def test_root_folder_no_update_action_ever(respx_mock: respx.MockRouter) -> None
         root_folders=RootFoldersSection(prune=False, items=desired),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert put_route.call_count == 0, "Pitfall 1: root folders must never receive a PUT"
 
 
@@ -305,7 +386,17 @@ def test_host_config_skipped_when_enable_false(respx_mock: respx.MockRouter) -> 
         host_config=HostConfigSection(enable=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
     assert get_host.call_count == 0
 
 
@@ -327,7 +418,17 @@ def test_host_config_update_when_different(respx_mock: respx.MockRouter) -> None
     )
     instance = RadarrInstance(base_url=RADARR_BASE, host_config=section)
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_host.call_count == 1
     last_req = put_host.calls.last.request
@@ -362,7 +463,17 @@ def test_host_config_no_op_when_identical(respx_mock: respx.MockRouter) -> None:
     )
     instance = RadarrInstance(base_url=RADARR_BASE, host_config=section)
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_host.call_count == 0, (
         "CR-01: identical cluster/desired subset must NOT trigger a PUT — "
@@ -394,7 +505,17 @@ def test_host_config_put_body_only_contains_scoped_keys(respx_mock: respx.MockRo
     section = HostConfigSection(enable=True, instanceName="RadarrPhase3Renamed")
     instance = RadarrInstance(base_url=RADARR_BASE, host_config=section)
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert put_host.call_count == 1
     body_json = json.loads(put_host.calls.last.request.content.decode())
@@ -469,7 +590,17 @@ def test_radarr_full_round_trip_no_op(respx_mock: respx.MockRouter) -> None:
         host_config=HostConfigSection(enable=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    result = reconcile_radarr(client, instance, dry_run=False)
+    result = reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     for name, route in post_routes.items():
         assert route.call_count == 0, f"round_trip: unexpected POST on {name}"
@@ -584,7 +715,17 @@ def test_split_three_tags_three_root_folders_three_download_clients_radarr(
         movie_tags=MovieTagsSection(enable=False),  # keep test focused on split
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     # 3 tag POSTs (movies, anime, family).
     tag_posts = [
@@ -641,7 +782,17 @@ def test_reconcile_order_radarr(
     step_events: list[dict[str, Any]] = []
 
     with structlog.testing.capture_logs() as cap_logs:
-        reconcile_radarr(client, instance, dry_run=False)
+        reconcile_radarr(
+            client,
+            instance,
+            RadarrDerived(
+                tags=instance.tags.items,
+                root_folders=instance.root_folders.items,
+                download_clients=instance.download_clients.items,
+                remote_path_mappings=instance.remote_path_mappings.items,
+            ),
+            dry_run=False,
+        )
 
     step_events = [e for e in cap_logs if e.get("event") == "step_begin" and "step_index" in e]
 
@@ -753,7 +904,17 @@ def test_download_client_tags_label_resolution_uses_just_created_id_radarr(
         movie_tags=MovieTagsSection(enable=False),  # disable to keep test focused
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     assert len(dc_post_bodies) == 1, "Expected exactly one download client POST"
     tags_in_body = dc_post_bodies[0].get("tags", [])

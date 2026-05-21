@@ -1,20 +1,14 @@
-"""Phase 10 wiring test: Categories->qBit categories via merge_with_manual.
+"""Phase 10 wiring test: Categories->qBit categories.
 
-Validates the integration between:
-- arrconf.generators.categories.generate_qbit_categories
-- arrconf.reconcilers._shared.merge_with_manual
-- arrconf.reconcilers.qbittorrent._reconcile_categories
+Validates that generate_qbit_categories delivers the right list to the reconciler.
 
-NOT a __main__.py end-to-end test -- just verifies the merge contract delivers
-the right list to the reconciler input slot.
+NOT a __main__.py end-to-end test -- pure data-flow verification.
 """
 
 from __future__ import annotations
 
 from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_qbit_categories
-from arrconf.reconcilers._shared import merge_with_manual
-from arrconf.resources.qbittorrent.category import Category
 
 # Production fixture (same 10-category set as test_generators_categories.py).
 PRODUCTION_CATEGORIES = [
@@ -92,24 +86,13 @@ PRODUCTION_CATEGORIES = [
 
 
 def test_categories_wiring_10_entries() -> None:
-    """When manual is empty + 10 categories declared -> reconciler sees 10 entries."""
+    """10 categories declared -> reconciler sees 10 entries."""
     cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
     generated = generate_qbit_categories(cfg)
-    merged = merge_with_manual([], generated, app="qbittorrent", resource="categories")
-    assert len(merged) == 10
-    names = {c.name for c in merged}
+    assert len(generated) == 10
+    names = {c.name for c in generated}
     assert "series-zoe" in names
     assert "films" in names
-
-
-def test_manual_override_wins() -> None:
-    """When manual is non-empty -> generated is skipped entirely (D-02)."""
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
-    generated = generate_qbit_categories(cfg)
-    manual = [Category(name="sonarr-tv", savePath="/data/series")]
-    merged = merge_with_manual(manual, generated, app="qbittorrent", resource="categories")
-    assert len(merged) == 1
-    assert merged[0].name == "sonarr-tv"
 
 
 def test_savepath_format() -> None:

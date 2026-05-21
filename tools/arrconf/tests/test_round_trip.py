@@ -15,6 +15,7 @@ from arrconf.client_base import SonarrClient
 from arrconf.config import load_config
 from arrconf.differ import Action
 from arrconf.dump import dump_sonarr
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 
 
@@ -76,7 +77,17 @@ def test_round_trip_dump_apply_dry_run_is_noop(
 
     # Step 3: reconcile against same cluster state, dry_run=True
     client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client2, instance, dry_run=True)
+    result = reconcile_sonarr(
+        client2,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=True,
+    )
 
     # Step 4: assert all NO_OP, zero writes
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
@@ -137,7 +148,17 @@ def test_round_trip_with_redacted_credentials_is_noop(
     instance = root.sonarr["main"]
 
     client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client2, instance, dry_run=True)
+    result = reconcile_sonarr(
+        client2,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=True,
+    )
 
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     assert non_noop == [], (

@@ -64,6 +64,7 @@ from arrconf.differ import (
     reconcile,
 )
 from arrconf.exceptions import ReconcileError
+from arrconf.generators.categories import RadarrDerived
 from arrconf.reconcilers._shared import (
     _reconcile_remote_path_mappings,
     _resolve_download_client_tag_labels,
@@ -455,6 +456,8 @@ def _reconcile_content_tags(
 def reconcile_radarr(
     client: RadarrClient,
     instance: RadarrInstance,
+    derived: RadarrDerived,
+    *,
     dry_run: bool,
 ) -> RadarrResult:
     """Reconcile a Radarr instance (Phase 5 — D-05-SPLIT-02 full scope).
@@ -464,7 +467,18 @@ def reconcile_radarr(
     download_clients → notifications → host_config → movie_tags → content_tags.
 
     step_begin log events carry step_index for ordering regression tests.
+
+    ``derived`` carries the Categories-generator output (D-03, Phase 12-A).
+    The intra-function shim below wires it into instance section items so the
+    existing internal helpers remain unchanged — Plan B removes the ``.items``
+    attribute and this shim together.
     """
+    # Plan A shim — Plan B removes the .items attribute and refactors diff_cmd.py.
+    instance.tags.items = derived.tags
+    instance.root_folders.items = derived.root_folders
+    instance.download_clients.items = derived.download_clients
+    instance.remote_path_mappings.items = derived.remote_path_mappings
+
     # Step 1: Ensure the arrconf-managed tag.
     log.info("step_begin", step="managed_tag", step_index=1)
     managed_tag = _ensure_managed_tag(client, dry_run)

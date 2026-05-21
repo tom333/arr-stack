@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_jellyfin_libraries
-from arrconf.reconcilers._shared import merge_with_manual
-from arrconf.resources.jellyfin.library import JellyfinLibrary
 
 PRODUCTION_CATEGORIES = [
     {
@@ -89,10 +87,9 @@ def test_jellyfin_libraries_wiring_empty_manual() -> None:
     """5+5 -> 2 libraries with 5 paths each."""
     cfg = _build_cfg()
     generated = generate_jellyfin_libraries(cfg)
-    merged = merge_with_manual([], generated, app="jellyfin", resource="libraries")
-    assert len(merged) == 2
-    series_lib = next(lib for lib in merged if lib.name == "Séries")
-    films_lib = next(lib for lib in merged if lib.name == "Films")
+    assert len(generated) == 2
+    series_lib = next(lib for lib in generated if lib.name == "Séries")
+    films_lib = next(lib for lib in generated if lib.name == "Films")
     assert len(series_lib.paths) == 5
     assert len(films_lib.paths) == 5
     assert series_lib.collection_type == "tvshows"
@@ -102,9 +99,8 @@ def test_jellyfin_libraries_wiring_empty_manual() -> None:
 def test_jellyfin_libraries_path_content() -> None:
     cfg = _build_cfg()
     generated = generate_jellyfin_libraries(cfg)
-    merged = merge_with_manual([], generated, app="jellyfin", resource="libraries")
-    series_lib = next(lib for lib in merged if lib.name == "Séries")
-    films_lib = next(lib for lib in merged if lib.name == "Films")
+    series_lib = next(lib for lib in generated if lib.name == "Séries")
+    films_lib = next(lib for lib in generated if lib.name == "Films")
     assert "/media/series-zoe" in series_lib.paths
     assert "/media/films-zoe" in films_lib.paths
     # Cross-check: series base_paths must not appear in Films, and vice versa.
@@ -112,22 +108,6 @@ def test_jellyfin_libraries_path_content() -> None:
         assert not p.startswith("/media/films")
     for p in films_lib.paths:
         assert p.startswith("/media/films") or p.startswith("/media/nouveaux-films")
-
-
-def test_jellyfin_manual_override_wins() -> None:
-    """D-02: manual non-empty preserves operator's library list."""
-    cfg = _build_cfg()
-    generated = generate_jellyfin_libraries(cfg)
-    manual = [
-        JellyfinLibrary(
-            name="Movies-Old",
-            collection_type="movies",
-            paths=["/media/legacy"],
-        )
-    ]
-    merged = merge_with_manual(manual, generated, app="jellyfin", resource="libraries")
-    assert len(merged) == 1
-    assert merged[0].name == "Movies-Old"
 
 
 def test_jellyfin_no_categories_returns_two_empty_libraries() -> None:
@@ -159,6 +139,5 @@ def test_jellyfin_libraries_order() -> None:
     """Library order is [Séries, Films] (matches generator output)."""
     cfg = _build_cfg()
     generated = generate_jellyfin_libraries(cfg)
-    merged = merge_with_manual([], generated, app="jellyfin", resource="libraries")
-    assert merged[0].name == "Séries"
-    assert merged[1].name == "Films"
+    assert generated[0].name == "Séries"
+    assert generated[1].name == "Films"

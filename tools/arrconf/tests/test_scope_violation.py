@@ -27,6 +27,7 @@ from arrconf.config import (
     TagsSection,
 )
 from arrconf.exceptions import ScopeViolationError
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.resources.radarr import (
     custom_format as radarr_custom_format,
@@ -168,7 +169,17 @@ def test_series_tags_does_not_touch_quality_endpoints(
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     # Assert no quality endpoint was called.
     called_paths = [str(c.request.url.path) for c in respx_mock.calls]
@@ -209,7 +220,17 @@ def test_remote_path_mappings_does_not_touch_quality_endpoints(
         series_tags=SeriesTagsSection(enable=False),  # disable to keep focus on RPM
     )
     client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=instance.tags.items,
+            root_folders=instance.root_folders.items,
+            download_clients=instance.download_clients.items,
+            remote_path_mappings=instance.remote_path_mappings.items,
+        ),
+        dry_run=False,
+    )
 
     called_paths = [str(c.request.url.path) for c in respx_mock.calls]
     for quality_path in QUALITY_PATHS:

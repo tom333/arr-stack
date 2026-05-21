@@ -160,7 +160,7 @@ def test_settings_sonarr_no_op_when_cluster_matches(
     )
     put_route = respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
 
     assert put_route.call_count == 0  # idempotent no-op
 
@@ -193,7 +193,7 @@ def test_settings_sonarr_writes_animeTags_when_desired_differs(
     )
     put_route = respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
 
     assert put_route.call_count == 1
     body = json.loads(put_route.calls[0].request.content)
@@ -228,7 +228,7 @@ def test_settings_sonarr_put_body_excludes_id(
     )
     put_route = respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = put_route.calls[0].request.content.decode()
     assert '"id":' not in body, f"id MUST NOT be in PUT body (Pitfall 1); body was: {body}"
 
@@ -260,7 +260,7 @@ def test_settings_sonarr_apikey_preserved_when_yaml_empty(
     )
     put_route = respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = json.loads(put_route.calls[0].request.content)
     assert body["apiKey"] == "cluster-key-xyz", (
         f"Expected cluster apiKey preserved; got: {body.get('apiKey')!r}"
@@ -299,7 +299,7 @@ def test_settings_sonarr_preserves_activeProfileName_from_get(
     )
     put_route = respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body_json = json.loads(put_route.calls[0].request.content.decode())
     # Required by OpenAPI — must be present.
     assert "activeProfileName" in body_json
@@ -338,7 +338,7 @@ def test_settings_radarr_no_animeTags_in_put_body(
     # Defensive sonarr PUT mock
     respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = put_route.calls[0].request.content.decode()
     assert '"animeTags"' not in body, "Radarr-side body MUST NOT contain animeTags"
 
@@ -371,7 +371,7 @@ def test_settings_radarr_apikey_preserved(
     put_route = respx_mock.put("/settings/radarr/0").mock(return_value=httpx.Response(200, json={}))
     respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = json.loads(put_route.calls[0].request.content)
     assert body["apiKey"] == "radarr-cluster-secret"
 
@@ -407,7 +407,7 @@ def test_settings_radarr_preserves_activeProfileName_from_get(
     put_route = respx_mock.put("/settings/radarr/0").mock(return_value=httpx.Response(200, json={}))
     respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = json.loads(put_route.calls[0].request.content)
     assert "activeProfileName" in body
     assert body["activeProfileName"] == "HD - 720p/1080p"
@@ -447,7 +447,7 @@ def test_user_no_op_when_permissions_match(
     respx_mock.put("/settings/sonarr/0").mock(return_value=httpx.Response(200, json={}))
     respx_mock.put("/settings/radarr/0").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     assert put_user.call_count == 0
 
 
@@ -478,7 +478,7 @@ def test_user_writes_permissions_change(
     respx_mock.put("/settings/radarr/0").mock(return_value=httpx.Response(200, json={}))
     put_user = respx_mock.put("/user/1").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     assert put_user.call_count == 1
     body = json.loads(put_user.calls[0].request.content)
     assert body["permissions"] == 2
@@ -511,7 +511,7 @@ def test_user_put_body_excludes_16_read_only_fields(
     respx_mock.put("/settings/radarr/0").mock(return_value=httpx.Response(200, json={}))
     put_user = respx_mock.put("/user/1").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = json.loads(put_user.calls[0].request.content)
     for forbidden in (
         "id",
@@ -558,7 +558,7 @@ def test_settings_main_uses_post_not_put(
     put_main = respx_mock.put("/settings/main").mock(return_value=httpx.Response(200, json={}))
     post_main = respx_mock.post("/settings/main").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     assert post_main.call_count == 1, "settings/main MUST use POST"
     assert put_main.call_count == 0, "settings/main MUST NOT use PUT (Pitfall 2)"
 
@@ -590,7 +590,7 @@ def test_settings_main_writes_default_permissions_change(
     respx_mock.put("/user/1").mock(return_value=httpx.Response(200, json={}))
     post_main = respx_mock.post("/settings/main").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
     body = json.loads(post_main.calls[0].request.content)
     assert body["defaultPermissions"] == 32
     assert body["locale"] == "en"  # operator-set key preserved
@@ -657,7 +657,7 @@ def test_seerr_does_not_call_arr_v3_quality_endpoints(
         ),
     ]
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)
 
     for r in forbidden_routes:
         assert not r.called, f"FRONTIERE VIOLATION: {r} was called (ADR-5)"
@@ -698,7 +698,7 @@ def test_dry_run_emits_no_writes(
     put_user = respx_mock.put("/user/1").mock(return_value=httpx.Response(200, json={}))
     post_main = respx_mock.post("/settings/main").mock(return_value=httpx.Response(200, json={}))
 
-    reconcile_seerr(_make_client(), _make_instance(), dry_run=True)
+    reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=True)
     assert put_sonarr.call_count == 0
     assert put_radarr.call_count == 0
     assert put_user.call_count == 0
@@ -727,7 +727,7 @@ def test_main_settings_disabled_skips_resource(
     respx_mock.put("/user/1").mock(return_value=httpx.Response(200, json={}))
 
     instance = _make_instance(main_settings=SeerrMainSettingsSection(enable=False))
-    reconcile_seerr(_make_client(), instance, dry_run=False)
+    reconcile_seerr(_make_client(), instance, instance.sonarr_service.animeTags, dry_run=False)
     assert get_main.call_count == 0
     assert post_main.call_count == 0
 
@@ -756,7 +756,7 @@ def test_users_disabled_skips_resource(
     respx_mock.post("/settings/main").mock(return_value=httpx.Response(200, json={}))
 
     instance = _make_instance(users=SeerrUsersSection(enable=False))
-    reconcile_seerr(_make_client(), instance, dry_run=False)
+    reconcile_seerr(_make_client(), instance, instance.sonarr_service.animeTags, dry_run=False)
     assert get_user.call_count == 0
     assert put_user.call_count == 0
 
@@ -774,4 +774,4 @@ def test_multiple_isDefault_raises_ReconcileError(
     respx_mock.get("/settings/sonarr").mock(return_value=httpx.Response(200, json=sonarr_state))
 
     with pytest.raises(ReconcileError, match="isDefault=true entries"):
-        reconcile_seerr(_make_client(), _make_instance(), dry_run=False)
+        reconcile_seerr(_make_client(), _make_instance(), [3], dry_run=False)

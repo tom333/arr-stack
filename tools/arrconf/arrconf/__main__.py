@@ -33,7 +33,6 @@ from arrconf.generators.categories import (
     generate_sonarr_resources,
 )
 from arrconf.logging import configure_logging
-from arrconf.reconcilers._shared import merge_with_manual
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
@@ -51,7 +50,7 @@ def _resolve_seerr_anime_tag_ids(
     Returns Sonarr integer tag IDs for every cfg.categories entry where
     kind=='series' AND profile=='anime'. Returns [] if no anime series
     categories exist or if the tags haven't been created in Sonarr yet
-    (caller decides what to do via merge_with_manual override semantics).
+    (caller passes the resolved IDs directly to reconcile_seerr).
 
     Issues ONE extra GET to Sonarr /tag — cheap, idempotent.
 
@@ -185,34 +184,9 @@ def apply(
 
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
-        # Phase 10 pre-merge (D-01/D-02): Categories->Sonarr 4 resources.
-        # Each resource has its own merge_with_manual toggle so the operator
-        # can override one resource (e.g. tags) without losing the others.
+        # Phase 12-A (D-03/D-04): generators called here; derived object passed directly
+        # to reconcile_sonarr — merge_with_manual removed (Plan A, v0.4.0 cleanup).
         sonarr_derived = generate_sonarr_resources(root)
-        instance.tags.items = merge_with_manual(
-            instance.tags.items,
-            sonarr_derived.tags,
-            app="sonarr",
-            resource="tags",
-        )
-        instance.root_folders.items = merge_with_manual(
-            instance.root_folders.items,
-            sonarr_derived.root_folders,
-            app="sonarr",
-            resource="root_folders",
-        )
-        instance.download_clients.items = merge_with_manual(
-            instance.download_clients.items,
-            sonarr_derived.download_clients,
-            app="sonarr",
-            resource="download_clients",
-        )
-        instance.remote_path_mappings.items = merge_with_manual(
-            instance.remote_path_mappings.items,
-            sonarr_derived.remote_path_mappings,
-            app="sonarr",
-            resource="remote_path_mappings",
-        )
         # Fast-fail when SONARR_API_KEY missing — no silent fallback to "" (CLAUDE.md
         # "no silent failures"). Symptom of the old fallback: 401 from upstream with
         # no clear hint that env was missing.
@@ -222,7 +196,9 @@ def apply(
         api_key = settings.sonarr_api_key.get_secret_value()
         try:
             client = SonarrClient(base_url=instance.base_url, api_key=api_key)
-            result = reconcile_sonarr(client, instance, dry_run=dry_run or settings.arrconf_dry_run)
+            result = reconcile_sonarr(
+                client, instance, sonarr_derived, dry_run=dry_run or settings.arrconf_dry_run
+            )
             if all(
                 a == "no-op" or a.startswith("prune-")
                 for a in (p.action.value for p in result.plan)
@@ -237,35 +213,9 @@ def apply(
     # NEW: Radarr branch (Plan 06 wiring — D-03-01 full parity).
     if "radarr" in targets and "main" in root.radarr:
         radarr_instance = root.radarr["main"]
-        # Phase 10 pre-merge (D-01/D-02): Categories->Radarr 4 resources.
-        # Mirror of Sonarr pre-merge (Plan 10-D) — kind="movies" filter in generator.
-        # Each resource has its own merge_with_manual toggle so the operator
-        # can override one resource (e.g. tags) without losing the others.
+        # Phase 12-A (D-03/D-04): generators called here; derived object passed directly
+        # to reconcile_radarr — merge_with_manual removed (Plan A, v0.4.0 cleanup).
         radarr_derived = generate_radarr_resources(root)
-        radarr_instance.tags.items = merge_with_manual(
-            radarr_instance.tags.items,
-            radarr_derived.tags,
-            app="radarr",
-            resource="tags",
-        )
-        radarr_instance.root_folders.items = merge_with_manual(
-            radarr_instance.root_folders.items,
-            radarr_derived.root_folders,
-            app="radarr",
-            resource="root_folders",
-        )
-        radarr_instance.download_clients.items = merge_with_manual(
-            radarr_instance.download_clients.items,
-            radarr_derived.download_clients,
-            app="radarr",
-            resource="download_clients",
-        )
-        radarr_instance.remote_path_mappings.items = merge_with_manual(
-            radarr_instance.remote_path_mappings.items,
-            radarr_derived.remote_path_mappings,
-            app="radarr",
-            resource="remote_path_mappings",
-        )
         if not settings.radarr_api_key:
             log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
             raise typer.Exit(code=2)
@@ -273,7 +223,10 @@ def apply(
         try:
             radarr_client = RadarrClient(base_url=radarr_instance.base_url, api_key=radarr_api_key)
             radarr_result = reconcile_radarr(
-                radarr_client, radarr_instance, dry_run=dry_run or settings.arrconf_dry_run
+                radarr_client,
+                radarr_instance,
+                radarr_derived,
+                dry_run=dry_run or settings.arrconf_dry_run,
             )
             if all(
                 a == "no-op" or a.startswith("prune-")
@@ -336,16 +289,9 @@ def apply(
             )
 
             qbit_instance = root.qbittorrent["main"]
-            # Phase 10 pre-merge (D-01/D-02): Categories->qBit categories.
-            # When instance.categories.items is empty, use Categories-derived
-            # list. When non-empty, manual section wins entirely (merge_with_manual).
+            # Phase 12-A (D-03/D-04): generator called here; list passed directly
+            # to reconcile_qbittorrent — merge_with_manual removed (Plan A, v0.4.0 cleanup).
             qbit_generated = generate_qbit_categories(root)
-            qbit_instance.categories.items = merge_with_manual(
-                qbit_instance.categories.items,
-                qbit_generated,
-                app="qbittorrent",
-                resource="categories",
-            )
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_client = QbittorrentClient(
                 base_url=qbit_instance.base_url,
@@ -353,7 +299,10 @@ def apply(
                 password=settings.qbt_pass.get_secret_value(),
             )
             qbit_result = reconcile_qbittorrent(
-                qbit_client, qbit_instance, dry_run=dry_run or settings.arrconf_dry_run
+                qbit_client,
+                qbit_instance,
+                qbit_generated,
+                dry_run=dry_run or settings.arrconf_dry_run,
             )
             if not qbit_result.actions_taken:
                 log.info("no-op", app="qbittorrent")
@@ -384,24 +333,20 @@ def apply(
 
             seerr_instance = root.seerr["main"]
 
-            # Phase 10 animeTags resolution chain (Plan 10-F, REQ-categories-seerr-routing).
+            # Phase 12-A (D-03/D-04): animeTags resolved here and passed directly to
+            # reconcile_seerr — merge_with_manual removed (Plan A, v0.4.0 cleanup).
             # Requires Sonarr to have reconciled first so the freshly-created tags are
             # GET-able via /api/v3/tag. Sonarr client reconstructed here for the second GET.
             # Skip resolution if Sonarr wasn't in scope (operator --apps seerr without
-            # sonarr) or SONARR_API_KEY is missing — keep YAML animeTags as-is.
+            # sonarr) or SONARR_API_KEY is missing — resolved_anime_ids = [] (no override).
             if "sonarr" in targets and "main" in root.sonarr and settings.sonarr_api_key:
                 sonarr_for_resolution = SonarrClient(
                     base_url=root.sonarr["main"].base_url,
                     api_key=settings.sonarr_api_key.get_secret_value(),
                 )
                 resolved_anime_ids = _resolve_seerr_anime_tag_ids(root, sonarr_for_resolution, log)
-                seerr_instance.sonarr_service.animeTags = merge_with_manual(
-                    seerr_instance.sonarr_service.animeTags,
-                    resolved_anime_ids,
-                    app="seerr",
-                    resource="animeTags",
-                )
             else:
+                resolved_anime_ids = []
                 log.info(
                     "seerr_animetags_resolution_skipped",
                     reason="sonarr not in --apps scope or missing SONARR_API_KEY",
@@ -413,7 +358,10 @@ def apply(
                 api_key=seerr_api_key,
             )
             seerr_result = reconcile_seerr(
-                seerr_client, seerr_instance, dry_run=dry_run or settings.arrconf_dry_run
+                seerr_client,
+                seerr_instance,
+                resolved_anime_ids,
+                dry_run=dry_run or settings.arrconf_dry_run,
             )
             if not seerr_result.actions_taken:
                 log.info("no-op", app="seerr")
@@ -433,24 +381,19 @@ def apply(
             from arrconf.reconcilers.jellyfin import reconcile_jellyfin  # noqa: PLC0415
 
             jellyfin_instance = root.jellyfin["main"]
-            # Phase 10 pre-merge (D-01/D-02): Categories->Jellyfin 2 super-libraries.
-            # 'Séries' = kind=series base_paths (5); 'Films' = kind=movies base_paths (5).
-            # Existing _reconcile_libraries set-membership shim (Pitfall 2) handles
-            # the path-already-present case correctly — no change to reconciler needed.
+            # Phase 12-A (D-03/D-04): generator called here; list passed directly
+            # to reconcile_jellyfin — merge_with_manual removed (Plan A, v0.4.0 cleanup).
             jellyfin_generated = generate_jellyfin_libraries(root)
-            jellyfin_instance.libraries.items = merge_with_manual(
-                jellyfin_instance.libraries.items,
-                jellyfin_generated,
-                app="jellyfin",
-                resource="libraries",
-            )
             jellyfin_api_key = settings.jellyfin_api_key.get_secret_value()
             jellyfin_client = JellyfinClient(
                 base_url=jellyfin_instance.base_url,
                 api_key=jellyfin_api_key,
             )
             jellyfin_result = reconcile_jellyfin(
-                jellyfin_client, jellyfin_instance, dry_run=dry_run or settings.arrconf_dry_run
+                jellyfin_client,
+                jellyfin_instance,
+                jellyfin_generated,
+                dry_run=dry_run or settings.arrconf_dry_run,
             )
             if not jellyfin_result.actions_taken:
                 log.info("no-op", app="jellyfin")
@@ -545,33 +488,14 @@ def diff(
     max_code = 0
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
-        # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape
-        # as apply to avoid false drift between the two commands (D-01/D-02).
+        # Phase 12-A: generator called; Plan A shim sets instance.*.items so that
+        # diff_sonarr (which calls reconcile_sonarr with old 3-arg signature) sees the
+        # same desired-state as apply. Plan B removes the .items attribute entirely.
         sonarr_diff_derived = generate_sonarr_resources(root)
-        instance.tags.items = merge_with_manual(
-            instance.tags.items,
-            sonarr_diff_derived.tags,
-            app="sonarr",
-            resource="tags",
-        )
-        instance.root_folders.items = merge_with_manual(
-            instance.root_folders.items,
-            sonarr_diff_derived.root_folders,
-            app="sonarr",
-            resource="root_folders",
-        )
-        instance.download_clients.items = merge_with_manual(
-            instance.download_clients.items,
-            sonarr_diff_derived.download_clients,
-            app="sonarr",
-            resource="download_clients",
-        )
-        instance.remote_path_mappings.items = merge_with_manual(
-            instance.remote_path_mappings.items,
-            sonarr_diff_derived.remote_path_mappings,
-            app="sonarr",
-            resource="remote_path_mappings",
-        )
+        instance.tags.items = sonarr_diff_derived.tags
+        instance.root_folders.items = sonarr_diff_derived.root_folders
+        instance.download_clients.items = sonarr_diff_derived.download_clients
+        instance.remote_path_mappings.items = sonarr_diff_derived.remote_path_mappings
         # Fast-fail when SONARR_API_KEY missing — mirrors apply/dump branches.
         if not settings.sonarr_api_key:
             log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
@@ -592,33 +516,14 @@ def diff(
     # NEW: Radarr diff.
     if "radarr" in targets and "main" in root.radarr:
         radarr_diff_instance = root.radarr["main"]
-        # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape
-        # as apply to avoid false drift between the two commands (D-01/D-02).
+        # Phase 12-A: generator called; Plan A shim sets instance.*.items so that
+        # diff_radarr (which calls reconcile_radarr with old 3-arg signature) sees the
+        # same desired-state as apply. Plan B removes the .items attribute entirely.
         radarr_diff_derived = generate_radarr_resources(root)
-        radarr_diff_instance.tags.items = merge_with_manual(
-            radarr_diff_instance.tags.items,
-            radarr_diff_derived.tags,
-            app="radarr",
-            resource="tags",
-        )
-        radarr_diff_instance.root_folders.items = merge_with_manual(
-            radarr_diff_instance.root_folders.items,
-            radarr_diff_derived.root_folders,
-            app="radarr",
-            resource="root_folders",
-        )
-        radarr_diff_instance.download_clients.items = merge_with_manual(
-            radarr_diff_instance.download_clients.items,
-            radarr_diff_derived.download_clients,
-            app="radarr",
-            resource="download_clients",
-        )
-        radarr_diff_instance.remote_path_mappings.items = merge_with_manual(
-            radarr_diff_instance.remote_path_mappings.items,
-            radarr_diff_derived.remote_path_mappings,
-            app="radarr",
-            resource="remote_path_mappings",
-        )
+        radarr_diff_instance.tags.items = radarr_diff_derived.tags
+        radarr_diff_instance.root_folders.items = radarr_diff_derived.root_folders
+        radarr_diff_instance.download_clients.items = radarr_diff_derived.download_clients
+        radarr_diff_instance.remote_path_mappings.items = radarr_diff_derived.remote_path_mappings
         if not settings.radarr_api_key:
             log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
             raise typer.Exit(code=2)
@@ -666,15 +571,11 @@ def diff(
             from arrconf.diff_cmd import diff_qbittorrent  # noqa: PLC0415
 
             qbit_diff_instance = root.qbittorrent["main"]
-            # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape
-            # as apply to avoid false drift between the two commands.
+            # Phase 12-A: generator called; Plan A shim sets instance.categories.items
+            # so that diff_qbittorrent (old 3-arg signature) sees the same desired-state
+            # as apply. Plan B removes the .items attribute entirely.
             qbit_diff_generated = generate_qbit_categories(root)
-            qbit_diff_instance.categories.items = merge_with_manual(
-                qbit_diff_instance.categories.items,
-                qbit_diff_generated,
-                app="qbittorrent",
-                resource="categories",
-            )
+            qbit_diff_instance.categories.items = qbit_diff_generated
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_diff_client = QbittorrentClient(
                 base_url=qbit_diff_instance.base_url,
@@ -703,8 +604,9 @@ def diff(
             log.error("missing_api_key", app="seerr", env_var="SEERR_API_KEY")
             raise typer.Exit(code=2)
         seerr_diff_instance = root.seerr["main"]
-        # Phase 10 animeTags pre-merge (Pitfall 5): diff must use the same merged shape
-        # as apply to avoid false drift between the two commands (D-01/D-02).
+        # Phase 12-A: animeTags resolved here; Plan A shim sets instance.sonarr_service.animeTags
+        # so that future diff_seerr (old 3-arg signature) sees the same desired-state as apply.
+        # Plan B removes the .animeTags attribute from the instance model entirely.
         if "sonarr" in targets and "main" in root.sonarr and settings.sonarr_api_key:
             sonarr_for_diff_resolution = SonarrClient(
                 base_url=root.sonarr["main"].base_url,
@@ -713,13 +615,9 @@ def diff(
             diff_resolved_anime_ids = _resolve_seerr_anime_tag_ids(
                 root, sonarr_for_diff_resolution, log
             )
-            seerr_diff_instance.sonarr_service.animeTags = merge_with_manual(
-                seerr_diff_instance.sonarr_service.animeTags,
-                diff_resolved_anime_ids,
-                app="seerr",
-                resource="animeTags",
-            )
+            seerr_diff_instance.sonarr_service.animeTags = diff_resolved_anime_ids
         else:
+            diff_resolved_anime_ids = []
             log.info(
                 "seerr_animetags_resolution_skipped",
                 reason="sonarr not in --apps scope or missing SONARR_API_KEY",
@@ -734,15 +632,11 @@ def diff(
     # Phase 7: Jellyfin diff branch (D-07-INSTANCE-01, SC#4 dispositive).
     if "jellyfin" in targets and "main" in root.jellyfin:
         jellyfin_diff_instance = root.jellyfin["main"]
-        # Phase 10 pre-merge (Pitfall 5): diff must use the same merged shape as apply
-        # to avoid false drift between the two commands (D-01/D-02).
+        # Phase 12-A: generator called; Plan A shim sets instance.libraries.items so
+        # that diff_jellyfin (old 3-arg signature) sees same desired-state as apply.
+        # Plan B removes the .items attribute entirely.
         jellyfin_diff_generated = generate_jellyfin_libraries(root)
-        jellyfin_diff_instance.libraries.items = merge_with_manual(
-            jellyfin_diff_instance.libraries.items,
-            jellyfin_diff_generated,
-            app="jellyfin",
-            resource="libraries",
-        )
+        jellyfin_diff_instance.libraries.items = jellyfin_diff_generated
         if not settings.jellyfin_api_key:
             log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
             raise typer.Exit(code=2)
