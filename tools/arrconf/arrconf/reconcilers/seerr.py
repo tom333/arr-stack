@@ -342,6 +342,8 @@ def _reconcile_main_settings(
 def reconcile_seerr(
     client: SeerrClient,
     instance: SeerrInstance,
+    anime_tags: list[int],
+    *,
     dry_run: bool,
 ) -> SeerrResult:
     """Reconcile a Seerr instance (Phase 6 — D-06-SCOPE-01).
@@ -350,7 +352,15 @@ def reconcile_seerr(
     settings_sonarr -> settings_radarr -> user -> settings_main.
 
     step_begin log events carry step_index for ordering regression tests.
+
+    ``anime_tags`` carries the resolved Sonarr anime tag integer IDs (D-03, Phase 12-A).
+    The intra-function shim below wires it into instance so existing internal
+    helpers remain unchanged — Plan B removes the ``.animeTags`` attribute and
+    this shim together.
     """
+    # Plan A shim — Plan B removes the .animeTags attribute and refactors diff_cmd.py.
+    instance.sonarr_service.animeTags = anime_tags
+
     actions_taken: list[str] = []
 
     actions_taken += _reconcile_settings_sonarr(client, instance.sonarr_service, dry_run)

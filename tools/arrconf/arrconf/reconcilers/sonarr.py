@@ -51,6 +51,7 @@ from arrconf.config import (
     SonarrInstance,
     TagsSection,
 )
+from arrconf.generators.categories import SonarrDerived
 from arrconf.differ import Action, PlannedAction, diff_models, merge_fields_for_put, reconcile
 from arrconf.exceptions import ReconcileError
 from arrconf.reconcilers._shared import (
@@ -459,6 +460,8 @@ def _reconcile_content_tags(
 def reconcile_sonarr(
     client: SonarrClient,
     instance: SonarrInstance,
+    derived: SonarrDerived,
+    *,
     dry_run: bool,
 ) -> SonarrResult:
     """Reconcile a Sonarr instance (Phase 5 — D-05-SPLIT-01 full scope).
@@ -468,7 +471,18 @@ def reconcile_sonarr(
     download_clients → notifications → host_config → series_tags → content_tags.
 
     step_begin log events carry step_index for ordering regression tests.
+
+    ``derived`` carries the Categories-generator output (D-03, Phase 12-A).
+    The intra-function shim below wires it into instance section items so the
+    existing internal helpers remain unchanged — Plan B removes the ``.items``
+    attribute and this shim together.
     """
+    # Plan A shim — Plan B removes the .items attribute and refactors diff_cmd.py.
+    instance.tags.items = derived.tags
+    instance.root_folders.items = derived.root_folders
+    instance.download_clients.items = derived.download_clients
+    instance.remote_path_mappings.items = derived.remote_path_mappings
+
     # Step 1: Ensure the arrconf-managed tag.
     log.info("step_begin", step="managed_tag", step_index=1)
     managed_tag = _ensure_managed_tag(client, dry_run)
