@@ -78,7 +78,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 12-B-pydantic-yaml-schema-PLAN.md — Slim pydantic Section models, delete 11 flat YAML sections, regen schema, refactor diff_cmd.py (D-01, D-02, D-05, D-13)
-- [ ] 12-C-test-cleanup-PLAN.md — Delete 8 manual-path tests, rename test_sweep, rename 8 *_wiring_empty_manual tests, conftest audit (D-06, D-07, D-08, D-09, D-10)
+- [x] 12-C-test-cleanup-PLAN.md — Delete 8 manual-path tests, rename test_sweep, rename 8 *_wiring_empty_manual tests, conftest audit (D-06, D-07, D-08, D-09, D-10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 12-D-docs-snapshot-PLAN.md — CLAUDE.md v0.3.0→v0.4.0 deprecation section, capture before-phase-12 snapshot (D-11, D-12, D-13, D-14)
