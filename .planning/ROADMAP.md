@@ -81,7 +81,7 @@ Plans:
 - [x] 12-C-test-cleanup-PLAN.md — Delete 8 manual-path tests, rename test_sweep, rename 8 *_wiring_empty_manual tests, conftest audit (D-06, D-07, D-08, D-09, D-10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 12-D-docs-snapshot-PLAN.md — CLAUDE.md v0.3.0→v0.4.0 deprecation section, capture before-phase-12 snapshot (D-11, D-12, D-13, D-14)
+- [x] 12-D-docs-snapshot-PLAN.md — CLAUDE.md v0.3.0→v0.4.0 deprecation section, capture before-phase-12 snapshot (D-11, D-12, D-13, D-14)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 12-E-live-cluster-dispositive-PLAN.md — Post-merge SC#5 dispositive: after-snapshot + diff + HUMAN-UAT + VERIFICATION (D-14, D-16, D-17)
