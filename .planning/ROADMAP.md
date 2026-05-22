@@ -120,7 +120,7 @@ Plans:
 - [x] 14-01-PLAN.md — Helm chart vendoring: add suggestarr alias to Chart.yaml + helm dependency build + unpack workaround (D-12)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 14-02-PLAN.md — values.yaml suggestarr block + ConfigMap template + files/suggestarr-config.yml (live-cluster discovery checkpoint for Jellyfin ItemIds + Sonarr/Radarr profileIds) (D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-14)
+- [x] 14-02-PLAN.md — values.yaml suggestarr block + ConfigMap template + files/suggestarr-config.yml (live-cluster discovery checkpoint for Jellyfin ItemIds + Sonarr/Radarr profileIds) (D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-14)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 14-03-PLAN.md — Integration test test_suggestarr_routing_config.py + 14-HUMAN-UAT.md operator runbook (D-02, D-10, D-11, D-13)
