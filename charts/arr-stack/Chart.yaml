@@ -47,3 +47,7 @@ dependencies:
     alias: configarr
     version: 5.0.0
     repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: suggestarr
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts
