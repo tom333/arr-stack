@@ -1,0 +1,5 @@
+# Jellyfin Library ItemIds (captured 2026-05-22 from live cluster)
+# Source: GET /Library/VirtualFolders via kubectl port-forward
+
+Séries	d565273fd114d77bdf349a2896867069	CollectionType=tvshows	Paths=/media/anime,/media/family,/media/series,/media/series
+Films	db4c1708cbb5dd1676284a40f2950aba	CollectionType=movies	Paths=/media/films,/media/films-anime,/media/films-family
