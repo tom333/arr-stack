@@ -185,7 +185,7 @@ def dump_jellyfin(client: JellyfinClient, output_path: Path) -> None:
         "jellyfin": {
             "main": {
                 "base_url": client.base_url,
-                "libraries": {"enable": True, "prune": False, "items": libs_dumped},
+                "libraries": {"enable": True, "prune": False},
                 "users": {"enable": True, "prune": False, "admin": admin_dumped},
                 "server_config": {"enable": True, **server_dumped},
                 "plugins": {"enable": True, "required": plugins_dumped},

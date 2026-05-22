@@ -90,17 +90,16 @@ def test_rpm_add_new_mapping(
     ]
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=desired),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
         ),
         dry_run=False,
     )
@@ -152,17 +151,16 @@ def test_rpm_delete_plus_add_on_localpath_change(
     ]
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=desired),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
         ),
         dry_run=False,
     )
@@ -194,17 +192,16 @@ def test_rpm_no_op_when_in_sync(
     desired = [RemotePathMapping.model_validate(e) for e in sonarr_remotepathmapping_fixture]
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=desired),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
         ),
         dry_run=False,
     )
@@ -237,17 +234,17 @@ def test_rpm_match_by_host_and_remote_path_tuple(
     # --- prune=False: B entry NOT deleted ---
     instance_no_prune = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(prune=False, items=desired),
+        remote_path_mappings=RemotePathMappingsSection(prune=False),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
     reconcile_sonarr(
         client,
         instance_no_prune,
         SonarrDerived(
-            tags=instance_no_prune.tags.items,
-            root_folders=instance_no_prune.root_folders.items,
-            download_clients=instance_no_prune.download_clients.items,
-            remote_path_mappings=instance_no_prune.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
         ),
         dry_run=False,
     )
@@ -275,17 +272,17 @@ def test_rpm_prune_true_deletes_orphan(
     desired = [RemotePathMapping(host="host-a", remotePath="/x/", localPath="/local-a/")]
     instance_prune = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(prune=True, items=desired),
+        remote_path_mappings=RemotePathMappingsSection(prune=True),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
     reconcile_sonarr(
         client,
         instance_prune,
         SonarrDerived(
-            tags=instance_prune.tags.items,
-            root_folders=instance_prune.root_folders.items,
-            download_clients=instance_prune.download_clients.items,
-            remote_path_mappings=instance_prune.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
         ),
         dry_run=False,
     )
@@ -325,7 +322,6 @@ def test_rpm_trailing_slash_invariant(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=[no_trailing_slash]),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
 
@@ -335,10 +331,10 @@ def test_rpm_trailing_slash_invariant(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[no_trailing_slash],
         ),
         dry_run=False,
     )

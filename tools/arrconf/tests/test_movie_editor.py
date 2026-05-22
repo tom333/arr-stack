@@ -25,7 +25,6 @@ from arrconf.config import (
     MovieTagsSection,
     RadarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.exceptions import ReconcileError
 from arrconf.generators.categories import RadarrDerived
@@ -79,7 +78,6 @@ def test_movie_editor_adds_default_tag_to_untagged_movies(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -87,10 +85,10 @@ def test_movie_editor_adds_default_tag_to_untagged_movies(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -136,7 +134,6 @@ def test_movie_editor_idempotent_when_all_tagged(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -144,10 +141,10 @@ def test_movie_editor_idempotent_when_all_tagged(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -185,7 +182,6 @@ def test_movie_editor_preserves_existing_manual_tags(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -193,10 +189,10 @@ def test_movie_editor_preserves_existing_manual_tags(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -236,7 +232,6 @@ def test_movie_editor_does_not_move_files(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -244,10 +239,10 @@ def test_movie_editor_does_not_move_files(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -288,7 +283,6 @@ def test_movie_editor_uses_movieIds_not_seriesIds(  # noqa: N802
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -296,10 +290,10 @@ def test_movie_editor_uses_movieIds_not_seriesIds(  # noqa: N802
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -341,7 +335,6 @@ def test_movie_editor_uses_addImportExclusion_not_addImportListExclusion(  # noq
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -349,10 +342,10 @@ def test_movie_editor_uses_addImportExclusion_not_addImportListExclusion(  # noq
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -389,7 +382,6 @@ def test_movie_editor_dry_run_emits_no_put(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -397,10 +389,10 @@ def test_movie_editor_dry_run_emits_no_put(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=True,
     )
@@ -434,10 +426,10 @@ def test_movie_editor_skipped_when_section_disabled(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -476,10 +468,10 @@ def test_movie_tags_raises_when_default_tag_label_missing_from_yaml(
             client,
             instance,
             RadarrDerived(
-                tags=instance.tags.items,
-                root_folders=instance.root_folders.items,
-                download_clients=instance.download_clients.items,
-                remote_path_mappings=instance.remote_path_mappings.items,
+                tags=[],
+                root_folders=[],
+                download_clients=[],
+                remote_path_mappings=[],
             ),
             dry_run=False,
         )

@@ -98,17 +98,17 @@ def test_managed_tag_added_to_download_client_on_apply(
     )
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=[desired_dc]),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[desired_dc],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -143,17 +143,17 @@ def test_managed_tag_never_deleted_in_prune_mode(
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=True, items=[]),
+        download_clients=DownloadClientsSection(prune=True),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )

@@ -107,9 +107,13 @@ def _server_config_equivalent(cluster: dict[str, Any], merged: dict[str, Any]) -
 def _reconcile_libraries(
     client: JellyfinClient,
     section: JellyfinLibrariesSection,
+    desired_libraries: list[JellyfinLibrary],
     dry_run: bool,
 ) -> list[str]:
     """Reconcile /Library/VirtualFolders/Paths — idempotence shim (Pitfall 2).
+
+    ``desired_libraries`` is the generator output (Phase 12-B D-01: items field removed
+    from JellyfinLibrariesSection).
 
     D-07-LIB-01: add missing paths to existing libraries. Match by Name.
     Reconciler NEVER creates new libraries (operator bootstraps Séries + Films via UI).
@@ -123,7 +127,7 @@ def _reconcile_libraries(
     current_libraries: list[dict[str, Any]] = client.get(LIBRARY_VIRTUALFOLDERS_PATH)
     actions: list[str] = []
 
-    for desired_lib in section.items:
+    for desired_lib in desired_libraries:
         cluster_lib = next(
             (lib for lib in current_libraries if lib.get("Name") == desired_lib.name),
             None,
@@ -382,16 +386,12 @@ def reconcile_jellyfin(
     step_begin log events carry step_index for ordering regression tests
     (mirror Phase 5 D-05-ORDER-01 and Phase 6 reconcile_seerr pattern).
 
-    ``libraries`` carries the Categories-generator output (D-03, Phase 12-A).
-    The intra-function shim below wires it into instance so existing internal
-    helpers remain unchanged — Plan B removes the ``.items`` attribute and
-    this shim together.
+    ``libraries`` carries the Categories-generator output (D-03, Phase 12-B).
+    Items are passed directly — the Plan-A ``.items`` attribute shim is removed
+    (Phase 12-B D-01).
     """
-    # Plan A shim — Plan B removes the .items attribute and refactors diff_cmd.py.
-    instance.libraries.items = libraries
-
     actions_taken: list[str] = []
-    actions_taken += _reconcile_libraries(client, instance.libraries, dry_run)
+    actions_taken += _reconcile_libraries(client, instance.libraries, libraries, dry_run)
     actions_taken += _reconcile_users(client, instance.users, dry_run)
     actions_taken += _reconcile_server_config(client, instance.server_config, dry_run)
     actions_taken += _reconcile_plugins(client, instance.plugins, dry_run)

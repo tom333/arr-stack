@@ -54,6 +54,7 @@ from arrconf.config import (
     HostConfigSection,
     MovieTagsSection,
     RadarrInstance,
+    TagItem,
     TagsSection,
 )
 from arrconf.differ import (
@@ -251,9 +252,14 @@ def _reconcile_host_config(
 def _reconcile_tags(
     client: RadarrClient,
     section: TagsSection,
+    desired_tag_items: list[TagItem],
     dry_run: bool,
 ) -> list[Tag]:
     """Reconcile the operator-declared tags (e.g. movies, anime, family).
+
+    ``desired_tag_items`` is the generator output (TagItem list from RadarrDerived.tags).
+    The ``section`` parameter carries only ``prune`` — the items field was removed in
+    Phase 12-B (D-01).
 
     Mirror of sonarr._reconcile_tags. Returns the post-reconcile tag list with
     IDs populated — downstream callers (label→id resolver, movie_tags) consume
@@ -265,7 +271,7 @@ def _reconcile_tags(
     _reconcile_list_resource does not return individual response bodies).
     """
     raw_current = client.get(TAG_PATH)
-    desired_tags = [Tag(label=item.label) for item in section.items]
+    desired_tags = [Tag(label=item.label) for item in desired_tag_items]
     _reconcile_list_resource(
         client,
         TAG_PATH,
@@ -468,17 +474,10 @@ def reconcile_radarr(
 
     step_begin log events carry step_index for ordering regression tests.
 
-    ``derived`` carries the Categories-generator output (D-03, Phase 12-A).
-    The intra-function shim below wires it into instance section items so the
-    existing internal helpers remain unchanged — Plan B removes the ``.items``
-    attribute and this shim together.
+    ``derived`` carries the Categories-generator output (D-03, Phase 12-B).
+    Items are passed directly to internal helpers — the Plan-A ``.items``
+    attribute shim is removed (Phase 12-B D-01).
     """
-    # Plan A shim — Plan B removes the .items attribute and refactors diff_cmd.py.
-    instance.tags.items = derived.tags
-    instance.root_folders.items = derived.root_folders
-    instance.download_clients.items = derived.download_clients
-    instance.remote_path_mappings.items = derived.remote_path_mappings
-
     # Step 1: Ensure the arrconf-managed tag.
     log.info("step_begin", step="managed_tag", step_index=1)
     managed_tag = _ensure_managed_tag(client, dry_run)
@@ -492,7 +491,7 @@ def reconcile_radarr(
     # Step 2: Reconcile operator-declared tags (movies, anime, family).
     # MUST precede download_clients so IDs are available for label→id resolution.
     log.info("step_begin", step="tags", step_index=2)
-    all_tags = _reconcile_tags(client, instance.tags, dry_run)
+    all_tags = _reconcile_tags(client, instance.tags, derived.tags, dry_run)
 
     # Step 3: Indexers (read-mostly alignment; created by Prowlarr sync).
     log.info("step_begin", step="indexers", step_index=3)
@@ -515,7 +514,7 @@ def reconcile_radarr(
         ROOT_FOLDER_PATH,
         client.get(ROOT_FOLDER_PATH),
         RootFolder,
-        instance.root_folders.items,
+        derived.root_folders,
         match_key="path",
         prune=instance.root_folders.prune,
         managed_tag_id=None,
@@ -526,7 +525,7 @@ def reconcile_radarr(
     log.info("step_begin", step="remote_path_mappings", step_index=5)
     actions_taken += _reconcile_remote_path_mappings(
         client,
-        instance.remote_path_mappings.items,
+        derived.remote_path_mappings,
         prune=instance.remote_path_mappings.prune,
         dry_run=dry_run,
     )
@@ -539,7 +538,7 @@ def reconcile_radarr(
 
     # Resolve string tag labels → integer IDs using the post-reconcile all_tags list.
     label_resolved = _resolve_download_client_tag_labels(
-        instance.download_clients.items, all_tags, app_name="Radarr"
+        derived.download_clients, all_tags, app_name="Radarr"
     )
     desired_dcs = [_ensure_managed_tag_in_desired(dc, managed_tag_id) for dc in label_resolved]
 

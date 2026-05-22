@@ -102,20 +102,11 @@ def _empty_fp_affected_sections(cfg: RootConfig) -> RootConfig:
     import copy
 
     variant = copy.deepcopy(cfg)
-    if "main" in variant.qbittorrent:
-        variant.qbittorrent["main"].categories.items = []
-    if "main" in variant.sonarr:
-        s = variant.sonarr["main"]
-        s.tags.items = []
-        s.root_folders.items = []
-        s.download_clients.items = []
-        s.remote_path_mappings.items = []
-    if "main" in variant.radarr:
-        r = variant.radarr["main"]
-        r.tags.items = []
-        r.root_folders.items = []
-        r.download_clients.items = []
-        r.remote_path_mappings.items = []
+    # Phase 12-B: items field removed from generator-fed Section models (CategoriesSection,
+    # TagsSection, RootFoldersSection, DownloadClientsSection, RemotePathMappingsSection,
+    # JellyfinLibrariesSection). Those sections no longer carry manual items — generators
+    # in _arrconf_helpers produce derived resources directly. Only seerr.animeTags remains
+    # as a manual override to clear.
     if "main" in variant.seerr:
         variant.seerr["main"].sonarr_service.animeTags = []
     # Prowlarr: leave apps.items populated; FP #2 is on Application.model_validate

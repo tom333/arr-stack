@@ -163,9 +163,9 @@ def test_series_tags_does_not_touch_quality_endpoints(
     )
     respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
+    tv_tag = TagItem(label="tv")
     instance = SonarrInstance(
         base_url=SONARR_BASE,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
@@ -173,10 +173,10 @@ def test_series_tags_does_not_touch_quality_endpoints(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[tv_tag],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -216,7 +216,6 @@ def test_remote_path_mappings_does_not_touch_quality_endpoints(
     )
     instance = SonarrInstance(
         base_url=SONARR_BASE,
-        remote_path_mappings=RemotePathMappingsSection(items=[desired_rpm]),
         series_tags=SeriesTagsSection(enable=False),  # disable to keep focus on RPM
     )
     client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
@@ -224,10 +223,10 @@ def test_remote_path_mappings_does_not_touch_quality_endpoints(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[desired_rpm],
         ),
         dry_run=False,
     )
