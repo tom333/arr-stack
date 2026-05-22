@@ -15,7 +15,7 @@
 
 Le projet est consommé par le cluster `my-kluster` (sister repo) via une seule ArgoCD Application qui pull ce repo.
 
-**État actuel** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin). Production cluster tourne sur l'image `:0.6.7`. Idempotence dispositive sur cluster réel (SC#2). Phase 11 (polish bundle) à suivre. Voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) pour le détail.
+**État actuel** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin). Production cluster tourne sur l'image `:0.6.7`. Idempotence dispositive sur cluster réel (SC#2). Phase 12 deprecation livré — flat sections retirées de arrconf.yml, generators sont la seule source. Voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) pour le détail.
 
 > 📚 Site GitHub Pages (à venir) pour la doc complète. Ce fichier reste l'index "comment".
 
@@ -227,6 +227,74 @@ git push origin "v${TAG}"
 **Quand l'éviter :** si tu pushes plan-par-plan (chaque commit feat suivi de `git push`), l'auto-tag crée exactement la bonne séquence et tu n'as RIEN à faire manuellement — le co-bump suffit. C'est l'idéal pour les phases lentes ; l'escape hatch sert aux phases batch.
 
 **Bug-piège associé (corrigé `12c05da`) :** `arrconf-image.yml` utilisait `github.ref` (chemin complet `refs/tags/v0.6.7`) au lieu de `github.ref_name` (`v0.6.7`) dans `docker/metadata-action type=semver`. Sur push de tag, le workflow tournait OK (exit 0) mais ne publiait que `:latest` + `:sha-<short>` — pas `:0.6.7`. Symptôme : ArgoCD synced + healthy, mais CronJob arrconf en `ImagePullBackOff`. Diagnostic via `kubectl -n selfhost get pod -l job-name=arrconf-XXX -o jsonpath='{.items[0].status.containerStatuses[0].state}'`.
+
+---
+
+## v0.3.0 → v0.4.0 deprecation
+
+### Pourquoi ce changement
+
+La couche de transition v0.2.0 (`merge_with_manual` + sections plates `*.items`)
+est retirée. À partir de v0.4.0, les générateurs purs de
+`arrconf/generators/categories.py` sont la **seule source** pour 11 ressources
+(sonarr/radarr × {tags, root_folders, download_clients, remote_path_mappings},
+qbittorrent.categories, jellyfin.libraries, seerr.sonarr_service.animeTags).
+Le toggle par ressource n'existe plus — pas de fallback, pas de cycle de
+warning. `extra="forbid"` sur les Section pydantic refuse les anciens champs.
+
+### Sections supprimées de `charts/arr-stack/files/arrconf.yml`
+
+Verbatim, les 11 paths supprimés en Phase 12 (anchors forensiques pour git
+diff sur la branche `pre-v0.4.0`) :
+
+- `sonarr.main.tags.items` (3 labels: tv, anime, family)
+- `sonarr.main.root_folders.items` (3 paths)
+- `sonarr.main.download_clients.items` (3 qBit DCs)
+- `sonarr.main.remote_path_mappings.items` (3 RPMs)
+- `radarr.main.tags.items` (3 labels: movies, anime, family)
+- `radarr.main.root_folders.items` (3 paths)
+- `radarr.main.download_clients.items` (3 qBit DCs)
+- `radarr.main.remote_path_mappings.items` (3 RPMs)
+- `qbittorrent.main.categories.items` (10 entrées dérivées de `categories[]`)
+- `seerr.main.sonarr_service.animeTags` (`list[int]` — Sonarr tag IDs anime)
+- `jellyfin.main.libraries.items` (Séries + Films super-libraries)
+
+Les sections parentes (e.g. `sonarr.main.tags:`) survivent avec uniquement
+`prune: false` — c'est le seul knob opérateur restant (D-02).
+
+### Erreur attendue si l'ancien YAML survit après upgrade
+
+Si un opérateur (homelab fork / Categories non-encore-réconciliées) garde
+e.g. `sonarr.main.tags.items` dans son `arrconf.yml` post-upgrade, le prochain
+`arrconf apply` exit code 2 avec une `ValidationError` pydantic. L'erreur
+exacte est pinguée par le test unitaire
+`tools/arrconf/tests/test_config_validation.py::test_load_config_rejects_legacy_items_field`
+(introduit en Phase 12 Plan B) :
+
+```
+1 validation error for RootConfig
+sonarr.main.tags.items
+  Extra inputs are not permitted [type=extra_forbidden, input_value=[{'label': 'tv'}], input_type=list]
+    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+```
+
+Le path `sonarr.main.tags.items` dans le message pointe la ligne à supprimer.
+
+### Fix one-shot pour l'opérateur
+
+1. Vérifier qu'on est sur la branche post-Phase-12 :
+   `git log --oneline -1 charts/arr-stack/files/arrconf.yml`
+2. Comparer son `arrconf.yml` local avec la version chart-shipped :
+   `diff <local-arrconf.yml> charts/arr-stack/files/arrconf.yml`
+3. Supprimer chaque `items:` listé dans `## Sections supprimées` ci-dessus.
+   Les générateurs (re-)produisent les mêmes ressources à partir de
+   `categories[]`. Garder `prune: false` sur les sections parentes.
+4. Re-tester en dry-run :
+   `arrconf apply --config arrconf.yml --dry-run`
+5. Commit + push une fois la validation passée.
+
+Pas de script de migration livré — l'opérateur est unique (le user), l'édition
+se fait dans le PR qui ship le code v0.4.0 lui-même (D-12, D-15, D-18).
 
 ---
 
