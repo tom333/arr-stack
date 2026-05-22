@@ -353,12 +353,11 @@ def reconcile_seerr(
 
     step_begin log events carry step_index for ordering regression tests.
 
-    ``anime_tags`` carries the resolved Sonarr anime tag integer IDs (D-03, Phase 12-A).
-    The intra-function shim below wires it into instance so existing internal
-    helpers remain unchanged — Plan B removes the ``.animeTags`` attribute and
-    this shim together.
+    ``anime_tags`` carries the resolved Sonarr anime tag integer IDs (D-03, Phase 12-B).
+    The ``animeTags`` field survives on ``SeerrSonarrServiceSection`` — only the YAML
+    declaration is deleted (Phase 12-B: values come from generator resolution, not YAML).
+    The field is populated here before calling _reconcile_settings_sonarr (D-03).
     """
-    # Plan A shim — Plan B removes the .animeTags attribute and refactors diff_cmd.py.
     instance.sonarr_service.animeTags = anime_tags
 
     actions_taken: list[str] = []

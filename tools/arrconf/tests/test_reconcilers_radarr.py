@@ -31,7 +31,6 @@ from arrconf.config import (
     RadarrInstance,
     RootFoldersSection,
     TagItem,
-    TagsSection,
 )
 from arrconf.differ import Action
 from arrconf.generators.categories import RadarrDerived
@@ -128,17 +127,17 @@ def test_add_new_download_client(respx_mock: respx.MockRouter) -> None:
     desired = [_build_dc("qbit")]
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
     reconcile_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -165,17 +164,17 @@ def test_update_existing_download_client_uses_forceSave(  # noqa: N802
     desired = [DownloadClient.model_validate(drifted)]
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
     reconcile_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -205,10 +204,10 @@ def test_add_new_indexer(respx_mock: respx.MockRouter) -> None:
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -230,10 +229,10 @@ def test_indexer_no_op_when_identical(respx_mock: respx.MockRouter) -> None:
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -263,10 +262,10 @@ def test_add_new_notification(respx_mock: respx.MockRouter) -> None:
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -304,10 +303,10 @@ def test_radarr_specific_notification_on_movie_added_parses(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -328,17 +327,17 @@ def test_add_new_root_folder(respx_mock: respx.MockRouter) -> None:
     rf = RootFolder(path="/media/movies-new")
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        root_folders=RootFoldersSection(prune=False, items=[rf]),
+        root_folders=RootFoldersSection(prune=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
     reconcile_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[rf],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -354,17 +353,17 @@ def test_root_folder_no_update_action_ever(respx_mock: respx.MockRouter) -> None
     desired = [RootFolder.model_validate(e) for e in fixture]
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        root_folders=RootFoldersSection(prune=False, items=desired),
+        root_folders=RootFoldersSection(prune=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
     reconcile_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=desired,
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -390,10 +389,10 @@ def test_host_config_skipped_when_enable_false(respx_mock: respx.MockRouter) -> 
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -422,10 +421,10 @@ def test_host_config_update_when_different(respx_mock: respx.MockRouter) -> None
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -467,10 +466,10 @@ def test_host_config_no_op_when_identical(respx_mock: respx.MockRouter) -> None:
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -509,10 +508,10 @@ def test_host_config_put_body_only_contains_scoped_keys(respx_mock: respx.MockRo
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -575,18 +574,14 @@ def test_radarr_full_round_trip_no_op(respx_mock: respx.MockRouter) -> None:
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        download_clients=DownloadClientsSection(
-            prune=False, items=[DownloadClient.model_validate(dc) for dc in cluster_dcs]
-        ),
+        download_clients=DownloadClientsSection(prune=False),
         indexers=IndexersSection(
             prune=False, items=[Indexer.model_validate(e) for e in indexer_fixture]
         ),
         notifications=NotificationsSection(
             prune=False, items=[Notification.model_validate(e) for e in notif_fixture]
         ),
-        root_folders=RootFoldersSection(
-            prune=False, items=[RootFolder.model_validate(e) for e in rf_fixture]
-        ),
+        root_folders=RootFoldersSection(prune=False),
         host_config=HostConfigSection(enable=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -594,10 +589,10 @@ def test_radarr_full_round_trip_no_op(respx_mock: respx.MockRouter) -> None:
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[RootFolder.model_validate(e) for e in rf_fixture],
+            download_clients=[DownloadClient.model_validate(dc) for dc in cluster_dcs],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -701,17 +696,6 @@ def test_split_three_tags_three_root_folders_three_download_clients_radarr(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(
-            items=[TagItem(label="movies"), TagItem(label="anime"), TagItem(label="family")]
-        ),
-        root_folders=RootFoldersSection(
-            items=[
-                RootFolder(path="/media/films"),
-                RootFolder(path="/media/films-anime"),
-                RootFolder(path="/media/films-family"),
-            ]
-        ),
-        download_clients=DownloadClientsSection(items=[movies_dc, anime_dc, family_dc]),
         movie_tags=MovieTagsSection(enable=False),  # keep test focused on split
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -719,10 +703,14 @@ def test_split_three_tags_three_root_folders_three_download_clients_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies"), TagItem(label="anime"), TagItem(label="family")],
+            root_folders=[
+                RootFolder(path="/media/films"),
+                RootFolder(path="/media/films-anime"),
+                RootFolder(path="/media/films-family"),
+            ],
+            download_clients=[movies_dc, anime_dc, family_dc],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -786,10 +774,10 @@ def test_reconcile_order_radarr(
             client,
             instance,
             RadarrDerived(
-                tags=instance.tags.items,
-                root_folders=instance.root_folders.items,
-                download_clients=instance.download_clients.items,
-                remote_path_mappings=instance.remote_path_mappings.items,
+                tags=[],
+                root_folders=[],
+                download_clients=[],
+                remote_path_mappings=[],
             ),
             dry_run=False,
         )
@@ -899,8 +887,6 @@ def test_download_client_tags_label_resolution_uses_just_created_id_radarr(
     )
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
-        download_clients=DownloadClientsSection(items=[movies_dc]),
         movie_tags=MovieTagsSection(enable=False),  # disable to keep test focused
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
@@ -908,10 +894,10 @@ def test_download_client_tags_label_resolution_uses_just_created_id_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[movies_dc],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )

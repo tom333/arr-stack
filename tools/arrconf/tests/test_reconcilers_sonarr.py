@@ -23,7 +23,6 @@ from arrconf.config import (
     SeriesTagsSection,
     SonarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.differ import Action
 from arrconf.generators.categories import SonarrDerived
@@ -98,7 +97,7 @@ def test_dump_apply_no_op(
     desired = [DownloadClient.model_validate(dc) for dc in cluster_payload]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
 
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
@@ -106,10 +105,10 @@ def test_dump_apply_no_op(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -133,17 +132,17 @@ def test_add_new_download_client(
     desired = [_build_dc("qbit")]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -175,17 +174,17 @@ def test_update_existing_download_client(
     desired = [DownloadClient.model_validate(desired_payload)]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -249,17 +248,17 @@ def test_update_omits_privacy_credential_fields_from_put_body(
     desired = [DownloadClient.model_validate(desired_payload)]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -309,17 +308,17 @@ def test_prune_skip_default(
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=[]),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -354,17 +353,17 @@ def test_prune_protected_without_managed_tag(
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=True, items=[]),
+        download_clients=DownloadClientsSection(prune=True),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -401,17 +400,17 @@ def test_prune_executes_with_managed_tag(
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=True, items=[]),
+        download_clients=DownloadClientsSection(prune=True),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -434,17 +433,17 @@ def test_dry_run_logs_no_writes(
     desired = [_build_dc("qbit")]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     result = reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=True,
     )
@@ -483,17 +482,17 @@ def test_update_passes_forceSave_query_param(  # noqa: N802 — `forceSave` matc
     desired = [DownloadClient.model_validate(desired_payload)]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=desired),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=desired,
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -517,17 +516,17 @@ def test_add_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSave` 
     new_dc = _build_dc(name="qbit-new", priority=1)
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=False, items=[new_dc]),
+        download_clients=DownloadClientsSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[new_dc],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -554,17 +553,17 @@ def test_delete_does_not_pass_forceSave_query_param(  # noqa: N802 — `forceSav
     # Empty desired + prune=True triggers DELETE on the existing qBit downloadclient.
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        download_clients=DownloadClientsSection(prune=True, items=[]),
+        download_clients=DownloadClientsSection(prune=True),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -639,10 +638,10 @@ def test_add_new_indexer(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -670,10 +669,10 @@ def test_indexer_no_op_when_identical(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -706,10 +705,10 @@ def test_add_new_notification(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -739,10 +738,10 @@ def test_notification_no_op_when_identical(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -764,17 +763,17 @@ def test_add_new_root_folder(
     rf = RootFolder(path="/media/new")
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        root_folders=RootFoldersSection(prune=False, items=[rf]),
+        root_folders=RootFoldersSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[rf],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -801,17 +800,17 @@ def test_root_folder_no_update_action_ever(
     desired = [RootFolder.model_validate(e) for e in sonarr_rootfolder_fixture]
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        root_folders=RootFoldersSection(prune=False, items=desired),
+        root_folders=RootFoldersSection(prune=False),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=desired,
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -838,10 +837,10 @@ def test_host_config_skipped_when_enable_false(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -875,10 +874,10 @@ def test_host_config_no_op_when_identical(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -911,10 +910,10 @@ def test_host_config_update_when_different(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -1024,27 +1023,20 @@ def test_split_three_tags_three_root_folders_three_download_clients(
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        tags=TagsSection(
-            items=[TagItem(label="tv"), TagItem(label="anime"), TagItem(label="family")]
-        ),
-        root_folders=RootFoldersSection(
-            items=[
-                RootFolder(path="/media/series"),
-                RootFolder(path="/media/anime"),
-                RootFolder(path="/media/family"),
-            ]
-        ),
-        download_clients=DownloadClientsSection(items=[tv_dc, anime_dc, family_dc]),
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
     reconcile_sonarr(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv"), TagItem(label="anime"), TagItem(label="family")],
+            root_folders=[
+                RootFolder(path="/media/series"),
+                RootFolder(path="/media/anime"),
+                RootFolder(path="/media/family"),
+            ],
+            download_clients=[tv_dc, anime_dc, family_dc],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -1108,10 +1100,10 @@ def test_reconcile_order(
             client,
             instance,
             SonarrDerived(
-                tags=instance.tags.items,
-                root_folders=instance.root_folders.items,
-                download_clients=instance.download_clients.items,
-                remote_path_mappings=instance.remote_path_mappings.items,
+                tags=[],
+                root_folders=[],
+                download_clients=[],
+                remote_path_mappings=[],
             ),
             dry_run=False,
         )
@@ -1218,8 +1210,6 @@ def test_download_client_tags_label_resolution_uses_just_created_id(
     )
     instance = SonarrInstance(
         base_url="http://sonarr.test",
-        tags=TagsSection(items=[TagItem(label="tv")]),
-        download_clients=DownloadClientsSection(items=[tv_dc]),
         series_tags=SeriesTagsSection(enable=False),  # disable to keep test focused
     )
     client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
@@ -1227,10 +1217,10 @@ def test_download_client_tags_label_resolution_uses_just_created_id(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[tv_dc],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )

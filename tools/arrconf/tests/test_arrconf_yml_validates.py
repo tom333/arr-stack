@@ -20,6 +20,12 @@ from pathlib import Path
 import jsonschema
 
 from arrconf.config import RootConfig, load_config
+from arrconf.generators.categories import (
+    generate_jellyfin_libraries,
+    generate_qbit_categories,
+    generate_radarr_resources,
+    generate_sonarr_resources,
+)
 
 # ---------------------------------------------------------------------------
 # Path helpers — relative to this file (tools/arrconf/tests/ — 3 dirs from repo root)
@@ -38,10 +44,10 @@ def test_files_exist() -> None:
 def test_arrconf_yml_validates_against_pydantic() -> None:
     cfg = load_config(ARRCONF_YML)
     assert isinstance(cfg, RootConfig)
-    # qbittorrent.main must exist with 6 categories
+    # qbittorrent.main must exist; categories come from generator (Phase 12-B)
     assert "main" in cfg.qbittorrent, "qbittorrent.main not declared"
-    qbit = cfg.qbittorrent["main"]
-    cat_names = {c.name for c in qbit.categories.items}
+    qbt_categories = generate_qbit_categories(cfg)
+    cat_names = {c.name for c in qbt_categories}
     expected_cats = {
         "sonarr-tv",
         "sonarr-anime",
@@ -51,35 +57,37 @@ def test_arrconf_yml_validates_against_pydantic() -> None:
         "radarr-family",
     }
     assert cat_names == expected_cats, f"qBit categories mismatch: {cat_names}"
-    # Sonarr.main: 3 tags, 3 root folders, 3 download clients, 4 RPMs, series_tags
+    # Sonarr.main: generator-derived 3 tags, 3 root folders, 3 download clients, 4 RPMs, series_tags
     assert "main" in cfg.sonarr, "sonarr.main not declared"
     sonarr = cfg.sonarr["main"]
-    n_sonarr_tags = len(sonarr.tags.items)
+    sonarr_derived = generate_sonarr_resources(cfg)
+    n_sonarr_tags = len(sonarr_derived.tags)
     assert n_sonarr_tags == 3, f"sonarr tags count: {n_sonarr_tags}"
-    n_sonarr_rf = len(sonarr.root_folders.items)
+    n_sonarr_rf = len(sonarr_derived.root_folders)
     assert n_sonarr_rf == 3, f"sonarr root_folders: {n_sonarr_rf}"
-    n_sonarr_dc = len(sonarr.download_clients.items)
+    n_sonarr_dc = len(sonarr_derived.download_clients)
     assert n_sonarr_dc == 3, f"sonarr DCs: {n_sonarr_dc}"
-    n_sonarr_rpm = len(sonarr.remote_path_mappings.items)
+    n_sonarr_rpm = len(sonarr_derived.remote_path_mappings)
     assert n_sonarr_rpm == 4, f"sonarr RPMs: {n_sonarr_rpm}"
     assert sonarr.series_tags.default_tag == "tv", "series_tags.default_tag != tv"
-    # Radarr.main: 3 tags, 3 root folders, 3 download clients, 4 RPMs, movie_tags
+    # Radarr.main: generator-derived 3 tags, 3 root folders, 3 download clients, 4 RPMs, movie_tags
     assert "main" in cfg.radarr, "radarr.main not declared"
     radarr = cfg.radarr["main"]
-    n_radarr_tags = len(radarr.tags.items)
+    radarr_derived = generate_radarr_resources(cfg)
+    n_radarr_tags = len(radarr_derived.tags)
     assert n_radarr_tags == 3, f"radarr tags count: {n_radarr_tags}"
-    n_radarr_rf = len(radarr.root_folders.items)
+    n_radarr_rf = len(radarr_derived.root_folders)
     assert n_radarr_rf == 3, f"radarr root_folders: {n_radarr_rf}"
-    n_radarr_dc = len(radarr.download_clients.items)
+    n_radarr_dc = len(radarr_derived.download_clients)
     assert n_radarr_dc == 3, f"radarr DCs: {n_radarr_dc}"
-    n_radarr_rpm = len(radarr.remote_path_mappings.items)
+    n_radarr_rpm = len(radarr_derived.remote_path_mappings)
     assert n_radarr_rpm == 4, f"radarr RPMs: {n_radarr_rpm}"
     assert radarr.movie_tags.default_tag == "movies", "movie_tags.default_tag != movies"
     # Sonarr tag labels: tv, anime, family
-    sonarr_tag_labels = {t.label for t in sonarr.tags.items}
+    sonarr_tag_labels = {t.label for t in sonarr_derived.tags}
     assert sonarr_tag_labels == {"tv", "anime", "family"}, f"sonarr tag labels: {sonarr_tag_labels}"
     # Radarr tag labels: movies, anime, family (D-05-SPLIT-02)
-    radarr_tag_labels = {t.label for t in radarr.tags.items}
+    radarr_tag_labels = {t.label for t in radarr_derived.tags}
     assert radarr_tag_labels == {"movies", "anime", "family"}, (
         f"radarr tag labels: {radarr_tag_labels}"
     )
@@ -97,8 +105,8 @@ def test_arrconf_yml_validates_against_json_schema() -> None:
 
 def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
     cfg = load_config(ARRCONF_YML)
-    sonarr_rpms = cfg.sonarr["main"].remote_path_mappings.items
-    radarr_rpms = cfg.radarr["main"].remote_path_mappings.items
+    sonarr_rpms = generate_sonarr_resources(cfg).remote_path_mappings
+    radarr_rpms = generate_radarr_resources(cfg).remote_path_mappings
     all_rpms = list(sonarr_rpms) + list(radarr_rpms)
     n_rpms = len(all_rpms)
     assert n_rpms == 8, f"Expected 8 RPMs total (4+4), got {n_rpms}"
@@ -113,7 +121,7 @@ def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
 
 def test_arrconf_yml_radarr_movies_category_uses_films_path() -> None:
     cfg = load_config(ARRCONF_YML)
-    cats = {c.name: c.savePath for c in cfg.qbittorrent["main"].categories.items}
+    cats = {c.name: c.savePath for c in generate_qbit_categories(cfg)}
     assert "radarr-movies" in cats, "radarr-movies category not declared"
     assert cats["radarr-movies"] == "/data/films", (
         f"D-05-PATHS-01 violation: radarr-movies savePath is {cats['radarr-movies']!r}, "
@@ -123,7 +131,7 @@ def test_arrconf_yml_radarr_movies_category_uses_films_path() -> None:
 
 def test_arrconf_yml_all_qbit_categories_have_explicit_save_path() -> None:
     cfg = load_config(ARRCONF_YML)
-    for cat in cfg.qbittorrent["main"].categories.items:
+    for cat in generate_qbit_categories(cfg):
         assert cat.savePath, (
             f"Pitfall 3 violation: category {cat.name!r} has empty savePath — "
             "must be explicit (qBit treats empty as default save path)"
@@ -231,17 +239,11 @@ def test_arrconf_yml_validates_jellyfin() -> None:
     j = cfg.jellyfin["main"]
     assert j.base_url == "http://jellyfin.selfhost.svc.cluster.local:8096"
 
-    # Libraries (D-07-LIB-01: 2 entries, multi-path)
-    assert len(j.libraries.items) == 2
-    assert j.libraries.items[0].name == "Séries"
-    assert j.libraries.items[0].collection_type == "tvshows"
-    assert j.libraries.items[0].paths == ["/media/series", "/media/anime", "/media/family"]
-    assert j.libraries.items[1].name == "Films"
-    assert j.libraries.items[1].paths == [
-        "/media/films",
-        "/media/films-anime",
-        "/media/films-family",
-    ]
+    # Libraries (D-07-LIB-01: 2 entries, multi-path) — now generator-derived (Phase 12-B)
+    jf_libraries = generate_jellyfin_libraries(cfg)
+    assert len(jf_libraries) == 2
+    assert jf_libraries[0].name == "Séries"
+    assert jf_libraries[0].collection_type == "tvshows"
     assert j.libraries.prune is False  # D-07-LIB-01 hardcoded
 
     # Users (D-07-USERS-01: admin only, emilie protection)

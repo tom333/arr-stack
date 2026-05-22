@@ -19,7 +19,6 @@ from arrconf.config import (
     SeriesTagsSection,
     SonarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.exceptions import ReconcileError
 from arrconf.generators.categories import SonarrDerived
@@ -72,7 +71,6 @@ def test_series_editor_adds_default_tag_to_untagged_series(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
@@ -80,10 +78,10 @@ def test_series_editor_adds_default_tag_to_untagged_series(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -125,7 +123,6 @@ def test_series_editor_idempotent_when_all_tagged(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
@@ -133,10 +130,10 @@ def test_series_editor_idempotent_when_all_tagged(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -175,7 +172,6 @@ def test_series_editor_preserves_existing_manual_tags(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
@@ -183,10 +179,10 @@ def test_series_editor_preserves_existing_manual_tags(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -228,7 +224,6 @@ def test_series_editor_does_not_move_files(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
@@ -236,10 +231,10 @@ def test_series_editor_does_not_move_files(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -275,7 +270,6 @@ def test_series_editor_dry_run_emits_no_put(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
@@ -283,10 +277,10 @@ def test_series_editor_dry_run_emits_no_put(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=True,
     )
@@ -320,10 +314,10 @@ def test_series_editor_skipped_when_section_disabled(
         client,
         instance,
         SonarrDerived(
-            tags=instance.tags.items,
-            root_folders=instance.root_folders.items,
-            download_clients=instance.download_clients.items,
-            remote_path_mappings=instance.remote_path_mappings.items,
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
         ),
         dry_run=False,
     )
@@ -362,10 +356,10 @@ def test_series_tags_raises_when_default_tag_label_missing_from_yaml(
             client,
             instance,
             SonarrDerived(
-                tags=instance.tags.items,
-                root_folders=instance.root_folders.items,
-                download_clients=instance.download_clients.items,
-                remote_path_mappings=instance.remote_path_mappings.items,
+                tags=[],
+                root_folders=[],
+                download_clients=[],
+                remote_path_mappings=[],
             ),
             dry_run=False,
         )

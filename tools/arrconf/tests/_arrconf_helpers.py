@@ -77,7 +77,12 @@ from arrconf.client_base import (
     SonarrClient,
 )
 from arrconf.config import RootConfig
-from arrconf.generators.categories import RadarrDerived, SonarrDerived
+from arrconf.generators.categories import (
+    generate_jellyfin_libraries,
+    generate_qbit_categories,
+    generate_radarr_resources,
+    generate_sonarr_resources,
+)
 from arrconf.reconcilers.jellyfin import reconcile_jellyfin
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
@@ -158,18 +163,14 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         _register_jellyfin_routes(mock, cfg)
 
         # Sonarr
+        sonarr_derived = generate_sonarr_resources(cfg)
         sonarr_plans: list[dict[str, Any]] = []
         for _sonarr_name, sonarr_instance in cfg.sonarr.items():
             sonarr_client = SonarrClient(base_url=sonarr_instance.base_url, api_key="fake")
             sonarr_result = reconcile_sonarr(
                 sonarr_client,
                 sonarr_instance,
-                SonarrDerived(
-                    tags=sonarr_instance.tags.items,
-                    root_folders=sonarr_instance.root_folders.items,
-                    download_clients=sonarr_instance.download_clients.items,
-                    remote_path_mappings=sonarr_instance.remote_path_mappings.items,
-                ),
+                sonarr_derived,
                 dry_run=True,
             )
             sonarr_plans.extend(_plan_to_tuples(sonarr_result.plan))
@@ -178,18 +179,14 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         )
 
         # Radarr
+        radarr_derived = generate_radarr_resources(cfg)
         radarr_plans: list[dict[str, Any]] = []
         for _radarr_name, radarr_instance in cfg.radarr.items():
             radarr_client = RadarrClient(base_url=radarr_instance.base_url, api_key="fake")
             radarr_result = reconcile_radarr(
                 radarr_client,
                 radarr_instance,
-                RadarrDerived(
-                    tags=radarr_instance.tags.items,
-                    root_folders=radarr_instance.root_folders.items,
-                    download_clients=radarr_instance.download_clients.items,
-                    remote_path_mappings=radarr_instance.remote_path_mappings.items,
-                ),
+                radarr_derived,
                 dry_run=True,
             )
             radarr_plans.extend(_plan_to_tuples(radarr_result.plan))
@@ -213,6 +210,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         )
 
         # qBittorrent (auth shim is auto-handled by QbittorrentClient.__init__)
+        qbt_categories = generate_qbit_categories(cfg)
         qbittorrent_plans: list[dict[str, Any]] = []
         for _qbt_name, qbt_instance in cfg.qbittorrent.items():
             qbt_client = QbittorrentClient(
@@ -221,7 +219,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
                 password="fake",
             )
             qbt_result = reconcile_qbittorrent(
-                qbt_client, qbt_instance, qbt_instance.categories.items, dry_run=True
+                qbt_client, qbt_instance, qbt_categories, dry_run=True
             )
             qbittorrent_plans.extend(_plan_to_tuples(qbt_result.plan))
         out["qbittorrent"] = sorted(
@@ -241,10 +239,11 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         out["seerr"] = {"completed": True, "actions_taken": []}
 
         # Jellyfin — no .plan field; capture completion status
+        jf_libraries = generate_jellyfin_libraries(cfg)
         for _jf_name, jf_instance in cfg.jellyfin.items():
             jf_client = JellyfinClient(base_url=jf_instance.base_url, api_key="fake")
             _jf_result = reconcile_jellyfin(
-                jf_client, jf_instance, jf_instance.libraries.items, dry_run=True
+                jf_client, jf_instance, jf_libraries, dry_run=True
             )
             # JellyfinResult has no .plan — dry_run=True means actions_taken is empty
         out["jellyfin"] = {"completed": True, "actions_taken": []}

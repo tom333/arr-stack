@@ -488,14 +488,8 @@ def diff(
     max_code = 0
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
-        # Phase 12-A: generator called; Plan A shim sets instance.*.items so that
-        # diff_sonarr (which calls reconcile_sonarr with old 3-arg signature) sees the
-        # same desired-state as apply. Plan B removes the .items attribute entirely.
-        sonarr_diff_derived = generate_sonarr_resources(root)
-        instance.tags.items = sonarr_diff_derived.tags
-        instance.root_folders.items = sonarr_diff_derived.root_folders
-        instance.download_clients.items = sonarr_diff_derived.download_clients
-        instance.remote_path_mappings.items = sonarr_diff_derived.remote_path_mappings
+        # Phase 12-B: Plan-A shim removed — .items attribute deleted from Section models (D-01).
+        # diff_sonarr calls the generator and passes derived as 3rd arg (Plan A, Phase 12-A).
         # Fast-fail when SONARR_API_KEY missing — mirrors apply/dump branches.
         if not settings.sonarr_api_key:
             log.error("missing_api_key", app="sonarr", env_var="SONARR_API_KEY")
@@ -516,14 +510,8 @@ def diff(
     # NEW: Radarr diff.
     if "radarr" in targets and "main" in root.radarr:
         radarr_diff_instance = root.radarr["main"]
-        # Phase 12-A: generator called; Plan A shim sets instance.*.items so that
-        # diff_radarr (which calls reconcile_radarr with old 3-arg signature) sees the
-        # same desired-state as apply. Plan B removes the .items attribute entirely.
-        radarr_diff_derived = generate_radarr_resources(root)
-        radarr_diff_instance.tags.items = radarr_diff_derived.tags
-        radarr_diff_instance.root_folders.items = radarr_diff_derived.root_folders
-        radarr_diff_instance.download_clients.items = radarr_diff_derived.download_clients
-        radarr_diff_instance.remote_path_mappings.items = radarr_diff_derived.remote_path_mappings
+        # Phase 12-B: Plan-A shim removed — .items attribute deleted from Section models (D-01).
+        # diff_radarr calls the generator and passes derived as 3rd arg (Plan A, Phase 12-A).
         if not settings.radarr_api_key:
             log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
             raise typer.Exit(code=2)
@@ -571,11 +559,8 @@ def diff(
             from arrconf.diff_cmd import diff_qbittorrent  # noqa: PLC0415
 
             qbit_diff_instance = root.qbittorrent["main"]
-            # Phase 12-A: generator called; Plan A shim sets instance.categories.items
-            # so that diff_qbittorrent (old 3-arg signature) sees the same desired-state
-            # as apply. Plan B removes the .items attribute entirely.
-            qbit_diff_generated = generate_qbit_categories(root)
-            qbit_diff_instance.categories.items = qbit_diff_generated
+            # Phase 12-B: Plan-A shim removed — .items attribute deleted from CategoriesSection (D-01).
+            # diff_qbittorrent calls the generator and passes result as 3rd arg (Plan A, Phase 12-A).
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_diff_client = QbittorrentClient(
                 base_url=qbit_diff_instance.base_url,
@@ -603,40 +588,21 @@ def diff(
         if not settings.seerr_api_key:
             log.error("missing_api_key", app="seerr", env_var="SEERR_API_KEY")
             raise typer.Exit(code=2)
-        seerr_diff_instance = root.seerr["main"]
-        # Phase 12-A: animeTags resolved here; Plan A shim sets instance.sonarr_service.animeTags
-        # so that future diff_seerr (old 3-arg signature) sees the same desired-state as apply.
-        # Plan B removes the .animeTags attribute from the instance model entirely.
-        if "sonarr" in targets and "main" in root.sonarr and settings.sonarr_api_key:
-            sonarr_for_diff_resolution = SonarrClient(
-                base_url=root.sonarr["main"].base_url,
-                api_key=settings.sonarr_api_key.get_secret_value(),
-            )
-            diff_resolved_anime_ids = _resolve_seerr_anime_tag_ids(
-                root, sonarr_for_diff_resolution, log
-            )
-            seerr_diff_instance.sonarr_service.animeTags = diff_resolved_anime_ids
-        else:
-            diff_resolved_anime_ids = []
-            log.info(
-                "seerr_animetags_resolution_skipped",
-                reason="sonarr not in --apps scope or missing SONARR_API_KEY",
-            )
+        # Phase 12-B: animeTags shim removed from diff branch — diff_seerr does not
+        # exist yet (deferred). animeTags YAML field deleted; pydantic field survives
+        # on SeerrSonarrServiceSection for reconcile_seerr's runtime population.
         # diff_seerr is not yet wired (deferred to Phase 10-J sweep plan).
         log.info(
             "diff_not_implemented",
             app="seerr",
-            hint="Seerr diff is deferred to Phase 10-J; animeTags pre-merge applied above",
+            hint="Seerr diff is deferred to Phase 10-J",
         )
 
     # Phase 7: Jellyfin diff branch (D-07-INSTANCE-01, SC#4 dispositive).
     if "jellyfin" in targets and "main" in root.jellyfin:
         jellyfin_diff_instance = root.jellyfin["main"]
-        # Phase 12-A: generator called; Plan A shim sets instance.libraries.items so
-        # that diff_jellyfin (old 3-arg signature) sees same desired-state as apply.
-        # Plan B removes the .items attribute entirely.
-        jellyfin_diff_generated = generate_jellyfin_libraries(root)
-        jellyfin_diff_instance.libraries.items = jellyfin_diff_generated
+        # Phase 12-B: Plan-A shim removed — .items attribute deleted from JellyfinLibrariesSection (D-01).
+        # diff_jellyfin calls the generator and passes result as 3rd arg (Plan A, Phase 12-A).
         if not settings.jellyfin_api_key:
             log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
             raise typer.Exit(code=2)
