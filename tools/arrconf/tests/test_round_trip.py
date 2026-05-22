@@ -1,7 +1,14 @@
 """Round-trip integration test — REQ-idempotence + ROADMAP success criteria 3-4.
 
 Property: given that the cluster state EQUALS the YAML desired state,
-``apply --dry-run`` produces ZERO actions (all NO_OP) and ZERO HTTP writes.
+``apply --dry-run`` performs ZERO HTTP writes (no POST/PUT/DELETE).
+
+Phase 12-B (D-01): download_clients are now generator-derived from
+``categories[]`` rather than YAML-declared items. With an empty ``categories``
+list and empty ``SonarrDerived(...)`` (the round-trip test scenario), the
+reconciler sees the cluster's existing download clients as "not in YAML" and
+emits ``PRUNE_SKIP`` (default ``prune=False`` guards against deletion). The
+"no writes" property still holds; the "all NO_OP" wording was v0.2.0-era.
 """
 
 from __future__ import annotations
@@ -15,6 +22,7 @@ from arrconf.client_base import SonarrClient
 from arrconf.config import load_config
 from arrconf.differ import Action
 from arrconf.dump import dump_sonarr
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 
 
@@ -76,13 +84,26 @@ def test_round_trip_dump_apply_dry_run_is_noop(
 
     # Step 3: reconcile against same cluster state, dry_run=True
     client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client2, instance, dry_run=True)
+    result = reconcile_sonarr(
+        client2,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=True,
+    )
 
-    # Step 4: assert all NO_OP, zero writes
-    non_noop = [p for p in result.plan if p.action != Action.NO_OP]
-    assert non_noop == [], (
-        f"Round-trip violated: expected all NO_OP, got: "
-        f"{[(p.action.value, p.name, p.diff_fields) for p in non_noop]}"
+    # Step 4: assert no write-class actions (POST/PUT/DELETE). PRUNE_SKIP is
+    # tolerated since Phase 12-B (D-01) removed the v0.2.0 items round-trip:
+    # cluster download_clients are now "not in YAML" by definition, and
+    # prune=False makes that a deliberate skip rather than a delete.
+    write_actions = [p for p in result.plan if p.action not in (Action.NO_OP, Action.PRUNE_SKIP)]
+    assert write_actions == [], (
+        f"Round-trip violated: expected no writes, got: "
+        f"{[(p.action.value, p.name, p.diff_fields) for p in write_actions]}"
     )
     assert result.actions_taken == [], (
         f"actions_taken should be empty in dry_run: {result.actions_taken}"
@@ -137,12 +158,23 @@ def test_round_trip_with_redacted_credentials_is_noop(
     instance = root.sonarr["main"]
 
     client2 = SonarrClient(base_url="http://sonarr.test", api_key="fake")
-    result = reconcile_sonarr(client2, instance, dry_run=True)
+    result = reconcile_sonarr(
+        client2,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=True,
+    )
 
-    non_noop = [p for p in result.plan if p.action != Action.NO_OP]
-    assert non_noop == [], (
+    # Phase 12-B (D-01): PRUNE_SKIP tolerated — see module docstring.
+    write_actions = [p for p in result.plan if p.action not in (Action.NO_OP, Action.PRUNE_SKIP)]
+    assert write_actions == [], (
         f"Round-trip with REDACTED credentials violated: "
-        f"{[(p.action.value, p.name, p.diff_fields) for p in non_noop]}"
+        f"{[(p.action.value, p.name, p.diff_fields) for p in write_actions]}"
     )
     assert result.actions_taken == []
     assert post_route.call_count == 0

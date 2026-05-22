@@ -23,6 +23,7 @@ from arrconf.config import (
     RemotePathMappingsSection,
     SonarrInstance,
 )
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.resources.sonarr.remote_path_mapping import RemotePathMapping
 
@@ -89,10 +90,19 @@ def test_rpm_add_new_mapping(
     ]
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=desired),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
+        ),
+        dry_run=False,
+    )
 
     assert post_route.call_count == 3, f"Expected 3 POSTs, got {post_route.call_count}"
     assert delete_route.call_count == 0, "Existing entry is in-sync — no DELETEs"
@@ -141,10 +151,19 @@ def test_rpm_delete_plus_add_on_localpath_change(
     ]
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=desired),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
+        ),
+        dry_run=False,
+    )
 
     assert calls_order == ["DELETE", "POST"], (
         f"Pattern 6: DELETE must precede POST. Got order: {calls_order}"
@@ -173,10 +192,19 @@ def test_rpm_no_op_when_in_sync(
     desired = [RemotePathMapping.model_validate(e) for e in sonarr_remotepathmapping_fixture]
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=desired),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
+        ),
+        dry_run=False,
+    )
 
     assert post_route.call_count == 0, "In-sync: no POST expected"
     assert delete_route.call_count == 0, "In-sync: no DELETE expected"
@@ -206,10 +234,20 @@ def test_rpm_match_by_host_and_remote_path_tuple(
     # --- prune=False: B entry NOT deleted ---
     instance_no_prune = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(prune=False, items=desired),
+        remote_path_mappings=RemotePathMappingsSection(prune=False),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance_no_prune, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance_no_prune,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
+        ),
+        dry_run=False,
+    )
 
     assert delete_route.call_count == 0, (
         "prune=False: orphaned cluster entry (host=B) must NOT be deleted"
@@ -234,10 +272,20 @@ def test_rpm_prune_true_deletes_orphan(
     desired = [RemotePathMapping(host="host-a", remotePath="/x/", localPath="/local-a/")]
     instance_prune = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(prune=True, items=desired),
+        remote_path_mappings=RemotePathMappingsSection(prune=True),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance_prune, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance_prune,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=desired,
+        ),
+        dry_run=False,
+    )
 
     assert delete_route.call_count == 1, (
         "prune=True: orphaned cluster entry (host=B, id=2) must be DELETEd"
@@ -274,13 +322,22 @@ def test_rpm_trailing_slash_invariant(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        remote_path_mappings=RemotePathMappingsSection(items=[no_trailing_slash]),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
 
     # The reconciler currently ACCEPTS values without trailing slashes.
     # No exception should be raised — the test documents this known gap.
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[no_trailing_slash],
+        ),
+        dry_run=False,
+    )
 
     assert post_route.call_count == 1, "POST is issued even without trailing slash"
     body = json.loads(post_route.calls.last.request.content.decode())

@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Categories cleanup + content discovery + local config UI
-status: planning
-last_updated: "2026-05-21T21:40:06.429Z"
-last_activity: 2026-05-21
+status: executing
+stopped_at: Phase 12 context gathered
+last_updated: "2026-05-21T23:26:42.478Z"
+last_activity: 2026-05-21 -- Phase 12 execution started
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 5
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 11 — operational-polish-bundle
+**Current focus:** Phase 12 — Categories deprecation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-21 — Milestone v0.4.0 started
+Phase: 12 (Categories deprecation) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 12
+Last activity: 2026-05-21 -- Phase 12 execution started
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 
@@ -274,9 +275,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-21T08:15:50.904Z
-Stopped at: Phase 10 context gathered
-Resume file: None
+Last session: 2026-05-21T21:58:31.835Z
+Stopped at: Phase 12 context gathered
+Resume file: .planning/phases/12-categories-deprecation/12-CONTEXT.md
 Next plan: hotfix gap-closure plan (TBD) — v0.1.5 with credential-aware merge (Option A omit / B mask-detect / C scope-forceSave), operator-driven UI password re-entry, behavioral W-04 dispositive, re-run of Task 6.4. Phase 3 (Radarr/Prowlarr) BLOCKED until v0.1.5 closes the regression cleanly.
 
 ### Phase 2.1 plan summary

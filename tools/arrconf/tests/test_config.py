@@ -25,18 +25,16 @@ def test_load_config_happy_path_sonarr_only(tmp_path: Path) -> None:
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     result = load_config(cfg)
     assert isinstance(result, RootConfig)
     assert "main" in result.sonarr
     assert result.sonarr["main"].base_url == "http://sonarr.test"
     assert result.sonarr["main"].download_clients.prune is False
-    assert result.sonarr["main"].download_clients.items == []
-    # Phase 3 sections default to empty / opt-in disabled:
+    # Phase 3 sections still present with opt-in disabled:
     assert result.sonarr["main"].indexers.items == []
     assert result.sonarr["main"].notifications.items == []
-    assert result.sonarr["main"].root_folders.items == []
     assert result.sonarr["main"].host_config.enable is False  # D-03-04 opt-in default
     # New top-level dicts default to empty:
     assert result.radarr == {}
@@ -142,13 +140,12 @@ def test_load_config_with_qbittorrent_main_section(tmp_path: Path) -> None:
     assert result.qbittorrent["main"].base_url == "http://qbit:8080"
 
 
-def test_load_config_qbittorrent_categories_default_empty(tmp_path: Path) -> None:
-    """Phase 5: categories defaults to empty list and prune=False when not specified."""
+def test_load_config_qbittorrent_categories_default_prune_false(tmp_path: Path) -> None:
+    """Phase 5: categories section prune defaults to False when not specified."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
     result = load_config(cfg)
     instance = result.qbittorrent["main"]
-    assert instance.categories.items == []
     assert instance.categories.prune is False
 
 
@@ -156,7 +153,8 @@ def test_load_config_qbittorrent_prune_defaults_to_false(tmp_path: Path) -> None
     """Phase 5 R-04 mitigation: categories.prune is False by default (never auto-delete)."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
-        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n    categories:\n      items: []\n"
+        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n"
+        "    categories:\n      prune: false\n"
     )
     result = load_config(cfg)
     assert result.qbittorrent["main"].categories.prune is False
@@ -184,8 +182,8 @@ def test_load_config_qbittorrent_preferences_enable_defaults_to_false(tmp_path: 
     assert result.qbittorrent["main"].preferences.enable is False
 
 
-def test_load_config_sonarr_tags_section(tmp_path: Path) -> None:
-    """Phase 5 D-05-SPLIT-01: sonarr.main.tags.items accepts list of TagItem entries."""
+def test_load_config_sonarr_tags_section_rejects_items(tmp_path: Path) -> None:
+    """D-13: sonarr.main.tags.items: [] in YAML raises ConfigError (extra=forbid, Phase 12)."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
@@ -195,15 +193,23 @@ def test_load_config_sonarr_tags_section(tmp_path: Path) -> None:
         "        - label: anime\n"
         "        - label: family\n"
     )
+    with pytest.raises(ConfigError, match=r"validation error"):
+        load_config(cfg)
+
+
+def test_load_config_sonarr_tags_section_prune_only(tmp_path: Path) -> None:
+    """Phase 12 D-01: sonarr.main.tags accepts only prune flag (items removed)."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n    tags:\n      prune: false\n"
+    )
     result = load_config(cfg)
     instance = result.sonarr["main"]
-    assert len(instance.tags.items) == 3
-    labels = {item.label for item in instance.tags.items}
-    assert labels == {"tv", "anime", "family"}
+    assert instance.tags.prune is False
 
 
-def test_load_config_sonarr_remote_path_mappings_section(tmp_path: Path) -> None:
-    """Phase 5 D-05-PATHMAP-01: sonarr.main.remote_path_mappings parses correctly."""
+def test_load_config_sonarr_remote_path_mappings_section_rejects_items(tmp_path: Path) -> None:
+    """D-13: sonarr.main.remote_path_mappings.items: [...] raises ConfigError (Phase 12)."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
@@ -212,23 +218,22 @@ def test_load_config_sonarr_remote_path_mappings_section(tmp_path: Path) -> None
         "        - host: qbittorrent.selfhost.svc.cluster.local\n"
         "          remotePath: /data/series/\n"
         "          localPath: /data/torrents/series/\n"
-        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
-        "          remotePath: /data/anime/\n"
-        "          localPath: /data/torrents/anime/\n"
-        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
-        "          remotePath: /data/family/\n"
-        "          localPath: /data/torrents/family/\n"
-        "        - host: qbittorrent.selfhost.svc.cluster.local\n"
-        "          remotePath: /data/complete/\n"
-        "          localPath: /data/torrents/complete/\n"
+    )
+    with pytest.raises(ConfigError, match=r"validation error"):
+        load_config(cfg)
+
+
+def test_load_config_sonarr_remote_path_mappings_section_prune_only(tmp_path: Path) -> None:
+    """Phase 12 D-01: remote_path_mappings accepts only prune flag (items removed)."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
+        "    remote_path_mappings:\n"
+        "      prune: true\n"
     )
     result = load_config(cfg)
     instance = result.sonarr["main"]
-    assert len(instance.remote_path_mappings.items) == 4
-    first = instance.remote_path_mappings.items[0]
-    assert first.host == "qbittorrent.selfhost.svc.cluster.local"
-    assert first.remotePath == "/data/series/"
-    assert first.localPath == "/data/torrents/series/"
+    assert instance.remote_path_mappings.prune is True
 
 
 def test_load_config_sonarr_series_tags_defaults(tmp_path: Path) -> None:
@@ -394,13 +399,6 @@ jellyfin:
     libraries:
       enable: true
       prune: false
-      items:
-        - name: "Séries"
-          collection_type: tvshows
-          paths: ["/media/series", "/media/anime", "/media/family"]
-        - name: "Films"
-          collection_type: movies
-          paths: ["/media/films", "/media/films-anime", "/media/films-family"]
     users:
       enable: true
       prune: false
@@ -438,15 +436,9 @@ jellyfin:
     instance = cfg.jellyfin["main"]
     assert instance.base_url == "http://jellyfin.selfhost.svc.cluster.local:8096"
 
-    # Libraries (D-07-LIB-01: 2 entries, multi-path)
-    assert len(instance.libraries.items) == 2
-    series = instance.libraries.items[0]
-    assert series.name == "Séries"
-    assert series.collection_type == "tvshows"
-    assert series.paths == ["/media/series", "/media/anime", "/media/family"]
-    films = instance.libraries.items[1]
-    assert films.name == "Films"
-    assert films.paths == ["/media/films", "/media/films-anime", "/media/films-family"]
+    # Libraries (D-07-LIB-01: Phase 12 — items derived from categories generator)
+    assert instance.libraries.enable is True
+    assert instance.libraries.prune is False
 
     # Users (D-07-USERS-01: admin only)
     assert instance.users.admin.IsAdministrator is True

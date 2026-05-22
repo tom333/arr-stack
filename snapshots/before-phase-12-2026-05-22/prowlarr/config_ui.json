@@ -1,0 +1,12 @@
+{
+  "calendarWeekColumnHeader": "ddd M/D",
+  "enableColorImpairedMode": false,
+  "firstDayOfWeek": 0,
+  "id": 1,
+  "longDateFormat": "dddd, D MMMM YYYY",
+  "shortDateFormat": "DD MMM YYYY",
+  "showRelativeDates": true,
+  "theme": "auto",
+  "timeFormat": "HH:mm",
+  "uiLanguage": "fr"
+}

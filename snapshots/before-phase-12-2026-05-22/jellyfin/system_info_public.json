@@ -1,0 +1,9 @@
+{
+  "Id": "62f7bf7af7e14f81949f858c18c2882f",
+  "LocalAddress": "http://[::1]:8096",
+  "OperatingSystem": "",
+  "ProductName": "Jellyfin Server",
+  "ServerName": "jellyfin",
+  "StartupWizardCompleted": true,
+  "Version": "10.11.8"
+}

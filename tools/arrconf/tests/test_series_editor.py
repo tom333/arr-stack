@@ -19,9 +19,9 @@ from arrconf.config import (
     SeriesTagsSection,
     SonarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.exceptions import ReconcileError
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 
 BASE_URL = "http://sonarr.test"
@@ -71,11 +71,20 @@ def test_series_editor_adds_default_tag_to_untagged_series(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1, "Expected exactly one PUT to /series/editor"
     body = json.loads(editor_route.calls.last.request.content.decode())
@@ -114,11 +123,20 @@ def test_series_editor_idempotent_when_all_tagged(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 0, (
         "SC#5: idempotence violated — PUT /series/editor issued when all series are tagged"
@@ -154,11 +172,20 @@ def test_series_editor_preserves_existing_manual_tags(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1
     body = json.loads(editor_route.calls.last.request.content.decode())
@@ -197,11 +224,20 @@ def test_series_editor_does_not_move_files(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1
     body = json.loads(editor_route.calls.last.request.content.decode())
@@ -234,11 +270,20 @@ def test_series_editor_dry_run_emits_no_put(
 
     instance = SonarrInstance(
         base_url=BASE_URL,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=True)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=True,
+    )
 
     assert editor_route.call_count == 0, "dry_run=True must not issue PUT to /series/editor"
 
@@ -265,7 +310,17 @@ def test_series_editor_skipped_when_section_disabled(
         series_tags=SeriesTagsSection(enable=False),
     )
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert series_route.call_count == 0, "enable=False: GET /series must not be issued"
     assert editor_route.call_count == 0, "enable=False: PUT /series/editor must not be issued"
@@ -297,4 +352,14 @@ def test_series_tags_raises_when_default_tag_label_missing_from_yaml(
     client = SonarrClient(base_url=BASE_URL, api_key="fake")
 
     with pytest.raises(ReconcileError, match="tv"):
-        reconcile_sonarr(client, instance, dry_run=False)
+        reconcile_sonarr(
+            client,
+            instance,
+            SonarrDerived(
+                tags=[],
+                root_folders=[],
+                download_clients=[],
+                remote_path_mappings=[],
+            ),
+            dry_run=False,
+        )

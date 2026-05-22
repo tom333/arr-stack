@@ -111,8 +111,11 @@ def _resolve_download_client_tag_labels(
     readable label names). This helper resolves each label to its server-assigned
     integer id using the post-reconcile ``all_tags`` list (step 2 of D-05-ORDER-01).
 
-    Raises ReconcileError if a declared label has no matching tag — the operator
-    must add the label to instance.tags.items so it is created in step 2 first.
+    Raises ReconcileError if a declared label has no matching tag. Post-Phase 12-B,
+    tag labels are derived from ``categories[]`` — the operator declares a new
+    category, the generator produces a matching tag, and step 2 reconciles it
+    before this resolver runs. A mismatch usually signals a stale RadarrDerived /
+    SonarrDerived test fixture.
 
     Returns new DownloadClient instances (immutable copy via model_copy) with
     resolved integer ids appended to the existing ``tags`` list.
@@ -135,73 +138,13 @@ def _resolve_download_client_tag_labels(
         for label in dc.tag_labels:
             if label not in label_to_id:
                 raise ReconcileError(
-                    f"download_client '{dc.name}': tag label '{label}' not found in {app_name} — "
-                    "declare it in instance.tags.items so it is reconciled first (D-05-ORDER-01)"
+                    f"download_client '{dc.name}': tag label '{label}' not found "
+                    f"in {app_name} — generator output drifted from cluster tags "
+                    "(Phase 12-B: tags derive from categories[]; this should not "
+                    "happen at runtime — likely a stale test fixture)"
                 )
             tag_id = label_to_id[label]
             if tag_id not in resolved_ids:
                 resolved_ids.append(tag_id)
         resolved.append(dc.model_copy(update={"tags": resolved_ids}))
     return resolved
-
-
-def merge_with_manual(
-    manual_items: list[Any],
-    generated_items: list[Any],
-    *,
-    app: str,
-    resource: str,
-) -> list[Any]:
-    """Per-resource toggle bridging Categories-derived resources with manual YAML (D-02).
-
-    Phase 10 contract: when an operator has declared resources manually in the
-    v0.2.0 flat section (``manual_items`` non-empty), arrconf uses the manual
-    list verbatim and SKIPS the Categories-generated list entirely. When the
-    manual list is empty, the Categories-derived list takes effect. There is
-    no item-level merging — the toggle is per-resource (e.g. one toggle for
-    ``sonarr.tags``, one for ``sonarr.root_folders``, etc.).
-
-    Operator escape hatch: declare the full resource list manually to opt out
-    of Categories-driven generation for that one resource. The transition layer
-    is planned for removal in v0.4.0+ (REQ-categories-deprecation).
-
-    Args:
-        manual_items: the v0.2.0 ``instance.<section>.items`` list.
-        generated_items: the Categories-derived list from
-            ``arrconf.generators.categories``.
-        app: app name for the log event (e.g. ``"sonarr"``, ``"qbit"``).
-        resource: resource name for the log event (e.g. ``"tags"``,
-            ``"root_folders"``, ``"download_clients"``).
-
-    Returns:
-        The list that should be passed to the reconciler. Caller assigns it
-        back to ``instance.<section>.items`` before reconciler dispatch.
-
-    Log events:
-        - ``merge_decision`` with ``source="manual"``, ``n=len(manual_items)``,
-          ``generated_skipped=len(generated_items)`` when manual wins.
-        - ``merge_decision`` with ``source="categories"``,
-          ``n=len(generated_items)`` when generated wins.
-
-    Shared across all 6 reconciler pre-merge callsites (D-02). Called from
-    ``arrconf.__main__`` per-app branches before reconciler dispatch.
-
-    """
-    if manual_items:
-        log.info(
-            "merge_decision",
-            app=app,
-            resource=resource,
-            source="manual",
-            n=len(manual_items),
-            generated_skipped=len(generated_items),
-        )
-        return manual_items
-    log.info(
-        "merge_decision",
-        app=app,
-        resource=resource,
-        source="categories",
-        n=len(generated_items),
-    )
-    return generated_items

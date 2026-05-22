@@ -17,6 +17,12 @@ from arrconf.client_base import (
 )
 from arrconf.config import RootConfig
 from arrconf.differ import Action
+from arrconf.generators.categories import (
+    generate_jellyfin_libraries,
+    generate_qbit_categories,
+    generate_radarr_resources,
+    generate_sonarr_resources,
+)
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
@@ -30,11 +36,15 @@ def diff_sonarr(client: SonarrClient, root_config: RootConfig) -> int:
     Returns ``0`` when every planned action is ``Action.NO_OP``, ``3``
     otherwise. The drift details are emitted as structlog events so the
     CronJob log pipeline can ingest them.
+
+    Phase 12-A (D-03/D-04): generators called here and passed as the 3rd
+    positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
     """
     if "main" not in root_config.sonarr:
         log.warning("no_sonarr_config", hint="sonarr.main missing in YAML")
         return 0
-    result = reconcile_sonarr(client, root_config.sonarr["main"], dry_run=True)
+    sonarr_derived = generate_sonarr_resources(root_config)
+    result = reconcile_sonarr(client, root_config.sonarr["main"], sonarr_derived, dry_run=True)
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
         log.info("no_drift", apps=["sonarr"])
@@ -45,11 +55,16 @@ def diff_sonarr(client: SonarrClient, root_config: RootConfig) -> int:
 
 
 def diff_radarr(client: RadarrClient, root_config: RootConfig) -> int:
-    """Run ``reconcile_radarr`` in dry-run mode and return CLI exit code (mirror of diff_sonarr)."""
+    """Run ``reconcile_radarr`` in dry-run mode and return CLI exit code (mirror of diff_sonarr).
+
+    Phase 12-A (D-03/D-04): generators called here and passed as the 3rd
+    positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
+    """
     if "main" not in root_config.radarr:
         log.warning("no_radarr_config", hint="radarr.main missing in YAML")
         return 0
-    result = reconcile_radarr(client, root_config.radarr["main"], dry_run=True)
+    radarr_derived = generate_radarr_resources(root_config)
+    result = reconcile_radarr(client, root_config.radarr["main"], radarr_derived, dry_run=True)
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
         log.info("no_drift", apps=["radarr"])
@@ -89,13 +104,19 @@ def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
 
     Returns 0 when every planned action is NO_OP, 3 when drift is detected
     (CLAUDE.md CLI exit-code contract: 3 = drift). D-05-QBT-02.
+
+    Phase 12-A (D-03/D-04): generator called here and passed as the 3rd
+    positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
     """
     from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
 
     if "main" not in root_config.qbittorrent:
         log.warning("no_qbittorrent_config", hint="qbittorrent.main missing in YAML")
         return 0
-    result = reconcile_qbittorrent(client, root_config.qbittorrent["main"], dry_run=True)
+    qbit_generated = generate_qbit_categories(root_config)
+    result = reconcile_qbittorrent(
+        client, root_config.qbittorrent["main"], qbit_generated, dry_run=True
+    )
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
         log.info("no_drift", apps=["qbittorrent"])
@@ -115,6 +136,9 @@ def diff_jellyfin(client: JellyfinClient, root_config: RootConfig) -> int:
     After ``arrconf dump --apps jellyfin --output X.yml``, calling
     ``arrconf --config X.yml diff --apps jellyfin`` MUST return 0 — the dumped YAML,
     when applied, results in no writes.
+
+    Phase 12-A (D-03/D-04): generator called here and passed as the 3rd
+    positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
     """
     from arrconf.reconcilers.jellyfin import reconcile_jellyfin  # noqa: PLC0415
 
@@ -122,7 +146,10 @@ def diff_jellyfin(client: JellyfinClient, root_config: RootConfig) -> int:
         log.warning("no_jellyfin_config", hint="jellyfin.main missing in YAML")
         return 0
 
-    result = reconcile_jellyfin(client, root_config.jellyfin["main"], dry_run=True)
+    jellyfin_generated = generate_jellyfin_libraries(root_config)
+    result = reconcile_jellyfin(
+        client, root_config.jellyfin["main"], jellyfin_generated, dry_run=True
+    )
 
     # actions_taken strings carry ":dry_run:" when a write WOULD have happened.
     # An empty list OR a list with no ":dry_run:" entries = no drift.

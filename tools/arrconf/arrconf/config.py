@@ -21,22 +21,17 @@ from ruyaml import YAML
 from arrconf.exceptions import ConfigError
 from arrconf.resources.categories import Category as MediaCategory
 from arrconf.resources.jellyfin import (
-    JellyfinLibrary,
     JellyfinUserPolicy,
     PluginEntry,
     PluginRepository,
 )
-from arrconf.resources.qbittorrent.category import Category
 from arrconf.resources.qbittorrent.preferences import QbitPreferences
 from arrconf.resources.seerr import (
     DefaultQuotas,
     SeerrUser,
 )
-from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
 from arrconf.resources.sonarr.notification import Notification
-from arrconf.resources.sonarr.remote_path_mapping import RemotePathMapping
-from arrconf.resources.sonarr.root_folder import RootFolder
 
 # ---------------------------------------------------------------------------
 # Section models — one per resource type. Each carries an opt-in prune flag
@@ -45,14 +40,13 @@ from arrconf.resources.sonarr.root_folder import RootFolder
 
 
 class DownloadClientsSection(BaseModel):
-    """A list of download_clients with opt-in prune (D-04)."""
+    """Download clients section — prune only (D-04). Items derived from categories (Phase 12)."""
 
     model_config = ConfigDict(extra="forbid")
     prune: bool = Field(
         default=False,
         description="Opt-in deletion of unmanaged resources (D-04).",
     )
-    items: list[DownloadClient] = Field(default_factory=list)
 
 
 class IndexersSection(BaseModel):
@@ -72,7 +66,7 @@ class NotificationsSection(BaseModel):
 
 
 class RootFoldersSection(BaseModel):
-    """A list of root folders with opt-in prune (D-04).
+    """Root folders section — prune only (D-04). Paths derived from categories (Phase 12).
 
     Sonarr/Radarr have NO PUT endpoint for root folders — path changes produce
     DELETE + ADD via the differ (RESEARCH.md Pitfall 1).
@@ -80,7 +74,6 @@ class RootFoldersSection(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     prune: bool = Field(default=False, description="Opt-in prune (D-04).")
-    items: list[RootFolder] = Field(default_factory=list)
 
 
 class HostConfigSection(BaseModel):
@@ -132,18 +125,17 @@ class TagItem(BaseModel):
 
 
 class TagsSection(BaseModel):
-    """List of Sonarr/Radarr tags with opt-in prune (D-05-SPLIT-01)."""
+    """Tags section — prune only (D-05-SPLIT-01). Labels derived from categories (Phase 12)."""
 
     model_config = ConfigDict(extra="forbid")
     prune: bool = Field(
         default=False,
         description="Opt-in deletion of unmanaged tags (D-04).",
     )
-    items: list[TagItem] = Field(default_factory=list)
 
 
 class RemotePathMappingsSection(BaseModel):
-    """List of *arr Remote Path Mappings with opt-in prune (D-05-PATHMAP-01).
+    """Remote path mappings — prune only (D-05-PATHMAP-01); items derived from categories.
 
     Match key is the composite tuple (host, remotePath) — changes are DELETE+ADD
     (no PUT endpoint on the *arr API, Pitfall 1).
@@ -154,7 +146,6 @@ class RemotePathMappingsSection(BaseModel):
         default=False,
         description="Opt-in deletion of unmanaged path mappings (D-04).",
     )
-    items: list[RemotePathMapping] = Field(default_factory=list)
 
 
 class SeriesTagsSection(BaseModel):
@@ -234,7 +225,7 @@ class ContentRoutingSection(BaseModel):
 
 
 class CategoriesSection(BaseModel):
-    """List of qBittorrent categories with opt-in prune.
+    """qBittorrent categories section — prune only. Entries derived from categories (Phase 12).
 
     NEVER set prune=True in production — cleanuparr depends on the
     'cleanuparr-unlinked' category surviving reconciliation (R-04 in RESEARCH.md).
@@ -246,7 +237,6 @@ class CategoriesSection(BaseModel):
         description="Opt-in deletion of unmanaged categories (D-04). "
         "NEVER set true — cleanuparr depends on cleanuparr-unlinked (R-04).",
     )
-    items: list[Category] = Field(default_factory=list)
 
 
 class PreferencesSection(BaseModel):
@@ -527,7 +517,7 @@ class SeerrInstance(BaseModel):
 
 
 class JellyfinLibrariesSection(BaseModel):
-    """Jellyfin libraries reconciliation (D-07-LIB-01: 2 libraries multi-path merge).
+    """Jellyfin libraries section — enable + prune (D-07-LIB-01); items derived from categories.
 
     Scope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions
     sub-fields stay operator-managed.
@@ -542,13 +532,6 @@ class JellyfinLibrariesSection(BaseModel):
     prune: bool = Field(
         default=False,
         description="Opt-in deletion (D-04). MUST be False in Phase 7 (D-07-LIB-01).",
-    )
-    items: list[JellyfinLibrary] = Field(
-        default_factory=list,
-        description=(
-            "List of libraries to reconcile. Phase 7 D-07-LIB-01: exactly 2 entries"
-            " (Séries + Films)."
-        ),
     )
 
 

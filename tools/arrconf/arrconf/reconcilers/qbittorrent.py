@@ -260,6 +260,8 @@ def _reconcile_preferences(
 def reconcile_qbittorrent(
     client: QbittorrentClient,
     instance: QbittorrentInstance,
+    categories: list[Category],
+    *,
     dry_run: bool,
 ) -> QbittorrentResult:
     """Reconcile a qBittorrent instance (Phase 5 — D-05-QBT-02 full scope).
@@ -270,11 +272,15 @@ def reconcile_qbittorrent(
 
     Returns QbittorrentResult with plan (populated in dry-run) + actions_taken
     (empty in dry-run). The diff CLI gates on result.plan, not actions_taken.
+
+    ``categories`` carries the Categories-generator output (D-03, Phase 12-B).
+    Items are passed directly — the Plan-A ``.items`` attribute shim is removed
+    (Phase 12-B D-01).
     """
     # Step 1: categories
     cat_plan, cat_actions = _reconcile_categories(
         client,
-        instance.categories.items,
+        categories,
         prune=instance.categories.prune,
         dry_run=dry_run,
     )

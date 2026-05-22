@@ -227,11 +227,8 @@ def test_dump_jellyfin_round_trip_via_load_config(
     assert "main" in root.jellyfin, "jellyfin.main must be present in reloaded RootConfig"
     inst = root.jellyfin["main"]
     assert inst.base_url == JELLYFIN_BASE
-    # Libraries round-tripped
+    # Libraries section round-tripped (items now generator-derived, not in YAML)
     assert inst.libraries.enable is True
-    assert len(inst.libraries.items) == 2
-    assert inst.libraries.items[0].name == "Séries"
-    assert "/media/series" in inst.libraries.items[0].paths
     # Users round-tripped (admin policy present)
     assert inst.users.enable is True
     assert inst.users.admin.IsAdministrator is True

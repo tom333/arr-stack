@@ -37,6 +37,11 @@ from arrconf.resources.jellyfin import (
 
 JELLYFIN_BASE = "http://jellyfin.test:8096"
 ADMIN_USER_ID = "82fd95db72904569b08d83271823ceaa"
+
+_DEFAULT_LIBRARIES = [
+    JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+    JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+]
 EMILIE_USER_ID = "8901eacec3634d169958d11bd95d4078"
 TMDB_PLUGIN_ID = "b8715ed16c4745289ad3f72deb539cd4"
 TMDB_PLUGIN_VERSION = "10.11.8.0"
@@ -57,13 +62,7 @@ def _make_instance(**overrides: Any) -> JellyfinInstance:
     """Build a minimal JellyfinInstance with sensible defaults."""
     defaults: dict[str, Any] = dict(
         base_url=JELLYFIN_BASE,
-        libraries=JellyfinLibrariesSection(
-            enable=True,
-            items=[
-                JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
-                JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
-            ],
-        ),
+        libraries=JellyfinLibrariesSection(enable=True),
         users=JellyfinUsersSection(
             enable=True,
             admin=JellyfinUserPolicy(
@@ -335,18 +334,14 @@ def test_libraries_path_idempotent_pitfall2(
     # Modify the Séries library to already have /media/series (from fixture) but NOT /media/anime.
     libs = copy.deepcopy(jellyfin_library_virtualfolders_fixture)
     # Fixture has /media/series in PathInfos — desired=[/media/series, /media/anime].
-    instance = _make_instance(
-        libraries=JellyfinLibrariesSection(
-            enable=True,
-            items=[
-                JellyfinLibrary(
-                    name="Séries",
-                    collection_type="tvshows",
-                    paths=["/media/series", "/media/anime"],
-                ),
-            ],
-        )
-    )
+    libs_desired = [
+        JellyfinLibrary(
+            name="Séries",
+            collection_type="tvshows",
+            paths=["/media/series", "/media/anime"],
+        ),
+    ]
+    instance = _make_instance(libraries=JellyfinLibrariesSection(enable=True))
     client = _make_client()
 
     add_path_route = respx_mock.post(url__regex=r"/Library/VirtualFolders/Paths").mock(
@@ -362,7 +357,7 @@ def test_libraries_path_idempotent_pitfall2(
         plugins=jellyfin_plugins_fixture,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, libs_desired, dry_run=False)
 
     # POST must be called EXACTLY ONCE (for /media/anime, not for /media/series).
     assert add_path_route.called
@@ -403,14 +398,10 @@ def test_libraries_set_membership_uses_pathinfos_not_locations_pitfall8(
             "LibraryOptions": {"PathInfos": [{"Path": "/media/series"}]},  # authoritative
         }
     ]
-    instance = _make_instance(
-        libraries=JellyfinLibrariesSection(
-            enable=True,
-            items=[
-                JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/anime"])
-            ],
-        )
-    )
+    libs_desired = [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/anime"])
+    ]
+    instance = _make_instance(libraries=JellyfinLibrariesSection(enable=True))
     client = _make_client()
 
     add_path_route = respx_mock.post(url__regex=r"/Library/VirtualFolders/Paths").mock(
@@ -426,7 +417,7 @@ def test_libraries_set_membership_uses_pathinfos_not_locations_pitfall8(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, libs_desired, dry_run=False)
 
     # Must have posted once for /media/anime (PathInfos said it was absent).
     assert add_path_route.called
@@ -482,7 +473,7 @@ def test_users_policy_uses_post_not_put_pitfall4(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert post_policy_route.called, "POST /Users/{id}/Policy must be called"
     assert not put_policy_route.called, (
@@ -539,7 +530,7 @@ def test_users_policy_reinjects_required_providerids_pitfall6(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert captured_body, "POST /Users/{id}/Policy must have been called"
     assert captured_body["AuthenticationProviderId"] == DEFAULT_AUTH_PROVIDER, (
@@ -585,7 +576,7 @@ def test_users_emilie_never_touched_d_07_users_01(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert not emilie_policy_route.called, (
         f"emilie ({EMILIE_USER_ID}) Policy must NEVER be touched (D-07-USERS-01)"
@@ -656,7 +647,7 @@ def test_server_config_full_replace_preserves_49_non_allowlist_fields_pitfall1(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert captured_body, "POST /System/Configuration must be called"
     # Allowlist field updated:
@@ -737,7 +728,7 @@ def test_server_config_plugin_repositories_set_by_url_pitfall7(
         plugins=jellyfin_plugins_fixture,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert not post_config_route.called, (
         "POST /System/Configuration must NOT be called — reversed repo order is a no-op (Pitfall 7)"
@@ -799,7 +790,7 @@ def test_plugin_enable_includes_version_in_path_pitfall5(
         plugins=plugins,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert enable_with_version.called, (
         f"POST /Plugins/{TMDB_PLUGIN_ID}/{TMDB_PLUGIN_VERSION}/Enable must be called (Pitfall 5)"
@@ -860,7 +851,7 @@ def test_plugin_active_status_skipped(
         plugins=plugins,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=False)
+    result = reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert not enable_route.called, "Enable must NOT be called when Status=Active"
     assert not any("plugin_enabled" in a for a in result.actions_taken)
@@ -900,7 +891,7 @@ def test_reconcile_jellyfin_step_order_invariant(
     )
 
     with structlog.testing.capture_logs() as logs:
-        reconcile_jellyfin(client, instance, dry_run=False)
+        reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     step_events = [e for e in logs if e.get("event") == "step_begin"]
     assert len(step_events) == 4, f"Expected 4 step_begin events, got {len(step_events)}"
@@ -993,7 +984,7 @@ def test_reconcile_jellyfin_dry_run_zero_writes(
         plugins=plugins,
     )
 
-    result = reconcile_jellyfin(client, instance, dry_run=True)
+    result = reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=True)
 
     assert not post_lib_route.called, "Library POST must not fire in dry_run"
     assert not post_policy_route.called, "User Policy POST must not fire in dry_run"
@@ -1043,7 +1034,7 @@ def test_jellyfin_does_not_call_arr_v3_quality_endpoints(
         plugins=jellyfin_plugins_fixture,
     )
 
-    reconcile_jellyfin(client, instance, dry_run=False)
+    reconcile_jellyfin(client, instance, _DEFAULT_LIBRARIES, dry_run=False)
 
     assert not sentinel_qualityprofile.called, (
         "Jellyfin reconciler MUST NOT call /api/v3/qualityprofile (ADR-5 frontiere)"

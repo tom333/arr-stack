@@ -49,10 +49,12 @@ from arrconf.config import (
     HostConfigSection,
     SeriesTagsSection,
     SonarrInstance,
+    TagItem,
     TagsSection,
 )
 from arrconf.differ import Action, PlannedAction, diff_models, merge_fields_for_put, reconcile
 from arrconf.exceptions import ReconcileError
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers._shared import (
     _reconcile_remote_path_mappings,
     _resolve_download_client_tag_labels,
@@ -268,9 +270,14 @@ def _reconcile_host_config(
 def _reconcile_tags(
     client: SonarrClient,
     section: TagsSection,
+    desired_tag_items: list[TagItem],
     dry_run: bool,
 ) -> list[Tag]:
     """Reconcile the operator-declared tags (e.g. tv, anime, family).
+
+    ``desired_tag_items`` is the generator output (TagItem list from SonarrDerived.tags).
+    The ``section`` parameter carries only ``prune`` — the items field was removed in
+    Phase 12-B (D-01).
 
     Returns the post-reconcile tag list with IDs populated — downstream callers
     (label→id resolver, series_tags) consume this list instead of issuing a
@@ -282,7 +289,7 @@ def _reconcile_tags(
     _reconcile_list_resource does not return individual response bodies).
     """
     raw_current = client.get(TAG_PATH)
-    desired_tags = [Tag(label=item.label) for item in section.items]
+    desired_tags = [Tag(label=item.label) for item in desired_tag_items]
     _reconcile_list_resource(
         client,
         TAG_PATH,
@@ -343,7 +350,7 @@ def _reconcile_series_tags(
     if default_tag is None or default_tag.id is None:
         raise ReconcileError(
             f"series_tags: default tag '{section.default_tag}' not found — "
-            "declare it in instance.tags.items so it is reconciled first (D-05-ORDER-01)"
+            "ensure it is present in the categories config (D-05-ORDER-01)"
         )
 
     if dry_run:
@@ -410,8 +417,8 @@ def _reconcile_content_tags(
         rule_tag = next((t for t in all_tags if t.label == rule.tag), None)
         if rule_tag is None or rule_tag.id is None:
             raise ReconcileError(
-                f"content_tags: rule.tag '{rule.tag}' not found in instance.tags.items — "
-                "declare it so it is reconciled first (D-05-ORDER-01 mirror)"
+                f"content_tags: rule.tag '{rule.tag}' not found in reconciled tags — "
+                "ensure it is present in the categories config (D-05-ORDER-01 mirror)"
             )
 
         keyword_lc = [kw.lower() for kw in rule.keywords]
@@ -459,6 +466,8 @@ def _reconcile_content_tags(
 def reconcile_sonarr(
     client: SonarrClient,
     instance: SonarrInstance,
+    derived: SonarrDerived,
+    *,
     dry_run: bool,
 ) -> SonarrResult:
     """Reconcile a Sonarr instance (Phase 5 — D-05-SPLIT-01 full scope).
@@ -468,6 +477,10 @@ def reconcile_sonarr(
     download_clients → notifications → host_config → series_tags → content_tags.
 
     step_begin log events carry step_index for ordering regression tests.
+
+    ``derived`` carries the Categories-generator output (D-03, Phase 12-B).
+    Items are passed directly to internal helpers — the Plan-A ``.items``
+    attribute shim is removed (Phase 12-B D-01).
     """
     # Step 1: Ensure the arrconf-managed tag.
     log.info("step_begin", step="managed_tag", step_index=1)
@@ -483,7 +496,7 @@ def reconcile_sonarr(
     # Step 2: Reconcile operator-declared tags (tv, anime, family).
     # MUST precede download_clients so IDs are available for label→id resolution.
     log.info("step_begin", step="tags", step_index=2)
-    all_tags = _reconcile_tags(client, instance.tags, dry_run)
+    all_tags = _reconcile_tags(client, instance.tags, derived.tags, dry_run)
 
     # Step 3: Indexers (read-mostly alignment; created by Prowlarr sync).
     log.info("step_begin", step="indexers", step_index=3)
@@ -506,7 +519,7 @@ def reconcile_sonarr(
         ROOT_FOLDER_PATH,
         client.get(ROOT_FOLDER_PATH),
         RootFolder,
-        instance.root_folders.items,
+        derived.root_folders,
         match_key="path",
         prune=instance.root_folders.prune,
         managed_tag_id=None,
@@ -517,7 +530,7 @@ def reconcile_sonarr(
     log.info("step_begin", step="remote_path_mappings", step_index=5)
     actions_taken += _reconcile_remote_path_mappings(
         client,
-        instance.remote_path_mappings.items,
+        derived.remote_path_mappings,
         prune=instance.remote_path_mappings.prune,
         dry_run=dry_run,
     )
@@ -529,7 +542,7 @@ def reconcile_sonarr(
     current_dcs = [DownloadClient.model_validate(x) for x in raw_current]
 
     # Resolve string tag labels → integer IDs using the post-reconcile all_tags list.
-    label_resolved = _resolve_download_client_tag_labels(instance.download_clients.items, all_tags)
+    label_resolved = _resolve_download_client_tag_labels(derived.download_clients, all_tags)
     desired_dcs = [_ensure_managed_tag_in_desired(dc, managed_tag_id) for dc in label_resolved]
 
     plan = reconcile(

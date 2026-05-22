@@ -25,9 +25,9 @@ from arrconf.config import (
     MovieTagsSection,
     RadarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.exceptions import ReconcileError
+from arrconf.generators.categories import RadarrDerived
 from arrconf.reconcilers.radarr import reconcile_radarr
 
 RADARR_BASE = "http://radarr.test"
@@ -78,11 +78,20 @@ def test_movie_editor_adds_default_tag_to_untagged_movies(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1, "Expected exactly one PUT to /movie/editor"
     body = json.loads(editor_route.calls.last.request.content.decode())
@@ -125,11 +134,20 @@ def test_movie_editor_idempotent_when_all_tagged(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 0, (
         "SC#5: idempotence violated — PUT /movie/editor issued when all movies are tagged"
@@ -164,11 +182,20 @@ def test_movie_editor_preserves_existing_manual_tags(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1
     body = json.loads(editor_route.calls.last.request.content.decode())
@@ -205,11 +232,20 @@ def test_movie_editor_does_not_move_files(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1
     body = json.loads(editor_route.calls.last.request.content.decode())
@@ -247,11 +283,20 @@ def test_movie_editor_uses_movieIds_not_seriesIds(  # noqa: N802
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1
     body_bytes = editor_route.calls.last.request.content.decode()
@@ -290,11 +335,20 @@ def test_movie_editor_uses_addImportExclusion_not_addImportListExclusion(  # noq
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert editor_route.call_count == 1
     body_bytes = editor_route.calls.last.request.content.decode()
@@ -328,11 +382,20 @@ def test_movie_editor_dry_run_emits_no_put(
 
     instance = RadarrInstance(
         base_url=RADARR_BASE,
-        tags=TagsSection(items=[TagItem(label="movies")]),
         movie_tags=MovieTagsSection(enable=True, default_tag="movies"),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=True)
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=True,
+    )
 
     assert editor_route.call_count == 0, "dry_run=True must not issue PUT to /movie/editor"
 
@@ -359,7 +422,18 @@ def test_movie_editor_skipped_when_section_disabled(
         movie_tags=MovieTagsSection(enable=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
-    reconcile_radarr(client, instance, dry_run=False)
+    # Empty Derived — test focuses on movie_editor gate, not tag/RF/DC reconciliation.
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     assert movie_route.call_count == 0, "enable=False: GET /movie must not be issued"
     assert editor_route.call_count == 0, "enable=False: PUT /movie/editor must not be issued"
@@ -391,4 +465,14 @@ def test_movie_tags_raises_when_default_tag_label_missing_from_yaml(
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
 
     with pytest.raises(ReconcileError, match="movies"):
-        reconcile_radarr(client, instance, dry_run=False)
+        reconcile_radarr(
+            client,
+            instance,
+            RadarrDerived(
+                tags=[],
+                root_folders=[],
+                download_clients=[],
+                remote_path_mappings=[],
+            ),
+            dry_run=False,
+        )

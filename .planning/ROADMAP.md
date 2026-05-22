@@ -70,7 +70,21 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
   3. `tools/arrconf/tests/test_phase10_idempotence_sweep.py::test_sweep_manual_override_path` and any other manual-path-specific tests are removed. The Categories-derived sweep `test_sweep_categories_derived_path` becomes the sole SC#2 dispositive test.
   4. `CLAUDE.md` gets a "v0.3.0 → v0.4.0 deprecation" section documenting the operator-side YAML cleanup procedure (one-time edit before upgrade).
   5. `arrconf apply --dry-run` on the live cluster after the deprecation lands emits the same plan_action shape as immediately before (the Categories-derived path was already exercised in v0.3.0 — this just removes dead code/YAML).
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 1**
+- [x] 12-A-reconciler-refactor-PLAN.md — Remove merge_with_manual, refactor reconciler signatures to accept *Derived dataclasses, co-bump values.yaml 0.6.7→0.7.0 (D-01, D-03, D-04, D-06, D-15)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 12-B-pydantic-yaml-schema-PLAN.md — Slim pydantic Section models, delete 11 flat YAML sections, regen schema, refactor diff_cmd.py (D-01, D-02, D-05, D-13)
+- [x] 12-C-test-cleanup-PLAN.md — Delete 8 manual-path tests, rename test_sweep, rename 8 *_wiring_empty_manual tests, conftest audit (D-06, D-07, D-08, D-09, D-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 12-D-docs-snapshot-PLAN.md — CLAUDE.md v0.3.0→v0.4.0 deprecation section, capture before-phase-12 snapshot (D-11, D-12, D-13, D-14)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 12-E-live-cluster-dispositive-PLAN.md — Post-merge SC#5 dispositive: after-snapshot + diff + HUMAN-UAT + VERIFICATION (D-14, D-16, D-17)
 **UI hint**: no
 
 ### Phase 13: SuggestArr research spike

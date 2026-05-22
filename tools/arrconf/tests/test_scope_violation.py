@@ -20,13 +20,12 @@ import respx
 
 from arrconf.client_base import SonarrClient
 from arrconf.config import (
-    RemotePathMappingsSection,
     SeriesTagsSection,
     SonarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.exceptions import ScopeViolationError
+from arrconf.generators.categories import SonarrDerived
 from arrconf.reconcilers.sonarr import reconcile_sonarr
 from arrconf.resources.radarr import (
     custom_format as radarr_custom_format,
@@ -162,13 +161,23 @@ def test_series_tags_does_not_touch_quality_endpoints(
     )
     respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json={}))
 
+    tv_tag = TagItem(label="tv")
     instance = SonarrInstance(
         base_url=SONARR_BASE,
-        tags=TagsSection(items=[TagItem(label="tv")]),
         series_tags=SeriesTagsSection(enable=True, default_tag="tv"),
     )
     client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[tv_tag],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
 
     # Assert no quality endpoint was called.
     called_paths = [str(c.request.url.path) for c in respx_mock.calls]
@@ -205,11 +214,20 @@ def test_remote_path_mappings_does_not_touch_quality_endpoints(
     )
     instance = SonarrInstance(
         base_url=SONARR_BASE,
-        remote_path_mappings=RemotePathMappingsSection(items=[desired_rpm]),
         series_tags=SeriesTagsSection(enable=False),  # disable to keep focus on RPM
     )
     client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
-    reconcile_sonarr(client, instance, dry_run=False)
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[desired_rpm],
+        ),
+        dry_run=False,
+    )
 
     called_paths = [str(c.request.url.path) for c in respx_mock.calls]
     for quality_path in QUALITY_PATHS:

@@ -342,6 +342,8 @@ def _reconcile_main_settings(
 def reconcile_seerr(
     client: SeerrClient,
     instance: SeerrInstance,
+    anime_tags: list[int],
+    *,
     dry_run: bool,
 ) -> SeerrResult:
     """Reconcile a Seerr instance (Phase 6 — D-06-SCOPE-01).
@@ -350,7 +352,14 @@ def reconcile_seerr(
     settings_sonarr -> settings_radarr -> user -> settings_main.
 
     step_begin log events carry step_index for ordering regression tests.
+
+    ``anime_tags`` carries the resolved Sonarr anime tag integer IDs (D-03, Phase 12-B).
+    The ``animeTags`` field survives on ``SeerrSonarrServiceSection`` — only the YAML
+    declaration is deleted (Phase 12-B: values come from generator resolution, not YAML).
+    The field is populated here before calling _reconcile_settings_sonarr (D-03).
     """
+    instance.sonarr_service.animeTags = anime_tags
+
     actions_taken: list[str] = []
 
     actions_taken += _reconcile_settings_sonarr(client, instance.sonarr_service, dry_run)
