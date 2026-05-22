@@ -3,6 +3,22 @@
 **Gathered:** 2026-05-22
 **Status:** Ready for planning
 
+> **REVISION-2 NOTE** (2026-05-22, post plan-checker review)
+>
+> Plan-checker BLOCKER on revision-1: original plan invented `charts/arr-stack/files/suggestarr-config.yml` mounted as a ConfigMap to deliver `SEER_ANIME_PROFILE_CONFIG` + `JELLYFIN_LIBRARIES`. However, **SuggestArr ignores file-based config at runtime**: it reads `/app/config/config_files/config.yaml` only via its own web UI persistence layer. The original revision-1 ConfigMap was silently overwritten/ignored. Source: 13-RESEARCH.md lines 488 ("No ConfigMap needed for SuggestArr: config persists in the SQLite DB / YAML inside the PVC. The web UI is the configuration interface.") and 492-494 ("SEER_ANIME_PROFILE_CONFIG ... is set via the SuggestArr web UI (Settings → Seer Integration), NOT via environment variables. ... The operator performs this step post-deployment via the web UI").
+>
+> **Research-plan gap resolution**: the original revision-1 misread RESEARCH §"Phase 14 Implementation Guidance" (the implementation guidance section gives the YAML SHAPE of the routing config, but the surrounding paragraphs at lines 488 + 492-494 make explicit that this YAML is entered via the web UI, not shipped as a chart artifact). Revision-2 of Plans 14-02 + 14-03 + this CONTEXT.md is the corrective alignment.
+>
+> **What revision-2 changes**:
+> - Plan 14-02 DELETES the ConfigMap mechanism (no `templates/suggestarr-configmap.yaml`, no `files/suggestarr-config.yml`).
+> - Plan 14-02 Task 2.1 KEEPS the live cluster discovery commands but redirects the output: the captured values land in 4 evidence files under `.planning/phases/14-suggestarr-implementation/evidence/` (including a new `derived-routing-values.md` operator-paste-ready table), NOT in a chart file.
+> - Plan 14-03 NARROWS the integration test scope to chart-side mechanically-verifiable artifacts only (renamed `test_suggestarr_chart_artifacts.py` from `test_suggestarr_routing_config.py`).
+> - Plan 14-03 EXPANDS the 14-HUMAN-UAT.md to include a Scenario 3 web-UI routing-config configuration step (operator pastes from `derived-routing-values.md` into SuggestArr's web UI Settings panels post-deploy). This is now the canonical SC#3 verification (live UAT, not CI).
+> - Decisions D-05, D-06, D-07, D-10 are reworded below to reflect the web-UI mechanism (their semantic intent is unchanged — they still bind SuggestArr's routing to arrconf.yml's Seerr block — but the DELIVERY mechanism is web-UI paste, not ConfigMap).
+> - D-13 ordering rule is unchanged.
+> - D-11 co-bump rule is unchanged.
+
+
 <domain>
 ## Phase Boundary
 
@@ -15,9 +31,9 @@ Concretely:
    - Image pin `ciuse99/suggestarr:v2.7.3` + Renovate annotation `# renovate: image=docker.io/ciuse99/suggestarr` (registry-explicit per existing convention).
    - Per-container env vars (remap `JELLYFIN_API_KEY → JELLYFIN_TOKEN`, `SEERR_API_KEY → SEER_TOKEN`, plus `TMDB_API_KEY` direct from `arrconf-env`).
    - 1 GiB PVC for `/app/config/config_files/` (SQLite + YAML config persistence).
-3. Create `charts/arr-stack/files/suggestarr-config.yml` ConfigMap shipped via a new template (`templates/suggestarr-configmap.yaml` mirroring `arrconf-configmap.yaml` / `configarr-configmap.yaml` patterns) containing `JELLYFIN_LIBRARIES`, `SEER_ANIME_PROFILE_CONFIG`, scan settings.
+3. Discover live cluster values (Jellyfin library ItemIds + Sonarr/Radarr profile IDs + arrconf.yml-sourced rootFolders) and record them in `.planning/phases/14-suggestarr-implementation/evidence/derived-routing-values.md` for operator paste into SuggestArr's web UI post-deploy. **No ConfigMap** is created — SuggestArr reads `/app/config/config_files/config.yaml` via its own web UI persistence layer (see REVISION-2 NOTE above).
 4. Extend my-kluster's `arrconf-env` SealedSecret to add `TMDB_API_KEY` (operator-driven step — single key add, no new SealedSecret).
-5. Integration test that exercises the routing logic.
+5. Integration test (`tools/arrconf/tests/test_suggestarr_chart_artifacts.py`) that asserts chart-side mechanics: env remap, Renovate annotation, no Ingress, alias listed, dep unpacked, helm template renders Deployment + PVC + NO ConfigMap, PVC 1 GiB. Routing-config correctness is validated by operator UAT (Scenario 3 in 14-HUMAN-UAT.md), NOT by CI.
 6. Co-bump rules from CLAUDE.md DO NOT apply (no arrconf Python code touched per Option A pure sidecar).
 
 The Helm unpacked dependency directory `charts/arr-stack/charts/suggestarr/` will be created by `helm dependency build` during CI vendoring (Helm 4 multi-alias workaround per CLAUDE.md). It must be committed to git per `.gitignore` convention.
@@ -94,21 +110,21 @@ curl -sS -H "X-Api-Key: $RADARR_API_KEY" http://localhost:7878/api/v3/qualitypro
 
 - **D-03:** **Default daemon polling.** No `CRON_TIMES` env override. SuggestArr's internal scheduler runs the watch-history scan + suggestion submission loop with its built-in cadence (per upstream: ~1h). Operator can revisit if the cadence proves too aggressive or too slow in production.
 
-- **D-04:** **Scan ALL Jellyfin libraries.** `JELLYFIN_LIBRARIES` config block lists every virtual folder (10 expected: series, series-emilie, series-thomas, series-garcons, series-zoe, films, nouveaux-films, films-enfants, films-animation-enfants, films-zoe). Executor captures the ItemIds during plan execution (per `canonical_refs` discovery command Q3) and writes them into `suggestarr-config.yml`. The anime/default routing handles the per-bucket tri downstream.
+- **D-04 (revision-2):** **Scan ALL Jellyfin libraries.** `JELLYFIN_LIBRARIES` config block lists every virtual folder (10 expected: series, series-emilie, series-thomas, series-garcons, series-zoe, films, nouveaux-films, films-enfants, films-animation-enfants, films-zoe). Executor captures the ItemIds during plan execution (per `canonical_refs` discovery command Q3) and records them into `.planning/phases/14-suggestarr-implementation/evidence/derived-routing-values.md` (Plan 02 Task 2.1 output) for the operator to paste into the SuggestArr web UI (Settings → Jellyfin → Libraries) POST-DEPLOY. No ConfigMap delivery mechanism (per 13-RESEARCH line 488). The anime/default routing handles the per-bucket tri downstream.
 
 ### Profile bindings (resolves anime/default routing)
 
-- **D-05:** **`SEER_ANIME_PROFILE_CONFIG.anime_tv.profileId` reuses `arrconf.yml::seerr.main.sonarr_service.activeAnimeProfileId`.** Same source of truth as Seerr's anime routing already-wired in Phase 6/10. If the operator later changes the anime profile in arrconf.yml, they must also update `suggestarr-config.yml` (single-tenant manual sync is acceptable per CONTEXT D-13 of Phase 12).
+- **D-05 (revision-2):** **`SEER_ANIME_PROFILE_CONFIG.anime_tv.profileId` is DERIVED from `arrconf.yml::seerr.main.sonarr_service.activeAnimeProfileId` + RECORDED in `.planning/phases/14-suggestarr-implementation/evidence/derived-routing-values.md` (Plan 02 Task 2.1 output) + ENTERED MANUALLY by the operator via the SuggestArr web UI (Settings → Seer Integration → Profile Config) POST-DEPLOY.** No ConfigMap delivery mechanism (per 13-RESEARCH line 488). Same source-of-truth as Seerr's anime routing already-wired in Phase 6/10. If the operator later changes the anime profile in arrconf.yml, they MUST also update SuggestArr's web UI manually (single-tenant manual sync — same drift posture as Phase 6/10).
 
-- **D-06:** **`SEER_ANIME_PROFILE_CONFIG.default_tv.profileId` reuses `arrconf.yml::seerr.main.sonarr_service.activeProfileId`** (Sonarr default series profile). Same for `default_movie.profileId` ← `arrconf.yml::seerr.main.radarr_service.activeProfileId` (Radarr default movies profile).
+- **D-06 (revision-2):** **`SEER_ANIME_PROFILE_CONFIG.default_tv.profileId` is DERIVED from `arrconf.yml::seerr.main.sonarr_service.activeProfileId` (Sonarr default series profile); `default_movie.profileId` ← `arrconf.yml::seerr.main.radarr_service.activeProfileId` (Radarr default movies profile). Both values are RECORDED in `evidence/derived-routing-values.md` and ENTERED MANUALLY by the operator via the SuggestArr web UI POST-DEPLOY.** No ConfigMap delivery mechanism.
 
-- **D-07:** **Anime/default `rootFolder` values are sourced from arrconf.yml's Seerr block too**:
+- **D-07 (revision-2):** **Anime/default `rootFolder` values are DERIVED from arrconf.yml's Seerr block + RECORDED in `evidence/derived-routing-values.md` + ENTERED MANUALLY via the SuggestArr web UI POST-DEPLOY.** No ConfigMap delivery mechanism.
   - `anime_tv.rootFolder` ← `seerr.main.sonarr_service.activeAnimeDirectory` (e.g., `/media/series-zoe`)
   - `default_tv.rootFolder` ← `seerr.main.sonarr_service.activeDirectory` (e.g., `/media/series`)
-  - `anime_movie.rootFolder` ← `seerr.main.radarr_service.activeAnimeDirectory` (e.g., `/media/films-zoe`)
+  - `anime_movie.rootFolder` ← `seerr.main.radarr_service.activeAnimeDirectory` (e.g., `/media/films-zoe`) **— ABSENT in current arrconf.yml; deviation: derive from `categories[]` where `kind=movies AND profile=anime` (→ `/media/films-zoe`) and record that derivation in `derived-routing-values.md`. Document as a Phase-14 deviation in 14-02-SUMMARY.md.**
   - `default_movie.rootFolder` ← `seerr.main.radarr_service.activeDirectory` (e.g., `/media/films`)
 
-  Executor verifies all 4 fields exist in arrconf.yml at plan-execution time and pastes the literal values into `suggestarr-config.yml`. If any field is missing (e.g., `activeAnimeDirectory` only exists on sonarr_service per current arrconf shape), the plan flags it as a Phase-14 deviation candidate.
+  Plan 02 Task 2.1 verifies all 4 fields at plan-execution time. If any field is missing on `arrconf.yml::seerr.main.{sonarr,radarr}_service`, the executor flags it inline in `derived-routing-values.md` (operator sees the flag at UAT time and either updates arrconf.yml first or proceeds with the documented derivation).
 
 ### Family routing limitation (resolves PREFLIGHT family-bucket question)
 
@@ -118,28 +134,32 @@ curl -sS -H "X-Api-Key: $RADARR_API_KEY" http://localhost:7878/api/v3/qualitypro
 
 - **D-09:** **Registry-explicit annotation**: `# renovate: image=docker.io/ciuse99/suggestarr` above the SuggestArr image block in `values.yaml`. Matches the established convention (existing annotations use `lscr.io/...` or `ghcr.io/...` registry prefixes). Renovate's `helm-values` manager handles Docker Hub via the explicit `docker.io/` prefix. The planner verifies this works on first Renovate run (post-deploy artifact).
 
-### Integration test scope (SC#3)
+### Integration test scope (SC#3) — REVISION-2 NARROWED
 
-- **D-10:** **Automated pytest integration test** — operator chose the heavier of UAT-vs-automated. **Scope constraint** (Claude's discretion below): the test focuses on the **routing-config translation layer**, not on the SuggestArr daemon's behavior. Concretely:
-  - The test imports `charts/arr-stack/files/suggestarr-config.yml` + reads `charts/arr-stack/files/arrconf.yml`.
-  - Asserts the 4 `SEER_ANIME_PROFILE_CONFIG.{anime_tv,anime_movie,default_tv,default_movie}.profileId` values in suggestarr-config.yml MATCH the corresponding fields in arrconf.yml (`activeAnimeProfileId`, etc.).
-  - Asserts the 4 `rootFolder` paths match too.
-  - Asserts `JELLYFIN_LIBRARIES` lists every category from `arrconf.yml::categories[].name` (10 entries).
-  - Asserts the SealedSecret keys referenced in `values.yaml::suggestarr.env[*].secretKeyRef` exist in `arrconf-env`'s expected key set (`{SONARR_API_KEY, RADARR_API_KEY, PROWLARR_API_KEY, QBT_USER, QBT_PASS, SEERR_API_KEY, JELLYFIN_API_KEY, TMDB_API_KEY}`).
+- **D-10 (revision-2):** **Automated pytest integration test scoped to chart-side mechanically-verifiable artifacts ONLY.** Per revision-2 (resolving plan-checker BLOCKER 2 — the original revision-1 test asserted against a `suggestarr-config.yml` that no longer exists), the test scope is narrowed to:
+  - (a) **D-01 env remap correctness** in `values.yaml` (assert the `secretKeyRef` mappings: `JELLYFIN_API_KEY→JELLYFIN_TOKEN`, `SEERR_API_KEY→SEER_TOKEN`, `TMDB_API_KEY→TMDB_API_KEY`).
+  - (b) **D-09 Renovate annotation** present + correct format (`# renovate: image=docker.io/ciuse99/suggestarr`).
+  - (c) **D-14 NO ingress block** in `suggestarr:` values.
+  - (d) **SuggestArr alias listed** in `charts/arr-stack/Chart.yaml` dependencies (Plan 01 deliverable).
+  - (e) **`charts/arr-stack/charts/suggestarr/Chart.yaml` exists** (Plan 01 unpacked dependency).
+  - (f) **`helm template charts/arr-stack/` emits** a Deployment + Service + PVC for SuggestArr **AND does NOT emit a ConfigMap named `suggestarr-config`** (revision-2 negative assertion).
+  - (g) **PVC declared with 1Gi capacity**.
 
-  This is mockable, fast, runs in CI, and tests THE actual contract that determines whether routing works. The "did SuggestArr actually submit a routed request to Seerr" check is in 14-HUMAN-UAT.md as operator-driven post-deploy verification (NOT a CI-blocking criterion).
+  The test does **NOT** assert on `SEER_ANIME_PROFILE_CONFIG` / `JELLYFIN_LIBRARIES` contents (those values are operator-entered via the web UI post-deploy per 13-RESEARCH lines 488/492-494; there is no chart artifact to test). The SC#3 end-to-end routing verification moves to **14-HUMAN-UAT.md Scenario 3** (live operator UAT — only a live cluster with a configured SuggestArr can prove routing works).
 
-  The lives-in-`tools/arrconf/tests/` per existing test directory convention. Filename: `test_suggestarr_routing_config.py`.
+  This is mockable, fast, runs in CI, and tests the chart-side mechanics that the chart owns. The "did SuggestArr actually submit a routed request to Seerr with the correct rootFolder" check is in 14-HUMAN-UAT.md Scenario 3 as operator-driven post-deploy verification (NOT a CI-blocking criterion).
+
+  Lives in `tools/arrconf/tests/` per existing test directory convention. **Filename (revision-2 rename): `test_suggestarr_chart_artifacts.py`** (replaces the revision-1 name `test_suggestarr_routing_config.py`).
 
 ### Co-bump rules
 
-- **D-11:** **NO `arrconf.image.tag` co-bump.** Per CLAUDE.md "Release pin co-bump pattern", co-bump applies when modifying `tools/arrconf/**`. Phase 14 is pure-chart (Helm sidecar + ConfigMap + values.yaml) — zero Python touch. The integration test goes under `tools/arrconf/tests/` BUT it's a test-only addition that does NOT exercise the arrconf runtime (it grep/parses YAML files). Per CLAUDE.md exception note, test-only changes under `tools/arrconf/**` MAY still trigger CI test runs but DO NOT require co-bump. Confirm with the planner.
+- **D-11:** **NO `arrconf.image.tag` co-bump.** Per CLAUDE.md "Release pin co-bump pattern", co-bump applies when modifying `tools/arrconf/**`. Phase 14 is pure-chart (Helm sidecar + values.yaml; revision-2 deleted the original ConfigMap mechanism per 13-RESEARCH line 488) — zero Python touch. The integration test goes under `tools/arrconf/tests/` BUT it's a test-only addition that does NOT exercise the arrconf runtime (it grep/parses YAML files). Per CLAUDE.md exception note, test-only changes under `tools/arrconf/**` MAY still trigger CI test runs but DO NOT require co-bump. Confirm with the planner.
 
   If the planner finds genuine Python touch (e.g., the test needs a fixture or helper that lives outside `tests/`), THEN co-bump applies and image bumps to `0.7.1` (patch) or `0.8.0` (minor — feature add).
 
 ### Rollout
 
-- **D-12:** **Single atomic PR.** All-in-one: `Chart.yaml` alias add + `values.yaml` SuggestArr block + new `templates/suggestarr-configmap.yaml` + new `files/suggestarr-config.yml` + unpacked `charts/arr-stack/charts/suggestarr/` Helm dep vendor + `tools/arrconf/tests/test_suggestarr_routing_config.py`. ArgoCD picks up everything on one sync. Matches Phase 12 D-15 atomic-PR pattern.
+- **D-12:** **Single atomic PR.** All-in-one (revision-2 final shape): `Chart.yaml` alias add + `values.yaml` SuggestArr block + unpacked `charts/arr-stack/charts/suggestarr/` Helm dep vendor + `tools/arrconf/tests/test_suggestarr_chart_artifacts.py` + `.planning/phases/14-suggestarr-implementation/evidence/*` (4 files) + `.planning/phases/14-suggestarr-implementation/14-HUMAN-UAT.md`. No ConfigMap, no chart `files/` ConfigMap source — routing config is operator-pasted into SuggestArr's web UI post-deploy per the REVISION-2 NOTE. ArgoCD picks up everything on one sync. Matches Phase 12 D-15 atomic-PR pattern.
 
 - **D-13:** **my-kluster SealedSecret update is SEPARATE PR**, operator-driven (cryptographic re-seal happens in my-kluster repo). Phase 14's plan documents the SealedSecret update procedure in 14-HUMAN-UAT.md but does NOT include the my-kluster PR. **Ordering rule:** my-kluster `TMDB_API_KEY` add merges FIRST (so the secret exists when the new pod tries to mount it). Then arr-stack PR merges and Renovate proposes the `targetRevision` bump.
 

@@ -113,7 +113,17 @@ Plans:
   3. Categories-aware routing: a SuggestArr-emitted anime suggestion creates a Seerr request that lands on the `series-zoe` Sonarr category (anime profile); a family suggestion lands on `series-garcons`. Integration test or live UAT confirms.
   4. ArgoCD sync of the chart with SuggestArr enabled succeeds without manual intervention.
   5. Per-Phase chart-pin co-bump if arrconf code touched (per D-05 — applies if reconciler path chosen; not if sidecar-only).
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+**Wave 1**
+- [ ] 14-01-PLAN.md — Helm chart vendoring: add suggestarr alias to Chart.yaml + helm dependency build + unpack workaround (D-12)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 14-02-PLAN.md — values.yaml suggestarr block + ConfigMap template + files/suggestarr-config.yml (live-cluster discovery checkpoint for Jellyfin ItemIds + Sonarr/Radarr profileIds) (D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-14)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 14-03-PLAN.md — Integration test test_suggestarr_routing_config.py + 14-HUMAN-UAT.md operator runbook (D-02, D-10, D-11, D-13)
 **UI hint**: no
 
 ### Phase 15: Local config UI
