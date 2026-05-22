@@ -83,7 +83,7 @@ def _build_cfg() -> RootConfig:
     return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
 
 
-def test_jellyfin_libraries_wiring_empty_manual() -> None:
+def test_jellyfin_libraries_wiring() -> None:
     """5+5 -> 2 libraries with 5 paths each."""
     cfg = _build_cfg()
     generated = generate_jellyfin_libraries(cfg)
