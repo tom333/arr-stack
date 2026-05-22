@@ -525,3 +525,93 @@ configarr:
       existingClaim: configarr-cache
       globalMounts:
         - path: /app/repos
+
+# Wave 2 (Plan 14-02) — SuggestArr Helm sidecar (D-01..D-14 from .planning/phases/14-suggestarr-implementation/14-CONTEXT.md)
+# Routing config (SEER_ANIME_PROFILE_CONFIG + JELLYFIN_LIBRARIES) is NOT shipped via ConfigMap —
+# per 13-RESEARCH lines 488 + 492-494, SuggestArr's config persists in its PVC-backed SQLite + YAML
+# and is configured via the web UI POST-DEPLOY. See 14-HUMAN-UAT.md Scenario 3 for the operator step-by-step.
+suggestarr:
+  global:
+    nameOverride: suggestarr
+    fullnameOverride: suggestarr
+  serviceAccount:
+    suggestarr: {}
+  controllers:
+    main:
+      type: deployment   # SuggestArr is a daemon per 13-RESEARCH §Architecture Decision (Option C CronJob is non-viable)
+      replicas: 1
+      containers:
+        main:
+          image:
+            # renovate: image=docker.io/ciuse99/suggestarr
+            repository: ciuse99/suggestarr
+            tag: "v2.7.3"  # Re-pin if Phase 14 kickoff is after 2026-06-22 per 13-RESEARCH §Metadata "Valid until"
+            pullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: "Europe/Paris"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: SUGGESTARR_PORT
+              value: "5000"
+            # D-01 per-container env remap — arrconf-env keys are reused under SuggestArr's expected names
+            - name: JELLYFIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: arrconf-env
+                  key: JELLYFIN_API_KEY
+            - name: SEER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: arrconf-env
+                  key: SEERR_API_KEY
+            - name: TMDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arrconf-env
+                  key: TMDB_API_KEY   # D-02: operator adds this key to arrconf-env in my-kluster SealedSecret (separate PR per D-13) BEFORE arr-stack PR merges
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /api/health/live
+                  port: 5000
+                initialDelaySeconds: 30
+                periodSeconds: 30
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /api/health/ready
+                  port: 5000
+                initialDelaySeconds: 30
+                periodSeconds: 30
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 5000
+  # D-14: NO ingress block — web UI stays cluster-internal-only.
+  #       The operator accesses the web UI via `kubectl -n selfhost port-forward svc/suggestarr 5000:5000`
+  #       to perform the post-deploy SEER_ANIME_PROFILE_CONFIG + JELLYFIN_LIBRARIES configuration
+  #       per 14-HUMAN-UAT.md Scenario 3.
+  persistence:
+    # 1Gi PVC for SQLite + YAML config persistence per 13-RESEARCH §Phase 14 Implementation Guidance.
+    # This is the ONLY place SuggestArr's routing config lives — there is NO ConfigMap-shipped routing file.
+    config:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      globalMounts:
+        - path: /app/config/config_files
