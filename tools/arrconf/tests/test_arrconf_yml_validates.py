@@ -42,6 +42,11 @@ def test_files_exist() -> None:
 
 
 def test_arrconf_yml_validates_against_pydantic() -> None:
+    """Phase 12-B (D-01): generator outputs derive from categories[], NOT from
+    deleted flat sections. Production arrconf.yml has 10 categories — 5 series-kind
+    + 5 movies-kind — so generators produce 10 qbit categories, 5 sonarr tags,
+    5 radarr tags, and so on per side.
+    """
     cfg = load_config(ARRCONF_YML)
     assert isinstance(cfg, RootConfig)
     # qbittorrent.main must exist; categories come from generator (Phase 12-B)
@@ -49,48 +54,38 @@ def test_arrconf_yml_validates_against_pydantic() -> None:
     qbt_categories = generate_qbit_categories(cfg)
     cat_names = {c.name for c in qbt_categories}
     expected_cats = {
-        "sonarr-tv",
-        "sonarr-anime",
-        "sonarr-family",
-        "radarr-movies",
-        "radarr-anime",
-        "radarr-family",
+        "series",
+        "series-emilie",
+        "series-thomas",
+        "series-garcons",
+        "series-zoe",
+        "films",
+        "nouveaux-films",
+        "films-enfants",
+        "films-animation-enfants",
+        "films-zoe",
     }
     assert cat_names == expected_cats, f"qBit categories mismatch: {cat_names}"
-    # Sonarr.main: generator-derived 3 tags, 3 root folders, 3 download clients, 4 RPMs, series_tags
+    # Sonarr.main: generator-derived from 5 series categories
     assert "main" in cfg.sonarr, "sonarr.main not declared"
     sonarr = cfg.sonarr["main"]
     sonarr_derived = generate_sonarr_resources(cfg)
-    n_sonarr_tags = len(sonarr_derived.tags)
-    assert n_sonarr_tags == 3, f"sonarr tags count: {n_sonarr_tags}"
-    n_sonarr_rf = len(sonarr_derived.root_folders)
-    assert n_sonarr_rf == 3, f"sonarr root_folders: {n_sonarr_rf}"
-    n_sonarr_dc = len(sonarr_derived.download_clients)
-    assert n_sonarr_dc == 3, f"sonarr DCs: {n_sonarr_dc}"
-    n_sonarr_rpm = len(sonarr_derived.remote_path_mappings)
-    assert n_sonarr_rpm == 4, f"sonarr RPMs: {n_sonarr_rpm}"
+    series_names = {c.name for c in cfg.categories if c.kind == "series"}
+    assert {t.label for t in sonarr_derived.tags} == series_names
+    assert len(sonarr_derived.root_folders) == 5
+    assert len(sonarr_derived.download_clients) == 5
+    assert len(sonarr_derived.remote_path_mappings) == 5
     assert sonarr.series_tags.default_tag == "tv", "series_tags.default_tag != tv"
-    # Radarr.main: generator-derived 3 tags, 3 root folders, 3 download clients, 4 RPMs, movie_tags
+    # Radarr.main: generator-derived from 5 movies categories
     assert "main" in cfg.radarr, "radarr.main not declared"
     radarr = cfg.radarr["main"]
     radarr_derived = generate_radarr_resources(cfg)
-    n_radarr_tags = len(radarr_derived.tags)
-    assert n_radarr_tags == 3, f"radarr tags count: {n_radarr_tags}"
-    n_radarr_rf = len(radarr_derived.root_folders)
-    assert n_radarr_rf == 3, f"radarr root_folders: {n_radarr_rf}"
-    n_radarr_dc = len(radarr_derived.download_clients)
-    assert n_radarr_dc == 3, f"radarr DCs: {n_radarr_dc}"
-    n_radarr_rpm = len(radarr_derived.remote_path_mappings)
-    assert n_radarr_rpm == 4, f"radarr RPMs: {n_radarr_rpm}"
+    movies_names = {c.name for c in cfg.categories if c.kind == "movies"}
+    assert {t.label for t in radarr_derived.tags} == movies_names
+    assert len(radarr_derived.root_folders) == 5
+    assert len(radarr_derived.download_clients) == 5
+    assert len(radarr_derived.remote_path_mappings) == 5
     assert radarr.movie_tags.default_tag == "movies", "movie_tags.default_tag != movies"
-    # Sonarr tag labels: tv, anime, family
-    sonarr_tag_labels = {t.label for t in sonarr_derived.tags}
-    assert sonarr_tag_labels == {"tv", "anime", "family"}, f"sonarr tag labels: {sonarr_tag_labels}"
-    # Radarr tag labels: movies, anime, family (D-05-SPLIT-02)
-    radarr_tag_labels = {t.label for t in radarr_derived.tags}
-    assert radarr_tag_labels == {"movies", "anime", "family"}, (
-        f"radarr tag labels: {radarr_tag_labels}"
-    )
 
 
 def test_arrconf_yml_validates_against_json_schema() -> None:
@@ -104,12 +99,13 @@ def test_arrconf_yml_validates_against_json_schema() -> None:
 
 
 def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
+    """Phase 12-B (D-01): 10 RPMs total (5 series + 5 movies), one per category."""
     cfg = load_config(ARRCONF_YML)
     sonarr_rpms = generate_sonarr_resources(cfg).remote_path_mappings
     radarr_rpms = generate_radarr_resources(cfg).remote_path_mappings
     all_rpms = list(sonarr_rpms) + list(radarr_rpms)
     n_rpms = len(all_rpms)
-    assert n_rpms == 8, f"Expected 8 RPMs total (4+4), got {n_rpms}"
+    assert n_rpms == 10, f"Expected 10 RPMs total (5+5), got {n_rpms}"
     for rpm in all_rpms:
         assert rpm.remotePath.endswith("/"), (
             f"Pitfall 6 violation: remotePath {rpm.remotePath!r} does not end with '/'"
@@ -119,13 +115,15 @@ def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
         )
 
 
-def test_arrconf_yml_radarr_movies_category_uses_films_path() -> None:
+def test_arrconf_yml_films_category_uses_data_torrents_films() -> None:
+    """D-05-PATHS-01 spirit: the canonical movies-bucket category ('films') maps
+    to /data/torrents/films. Phase 12-B (D-01): generator now emits paths keyed
+    on category names (not v0.2.0 'radarr-movies')."""
     cfg = load_config(ARRCONF_YML)
     cats = {c.name: c.savePath for c in generate_qbit_categories(cfg)}
-    assert "radarr-movies" in cats, "radarr-movies category not declared"
-    assert cats["radarr-movies"] == "/data/films", (
-        f"D-05-PATHS-01 violation: radarr-movies savePath is {cats['radarr-movies']!r}, "
-        "expected '/data/films' (not '/data/movies')"
+    assert "films" in cats, "films category not declared"
+    assert cats["films"] == "/data/torrents/films", (
+        f"films savePath is {cats['films']!r}, expected '/data/torrents/films'"
     )
 
 

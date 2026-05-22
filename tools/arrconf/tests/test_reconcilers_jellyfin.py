@@ -341,9 +341,7 @@ def test_libraries_path_idempotent_pitfall2(
             paths=["/media/series", "/media/anime"],
         ),
     ]
-    instance = _make_instance(
-        libraries=JellyfinLibrariesSection(enable=True)
-    )
+    instance = _make_instance(libraries=JellyfinLibrariesSection(enable=True))
     client = _make_client()
 
     add_path_route = respx_mock.post(url__regex=r"/Library/VirtualFolders/Paths").mock(
@@ -403,9 +401,7 @@ def test_libraries_set_membership_uses_pathinfos_not_locations_pitfall8(
     libs_desired = [
         JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/anime"])
     ]
-    instance = _make_instance(
-        libraries=JellyfinLibrariesSection(enable=True)
-    )
+    instance = _make_instance(libraries=JellyfinLibrariesSection(enable=True))
     client = _make_client()
 
     add_path_route = respx_mock.post(url__regex=r"/Library/VirtualFolders/Paths").mock(

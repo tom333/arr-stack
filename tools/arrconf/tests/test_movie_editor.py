@@ -422,11 +422,12 @@ def test_movie_editor_skipped_when_section_disabled(
         movie_tags=MovieTagsSection(enable=False),
     )
     client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    # Empty Derived — test focuses on movie_editor gate, not tag/RF/DC reconciliation.
     reconcile_radarr(
         client,
         instance,
         RadarrDerived(
-            tags=[TagItem(label="movies")],
+            tags=[],
             root_folders=[],
             download_clients=[],
             remote_path_mappings=[],

@@ -72,15 +72,8 @@
     },
     "CategoriesSection": {
       "additionalProperties": false,
-      "description": "List of qBittorrent categories with opt-in prune.\n\nNEVER set prune=True in production \u2014 cleanuparr depends on the\n'cleanuparr-unlinked' category surviving reconciliation (R-04 in RESEARCH.md).",
+      "description": "qBittorrent categories section \u2014 prune only. Entries derived from categories (Phase 12).\n\nNEVER set prune=True in production \u2014 cleanuparr depends on the\n'cleanuparr-unlinked' category surviving reconciliation (R-04 in RESEARCH.md).",
       "properties": {
-        "items": {
-          "items": {
-            "$ref": "#/$defs/arrconf__resources__qbittorrent__category__Category"
-          },
-          "title": "Items",
-          "type": "array"
-        },
         "prune": {
           "default": false,
           "description": "Opt-in deletion of unmanaged categories (D-04). NEVER set true \u2014 cleanuparr depends on cleanuparr-unlinked (R-04).",
@@ -89,6 +82,56 @@
         }
       },
       "title": "CategoriesSection",
+      "type": "object"
+    },
+    "Category": {
+      "additionalProperties": false,
+      "description": "A single Category \u2014 declarative input for Phase 10's 6-app propagation.\n\nMatch key: ``name`` (kebab-case slug, stable across reconcile runs).\nD-04 invariant: ``base_path`` MUST equal ``f\"/media/{name}\"``.",
+      "properties": {
+        "base_path": {
+          "description": "Absolute path under /media \u2014 MUST be /media/{name} (D-04).",
+          "title": "Base Path",
+          "type": "string"
+        },
+        "display": {
+          "description": "Title Case human label (e.g. 'S\u00e9ries - \u00c9milie').",
+          "title": "Display",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Media kind \u2014 drives Sonarr vs Radarr propagation.",
+          "enum": [
+            "movies",
+            "series"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "description": "Kebab-case slug (e.g. 'series-emilie'). Stable match key.",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "profile": {
+          "description": "Quality profile group \u2014 drives configarr profile selection (Phase 10) and Seerr animeTags routing for profile=anime.",
+          "enum": [
+            "general",
+            "anime",
+            "family"
+          ],
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "profile",
+        "display",
+        "base_path"
+      ],
+      "title": "Category",
       "type": "object"
     },
     "ContentRoutingRule": {
@@ -168,166 +211,10 @@
       "title": "DefaultQuotas",
       "type": "object"
     },
-    "DownloadClient": {
-      "additionalProperties": true,
-      "description": "A Sonarr download client (qBittorrent, Transmission, ...).\n\nMatched by ``name`` (D-20). Read-only fields excluded from diff (D-21).\nUses ``extra=\"allow\"`` for forward-compat with future Sonarr versions\n(Phase 1 simplification \u2014 Pitfall 4 trade-off documented in RESEARCH.md).",
-      "properties": {
-        "configContract": {
-          "description": "Sonarr config contract (e.g., 'QBittorrentSettings'). Must match implementation.",
-          "title": "Configcontract",
-          "type": "string"
-        },
-        "enable": {
-          "default": true,
-          "description": "Enable this download client.",
-          "title": "Enable",
-          "type": "boolean"
-        },
-        "fields": {
-          "description": "Implementation-specific settings (host, port, category, ...).",
-          "items": {
-            "$ref": "#/$defs/FieldKV"
-          },
-          "title": "Fields",
-          "type": "array"
-        },
-        "id": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Id"
-        },
-        "implementation": {
-          "description": "Sonarr implementation class (e.g., 'QBittorrent', 'Transmission').",
-          "title": "Implementation",
-          "type": "string"
-        },
-        "implementationName": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Implementationname"
-        },
-        "infoLink": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Infolink"
-        },
-        "message": {
-          "anyOf": [
-            {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Message"
-        },
-        "name": {
-          "description": "Display name (matching key, must be unique).",
-          "title": "Name",
-          "type": "string"
-        },
-        "presets": {
-          "anyOf": [
-            {
-              "items": {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Presets"
-        },
-        "priority": {
-          "default": 1,
-          "description": "Lower = preferred when multiple clients match.",
-          "title": "Priority",
-          "type": "integer"
-        },
-        "protocol": {
-          "description": "Download protocol \u2014 must match implementation.",
-          "enum": [
-            "torrent",
-            "usenet"
-          ],
-          "title": "Protocol",
-          "type": "string"
-        },
-        "removeCompletedDownloads": {
-          "default": true,
-          "title": "Removecompleteddownloads",
-          "type": "boolean"
-        },
-        "removeFailedDownloads": {
-          "default": true,
-          "title": "Removefaileddownloads",
-          "type": "boolean"
-        },
-        "tag_labels": {
-          "description": "Human-readable tag labels (e.g. ['tv', 'anime']). The reconciler resolves these to integer IDs in instance.tags after the tags-reconcile step (D-05-ORDER-01). Excluded from API diff/dump \u2014 never sent to Sonarr.",
-          "items": {
-            "type": "string"
-          },
-          "title": "Tag Labels",
-          "type": "array"
-        },
-        "tags": {
-          "description": "Tag IDs \u2014 set by the reconciler after label\u2192id resolution.",
-          "items": {
-            "type": "integer"
-          },
-          "title": "Tags",
-          "type": "array"
-        }
-      },
-      "required": [
-        "name",
-        "protocol",
-        "implementation",
-        "configContract"
-      ],
-      "title": "DownloadClient",
-      "type": "object"
-    },
     "DownloadClientsSection": {
       "additionalProperties": false,
-      "description": "A list of download_clients with opt-in prune (D-04).",
+      "description": "Download clients section \u2014 prune only (D-04). Items derived from categories (Phase 12).",
       "properties": {
-        "items": {
-          "items": {
-            "$ref": "#/$defs/DownloadClient"
-          },
-          "title": "Items",
-          "type": "array"
-        },
         "prune": {
           "default": false,
           "description": "Opt-in deletion of unmanaged resources (D-04).",
@@ -702,21 +589,13 @@
     },
     "JellyfinLibrariesSection": {
       "additionalProperties": false,
-      "description": "Jellyfin libraries reconciliation (D-07-LIB-01: 2 libraries multi-path merge).\n\nScope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions\nsub-fields stay operator-managed.\n\nprune: FALSE hardcoded \u2014 D-07-LIB-01 explicitly disallows automatic DELETE\nof paths from cluster libraries (Pitfall 3 \u2014 DELETE removes ALL matching\nentries; reconciler refuses to ever DELETE in Phase 7).",
+      "description": "Jellyfin libraries section \u2014 enable + prune (D-07-LIB-01); items derived from categories.\n\nScope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions\nsub-fields stay operator-managed.\n\nprune: FALSE hardcoded \u2014 D-07-LIB-01 explicitly disallows automatic DELETE\nof paths from cluster libraries (Pitfall 3 \u2014 DELETE removes ALL matching\nentries; reconciler refuses to ever DELETE in Phase 7).",
       "properties": {
         "enable": {
           "default": true,
           "description": "Opt-in default-ON for the 2 merged libraries.",
           "title": "Enable",
           "type": "boolean"
-        },
-        "items": {
-          "description": "List of libraries to reconcile. Phase 7 D-07-LIB-01: exactly 2 entries (S\u00e9ries + Films).",
-          "items": {
-            "$ref": "#/$defs/JellyfinLibrary"
-          },
-          "title": "Items",
-          "type": "array"
         },
         "prune": {
           "default": false,
@@ -726,33 +605,6 @@
         }
       },
       "title": "JellyfinLibrariesSection",
-      "type": "object"
-    },
-    "JellyfinLibrary": {
-      "additionalProperties": true,
-      "description": "Jellyfin VirtualFolder library (D-07-LIB-02 scope: name + collection_type + paths).\n\nReconciliation: GET /Library/VirtualFolders, match by Name, ADD missing\npaths via POST /Library/VirtualFolders/Paths with body {Name, Path, PathInfo: {Path}}.\nPitfall 2 mitigation (set-membership skip) happens reconciler-side in Plan 07-04.",
-      "properties": {
-        "collection_type": {
-          "title": "Collection Type",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "paths": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Paths",
-          "type": "array"
-        }
-      },
-      "required": [
-        "name",
-        "collection_type"
-      ],
-      "title": "JellyfinLibrary",
       "type": "object"
     },
     "JellyfinPluginsSection": {
@@ -1455,57 +1307,10 @@
       "title": "RadarrInstance",
       "type": "object"
     },
-    "RemotePathMapping": {
-      "additionalProperties": true,
-      "description": "A *arr Remote Path Mapping (GET /api/v3/remotepathmapping).\n\nPitfall 6 (RESEARCH.md line 872): both remotePath AND localPath\nMUST end with '/'. Sonarr does literal prefix-replacement; without\nthe trailing slash the import-time path translation silently fails.\nThe reconciler's smoke test enforces this invariant.",
-      "properties": {
-        "host": {
-          "description": "Download client host (must match download_client.host).",
-          "title": "Host",
-          "type": "string"
-        },
-        "id": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Id"
-        },
-        "localPath": {
-          "description": "*arr-side path; MUST end with '/'.",
-          "title": "Localpath",
-          "type": "string"
-        },
-        "remotePath": {
-          "description": "qBit-side path; MUST end with '/'.",
-          "title": "Remotepath",
-          "type": "string"
-        }
-      },
-      "required": [
-        "host",
-        "remotePath",
-        "localPath"
-      ],
-      "title": "RemotePathMapping",
-      "type": "object"
-    },
     "RemotePathMappingsSection": {
       "additionalProperties": false,
-      "description": "List of *arr Remote Path Mappings with opt-in prune (D-05-PATHMAP-01).\n\nMatch key is the composite tuple (host, remotePath) \u2014 changes are DELETE+ADD\n(no PUT endpoint on the *arr API, Pitfall 1).",
+      "description": "Remote path mappings \u2014 prune only (D-05-PATHMAP-01); items derived from categories.\n\nMatch key is the composite tuple (host, remotePath) \u2014 changes are DELETE+ADD\n(no PUT endpoint on the *arr API, Pitfall 1).",
       "properties": {
-        "items": {
-          "items": {
-            "$ref": "#/$defs/RemotePathMapping"
-          },
-          "title": "Items",
-          "type": "array"
-        },
         "prune": {
           "default": false,
           "description": "Opt-in deletion of unmanaged path mappings (D-04).",
@@ -1516,82 +1321,10 @@
       "title": "RemotePathMappingsSection",
       "type": "object"
     },
-    "RootFolder": {
-      "additionalProperties": true,
-      "description": "A Sonarr/Radarr root folder. ``path`` is the stable identity (D-03-01).",
-      "properties": {
-        "accessible": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Accessible"
-        },
-        "freeSpace": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Freespace"
-        },
-        "id": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Id"
-        },
-        "path": {
-          "description": "Filesystem path (match key for reconcile()).",
-          "title": "Path",
-          "type": "string"
-        },
-        "unmappedFolders": {
-          "anyOf": [
-            {
-              "items": {},
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Unmappedfolders"
-        }
-      },
-      "required": [
-        "path"
-      ],
-      "title": "RootFolder",
-      "type": "object"
-    },
     "RootFoldersSection": {
       "additionalProperties": false,
-      "description": "A list of root folders with opt-in prune (D-04).\n\nSonarr/Radarr have NO PUT endpoint for root folders \u2014 path changes produce\nDELETE + ADD via the differ (RESEARCH.md Pitfall 1).",
+      "description": "Root folders section \u2014 prune only (D-04). Paths derived from categories (Phase 12).\n\nSonarr/Radarr have NO PUT endpoint for root folders \u2014 path changes produce\nDELETE + ADD via the differ (RESEARCH.md Pitfall 1).",
       "properties": {
-        "items": {
-          "items": {
-            "$ref": "#/$defs/RootFolder"
-          },
-          "title": "Items",
-          "type": "array"
-        },
         "prune": {
           "default": false,
           "description": "Opt-in prune (D-04).",
@@ -2213,33 +1946,10 @@
       "title": "SonarrInstance",
       "type": "object"
     },
-    "TagItem": {
-      "additionalProperties": false,
-      "description": "A single Sonarr/Radarr tag declared in YAML (Phase 5, D-05-SPLIT-01).\n\nMinimal model: only ``label`` is needed for match + create. The server-\nderived ``id`` lives on the ``Tag`` resource model in resources/sonarr/tag.py.",
-      "properties": {
-        "label": {
-          "description": "Tag label (e.g. 'tv', 'anime', 'family').",
-          "title": "Label",
-          "type": "string"
-        }
-      },
-      "required": [
-        "label"
-      ],
-      "title": "TagItem",
-      "type": "object"
-    },
     "TagsSection": {
       "additionalProperties": false,
-      "description": "List of Sonarr/Radarr tags with opt-in prune (D-05-SPLIT-01).",
+      "description": "Tags section \u2014 prune only (D-05-SPLIT-01). Labels derived from categories (Phase 12).",
       "properties": {
-        "items": {
-          "items": {
-            "$ref": "#/$defs/TagItem"
-          },
-          "title": "Items",
-          "type": "array"
-        },
         "prune": {
           "default": false,
           "description": "Opt-in deletion of unmanaged tags (D-04).",
@@ -2249,78 +1959,6 @@
       },
       "title": "TagsSection",
       "type": "object"
-    },
-    "arrconf__resources__categories__Category": {
-      "additionalProperties": false,
-      "description": "A single Category \u2014 declarative input for Phase 10's 6-app propagation.\n\nMatch key: ``name`` (kebab-case slug, stable across reconcile runs).\nD-04 invariant: ``base_path`` MUST equal ``f\"/media/{name}\"``.",
-      "properties": {
-        "base_path": {
-          "description": "Absolute path under /media \u2014 MUST be /media/{name} (D-04).",
-          "title": "Base Path",
-          "type": "string"
-        },
-        "display": {
-          "description": "Title Case human label (e.g. 'S\u00e9ries - \u00c9milie').",
-          "title": "Display",
-          "type": "string"
-        },
-        "kind": {
-          "description": "Media kind \u2014 drives Sonarr vs Radarr propagation.",
-          "enum": [
-            "movies",
-            "series"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "name": {
-          "description": "Kebab-case slug (e.g. 'series-emilie'). Stable match key.",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-          "title": "Name",
-          "type": "string"
-        },
-        "profile": {
-          "description": "Quality profile group \u2014 drives configarr profile selection (Phase 10) and Seerr animeTags routing for profile=anime.",
-          "enum": [
-            "general",
-            "anime",
-            "family"
-          ],
-          "title": "Profile",
-          "type": "string"
-        }
-      },
-      "required": [
-        "name",
-        "kind",
-        "profile",
-        "display",
-        "base_path"
-      ],
-      "title": "Category",
-      "type": "object"
-    },
-    "arrconf__resources__qbittorrent__category__Category": {
-      "additionalProperties": true,
-      "description": "A qBittorrent category (POST /api/v2/torrents/createCategory).\n\nPitfall 3 (RESEARCH.md line 851): qBit treats empty savePath as\n\"use default save path\" (/data/complete in cluster). The reconciler\nMUST send the explicit savePath in createCategory/editCategory.\n\nextra=\"allow\" \u2014 qBit 5.1+ may add a download_path field on GET; we\naccept it on the way in but never write it out (only name + savePath\ngo into form-encoded POST bodies).",
-      "properties": {
-        "name": {
-          "description": "Category name (stable match key for differ).",
-          "title": "Name",
-          "type": "string"
-        },
-        "savePath": {
-          "default": "",
-          "description": "qBit-side path where torrents in this category land. MUST be explicit (e.g. /data/anime), never empty.",
-          "title": "Savepath",
-          "type": "string"
-        }
-      },
-      "required": [
-        "name"
-      ],
-      "title": "Category",
-      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -2329,7 +1967,7 @@
   "properties": {
     "categories": {
       "items": {
-        "$ref": "#/$defs/arrconf__resources__categories__Category"
+        "$ref": "#/$defs/Category"
       },
       "title": "Categories",
       "type": "array"

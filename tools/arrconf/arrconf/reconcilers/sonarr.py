@@ -49,6 +49,7 @@ from arrconf.config import (
     HostConfigSection,
     SeriesTagsSection,
     SonarrInstance,
+    TagItem,
     TagsSection,
 )
 from arrconf.differ import Action, PlannedAction, diff_models, merge_fields_for_put, reconcile

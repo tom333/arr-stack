@@ -559,8 +559,8 @@ def diff(
             from arrconf.diff_cmd import diff_qbittorrent  # noqa: PLC0415
 
             qbit_diff_instance = root.qbittorrent["main"]
-            # Phase 12-B: Plan-A shim removed — .items attribute deleted from CategoriesSection (D-01).
-            # diff_qbittorrent calls the generator and passes result as 3rd arg (Plan A, Phase 12-A).
+            # Phase 12-B (D-01): items attribute deleted; diff_qbittorrent calls the
+            # generator inline (Plan A, Phase 12-A pattern).
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_diff_client = QbittorrentClient(
                 base_url=qbit_diff_instance.base_url,
@@ -601,8 +601,8 @@ def diff(
     # Phase 7: Jellyfin diff branch (D-07-INSTANCE-01, SC#4 dispositive).
     if "jellyfin" in targets and "main" in root.jellyfin:
         jellyfin_diff_instance = root.jellyfin["main"]
-        # Phase 12-B: Plan-A shim removed — .items attribute deleted from JellyfinLibrariesSection (D-01).
-        # diff_jellyfin calls the generator and passes result as 3rd arg (Plan A, Phase 12-A).
+        # Phase 12-B (D-01): items attribute deleted; diff_jellyfin calls the
+        # generator inline (Plan A, Phase 12-A pattern).
         if not settings.jellyfin_api_key:
             log.error("missing_api_key", app="jellyfin", env_var="JELLYFIN_API_KEY")
             raise typer.Exit(code=2)

@@ -207,7 +207,7 @@ def test_diff_jellyfin_returns_3_on_drift(
         JellyfinServerConfigSection,
         JellyfinUsersSection,
     )
-    from arrconf.resources.jellyfin import JellyfinLibrary, JellyfinUserPolicy, PluginRepository
+    from arrconf.resources.jellyfin import JellyfinUserPolicy, PluginRepository
 
     # Cluster has ServerName="old-name" (drift vs desired "jellyfin").
     respx_mock.get("/Library/VirtualFolders").mock(
@@ -289,12 +289,7 @@ def test_diff_jellyfin_returns_3_on_drift(
 
     inst = JellyfinInstance(
         base_url=JELLYFIN_BASE,
-        libraries=JellyfinLibrariesSection(
-            enable=True,
-            items=[
-                JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"])
-            ],
-        ),
+        libraries=JellyfinLibrariesSection(enable=True),
         users=JellyfinUsersSection(
             enable=True,
             admin=JellyfinUserPolicy(IsAdministrator=True, EnablePublicSharing=True),

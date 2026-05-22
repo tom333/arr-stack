@@ -227,9 +227,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         jf_libraries = generate_jellyfin_libraries(cfg)
         for _jf_name, jf_instance in cfg.jellyfin.items():
             jf_client = JellyfinClient(base_url=jf_instance.base_url, api_key="fake")
-            _jf_result = reconcile_jellyfin(
-                jf_client, jf_instance, jf_libraries, dry_run=True
-            )
+            _jf_result = reconcile_jellyfin(jf_client, jf_instance, jf_libraries, dry_run=True)
             # JellyfinResult has no .plan — dry_run=True means actions_taken is empty
         out["jellyfin"] = {"completed": True, "actions_taken": []}
 

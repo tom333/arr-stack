@@ -30,19 +30,24 @@ def test_schema_is_reproducible(tmp_path: Path) -> None:
     assert out1.read_bytes() == out2.read_bytes()
 
 
-def test_schema_includes_download_client_descriptions(tmp_path: Path) -> None:
-    """REQ-yaml-autocomplete: descriptions surface as VS Code hover tooltips."""
+def test_schema_includes_category_descriptions(tmp_path: Path) -> None:
+    """REQ-yaml-autocomplete: descriptions surface as VS Code hover tooltips.
+
+    Phase 12-B (D-01): DownloadClient is no longer in the schema (the flat
+    `items: list[DownloadClient]` field was removed from DownloadClientsSection).
+    Category remains as a top-level RootConfig entry and is the canonical
+    operator-edited type for autocomplete coverage.
+    """
     out = tmp_path / "s.json"
     write_schema(out)
     data = json.loads(out.read_text())
     defs = data.get("$defs", {})
-    dc_defs = [v for k, v in defs.items() if "DownloadClient" in k and "FieldKV" not in k]
-    assert dc_defs, f"DownloadClient definition not found in $defs (keys: {list(defs.keys())})"
-    dc_props = dc_defs[0].get("properties", {})
-    assert "name" in dc_props, "DownloadClient.name property not found"
-    assert dc_props["name"].get("description"), (
-        "DownloadClient.name MUST have a description for VS Code autocomplete "
-        "(REQ-yaml-autocomplete)"
+    cat_defs = [v for k, v in defs.items() if k == "Category"]
+    assert cat_defs, f"Category definition not found in $defs (keys: {sorted(defs.keys())})"
+    cat_props = cat_defs[0].get("properties", {})
+    assert "name" in cat_props, "Category.name property not found"
+    assert cat_props["name"].get("description"), (
+        "Category.name MUST have a description for VS Code autocomplete (REQ-yaml-autocomplete)"
     )
 
 

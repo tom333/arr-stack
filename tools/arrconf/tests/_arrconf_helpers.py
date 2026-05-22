@@ -242,9 +242,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         jf_libraries = generate_jellyfin_libraries(cfg)
         for _jf_name, jf_instance in cfg.jellyfin.items():
             jf_client = JellyfinClient(base_url=jf_instance.base_url, api_key="fake")
-            _jf_result = reconcile_jellyfin(
-                jf_client, jf_instance, jf_libraries, dry_run=True
-            )
+            _jf_result = reconcile_jellyfin(jf_client, jf_instance, jf_libraries, dry_run=True)
             # JellyfinResult has no .plan — dry_run=True means actions_taken is empty
         out["jellyfin"] = {"completed": True, "actions_taken": []}
 
@@ -264,12 +262,22 @@ def _register_sonarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
     Sonarr reconciler touches: /tag, /indexer, /rootfolder, /downloadclient,
     /notification, /remotepathmapping, /series on every run (Phase 5 scope).
 
-    Uses tag_with_tv_anime_family.json (all 4 production tags including arrconf-managed)
-    so _resolve_download_client_tag_labels can match tv/anime/family label→id.
-    The empty sonarr/tag.json would cause ReconcileError because in dry_run mode
-    no tags are actually created, so the second GET /tag also returns empty list.
+    Phase 12-B (D-01): tag labels are derived from ``categories[]`` series-kind
+    entries. The static ``tag_with_tv_anime_family.json`` fixture is no longer
+    sufficient — its v0.2.0 labels (tv/anime/family) don't match the generator
+    output (series, series-emilie, series-zoe, ...). This helper now extends the
+    base fixture with the per-category labels the generator will produce so
+    ``_resolve_download_client_tag_labels`` finds a match in step 2's all_tags.
     """
-    tag_fixture = _load_fixture("sonarr/tag_with_tv_anime_family.json")
+    base_tags = _load_fixture("sonarr/tag_with_tv_anime_family.json")
+    series_labels = [c.name for c in cfg.categories if c.kind == "series"]
+    existing_labels = {t["label"] for t in base_tags}
+    next_id = max((t["id"] for t in base_tags), default=0) + 1
+    tag_fixture = list(base_tags)
+    for label in series_labels:
+        if label not in existing_labels:
+            tag_fixture.append({"id": next_id, "label": label})
+            next_id += 1
     dc_fixture = _load_fixture("sonarr/downloadclient.json")
     indexer_fixture = _load_fixture("sonarr/indexer.json")
     rootfolder_fixture = _load_fixture("sonarr/rootfolder.json")
@@ -301,11 +309,19 @@ def _register_radarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
     Radarr reconciler touches: /tag, /indexer, /rootfolder, /downloadclient,
     /notification, /remotepathmapping, /movie on every run (Phase 5 scope).
 
-    Uses tag_with_movies_anime_family.json (all 4 production tags including
-    arrconf-managed) so _resolve_download_client_tag_labels can match
-    movies/anime/family label→id. Same rationale as Sonarr tag fixture choice.
+    Phase 12-B (D-01): same generator-derived tag extension as Sonarr — the
+    static fixture is augmented with each movies-kind category's label so
+    ``_resolve_download_client_tag_labels`` finds a match in step 2.
     """
-    tag_fixture = _load_fixture("radarr/tag_with_movies_anime_family.json")
+    base_tags = _load_fixture("radarr/tag_with_movies_anime_family.json")
+    movies_labels = [c.name for c in cfg.categories if c.kind == "movies"]
+    existing_labels = {t["label"] for t in base_tags}
+    next_id = max((t["id"] for t in base_tags), default=0) + 1
+    tag_fixture = list(base_tags)
+    for label in movies_labels:
+        if label not in existing_labels:
+            tag_fixture.append({"id": next_id, "label": label})
+            next_id += 1
     dc_fixture = _load_fixture("radarr/downloadclient.json")
     indexer_fixture = _load_fixture("radarr/indexer.json")
     rootfolder_fixture = _load_fixture("radarr/rootfolder.json")

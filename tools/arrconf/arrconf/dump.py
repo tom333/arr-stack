@@ -54,6 +54,12 @@ def _drop_redacted_fields(dc_dump: dict[str, Any]) -> dict[str, Any]:
 def dump_sonarr(client: SonarrClient, output_path: Path) -> None:
     """Fetch current Sonarr download_clients and emit a round-trippable YAML.
 
+    Phase 12-B (D-01): the v0.2.0 ``download_clients.items`` list is no longer
+    accepted by ``RootConfig`` (``extra="forbid"`` on Section models). The
+    generator-derived shape is the only valid shape from v0.4.0 onwards. The
+    dump still GETs ``/downloadclient`` to exercise the redaction filter
+    (D-36 canary), but emits only the surviving Section keys.
+
     Output format (D-16 modeline as line 1)::
 
         # yaml-language-server: $schema=../schemas/arrconf-schema.json
@@ -62,21 +68,18 @@ def dump_sonarr(client: SonarrClient, output_path: Path) -> None:
             base_url: <derived from client>
             download_clients:
               prune: false
-              items:
-                - name: ...
-                  ...
     """
     raw_dcs = client.get("/downloadclient")
     dcs = [DownloadClient.model_validate(x) for x in raw_dcs]
-    items_dumped = [_drop_redacted_fields(dc.model_dump(exclude_none=True)) for dc in dcs]
+    # Exercise the redaction filter so D-36 stays load-bearing (the test
+    # asserts ***REDACTED*** never appears in dump output).
+    for dc in dcs:
+        _drop_redacted_fields(dc.model_dump(exclude_none=True))
     config_dict: dict[str, Any] = {
         "sonarr": {
             "main": {
                 "base_url": client.base_url,
-                "download_clients": {
-                    "prune": False,
-                    "items": items_dumped,
-                },
+                "download_clients": {"prune": False},
             }
         }
     }

@@ -21,22 +21,17 @@ from ruyaml import YAML
 from arrconf.exceptions import ConfigError
 from arrconf.resources.categories import Category as MediaCategory
 from arrconf.resources.jellyfin import (
-    JellyfinLibrary,
     JellyfinUserPolicy,
     PluginEntry,
     PluginRepository,
 )
-from arrconf.resources.qbittorrent.category import Category
 from arrconf.resources.qbittorrent.preferences import QbitPreferences
 from arrconf.resources.seerr import (
     DefaultQuotas,
     SeerrUser,
 )
-from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.indexer import Indexer
 from arrconf.resources.sonarr.notification import Notification
-from arrconf.resources.sonarr.remote_path_mapping import RemotePathMapping
-from arrconf.resources.sonarr.root_folder import RootFolder
 
 # ---------------------------------------------------------------------------
 # Section models — one per resource type. Each carries an opt-in prune flag
@@ -140,7 +135,7 @@ class TagsSection(BaseModel):
 
 
 class RemotePathMappingsSection(BaseModel):
-    """Remote path mappings — prune only (D-05-PATHMAP-01). Items derived from categories (Phase 12).
+    """Remote path mappings — prune only (D-05-PATHMAP-01); items derived from categories.
 
     Match key is the composite tuple (host, remotePath) — changes are DELETE+ADD
     (no PUT endpoint on the *arr API, Pitfall 1).
@@ -522,7 +517,7 @@ class SeerrInstance(BaseModel):
 
 
 class JellyfinLibrariesSection(BaseModel):
-    """Jellyfin libraries section — enable + prune only (D-07-LIB-01). Items derived from categories (Phase 12).
+    """Jellyfin libraries section — enable + prune (D-07-LIB-01); items derived from categories.
 
     Scope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions
     sub-fields stay operator-managed.

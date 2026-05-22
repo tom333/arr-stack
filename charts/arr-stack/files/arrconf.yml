@@ -129,19 +129,6 @@ qbittorrent:
     base_url: http://qbittorrent.selfhost.svc.cluster.local:8080
     categories:
       prune: false
-      items:
-        - name: sonarr-tv
-          savePath: /data/series
-        - name: sonarr-anime
-          savePath: /data/anime
-        - name: sonarr-family
-          savePath: /data/family
-        - name: radarr-movies
-          savePath: /data/films
-        - name: radarr-anime
-          savePath: /data/films-anime
-        - name: radarr-family
-          savePath: /data/films-family
     preferences:
       enable: false
 
@@ -253,19 +240,6 @@ jellyfin:
     libraries:
       enable: true
       prune: false  # D-07-LIB-01 hardcoded — reconciler refuses DELETE (Pitfall 3 protection)
-      items:
-        - name: "Séries"
-          collection_type: tvshows
-          paths:
-            - /media/series
-            - /media/anime
-            - /media/family
-        - name: "Films"
-          collection_type: movies
-          paths:
-            - /media/films
-            - /media/films-anime
-            - /media/films-family
     users:
       enable: true
       prune: false  # D-07-USERS-01 hardcoded — emilie operator-managed, never touched

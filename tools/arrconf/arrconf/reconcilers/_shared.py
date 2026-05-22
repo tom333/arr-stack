@@ -111,8 +111,11 @@ def _resolve_download_client_tag_labels(
     readable label names). This helper resolves each label to its server-assigned
     integer id using the post-reconcile ``all_tags`` list (step 2 of D-05-ORDER-01).
 
-    Raises ReconcileError if a declared label has no matching tag — the operator
-    must add the label to instance.tags.items so it is created in step 2 first.
+    Raises ReconcileError if a declared label has no matching tag. Post-Phase 12-B,
+    tag labels are derived from ``categories[]`` — the operator declares a new
+    category, the generator produces a matching tag, and step 2 reconciles it
+    before this resolver runs. A mismatch usually signals a stale RadarrDerived /
+    SonarrDerived test fixture.
 
     Returns new DownloadClient instances (immutable copy via model_copy) with
     resolved integer ids appended to the existing ``tags`` list.
@@ -135,8 +138,10 @@ def _resolve_download_client_tag_labels(
         for label in dc.tag_labels:
             if label not in label_to_id:
                 raise ReconcileError(
-                    f"download_client '{dc.name}': tag label '{label}' not found in {app_name} — "
-                    "declare it in instance.tags.items so it is reconciled first (D-05-ORDER-01)"
+                    f"download_client '{dc.name}': tag label '{label}' not found "
+                    f"in {app_name} — generator output drifted from cluster tags "
+                    "(Phase 12-B: tags derive from categories[]; this should not "
+                    "happen at runtime — likely a stale test fixture)"
                 )
             tag_id = label_to_id[label]
             if tag_id not in resolved_ids:

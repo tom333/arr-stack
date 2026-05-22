@@ -20,11 +20,9 @@ import respx
 
 from arrconf.client_base import SonarrClient
 from arrconf.config import (
-    RemotePathMappingsSection,
     SeriesTagsSection,
     SonarrInstance,
     TagItem,
-    TagsSection,
 )
 from arrconf.exceptions import ScopeViolationError
 from arrconf.generators.categories import SonarrDerived

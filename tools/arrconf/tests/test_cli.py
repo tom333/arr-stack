@@ -53,7 +53,7 @@ def test_apply_missing_api_key_returns_exit_2(
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     monkeypatch.delenv("SONARR_API_KEY", raising=False)
     result = runner.invoke(app, ["--config", str(cfg), "apply"])
@@ -72,7 +72,7 @@ def test_dump_missing_api_key_returns_exit_2(
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     monkeypatch.delenv("SONARR_API_KEY", raising=False)
     result = runner.invoke(
@@ -96,7 +96,7 @@ def test_diff_missing_api_key_returns_exit_2(
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     monkeypatch.delenv("SONARR_API_KEY", raising=False)
     result = runner.invoke(app, ["--config", str(cfg), "diff"])
@@ -137,7 +137,7 @@ def test_apply_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonar"])
     assert result.exit_code == 2, (
@@ -150,7 +150,7 @@ def test_diff_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     result = runner.invoke(app, ["--config", str(cfg), "diff", "--apps", "radar"])
     assert result.exit_code == 2
@@ -161,7 +161,7 @@ def test_dump_unknown_apps_returns_exit_2(tmp_path: Path) -> None:
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     result = runner.invoke(
         app,
@@ -203,7 +203,7 @@ def test_diff_sonarr_catches_reconcile_error(
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     monkeypatch.setenv("SONARR_API_KEY", "fake")
     result = runner.invoke(app, ["--config", str(cfg), "diff"])
@@ -228,7 +228,7 @@ def test_diff_radarr_catches_reconcile_error(
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "radarr:\n  main:\n    base_url: http://radarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     monkeypatch.setenv("RADARR_API_KEY", "fake")
     result = runner.invoke(app, ["--config", str(cfg), "diff", "--apps", "radarr"])
@@ -241,7 +241,7 @@ def test_apply_known_apps_subset_accepted(tmp_path: Path, monkeypatch: pytest.Mo
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     # No SONARR_API_KEY → exit 2 from missing_api_key (not from CR-03 validation),
     # which still proves CR-03 validation accepted "sonarr,radarr":
@@ -278,7 +278,7 @@ def test_diff_returns_3_on_drift(
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    download_clients:\n      prune: false\n      items: []\n"
+        "    download_clients:\n      prune: false\n"
     )
     monkeypatch.setenv("SONARR_API_KEY", "fake")
     result = runner.invoke(app, ["--config", str(cfg), "diff"])

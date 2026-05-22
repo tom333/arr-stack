@@ -153,7 +153,8 @@ def test_load_config_qbittorrent_prune_defaults_to_false(tmp_path: Path) -> None
     """Phase 5 R-04 mitigation: categories.prune is False by default (never auto-delete)."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
-        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n    categories:\n      prune: false\n"
+        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n"
+        "    categories:\n      prune: false\n"
     )
     result = load_config(cfg)
     assert result.qbittorrent["main"].categories.prune is False
@@ -200,9 +201,7 @@ def test_load_config_sonarr_tags_section_prune_only(tmp_path: Path) -> None:
     """Phase 12 D-01: sonarr.main.tags accepts only prune flag (items removed)."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(
-        "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
-        "    tags:\n"
-        "      prune: false\n"
+        "sonarr:\n  main:\n    base_url: http://sonarr.test\n    tags:\n      prune: false\n"
     )
     result = load_config(cfg)
     instance = result.sonarr["main"]
