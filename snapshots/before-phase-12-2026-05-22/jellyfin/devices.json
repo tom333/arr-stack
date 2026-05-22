@@ -1,0 +1,126 @@
+{
+  "Items": [
+    {
+      "AppName": "Jellyfin Web",
+      "AppVersion": "10.11.8",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-05-17T04:49:42.9786769Z",
+      "Id": "TW96aWxsYS81LjAgKFgxMTsgTGludXggeDg2XzY0OyBydjoxNDkuMCkgR2Vja28vMjAxMDAxMDEgRmlyZWZveC8xNDkuMHwxNzc2MTUxNDU0MTI0",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "Firefox"
+    },
+    {
+      "AppName": "Jellyfin Web",
+      "AppVersion": "10.11.8",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-25T03:22:21.0990506Z",
+      "Id": "TW96aWxsYS81LjAgKExpbnV4OyBBbmRyb2lkIDEwOyBLKSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQ2LjAuMC4wIE1vYmlsZSBTYWZhcmkvNTM3LjM2fDE3NzYxNjA0MjEzNjI1",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "Chrome Android"
+    },
+    {
+      "AppName": "Seerr",
+      "AppVersion": "3.2.0",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-22T04:54:19.8426327Z",
+      "Id": "BOT_seerr",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "Seerr"
+    },
+    {
+      "AppName": "Jellyfin Media Player",
+      "AppVersion": "1.12.0",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-19T01:55:12.2434953Z",
+      "Id": "SmVsbHlmaW5NZWRpYVBsYXllciAxLjEyLjAgKGxpbnV4LXg4Nl82NCA1LjE1LTI0LjA4KXwxNzc2NTYzNjkyNDQx",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "toshiba"
+    },
+    {
+      "AppName": "Kodi",
+      "AppVersion": "2.0.0+py3",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-15T11:04:45.9856388Z",
+      "Id": "108ced72-a85d-44c9-b265-260bbe9db293",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "Kodi (kodi)"
+    },
+    {
+      "AppName": "Jellyfin Android",
+      "AppVersion": "2.6.3",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-15T09:52:52.7254529Z",
+      "Id": "cfd9536e7dcc14b2",
+      "LastUserId": "8901eacec3634d169958d11bd95d4078",
+      "LastUserName": "emilie",
+      "Name": "A05s de Emilie"
+    },
+    {
+      "AppName": "Jellyfin Web",
+      "AppVersion": "10.11.8",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-15T04:55:43.9439682Z",
+      "Id": "TW96aWxsYS81LjAgKFgxMTsgVWJ1bnR1OyBMaW51eCB4ODZfNjQ7IHJ2OjE0NS4wKSBHZWNrby8yMDEwMDEwMSBGaXJlZm94LzE0NS4wfDE3NjMzNTIyMjk3MjY1",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "Firefox"
+    },
+    {
+      "AppName": "Seerr",
+      "AppVersion": "3.1.1",
+      "Capabilities": {
+        "PlayableMediaTypes": [],
+        "SupportedCommands": [],
+        "SupportsMediaControl": false,
+        "SupportsPersistentIdentifier": true
+      },
+      "DateLastActivity": "2026-04-14T07:16:07.5049583Z",
+      "Id": "Qk9UX3NlZXJyX21vaQ==",
+      "LastUserId": "82fd95db72904569b08d83271823ceaa",
+      "LastUserName": "moi",
+      "Name": "Seerr"
+    }
+  ],
+  "StartIndex": 0,
+  "TotalRecordCount": 8
+}
