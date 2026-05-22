@@ -96,7 +96,11 @@ Plans:
   2. `13-CONTEXT.md` locks the architecture decision: Helm sidecar OR `arrconf/reconcilers/suggestarr.py` OR CronJob. Rationale documented.
   3. `.planning/seeds/SEED-001-suggestarr.md` gets a closure note: `status: closed (Phase 13 architecture decided)` + frontmatter `closed_in: v0.4.0 Phase 13`.
   4. No production code/chart change yet — this phase is research-only.
-**Plans**: TBD (likely 1 plan: research + arch decision)
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+- [ ] 13-A-research-consumption-PLAN.md — Close SEED-001, append Phase 13 lock to CLAUDE.md État actuel, emit 13-PHASE14-PREFLIGHT.md handoff, verify SC#4 zero-prod-drift, mark ROADMAP complete (REQ-suggestarr-research)
 **UI hint**: no
 
 ### Phase 14: SuggestArr implementation
@@ -133,7 +137,7 @@ Plans:
 |-----------|--------|-------|--------|-----------|
 | v0.2.0 forceSave fix | 11 | 65/66 | ✅ Shipped | 2026-05-17 |
 | v0.3.0 Categories first-class | 3 | 16/16 | ✅ Shipped | 2026-05-22 |
-| v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 0/TBD | 🚧 In progress | — |
+| v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 5/TBD | 🚧 In progress | — |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)
