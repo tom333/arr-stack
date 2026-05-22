@@ -55,7 +55,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 
 - [x] **Phase 12: Categories deprecation** — `merge_with_manual` removed; flat sections deleted from `arrconf.yml`; generators are sole source; sweep manual-path tests pruned; migration doc in CLAUDE.md (completed 2026-05-22)
 - [x] **Phase 13: SuggestArr research spike** — `13-RESEARCH.md` locks Option A (Helm sidecar) via SuggestArr's native `SEER_ANIME_PROFILE_CONFIG` per-request routing; SEED-001 closed; Phase 14 preflight handed off (completed 2026-05-22)
-- [ ] **Phase 14: SuggestArr implementation** — Helm sidecar OR declarative reconciler OR CronJob (per Phase 13 decision); SealedSecret + ConfigMap; Categories routing wiring; integration test
+- [x] **Phase 14: SuggestArr implementation** — Helm sidecar OR declarative reconciler OR CronJob (per Phase 13 decision); SealedSecret + ConfigMap; Categories routing wiring; integration test (completed 2026-05-22)
 - [ ] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip; potentially split into 15-A backend + 15-B frontend during plan-phase
 
 ## Phase Details
@@ -123,7 +123,7 @@ Plans:
 - [x] 14-02-PLAN.md — values.yaml suggestarr block + ConfigMap template + files/suggestarr-config.yml (live-cluster discovery checkpoint for Jellyfin ItemIds + Sonarr/Radarr profileIds) (D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-14)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 14-03-PLAN.md — Integration test test_suggestarr_routing_config.py + 14-HUMAN-UAT.md operator runbook (D-02, D-10, D-11, D-13)
+- [x] 14-03-PLAN.md — Integration test test_suggestarr_routing_config.py + 14-HUMAN-UAT.md operator runbook (D-02, D-10, D-11, D-13)
 **UI hint**: no
 
 ### Phase 15: Local config UI
