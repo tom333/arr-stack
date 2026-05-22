@@ -53,7 +53,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 
 ### Phase checklist
 
-- [ ] **Phase 12: Categories deprecation** — `merge_with_manual` removed; flat sections deleted from `arrconf.yml`; generators are sole source; sweep manual-path tests pruned; migration doc in CLAUDE.md
+- [x] **Phase 12: Categories deprecation** — `merge_with_manual` removed; flat sections deleted from `arrconf.yml`; generators are sole source; sweep manual-path tests pruned; migration doc in CLAUDE.md (completed 2026-05-22)
 - [ ] **Phase 13: SuggestArr research spike** — Investigate API + deployment modes + Jellyfin/Seerr integration + Categories-aware routing; produce `13-RESEARCH.md` + arch decision; close SEED-001
 - [ ] **Phase 14: SuggestArr implementation** — Helm sidecar OR declarative reconciler OR CronJob (per Phase 13 decision); SealedSecret + ConfigMap; Categories routing wiring; integration test
 - [ ] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip; potentially split into 15-A backend + 15-B frontend during plan-phase
@@ -84,7 +84,7 @@ Plans:
 - [x] 12-D-docs-snapshot-PLAN.md — CLAUDE.md v0.3.0→v0.4.0 deprecation section, capture before-phase-12 snapshot (D-11, D-12, D-13, D-14)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 12-E-live-cluster-dispositive-PLAN.md — Post-merge SC#5 dispositive: after-snapshot + diff + HUMAN-UAT + VERIFICATION (D-14, D-16, D-17)
+- [x] 12-E-live-cluster-dispositive-PLAN.md — Post-merge SC#5 dispositive: after-snapshot + diff + HUMAN-UAT + VERIFICATION (D-14, D-16, D-17)
 **UI hint**: no
 
 ### Phase 13: SuggestArr research spike
