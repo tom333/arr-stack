@@ -4,14 +4,14 @@ milestone: v0.4.0
 milestone_name: Categories cleanup + content discovery + local config UI
 status: executing
 stopped_at: Phase 12 context gathered
-last_updated: "2026-05-22T04:16:55.417Z"
-last_activity: 2026-05-21 -- Phase 12 execution started
+last_updated: "2026-05-22T05:30:09.322Z"
+last_activity: 2026-05-22 -- Phase 13 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 5
+  total_plans: 6
   completed_plans: 5
-  percent: 100
+  percent: 83
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
-**Current focus:** Phase 12 — Categories deprecation
+**Current focus:** Phase 13 — SuggestArr research spike
 
 ## Current Position
 
-Phase: 12 (Categories deprecation) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 12
-Last activity: 2026-05-21 -- Phase 12 execution started
+Phase: 13 (SuggestArr research spike) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 13
+Last activity: 2026-05-22 -- Phase 13 execution started
 
 ### Phase 7 deviations + follow-ups (carried forward, see 07-06-SUMMARY.md)
 

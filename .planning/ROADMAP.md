@@ -54,7 +54,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 ### Phase checklist
 
 - [x] **Phase 12: Categories deprecation** — `merge_with_manual` removed; flat sections deleted from `arrconf.yml`; generators are sole source; sweep manual-path tests pruned; migration doc in CLAUDE.md (completed 2026-05-22)
-- [ ] **Phase 13: SuggestArr research spike** — Investigate API + deployment modes + Jellyfin/Seerr integration + Categories-aware routing; produce `13-RESEARCH.md` + arch decision; close SEED-001
+- [x] **Phase 13: SuggestArr research spike** — `13-RESEARCH.md` locks Option A (Helm sidecar) via SuggestArr's native `SEER_ANIME_PROFILE_CONFIG` per-request routing; SEED-001 closed; Phase 14 preflight handed off (completed 2026-05-22)
 - [ ] **Phase 14: SuggestArr implementation** — Helm sidecar OR declarative reconciler OR CronJob (per Phase 13 decision); SealedSecret + ConfigMap; Categories routing wiring; integration test
 - [ ] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip; potentially split into 15-A backend + 15-B frontend during plan-phase
 
@@ -100,7 +100,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 13-A-research-consumption-PLAN.md — Close SEED-001, append Phase 13 lock to CLAUDE.md État actuel, emit 13-PHASE14-PREFLIGHT.md handoff, verify SC#4 zero-prod-drift, mark ROADMAP complete (REQ-suggestarr-research)
+- [x] 13-A-research-consumption-PLAN.md — Close SEED-001, append Phase 13 lock to CLAUDE.md État actuel, emit 13-PHASE14-PREFLIGHT.md handoff, verify SC#4 zero-prod-drift, mark ROADMAP complete (REQ-suggestarr-research)
 **UI hint**: no
 
 ### Phase 14: SuggestArr implementation
@@ -137,7 +137,7 @@ Plans:
 |-----------|--------|-------|--------|-----------|
 | v0.2.0 forceSave fix | 11 | 65/66 | ✅ Shipped | 2026-05-17 |
 | v0.3.0 Categories first-class | 3 | 16/16 | ✅ Shipped | 2026-05-22 |
-| v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 5/TBD | 🚧 In progress | — |
+| v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 6/TBD | 🚧 In progress | — |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)
