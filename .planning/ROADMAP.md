@@ -142,7 +142,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 15-A-backend-PLAN.md — `tools/arrconf-ui/` Python package + FastAPI 4 endpoints + pydantic validation + ruyaml atomic round-trip + semantic diff + Typer CLI (REQ-local-config-ui-backend, REQ-local-config-ui-packaging)
+- [x] 15-A-backend-PLAN.md — `tools/arrconf-ui/` Python package + FastAPI 4 endpoints + pydantic validation + ruyaml atomic round-trip + semantic diff + Typer CLI (REQ-local-config-ui-backend, REQ-local-config-ui-packaging)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 15-B-frontend-PLAN.md — Svelte 5 + Vite + TS SPA, schema-driven FieldInput (D-13) + HelpTooltip (D-14) + SuggestArrBadge (D-09) + Categories editor + DiffPanel + SaveToast + README update (REQ-local-config-ui-frontend, REQ-local-config-ui-packaging)
