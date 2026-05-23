@@ -1,4 +1,6 @@
-"""CLI contract: port resolution, default port 8765, host 127.0.0.1 (D-04 + D-12)."""
+"""CLI contract: port + host resolution, default port 8765, default host 0.0.0.0
+(D-04 amended 2026-05-23 — LAN-exposed by default, override via --host or env).
+"""
 
 from __future__ import annotations
 
@@ -7,7 +9,14 @@ from unittest.mock import patch
 
 import pytest
 
-from arrconf_ui.__main__ import DEFAULT_PORT, HOST, _resolve_port, app
+from arrconf_ui.__main__ import (
+    DEFAULT_HOST,
+    DEFAULT_PORT,
+    LOOPBACK,
+    _resolve_host,
+    _resolve_port,
+    app,
+)
 
 
 def test_default_port_is_8765() -> None:
@@ -15,9 +24,31 @@ def test_default_port_is_8765() -> None:
     assert DEFAULT_PORT == 8765
 
 
-def test_host_is_loopback_only() -> None:
-    """D-04: bind 127.0.0.1 only — loopback interface, not wildcard."""
-    assert HOST == "127.0.0.1"
+def test_default_host_is_wildcard_lan_exposed() -> None:
+    """D-04 (amended): bind 0.0.0.0 by default — UI accessible on the LAN.
+
+    The homelab trust model assumes everyone on the LAN is trusted (same
+    posture as the existing Sonarr/Radarr/Jellyfin UIs). Operator may
+    override to 127.0.0.1 via --host flag or ARRCONF_UI_HOST env var.
+    """
+    assert DEFAULT_HOST == "0.0.0.0"
+    assert LOOPBACK == "127.0.0.1"
+
+
+def test_resolve_host_cli_flag_wins() -> None:
+    """CLI --host wins over env var + default."""
+    with patch.dict(os.environ, {"ARRCONF_UI_HOST": "192.168.1.42"}):
+        assert _resolve_host("127.0.0.1") == "127.0.0.1"
+
+
+def test_resolve_host_env_var_used_when_no_flag() -> None:
+    with patch.dict(os.environ, {"ARRCONF_UI_HOST": "127.0.0.1"}):
+        assert _resolve_host(None) == "127.0.0.1"
+
+
+def test_resolve_host_default_when_nothing_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ARRCONF_UI_HOST", raising=False)
+    assert _resolve_host(None) == DEFAULT_HOST
 
 
 def test_resolve_port_cli_flag_wins() -> None:

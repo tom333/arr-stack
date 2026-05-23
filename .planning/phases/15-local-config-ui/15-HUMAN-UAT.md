@@ -232,9 +232,42 @@ grep -rn 'type="number"\|type="text"\|type="checkbox"' \
 
 ---
 
+### Scenario 10: LAN-accessible binding (D-04 amendment 2026-05-23)
+
+**Steps:**
+
+1. Launch `uv run arrconf-ui` and watch the startup log. Expect **TWO** "INFO: ... ready at" lines:
+   - `INFO: Local config UI ready at http://localhost:8765`
+   - `INFO: LAN-accessible at http://<your-LAN-IP>:8765`
+
+2. From another device on the same LAN (phone, tablet, laptop), open `http://<your-LAN-IP>:8765/` in a browser. Verify:
+   - The same UI renders (Categories table + per-app sections).
+   - You can edit a field, click "Save config", confirm the diff, and the change writes to disk on the host.
+   - `git diff charts/arr-stack/files/arrconf.yml` on the host shows the remote-device edit.
+
+3. Restart with loopback override: `uv run arrconf-ui --host 127.0.0.1`. Verify:
+   - Only the `http://localhost:8765` URL is logged (no LAN-accessible line).
+   - The other LAN device can NO LONGER reach the UI.
+
+**Evidence (binding check):**
+
+```bash
+# Default (LAN-exposed):
+ss -tlnp | grep -E ':8765\s'
+# Expected: shows 0.0.0.0:8765 LISTEN (not 127.0.0.1:8765)
+
+# With --host 127.0.0.1:
+ss -tlnp | grep -E ':8765\s'
+# Expected: shows 127.0.0.1:8765 LISTEN
+```
+
+**Pass/Fail:** [ ]
+
+---
+
 ## RESUME INSTRUCTIONS
 
-After running all 9 scenarios:
+After running all 10 scenarios:
 
 - **If all pass:** Type `approved` to signal Plan 15-B UAT complete. The executor will then create the final SUMMARY.md and close Phase 15.
 - **If any fail:** Type a numbered list of failing steps (e.g., "3 — SuggestArr badge missing on radarr_service.activeDirectory") to signal failures. A new executor will be spawned to fix.

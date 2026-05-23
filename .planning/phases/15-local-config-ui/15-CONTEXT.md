@@ -73,9 +73,19 @@ Files/docs downstream agents MUST read:
 
 ### Auth model
 
-- **D-04:** **Bind `127.0.0.1:NNNN` only, NO auth scheme.** Operator is the sole consumer; localhost-only means no other process / no other user / no other host can reach the UI. Adding basic auth or tokens = friction without security gain in this model. Conforms to SEED-001-style "no new auth complexity".
+- **D-04 (AMENDED 2026-05-23 post-build):** **Bind `0.0.0.0:NNNN` by default — LAN-accessible. NO auth scheme.** Operator confirmed during Phase 15 UAT that they want the UI reachable from other devices on the home LAN (laptop, phone, tablet), not just localhost. Same trust model as the existing Sonarr / Radarr / Jellyfin / qBittorrent UIs that are already LAN-exposed through ArgoCD-managed Ingress without app-level auth — the homelab assumption is "everyone on the LAN is trusted".
 
-  Operationally: `uvicorn.run(app, host="127.0.0.1", port=NNNN)`. The bind MUST NOT be `0.0.0.0` even by accident — Plan 15-A's pytest asserts on the bind string.
+  **Risk acknowledgement**: `arrconf.yml` does not contain secrets (those live in the `arrconf-env` SealedSecret), so a LAN attacker can read the file's content (paths, profile IDs, category names) but cannot extract credentials. The realistic attack vector is **vandalism by an authenticated LAN device** — e.g., a compromised IoT device on the same network writing junk to `arrconf.yml`. For a single-occupant home LAN, this is acceptable.
+
+  **Operationally**:
+  - Default bind: `0.0.0.0` (LAN-exposed).
+  - Operator override: `--host 127.0.0.1` flag OR `ARRCONF_UI_HOST=127.0.0.1` env var → restricts to loopback only.
+  - `uvicorn.run(app, host=resolved_host, port=NNNN)` — bind is dynamic, not a constant. Plan 15-A pytest asserts `DEFAULT_HOST == "0.0.0.0"` AND the `--host` flag override works.
+  - On startup, the CLI logs BOTH URLs: `http://localhost:8765` (always) AND `http://<lan-ip>:8765` (when the host has a non-loopback IP).
+
+  **Original 2026-05-22 decision rescinded**: the original D-04 specified loopback-only + no auth. The "no auth" half stands; the "loopback only" half is reversed. Phase 14 had a similar pattern (CONTEXT D-08 family-bucket limitation accepted) — accepted limitations get documented, not litigated.
+
+  **Downstream impact**: the original Plan 15-A pytest asserted `HOST == "127.0.0.1"` and grepped for `0.0.0.0` to BLOCK any occurrence. Both gates are reversed post-amendment: the test now asserts `DEFAULT_HOST == "0.0.0.0"`, and the grep guard is removed (the literal `0.0.0.0` legitimately appears in the source as the default bind). See `tools/arrconf-ui/tests/test_cli.py` for the updated assertions.
 
 ### File save semantics
 
@@ -135,7 +145,7 @@ Files/docs downstream agents MUST read:
   - **Multi-user auth** — single-tenant homelab; out of scope (SEED-001 alignment).
   - **Field-level history / undo within a session** — too much state for a "form to edit a YAML" use case. Operator can `git stash`/`git restore` if they regret an edit.
   - ~~**Inline help / tooltips for cryptic field names**~~ — **RESCINDED 2026-05-23 per operator clarification.** Inline help via the 54 pydantic `Field(description=...)` strings is now IN SCOPE via the schema-driven form pattern (see D-13 + D-14 below). The original deferral assumed a custom help framework; the actual implementation just surfaces the JSON Schema's `description` strings as tooltips with no separate help system.
-  - **Remote exposure (Ingress / Tailscale)** — `127.0.0.1` only.
+  - ~~**Remote exposure (Ingress / Tailscale)** — `127.0.0.1` only.~~ **PARTIALLY RESCINDED 2026-05-23 per D-04 amendment.** LAN exposure via `0.0.0.0` bind is now IN scope (default). Ingress / Tailscale tunnels remain out of scope (still deferred for v0.5.x — they require cluster-side Service+Ingress, which Phase 15 doesn't create since arrconf-ui runs on the operator's machine, not in the cluster).
   - **Hot reload of arrconf.yml** — if the operator manually edits the file in their text editor WHILE the UI is open, the UI won't auto-refresh. Reload = browser refresh.
 
 ### Co-bump rules

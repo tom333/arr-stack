@@ -18,7 +18,7 @@ La séparation de responsabilités avec **configarr** est stricte : configarr g�
 
 ## Local config UI
 
-Phase 15 (v0.4.0) ships a local web UI for editing `charts/arr-stack/files/arrconf.yml` from a browser. Single-tenant homelab tool — bound to `127.0.0.1` only, no auth.
+Phase 15 (v0.4.0) ships a local web UI for editing `charts/arr-stack/files/arrconf.yml` from a browser. Homelab tool — **bound to `0.0.0.0:8765` by default (LAN-accessible)**, no auth scheme. Same trust model as the existing Sonarr/Radarr/Jellyfin UIs already exposed on your home network (everyone on the LAN is trusted; `arrconf.yml` itself contains no secrets).
 
 ### Launch
 
@@ -26,13 +26,24 @@ From the repo root:
 
 ```bash
 cd tools/arrconf-ui
-uv sync                          # one-time: installs FastAPI + uvicorn + arrconf (editable)
-uv run arrconf-ui                # default port 8765, auto-opens browser
-uv run arrconf-ui --port 9000    # alternate port
-uv run arrconf-ui --no-browser   # headless (URL still printed to stdout)
+uv sync                            # one-time: installs FastAPI + uvicorn + arrconf (editable)
+uv run arrconf-ui                  # default: bind 0.0.0.0:8765, auto-opens browser
+uv run arrconf-ui --port 9000      # alternate port
+uv run arrconf-ui --no-browser     # headless (URLs still printed to stdout)
+uv run arrconf-ui --host 127.0.0.1 # restrict to loopback only — no LAN access
 ```
 
-Or override via env var: `ARRCONF_UI_PORT=9000 uv run arrconf-ui`.
+Env-var overrides: `ARRCONF_UI_HOST=127.0.0.1 ARRCONF_UI_PORT=9000 uv run arrconf-ui`.
+
+On startup, both URLs are printed:
+
+```
+INFO: Local config UI ready at http://localhost:8765
+INFO: LAN-accessible at http://192.168.1.42:8765
+INFO: Editing /path/to/arrconf.yml
+```
+
+The LAN URL is auto-detected via the host's outbound interface. Open it from another device on the same network (phone, tablet, another laptop) to edit `arrconf.yml` remotely.
 
 The UI loads `charts/arr-stack/files/arrconf.yml`, renders a schema-driven typed form (Categories table + per-app collapsible sections for sonarr/radarr/prowlarr/qbittorrent/seerr/jellyfin), shows a semantic diff preview on Save, validates via pydantic on Save (422 errors highlighted in-form), and writes the file back via ruyaml round-trip (comments + blank lines + key ordering preserved). No git automation — Save shows a toast "Saved — run `git diff` to review, then push."
 
