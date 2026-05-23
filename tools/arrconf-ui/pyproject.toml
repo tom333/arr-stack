@@ -53,6 +53,10 @@ disallow_untyped_defs = true
 module = ["ruyaml.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["arrconf.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 addopts = "-v --strict-markers"
 testpaths = ["tests"]

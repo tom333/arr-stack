@@ -24,9 +24,9 @@ from ruyaml import YAML
 def _yaml() -> YAML:
     """Return a configured round-trip YAML parser/emitter."""
     yaml = YAML(typ="rt")
-    yaml.preserve_quotes = True
+    yaml.preserve_quotes = True  # type: ignore[assignment]
     yaml.indent(mapping=2, sequence=4, offset=2)
-    yaml.width = 4096  # avoid line wrapping that breaks long URLs
+    yaml.width = 4096  # type: ignore[assignment]  # avoid line wrapping that breaks long URLs
     return yaml
 
 

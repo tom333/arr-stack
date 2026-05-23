@@ -74,9 +74,7 @@ def diff_configs(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any
     added_names = sorted(set(cat_after) - set(cat_before))
     removed_names = sorted(set(cat_before) - set(cat_after))
     modified_names = sorted(
-        name
-        for name in set(cat_before) & set(cat_after)
-        if cat_before[name] != cat_after[name]
+        name for name in set(cat_before) & set(cat_after) if cat_before[name] != cat_after[name]
     )
     out["categories"] = {
         "added": added_names,
