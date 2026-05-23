@@ -50,8 +50,20 @@
     schema.$ref ? schema.$ref.split('/').pop() : undefined,
   );
 
+  /** Humanize a snake_case / camelCase key as a fallback when no FR label exists.
+   *  E.g., "active_anime_profile_id" → "active anime profile id"
+   *        "activeAnimeProfileId"     → "active anime profile id"
+   *  The result is still English-derived but reads better than the raw key.
+   *  Curated French labels (resolveFieldLabel) take precedence. */
+  function humanize(key: string): string {
+    return key
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2') // camelCase → camel Case
+      .replace(/_/g, ' ')
+      .toLowerCase();
+  }
+
   const leafLabel = $derived(
-    label ?? resolveFieldLabel(leafKey) ?? leafKey.replace(/_/g, ' '),
+    label ?? resolveFieldLabel(leafKey) ?? humanize(leafKey),
   );
   const description = $derived(
     resolveFieldDescription(path, typeName, leafKey, effective.description ?? ''),

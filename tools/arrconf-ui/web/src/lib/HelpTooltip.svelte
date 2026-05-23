@@ -9,7 +9,7 @@
   let { text }: Props = $props();
 </script>
 
-<span class="help-icon" title={text} aria-label={`Help: ${text}`}>ⓘ</span>
+<span class="help-icon" title={text} aria-label={`Aide : ${text}`}>ⓘ</span>
 
 <style>
   .help-icon {

@@ -1,6 +1,6 @@
 <script lang="ts">
   type Props = { label?: string };
-  let { label = 'Loading…' }: Props = $props();
+  let { label = 'Chargement…' }: Props = $props();
 </script>
 
 <div class="spinner-wrap" role="status" aria-live="polite">

@@ -173,19 +173,79 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = {
  */
 
 export const FIELD_LABELS: Record<string, string> = {
-  // Common
+  // Common ----------------------------------------------------------------
   prune: 'Suppression automatique (prune)',
   enable: 'Activer',
   base_url: 'URL de base',
-  api_key_env: 'Nom de la variable d\'env API key',
+  api_key_env: "Variable d'env API key",
+  name: 'Nom',
+  type: 'Type',
+  tag: 'Tag',
+  tags: 'Tags',
+  keywords: 'Mots-clés',
+  items: 'Éléments',
+  required: 'Requis',
+  main: 'Instance principale',
 
-  // Categories
+  // Categories ------------------------------------------------------------
   kind: 'Type',
   profile: 'Profil',
   display: 'Nom affiché',
   base_path: 'Chemin sur disque',
+  categories: 'Catégories',
 
-  // Seerr active*
+  // Sonarr / Radarr top-level fields --------------------------------------
+  host_config: "Configuration de l'UI",
+  default_tag: 'Tag par défaut',
+  content_routing: 'Routing par mots-clés',
+  content_tags: 'Tags de routing',
+  series_tags: 'Tags séries',
+  movie_tags: 'Tags films',
+  root_folders: 'Dossiers racine',
+  download_clients: 'Download clients',
+  remote_path_mappings: 'Mappings de chemins distants',
+  indexers: 'Indexers',
+  notifications: 'Notifications',
+  rules: 'Règles',
+
+  // HostConfigSection -----------------------------------------------------
+  authenticationMethod: "Méthode d'authentification",
+  authenticationRequired: 'Auth requise',
+  urlBase: 'URL base (préfixe path)',
+  instanceName: "Nom d'instance",
+
+  // DownloadClient / Indexer / Notification fields ------------------------
+  enable_field: 'Activer',
+  protocol: 'Protocole',
+  priority: 'Priorité',
+  implementation: 'Implémentation',
+  configContract: 'Contrat de config',
+  fields: 'Champs',
+  removeCompletedDownloads: 'Supprimer les téléchargements terminés',
+  removeFailedDownloads: 'Supprimer les téléchargements échoués',
+  tag_labels: 'Labels de tags',
+  host: 'Hôte',
+  remotePath: 'Chemin distant',
+  localPath: 'Chemin local',
+  label: 'Libellé',
+
+  // Prowlarr --------------------------------------------------------------
+  apps: 'Applications *arr connectées',
+  sync_level: 'Niveau de sync',
+  prowlarr_url: 'URL Prowlarr (vue par les *arrs)',
+
+  // qBittorrent -----------------------------------------------------------
+  preferences: 'Préférences',
+  savePath: 'Chemin de sauvegarde',
+
+  // Seerr -----------------------------------------------------------------
+  sonarr_service: 'Service Sonarr (Seerr)',
+  radarr_service: 'Service Radarr (Seerr)',
+  users: 'Utilisateurs',
+  main_settings: 'Paramètres principaux',
+  admin: 'Admin',
+  permissions: 'Permissions (bitmask)',
+  defaultPermissions: 'Permissions par défaut (bitmask)',
   activeProfileId: 'Quality profile (général)',
   activeDirectory: 'Root folder (général)',
   activeAnimeProfileId: 'Quality profile (anime)',
@@ -193,25 +253,39 @@ export const FIELD_LABELS: Record<string, string> = {
   animeTags: 'Tags anime (IDs)',
   tagRequests: 'Tagger les requêtes',
 
-  // Jellyfin
+  // Jellyfin --------------------------------------------------------------
+  libraries: 'Super-libraries (Séries + Films)',
+  server_config: 'Configuration serveur',
+  plugins: 'Plugins',
   ui_culture: 'Locale UI',
   metadata_country_code: 'Pays metadata',
   preferred_metadata_language: 'Langue metadata préférée',
-  activity_log_retention_days: 'Rétention activity log (jours)',
+  activity_log_retention_days: "Rétention activity log (jours)",
   log_file_retention_days: 'Rétention log files (jours)',
   server_name: 'Nom serveur',
-  plugin_repositories: 'Repos plugins',
-
-  // Prowlarr
-  apps: 'Applications *arr connectées',
-  sync_level: 'Niveau de sync',
-
-  // Sonarr/Radarr
-  default_tag: 'Tag par défaut',
-  host_config: 'Config UI',
-  content_routing: 'Routing par mots-clés',
-  series_tags: 'Tags séries',
-  movie_tags: 'Tags films',
+  plugin_repositories: 'Repos de plugins',
+  PluginRepositories: 'Repos de plugins',
+  IsAdministrator: 'Administrateur',
+  EnableContentDeletion: 'Suppression de contenu autorisée',
+  EnableRemoteAccess: 'Accès distant autorisé',
+  EnableLiveTvAccess: 'Accès Live TV',
+  EnableLiveTvManagement: 'Gestion Live TV',
+  EnableMediaPlayback: 'Lecture média',
+  EnableAudioPlaybackTranscoding: 'Transcodage audio',
+  EnableVideoPlaybackTranscoding: 'Transcodage vidéo',
+  EnablePlaybackRemuxing: 'Remuxing playback',
+  EnableContentDownloading: 'Téléchargement de contenu',
+  EnableSyncTranscoding: 'Transcodage sync',
+  EnableMediaConversion: 'Conversion média',
+  EnablePublicSharing: 'Partage public',
+  EnableAllChannels: 'Tous les canaux',
+  EnableAllDevices: 'Tous les périphériques',
+  EnableAllFolders: 'Tous les dossiers',
+  EnabledChannels: 'Canaux activés',
+  EnabledDevices: 'Périphériques activés',
+  EnabledFolders: 'Dossiers activés',
+  collection_type: 'Type de collection',
+  paths: 'Chemins',
 };
 
 /* ============================================================================

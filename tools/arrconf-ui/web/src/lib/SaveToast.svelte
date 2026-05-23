@@ -1,7 +1,7 @@
 <script lang="ts">
   // UI-SPEC §7 — Save toast notification.
-  // Copy: "Saved — run `git diff` to review, then push." (verbatim).
-  // Auto-dismiss after 4s; click-to-dismiss.
+  // Copy FR : "Enregistré — vérifie avec `git diff`, puis push."
+  // Auto-dismiss après 4s ; click-to-dismiss.
 
   type Props = {
     onDismiss: () => void;
@@ -18,9 +18,13 @@
   <button
     type="button"
     class="toast"
+    aria-label="Fermer la notification"
     onclick={onDismiss}
   >
-    Saved — run <code>git diff</code> to review, then push.
+    <span class="check" aria-hidden="true">✓</span>
+    <span>
+      Enregistré — vérifie avec <code>git diff</code>, puis push.
+    </span>
   </button>
 </div>
 
@@ -30,17 +34,33 @@
     right: var(--space-lg);
     bottom: var(--space-lg);
     z-index: 1000;
+    animation: slideIn 240ms ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   .toast {
-    background: var(--color-panel);
-    border: 1px solid var(--color-border);
-    border-left: 4px solid var(--color-accent);
-    border-radius: 6px;
-    padding: 12px 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+    padding: 10px 16px;
+    box-shadow: var(--shadow-md);
+    color: var(--ink);
     text-align: left;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
+  }
+  .toast:hover {
+    background: var(--panel-alt);
+  }
+  .check {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 16px;
   }
 </style>

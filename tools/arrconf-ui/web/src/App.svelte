@@ -103,10 +103,10 @@
 
 {#if loadError}
   <div class="load-error" role="alert">
-    Could not load arrconf.yml — {loadError}. Check the file path and try again.
+    Impossible de charger arrconf.yml — {loadError}. Vérifie le chemin du fichier puis réessaie.
   </div>
 {:else if !configState || !schema}
-  <Spinner label="Loading arrconf.yml…" />
+  <Spinner label="Chargement de arrconf.yml…" />
 {:else}
   <main class="page">
     <ValidationBanner errors={validationErrors} onDismiss={() => (validationErrors = [])} />

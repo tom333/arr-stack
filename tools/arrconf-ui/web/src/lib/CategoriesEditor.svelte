@@ -47,19 +47,19 @@
 </script>
 
 <section class="categories">
-  <h2>Categories</h2>
+  <h2>Catégories <span class="count">({categories.length})</span></h2>
   {#if categories.length === 0}
-    <p class="empty">No categories defined. Use the form below to add one.</p>
+    <p class="empty">Aucune catégorie définie. Utilisez le formulaire ci-dessous pour en créer une.</p>
   {:else}
     <table>
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Kind</th>
-          <th>Profile</th>
-          <th>Display</th>
-          <th>Base path</th>
-          <th>Actions</th>
+          <th>Nom</th>
+          <th>Type</th>
+          <th>Profil</th>
+          <th>Nom affiché</th>
+          <th>Chemin sur disque</th>
+          <th class="actions-header">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -79,43 +79,85 @@
   {/if}
 
   <form class="add-row" onsubmit={(e) => { e.preventDefault(); addRow(); }}>
-    <h3>Add category</h3>
+    <h3>Ajouter une catégorie</h3>
     <input
       type="text"
-      placeholder="name (e.g., series-zoe)"
+      class="mono"
+      placeholder="nom (ex: series-zoe)"
+      aria-label="Nom de la nouvelle catégorie"
       bind:value={newRow.name}
       required
     />
-    <select bind:value={newRow.kind}>
-      <option value="series">series</option>
-      <option value="movies">movies</option>
+    <select bind:value={newRow.kind} aria-label="Type">
+      <option value="series">📺 series</option>
+      <option value="movies">🎬 movies</option>
     </select>
-    <select bind:value={newRow.profile}>
-      <option value="general">general</option>
-      <option value="anime">anime</option>
-      <option value="family">family</option>
+    <select bind:value={newRow.profile} aria-label="Profil">
+      <option value="general">general — qualité standard</option>
+      <option value="anime">anime — profile id=8 + tags</option>
+      <option value="family">family — profile id=9, kids</option>
     </select>
-    <input type="text" placeholder="display" bind:value={newRow.display} />
-    <input type="text" placeholder="/media/..." bind:value={newRow.base_path} />
-    <button type="submit" class="add-btn">Add</button>
-    <button type="button" onclick={resetRow}>Reset</button>
+    <input
+      type="text"
+      placeholder="Nom affiché (ex: Séries - Zoé)"
+      aria-label="Nom affiché"
+      bind:value={newRow.display}
+    />
+    <input
+      type="text"
+      class="mono"
+      placeholder="/media/..."
+      aria-label="Chemin sur disque"
+      bind:value={newRow.base_path}
+    />
+    <button type="submit" class="add-btn">Ajouter</button>
+    <button type="button" onclick={resetRow}>Réinitialiser</button>
   </form>
 </section>
 
 <style>
-  .categories { padding: var(--space-lg); }
-  h2 { font-size: 16px; font-weight: 600; margin: 0 0 var(--space-md) 0; }
-  table { width: 100%; border-collapse: collapse; }
+  .categories {
+    padding: var(--space-lg);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: var(--space-md);
+  }
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 var(--space-md) 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+  }
+  .count {
+    color: var(--ink-faint);
+    font-weight: 400;
+    font-size: 13px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
   th {
     text-align: left;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border);
     padding: var(--space-sm) var(--space-md);
-    font-size: 14px;
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--color-muted);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
-  .empty { color: var(--color-muted); padding: var(--space-md); }
+  th.actions-header { text-align: right; }
+  .empty {
+    color: var(--ink-faint);
+    font-style: italic;
+    padding: var(--space-md);
+    text-align: center;
+  }
   .add-row {
     display: grid;
     grid-template-columns: 1fr auto auto 1fr 1fr auto auto;
@@ -123,8 +165,24 @@
     align-items: center;
     margin-top: var(--space-md);
     padding-top: var(--space-md);
-    border-top: 1px solid var(--color-border);
+    border-top: 1px dashed var(--border);
   }
-  .add-row h3 { grid-column: 1 / -1; font-size: 14px; font-weight: 600; margin: 0; }
-  .add-btn { background: var(--color-accent); color: var(--color-accent-fg); border: none; }
+  .add-row h3 {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--ink-muted);
+  }
+  .add-btn {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: 1px solid var(--accent);
+    font-weight: 500;
+  }
+  .add-btn:hover:not(:disabled) {
+    background: var(--accent);
+    filter: brightness(1.08);
+    border-color: var(--accent);
+  }
 </style>

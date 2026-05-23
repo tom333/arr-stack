@@ -36,7 +36,7 @@
 <details class="app-section">
   <summary>
     <span class="section-title">{sectionName}</span>
-    <span class="field-count">{fieldCount * instances.length} fields</span>
+    <span class="field-count">{fieldCount * instances.length} champ{fieldCount * instances.length === 1 ? '' : 's'}</span>
   </summary>
   <div class="section-body">
     {#each instances as [instanceKey, instanceValue]}

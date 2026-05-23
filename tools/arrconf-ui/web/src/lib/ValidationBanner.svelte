@@ -10,10 +10,16 @@
 
 {#if errors.length > 0}
   <div class="banner" role="alert">
+    <span class="icon" aria-hidden="true">⚠</span>
     <span class="msg">
-      {errors.length} validation error{errors.length === 1 ? '' : 's'} — fix the highlighted fields before saving.
+      {errors.length} erreur{errors.length === 1 ? '' : 's'} de validation — corrige les champs en rouge avant d'enregistrer.
     </span>
-    <button type="button" class="dismiss" onclick={onDismiss} aria-label="Dismiss error banner">✕</button>
+    <button
+      type="button"
+      class="dismiss"
+      onclick={onDismiss}
+      aria-label="Fermer la bannière d'erreurs"
+    >✕</button>
   </div>
 {/if}
 
@@ -21,22 +27,34 @@
   .banner {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    background: var(--color-error-bg);
-    border-left: 4px solid var(--color-destructive);
+    gap: var(--space-sm);
+    background: var(--error-bg);
+    border: 1px solid var(--destructive);
+    border-left: 4px solid var(--destructive);
     padding: var(--space-sm) var(--space-md);
     margin-bottom: var(--space-md);
     border-radius: 4px;
+    color: var(--destructive);
+  }
+  .icon {
+    font-size: 16px;
+    line-height: 1;
   }
   .msg {
-    color: var(--color-destructive);
-    font-size: 14px;
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
   }
   .dismiss {
     background: transparent;
-    border: none;
-    color: var(--color-destructive);
+    border: 1px solid transparent;
+    color: var(--destructive);
     cursor: pointer;
-    padding: var(--space-xs);
+    padding: 4px 8px;
+    font-size: 14px;
+  }
+  .dismiss:hover {
+    background: var(--destructive-soft);
+    border-color: var(--destructive);
   }
 </style>
