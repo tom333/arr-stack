@@ -140,12 +140,23 @@ grep "0.7.0" charts/arr-stack/values.yaml
 
 ## Operator UAT Result
 
-**PENDING** — Task 5 (`checkpoint:human-verify`) requires browser interaction:
+**✅ APPROVED** (opérateur 2026-05-23) — all 10 scenarios PASSED.
 
-- 9 UAT scenarios documented in `15-HUMAN-UAT.md`
-- Operator must: verify UI renders, test categories ↑↓✕ + add, verify SuggestArr badges, verify diff preview, verify validation errors, check git diff round-trip, confirm D-11
+Scope expanded mid-UAT to include 3 post-original-scope improvements:
+- **Scenario 10 added**: LAN-accessible binding (default `0.0.0.0:8765` per
+  operator request, CONTEXT D-04 amended). `--host 127.0.0.1` override
+  available + auto-detected LAN URL logged at startup.
+- **Design refresh**: array-of-objects bug fixed (`[object Object]` → repeatable
+  nested form), French i18n layer (54+ field tooltips + 7 section docs),
+  dark theme with `data-theme` attribute + ThemeToggle, IBM Plex Sans/Mono
+  typography. Driven by frontend-design skill ("architectural-blueprint"
+  aesthetic).
+- **Full FR strings**: every visible UI string in French, including all
+  aria-labels, placeholders, button labels, error messages, toast copy,
+  spinner default, diff panel headings and op markers.
 
-Signal: type `approved` in continuation prompt after all 9 scenarios pass.
+See `15-HUMAN-UAT.md` for the 10 PASSED scenarios + `15-VERIFICATION.md`
+for the full SC#1-7 compliance check.
 
 ## Commits
 
@@ -155,6 +166,10 @@ Signal: type `approved` in continuation prompt after all 9 scenarios pass.
 | `362014d` | feat(15-B) | Schema-driven FieldInput + HelpTooltip + SuggestArrBadge + leaf primitives |
 | `ae9b394` | feat(15-B) | Surface 1+2+3+6 components + App root + GET/POST/PUT orchestration |
 | `f104e8c` | feat(15-B) | Build production dist + README Local config UI section |
+| `1024d5c` | docs(15-B) | Initial SUMMARY + HUMAN-UAT (UAT pending) |
+| `7ce43e1` | feat(15-B) | Bind 0.0.0.0 by default — LAN-accessible UI (D-04 amended) |
+| `cd877cf` | feat(15-B) | UI design pass — array-of-objects fix + i18n FR + dark theme + IBM Plex |
+| `48bdd56` | feat(15-B) | Full FR i18n pass — every visible string in French |
 
 ## Deviations from Plan
 

@@ -56,7 +56,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 - [x] **Phase 12: Categories deprecation** — `merge_with_manual` removed; flat sections deleted from `arrconf.yml`; generators are sole source; sweep manual-path tests pruned; migration doc in CLAUDE.md (completed 2026-05-22)
 - [x] **Phase 13: SuggestArr research spike** — `13-RESEARCH.md` locks Option A (Helm sidecar) via SuggestArr's native `SEER_ANIME_PROFILE_CONFIG` per-request routing; SEED-001 closed; Phase 14 preflight handed off (completed 2026-05-22)
 - [x] **Phase 14: SuggestArr implementation** — Helm sidecar OR declarative reconciler OR CronJob (per Phase 13 decision); SealedSecret + ConfigMap; Categories routing wiring; integration test (completed 2026-05-22)
-- [ ] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip; potentially split into 15-A backend + 15-B frontend during plan-phase
+- [x] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip; potentially split into 15-A backend + 15-B frontend during plan-phase (completed 2026-05-23)
 
 ## Phase Details
 
@@ -145,7 +145,7 @@ Plans:
 - [x] 15-A-backend-PLAN.md — `tools/arrconf-ui/` Python package + FastAPI 4 endpoints + pydantic validation + ruyaml atomic round-trip + semantic diff + Typer CLI (REQ-local-config-ui-backend, REQ-local-config-ui-packaging)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 15-B-frontend-PLAN.md — Svelte 5 + Vite + TS SPA, schema-driven FieldInput (D-13) + HelpTooltip (D-14) + SuggestArrBadge (D-09) + Categories editor + DiffPanel + SaveToast + README update (REQ-local-config-ui-frontend, REQ-local-config-ui-packaging)
+- [x] 15-B-frontend-PLAN.md — Svelte 5 + Vite + TS SPA, schema-driven FieldInput (D-13) + HelpTooltip (D-14) + SuggestArrBadge (D-09) + Categories editor + DiffPanel + SaveToast + README update (REQ-local-config-ui-frontend, REQ-local-config-ui-packaging)
 **UI hint**: yes — frontend has visual surfaces (Categories table, per-app forms, diff preview)
 
 ## Progress

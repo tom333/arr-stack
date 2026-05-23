@@ -1,10 +1,21 @@
 # Phase 15-B Human UAT
 
-**Status:** AWAITING OPERATOR VERIFICATION
+**Status:** ✅ APPROVED — all 10 scenarios PASSED (opérateur 2026-05-23)
 
 **Plan:** 15-B (Svelte 5 + Vite frontend)
-**Prepared by:** executor agent (automated pre-checks only)
+**Prepared by:** executor agent (automated pre-checks)
+**Verified by:** opérateur (browser-driven scenarios + LAN-access check)
 **Date:** 2026-05-23
+
+UAT cycle included 3 design iterations beyond the initial 9-scenario suite:
+- **LAN exposure** (Scenario 10 added 2026-05-23): default bind changed from
+  127.0.0.1 to 0.0.0.0 per operator request. CONTEXT D-04 amended.
+- **UI design pass** (commit cd877cf): array-of-objects bug fix
+  ([object Object] → repeatable nested form), French i18n layer, dark theme,
+  IBM Plex Sans/Mono typography, schema-driven help tooltips on every field.
+  Applied via frontend-design skill guidance (architectural-blueprint aesthetic).
+- **Full FR i18n** (commit 48bdd56): every visible string translated;
+  ~80 FIELD_LABELS entries cover all schema-derived form labels.
 
 ---
 
@@ -60,7 +71,7 @@ uv run arrconf-ui
 - 6 collapsible app sections: sonarr, radarr, prowlarr, qbittorrent, seerr, jellyfin (collapsed).
 - No error banner. No spinner (data already loaded).
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -76,7 +87,7 @@ uv run arrconf-ui
 - Every form label has a `ⓘ` icon to its right.
 - Tooltip on hover shows the pydantic `Field(description=...)` text verbatim (e.g., "Sonarr base URL e.g. http://sonarr.svc:8989").
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -111,7 +122,7 @@ uv run arrconf-ui
 
 > Linked to SuggestArr's SEER_ANIME_PROFILE_CONFIG (Phase 14 D-05/D-06/D-07). Changing this value requires re-pasting routing config in SuggestArr's web UI per evidence/derived-routing-values.md.
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -131,7 +142,7 @@ uv run arrconf-ui
 9. Click `Keep editing` — panel closes, no write.
 10. Click **Save config** again, click `Confirm & Save` — SaveToast appears bottom-right: `Saved — run git diff to review, then push.` Auto-dismisses after ~4s.
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -151,7 +162,7 @@ uv run arrconf-ui
 - Per-field error text below the input: `Error: ...`
 - Page does NOT show save toast.
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -176,7 +187,7 @@ git diff charts/arr-stack/files/arrconf.yml
 git checkout charts/arr-stack/files/arrconf.yml
 ```
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -192,7 +203,7 @@ grep "tag:" charts/arr-stack/values.yaml | head -5
 
 - `arrconf.image.tag` is **unchanged** — still `0.7.0`.
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -207,7 +218,7 @@ grep "tag:" charts/arr-stack/values.yaml | head -5
 - uvicorn shuts down cleanly (logs: "Finished server process [...]").
 - No Python tracebacks.
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -228,7 +239,7 @@ grep -rn 'type="number"\|type="text"\|type="checkbox"' \
 # (Only FieldInput.svelte and CategoryRow.svelte contain raw HTML inputs)
 ```
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
@@ -261,7 +272,7 @@ ss -tlnp | grep -E ':8765\s'
 # Expected: shows 127.0.0.1:8765 LISTEN
 ```
 
-**Pass/Fail:** [ ]
+**Pass/Fail:** [x] PASSED (opérateur 2026-05-23)
 
 ---
 
