@@ -1,0 +1,58 @@
+[project]
+name = "arrconf-ui"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+  "arrconf",                         # editable install of sibling package — provides RootConfig + load_config
+  "fastapi>=0.115,<0.116",
+  "uvicorn[standard]>=0.32,<0.33",
+  "typer>=0.25.0,<0.26",
+  "pydantic>=2.13,<3",
+  "ruyaml>=0.91,<0.92",
+  "structlog>=25.5,<26",
+]
+
+[project.scripts]
+arrconf-ui = "arrconf_ui.__main__:app"
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0,<10",
+  "pytest-cov>=7.1,<8",
+  "httpx>=0.28.0,<0.29",
+  "ruff>=0.15,<0.16",
+  "mypy>=2.0,<3",
+]
+
+[tool.uv.sources]
+arrconf = { path = "../arrconf", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "D"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "N802"]
+"arrconf_ui/__main__.py" = ["B008"]  # typer.Option(...) in defaults is canonical typer
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["ruyaml.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-v --strict-markers"
+testpaths = ["tests"]
