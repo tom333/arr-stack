@@ -16,6 +16,79 @@ arr-stack est structuré autour de deux composants :
 
 La séparation de responsabilités avec **configarr** est stricte : configarr gère quality profiles / custom formats / quality definitions / media naming (TRaSH-Guides), arrconf gère tout le reste. Voir [`CLAUDE.md`](./CLAUDE.md) "Frontière arrconf / configarr".
 
+## Local config UI
+
+Phase 15 (v0.4.0) ships a local web UI for editing `charts/arr-stack/files/arrconf.yml` from a browser. Homelab tool — **bound to `0.0.0.0:8765` by default (LAN-accessible)**, no auth scheme. Same trust model as the existing Sonarr/Radarr/Jellyfin UIs already exposed on your home network (everyone on the LAN is trusted; `arrconf.yml` itself contains no secrets).
+
+### Launch
+
+From the repo root:
+
+```bash
+cd tools/arrconf-ui
+uv sync                            # one-time: installs FastAPI + uvicorn + arrconf (editable)
+uv run arrconf-ui                  # default: bind 0.0.0.0:8765, auto-opens browser
+uv run arrconf-ui --port 9000      # alternate port
+uv run arrconf-ui --no-browser     # headless (URLs still printed to stdout)
+uv run arrconf-ui --host 127.0.0.1 # restrict to loopback only — no LAN access
+```
+
+Env-var overrides: `ARRCONF_UI_HOST=127.0.0.1 ARRCONF_UI_PORT=9000 uv run arrconf-ui`.
+
+On startup, both URLs are printed:
+
+```
+INFO: Local config UI ready at http://localhost:8765
+INFO: LAN-accessible at http://192.168.1.42:8765
+INFO: Editing /path/to/arrconf.yml
+```
+
+The LAN URL is auto-detected via the host's outbound interface. Open it from another device on the same network (phone, tablet, another laptop) to edit `arrconf.yml` remotely.
+
+The UI loads `charts/arr-stack/files/arrconf.yml`, renders a schema-driven typed form (Categories table + per-app collapsible sections for sonarr/radarr/prowlarr/qbittorrent/seerr/jellyfin), shows a semantic diff preview on Save, validates via pydantic on Save (422 errors highlighted in-form), and writes the file back via ruyaml round-trip (comments + blank lines + key ordering preserved). No git automation — Save shows a toast "Saved — run `git diff` to review, then push."
+
+### Workflow
+
+1. `uv run arrconf-ui` from `tools/arrconf-ui/`.
+2. Edit Categories / per-app fields in the browser.
+3. Click **Save config** → review the diff preview → **Confirm & Save**.
+4. In the terminal: `git diff charts/arr-stack/files/arrconf.yml` to review.
+5. `git add` / `git commit` / `git push` manually.
+
+### Dev mode (frontend hot reload)
+
+If you're modifying the frontend (`tools/arrconf-ui/web/src/`), run the FastAPI backend AND Vite dev server in parallel:
+
+```bash
+# Terminal A — backend on 127.0.0.1:8765
+cd tools/arrconf-ui
+uv run arrconf-ui --no-browser
+
+# Terminal B — Vite dev server on 127.0.0.1:5173 (proxies /api/* → 8765)
+cd tools/arrconf-ui/web
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173/` for the hot-reloading dev UI.
+
+### Building the static bundle
+
+```bash
+cd tools/arrconf-ui/web
+npm install
+npm run build       # produces tools/arrconf-ui/web/dist/
+```
+
+After build, `arrconf-ui` auto-serves the bundle from FastAPI's `StaticFiles` mount at `/`.
+
+### What's NOT in scope
+
+- `configarr.yml` editor (deferred — REQ-config-ui-multi-config v0.5.x).
+- Auto-commit / auto-push (deferred — REQ-config-ui-git-integration v0.5.x).
+- Remote exposure / Ingress / Tailscale (single-tenant homelab; `127.0.0.1` only).
+- Auth (single-operator localhost-only).
+
 ## Architecture
 
 ```
