@@ -8,26 +8,28 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Shipped: v0.3.0 Categories first-class** (2026-05-22). 1 declarative `categories[]` entry in `arrconf.yml` propagates to all 6 apps + chart initContainer + dispositive idempotence on live cluster. Production cluster running chart `v0.7.0` / image `:0.6.7`. Full archive: [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [audit](v0.3.0-MILESTONE-AUDIT.md) `passed_with_caveats`.
+**Shipped: v0.4.0 Categories cleanup + content discovery + local config UI** (2026-05-23). v0.2.0 transition layer fully ripped out (generators are the only source); SuggestArr deployed as 11th umbrella alias with Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG`; `arrconf-ui` ships as FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation + ruyaml round-trip + dark theme. Production cluster running chart `v0.8.2` / image `:0.7.0`. Full archive: [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md).
 
-## Current Milestone: v0.4.0 Categories cleanup + content discovery + local config UI
+<details>
+<summary>Previous state — v0.3.0 Categories first-class (2026-05-22)</summary>
 
-**Goal**: Achever le pivot Categories first-class (deprecation des flat sections v0.2.0), ajouter une couche discovery automatisée (SuggestArr), et fournir un outil d'édition local pour `arrconf.yml` — homelab single-tenant, file-as-source-of-truth préservé.
+1 declarative `categories[]` entry in `arrconf.yml` propagates to all 6 apps + chart initContainer + dispositive idempotence on live cluster. Production cluster running chart `v0.7.0` / image `:0.6.7`. Archive: [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [audit](v0.3.0-MILESTONE-AUDIT.md) `passed_with_caveats`.
 
-**Target features (execution order):**
+</details>
 
-1. **REQ-categories-deprecation** (cleanup) — Full ripout : `merge_with_manual` supprimé, flat sections vidées d'`arrconf.yml`, générateurs deviennent la seule source. Migration documentée. Tests sweep manual-path élagués.
+## Next Milestone Goals: v0.5.x candidates
 
-2. **REQ-suggestarr-integration** (feature, SEED-001 active) — Auto-suggest content based on Jellyfin watch history → Seerr requests. Architecture decision (sidecar Helm-only vs reconciler arrconf vs CronJob) déférée à une phase recherche dédiée.
+To be scoped via `/gsd-new-milestone`. Carry-forward seeds from v0.4.0:
 
-3. **REQ-local-config-ui** (DX) — Web UI local (browser `localhost:NNNN`), stack Python (FastAPI/Flask + frontend dans le même venv, pydantic models réutilisés, ruyaml round-trip). Full file editor (toutes sections). Save écrit seulement ; opérateur gère git CLI manuellement.
-
-**Explicitly OUT of v0.4.0 scope:**
-- REQ-bazarr-addition (Bazarr subtitles) — deferred to v0.5.0+
-- Cluster-hosted UI (Categories editing from a browser inside k8s) — single-tenant local-first preserved
-- Auto-commit/auto-push from UI (operator owns git CLI workflow)
-
-Plus deferred HUMAN-UAT items from v0.3.0 (not blocking, opt-in operator exercise): Phase 9 initContainer NFS write test, Phase 10 SC#1 + SC#3 live cluster validation.
+- **REQ-bazarr-addition** — Bazarr (subtitles) as the 8th *arr-stack app
+- **REQ-config-ui-git-integration** — auto-commit/push from `arrconf-ui` (operator decided to defer post-v0.4.0)
+- **REQ-config-ui-multi-config** — `configarr.yml` editing in the same UI (ADR-5 frontière check first)
+- **REQ-arrconf-ui-ci** — restore CI coverage for `tools/arrconf-ui/**` (path-filter excluded it in v0.4.0)
+- **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install (currently runs from source)
+- **`arrconf` qBit POST credentials** — inject `QBT_USER`/`QBT_PASS` when YAML values are empty
+- **D-07-PLAYLIST-MGMT-NULL** — re-verify `EnablePlaylistManagement` on Jellyfin 11.x upgrade
+- **SuggestArr ingress + auto-submit** — currently port-forward + manual approval
+- **Phase 9 / Phase 10 HUMAN-UAT** — deferred operator-exercise items from v0.3.0 (still open, not blocking)
 
 ## Core Value
 
@@ -119,50 +121,12 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 - **Renovate config (schema)** : `renovate.json` avec `extends: ["config:recommended"]`, `customManagers` regex sur `values.yaml`, `packageRules` automerge minor/patch sur `custom.regex` / `helm-values` / `helmv3`
 - **Garde-fous CLAUDE.md (protocol)** : pas de secrets committés, pas de `:latest` en prod, pas d'écriture sur endpoints frontière configarr, pas d'amend de tag, pas de duplication config configarr, pas d'API réelle dans tests CI, pas de dep Python non-pinnée, pas de changement scope sans ADR, pas de déploiement direct, pas de merge avec drift major non-validé, pas de suppression annotation Renovate, pas de `prune: true` par défaut, pas de test cluster sans snapshot préalable
 
-## Current State
-
-**Shipped:** v0.2.0 forceSave fix (2026-05-17)
-**In flight:** v0.3.0 Phase 9 complete at code level (2026-05-18) — pydantic `Category` model + 10 production categories in `arrconf.yml` + pre-install/pre-upgrade Helm Job + filesystem migration runbook. Cluster-time UAT pending (SC#3: `kubectl exec deployment/jellyfin -- ls /media/<name>` after next ArgoCD sync) — tracked in `09-HUMAN-UAT.md`.
-
-The MVP of arr-stack is live in production. All 6 *arr-stack apps (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin) are managed declaratively via `arrconf` + the Helm umbrella chart. UI-free configuration achieved end-to-end. `arrconf dump | arrconf diff` round-trip returns 0 drift on every reconciler. CI auto-tag → GHCR build → ArgoCD sync loop operational. 17/19 v1 requirements validated; 2 carried to v0.3.0 (REQ-readme-onboarding + REQ-secret-management).
-
-**Cluster state:** arr-stack chart `v0.5.2`, arrconf image `:0.5.0`, `arrconf-env` SealedSecret with 7 keys, 9 apps + 2 CronJobs running in `selfhost` namespace. **Next release `0.5.3`** (chart pin pre-bumped in Phase 9) once the Categories Job lands.
-
-**Code stats:** ~6,000 LOC Python + ~2,000 lines Helm/YAML + 65 SUMMARY.md docs across 11 phases. Test coverage 94.94% on reconciler code.
-
-## Current Milestone: v0.3.0 Categories first-class
-
-**Goal:** Refactor arr-stack so that a single declarative `categories[i]` entry propagates to all 8 sections × 6 apps (qBit + Sonarr + Radarr + configarr + Seerr + Jellyfin) and auto-creates the matching `/media/<name>` directory via a chart initContainer. Reproduce the operator's real-world content organization (10 categories, no permissions, no users) so that adding a new category like `anime-zoe` becomes a 1-entry YAML edit instead of 12 edits across 2 files.
-
-**Target features:**
-
-- **Categories first-class data model** — top-level `categories: []` block in `arrconf.yml` with orthogonal `kind: movies|series` × `profile: general|anime|family` schema + `display`, `base_path`, `name` per entry.
-- **10-category target organization** — `films`, `nouveaux-films`, `films-enfants`, `films-animation-enfants`, `films-zoe` (Radarr side) + `series`, `series-emilie`, `series-thomas`, `series-garcons`, `series-zoe` (Sonarr side).
-- **8-section propagation per category** — qbit categories, sonarr/radarr tags, root_folders, download_clients, remote_path_mappings, configarr quality_profiles (3 per side, derived from `profile`), Seerr `animeTags` extended for `profile: anime`, Jellyfin library paths.
-- **Jellyfin layout Option A** — 2 super-libraries: "Séries" with 5 paths covering Sonarr-side categories + "Films" with 5 paths covering Radarr-side.
-- **Chart initContainer** — creates `/media/<name>` from each `categories[].base_path` at chart install/upgrade; never deletes; never touches existing file content.
-- **Progressive migration** — Categories generates sections at runtime; manually-edited flat sections (legacy `sonarr.main.tags`, etc.) still parse and override generation; deprecation warning planned for v0.4.0+.
-- **Operational polish bundle** — absorb ~8 carry-forward items from v0.2.0 (04-09 selfHeal/prune re-enable, ConfigMap cruft cleanup, ruff-format CI gate, chart-pin pre-bump pattern, paths-filter extension, Renovate App install, snapshot.sh redaction harden, idempotence FP fix).
-- **REQ-readme-onboarding closure** — < 30-min operator onboarding validated against the new Categories-aware README.
-
-**Key context:**
-
-- **Pure organizational refactor — NO permissions, NO new users, NO ACL.** The user/operator model (Jellyfin admin `moi` + operator-managed `emilie`) is preserved as-is. D-07-USERS-01 protection still applies.
-- **Filesystem migration deferred to operator.** arrconf will create the new `/media/<name>` directories empty; physical `mv` of existing content from the v0.2.0 flat layout (`/media/series`, `/media/anime`, etc.) to the new 10-bucket layout is a separate manual step the operator does later.
-- **`nouveaux-films` is a regular Category.** Not a temporary queue — operator manually moves to `films` after viewing.
-- **Web UI POC explicitly OUT of v0.3.0.** Sketch / discussion may surface during Phase 11 polish, but no React/Svelte code shipped. Re-evaluate for v0.4.0+.
-- **SuggestArr (SEED-001) parked for v0.4.0+.** Builds on v0.3.0's Categories foundation.
-- **Secret management = sealed-secrets, considered closed.** No external-secret migration planned. REQ-secret-management closed in spirit (2026-05-22).
-
-**Projected phases:** 3
-- Phase 9 — Categories data model + chart initContainer
-- Phase 10 — Categories → 6-app propagation + Seerr-routing extension
-- Phase 11 — Operational polish bundle + README onboarding refresh
-
 <details>
-<summary>Previous milestone scope (v0.2.0 — archived)</summary>
+<summary>Archived milestone scopes (v0.2.0 + v0.3.0 + v0.4.0)</summary>
 
-See [`MILESTONES.md`](MILESTONES.md) for the v0.2.0 shipped summary and [`milestones/v0.2.0-ROADMAP.md`](milestones/v0.2.0-ROADMAP.md) for full archived details.
+- v0.2.0 forceSave fix — see [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.2.0-ROADMAP.md`](milestones/v0.2.0-ROADMAP.md)
+- v0.3.0 Categories first-class — see [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md)
+- v0.4.0 Categories cleanup + content discovery + local config UI — see [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md)
 
 </details>
 

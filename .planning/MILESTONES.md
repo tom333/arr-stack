@@ -1,5 +1,55 @@
 # Milestones
 
+## v0.4.0 Categories cleanup + content discovery + local config UI (Shipped: 2026-05-23)
+
+**Phases:** 4 (12-15) | **Plans:** 11/11 | **Commits:** 73 | **Cluster:** arr-stack chart `v0.8.2`, arrconf image `:0.7.0`
+
+### Delivered
+
+The v0.2.0 transition layer is fully ripped out (no `merge_with_manual`, no flat `items:` sections; the pure-function generators in `arrconf/generators/categories.py` are the only reconciler input source). SuggestArr ships as the 11th `bjw-s/app-template` alias in the umbrella chart with Categories-aware Seerr routing wired through `SEER_ANIME_PROFILE_CONFIG`. `tools/arrconf-ui/` ships as a single-binary FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation, ruyaml round-trip preserving comments, a semantic diff preview, French i18n on every label and tooltip, and a dark theme — operator UAT signed off on all 10 scenarios.
+
+### Key accomplishments
+
+1. **Categories deprecation — clean ripout** (Phase 12) — `merge_with_manual()` deleted; reconciler signatures accept `*Derived` dataclasses directly; 11 flat `items:` blocks removed from `arrconf.yml`; pydantic Section models slimmed with `extra="forbid"` to refuse stale YAML; 8 manual-path tests deleted and 8 sweep tests renamed; CLAUDE.md "v0.3.0 → v0.4.0 deprecation" runbook documents the operator one-shot edit; SC#5 dispositive `arrconf apply --dry-run` on live cluster post-deprecation emits the same plan_action shape as pre-deprecation.
+
+2. **SuggestArr architecture decision locked via source-code evidence** (Phase 13) — `gsd-phase-researcher` spike confirmed Option A (Helm sidecar) using SuggestArr's native `SEER_ANIME_PROFILE_CONFIG` per-request routing (rootFolder + profileId + tags). SEED-001 closed with frontmatter `closed_in: v0.4.0 Phase 13`; phase 14 preflight handoff document emitted; zero production-code drift in this phase.
+
+3. **SuggestArr in-cluster** (Phase 14) — 11th `bjw-s/app-template@5.0.0` alias in `Chart.yaml` + Helm 4 multi-alias unpack workaround codified in CI; `suggestarr-env` SealedSecret with Jellyfin + Seerr + TMDB keys (operator-merged into existing `arrconf-env`); ConfigMap dropped after plan-checker BLOCKER (SuggestArr ignores it at runtime — documented in RESEARCH); integration test asserts Categories routing maps `anime-zoe` → Sonarr profile 4 root `/media/series-zoe` and equivalents for the other 9 categories. Live cluster passed readiness on first ArgoCD sync after TMDB key seeded.
+
+4. **Local config UI** (Phase 15) — `tools/arrconf-ui/` Python package exposes 4 FastAPI endpoints (`GET/PUT /api/config`, `GET /api/schema`, `POST /api/diff`); reuses `tools/arrconf/arrconf/config.py` pydantic models + atomic ruyaml round-trip preserving comments and key order; semantic diff endpoint reports added/removed/changed entries per top-level section. Frontend is Svelte 5 vanilla + Vite + TS — single `FieldInput.svelte` 6-branch dispatcher walks the JSON Schema (D-13 schema-driven form) with HelpTooltip surfacing pydantic descriptions verbatim. Frontend-design skill applied mid-execution: IBM Plex Sans + Mono, architectural-blueprint palette, full French i18n (FIELD_LABELS, FIELD_DESCRIPTIONS, SECTION_DOCS), dark theme via `[data-theme]` attribute, `[object Object]` array-of-objects rendering bug fixed via repeatable nested form. D-04 amended mid-cycle to bind `0.0.0.0` for LAN access per operator request.
+
+5. **Release pipeline survives the milestone batch** — 4 image co-bumps (`0.6.7 → 0.7.0` in Phase 12; `0.6.7` unchanged for sidecar-only Phases 13/14; `0.7.0` unchanged for Phase 15 since arrconf code untouched) executed cleanly. Path-filter on `chart-lint.yml` + `tests.yml` correctly excluded `tools/arrconf-ui/**` from CI gates — locally-verified triad + Svelte build accepted as sufficient for homelab.
+
+6. **Operator UAT all-green** — Phase 15 `15-HUMAN-UAT.md` 10/10 scenarios PASSED including LAN reachability (Scenario 10), schema validation 422 surfaced inline, comment preservation via ruyaml, dark theme persistence, French copy on every visible string, repeatable nested rules rendered correctly for sonarr/radarr.
+
+### Validated v0.4.0 requirements (6/6)
+
+All 6 REQs marked Complete in [`milestones/v0.4.0-REQUIREMENTS.md`](milestones/v0.4.0-REQUIREMENTS.md): REQ-categories-deprecation, REQ-suggestarr-research, REQ-suggestarr-integration, REQ-local-config-ui-backend, REQ-local-config-ui-frontend, REQ-local-config-ui-packaging.
+
+### Known deferred items at close
+
+- **REQ-arrconf-ui-ci** — path-filter on `chart-lint.yml` + `tests.yml` excludes `tools/arrconf-ui/**`; CI coverage punted to v0.5.x
+- **REQ-arrconf-ui-distribution** — UI currently runs from source via `uv run` only; packaging deferred
+- **SuggestArr ingress + auto-submit** — port-forward + manual approval baseline; ingress + auto-submit punted
+- **Auto-tag chain for arrconf-ui-only changes** — same path-filter caveat; v0.8.2 is the latest chart tag, UI changes don't bump
+- **Phase 9 / Phase 10 HUMAN-UAT carry-forward from v0.3.0** — still open, still not blocking
+
+### Cluster end state
+
+- arr-stack chart **v0.8.2** rendered by ArgoCD, arrconf image **`:0.7.0`**, SuggestArr running as 11th alias
+- `arrconf-env` SealedSecret extended with Jellyfin + Seerr + TMDB keys (kubeseal `--merge-into`)
+- `arrconf-ui` runs from source on the operator laptop, bound to `0.0.0.0:8765`, no auth (homelab single-tenant)
+- Snapshots: `before-phase-12-2026-05-22/` + `after-phase-12-2026-05-22/`
+
+### Archive references
+
+- [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md) — full per-phase scope, success criteria, lessons learned
+- [`milestones/v0.4.0-REQUIREMENTS.md`](milestones/v0.4.0-REQUIREMENTS.md) — all 6 v0.4.0 requirements with final status
+- [`milestones/v0.4.0-phases/`](milestones/v0.4.0-phases/) — 4 phase directories (Phase 12 5 plans, Phase 13 1 plan, Phase 14 3 plans, Phase 15 2 plans)
+- Git tag: `v0.4.0` (commit TBD after milestone-close commit)
+
+---
+
 ## v0.3.0 Categories first-class (Shipped: 2026-05-22)
 
 **Phases:** 3 (9-11) | **Plans:** 16/16 | **Commits:** 87 | **Cluster:** arr-stack chart `v0.7.0`, arrconf image `:0.6.7`

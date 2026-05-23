@@ -47,7 +47,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 
 </details>
 
-### 🚧 v0.4.0 Categories cleanup + content discovery + local config UI (Phases 12-15)
+### ✅ v0.4.0 Categories cleanup + content discovery + local config UI (Phases 12-15) — shipped 2026-05-23
 
 **Goal**: Achever le pivot Categories first-class (deprecation des flat sections v0.2.0), ajouter content discovery automatisé (SuggestArr), fournir un éditeur local pour `arrconf.yml`.
 
@@ -59,6 +59,11 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 - [x] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip; potentially split into 15-A backend + 15-B frontend during plan-phase (completed 2026-05-23)
 
 ## Phase Details
+
+**v0.4.0 milestone archived (Phase 12–15)**: see [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md) for full phase details, requirements, and lessons learned.
+
+<details>
+<summary>Show archived Phase 12–15 details (collapsed)</summary>
 
 ### Phase 12: Categories deprecation
 **Goal**: Remove the v0.2.0 transition layer entirely — `merge_with_manual` toggle, flat sections in `arrconf.yml`, and the manual-path sweep tests. Categories generators become the sole source of truth for reconciler inputs.
@@ -148,13 +153,15 @@ Plans:
 - [x] 15-B-frontend-PLAN.md — Svelte 5 + Vite + TS SPA, schema-driven FieldInput (D-13) + HelpTooltip (D-14) + SuggestArrBadge (D-09) + Categories editor + DiffPanel + SaveToast + README update (REQ-local-config-ui-frontend, REQ-local-config-ui-packaging)
 **UI hint**: yes — frontend has visual surfaces (Categories table, per-app forms, diff preview)
 
+</details>
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
 | v0.2.0 forceSave fix | 11 | 65/66 | ✅ Shipped | 2026-05-17 |
 | v0.3.0 Categories first-class | 3 | 16/16 | ✅ Shipped | 2026-05-22 |
-| v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 6/TBD | 🚧 In progress | — |
+| v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 11/11 | ✅ Shipped | 2026-05-23 |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)
