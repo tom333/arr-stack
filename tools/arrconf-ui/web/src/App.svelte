@@ -11,6 +11,7 @@
   import SaveToast from './lib/SaveToast.svelte';
   import ValidationBanner from './lib/ValidationBanner.svelte';
   import Spinner from './lib/Spinner.svelte';
+  import SectionDoc from './lib/SectionDoc.svelte';
 
   // State (Svelte 5 runes per UI-SPEC).
   let schema = $state<RootSchema | null>(null);
@@ -114,11 +115,13 @@
       <DiffPanel diff={pendingDiff} onConfirm={confirmSave} onCancel={cancelDiffPanel} />
     {/if}
 
+    <SectionDoc section="categories" defaultOpen={false} />
     <CategoriesEditor categories={configState.categories} onChange={updateCategories} />
 
     {#each APP_SECTIONS as sectionName}
       {@const sectionSchema = schema.properties[sectionName]}
       {#if sectionSchema}
+        <SectionDoc section={sectionName} />
         <AppSection
           {sectionName}
           {sectionSchema}

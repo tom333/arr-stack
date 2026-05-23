@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SaveStatus } from '../types';
+  import ThemeToggle from './ThemeToggle.svelte';
 
   type Props = {
     filePath: string;
@@ -10,20 +11,23 @@
   let { filePath, diffCount, saveStatus, onSaveClick }: Props = $props();
 
   const isDisabled = $derived(diffCount === 0 || saveStatus === 'saving');
-  const buttonLabel = $derived(saveStatus === 'saving' ? 'Saving…' : 'Save config');
+  const buttonLabel = $derived(saveStatus === 'saving' ? 'Enregistrement…' : 'Enregistrer');
 </script>
 
 <header class="header">
   <div class="title-wrap">
-    <h1 class="title">arrconf editor</h1>
+    <h1 class="title">
+      arrconf<span class="title-divider">/</span><span class="title-accent">editor</span>
+    </h1>
     <code class="filepath">{filePath}</code>
   </div>
   <div class="actions">
     {#if diffCount > 0}
-      <span class="diff-chip">
-        {diffCount} unsaved change{diffCount === 1 ? '' : 's'}
+      <span class="diff-chip" aria-live="polite">
+        {diffCount} modification{diffCount === 1 ? '' : 's'} en attente
       </span>
     {/if}
+    <ThemeToggle />
     <button type="button" class="save-btn" disabled={isDisabled} onclick={onSaveClick}>
       {buttonLabel}
     </button>
@@ -38,28 +42,72 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-md) var(--space-lg);
-    background: var(--color-panel);
-    border-bottom: 1px solid var(--color-border);
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     z-index: 10;
+    backdrop-filter: blur(8px);
   }
-  .title-wrap { display: flex; flex-direction: column; gap: 2px; }
-  .title { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.2; }
-  .filepath { color: var(--color-muted); font-size: 12px; }
-  .actions { display: flex; align-items: center; gap: var(--space-sm); }
-  .diff-chip {
-    color: var(--color-muted);
+  .title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .title-divider {
+    color: var(--ink-faint);
+    font-weight: 400;
+    margin: 0 2px;
+  }
+  .title-accent {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .filepath {
+    color: var(--ink-muted);
     font-size: 12px;
+    background: transparent;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .diff-chip {
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    font-family: 'IBM Plex Mono', monospace;
   }
   .save-btn {
-    background: var(--color-accent);
-    color: var(--color-accent-fg);
-    border: none;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: 1px solid var(--accent);
     padding: var(--space-sm) var(--space-md);
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
   }
-  .save-btn:disabled {
-    background: var(--color-accent);
-    /* opacity rule from app.css applies */
+  .save-btn:hover:not(:disabled) {
+    background: var(--accent);
+    filter: brightness(1.08);
+    border-color: var(--accent);
   }
+  /* .save-btn:disabled inherits opacity from the generic button:disabled in app.css. */
 </style>
