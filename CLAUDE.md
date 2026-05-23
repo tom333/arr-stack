@@ -15,7 +15,7 @@
 
 Le projet est consommé par le cluster `my-kluster` (sister repo) via une seule ArgoCD Application qui pull ce repo.
 
-**État actuel** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin). Production cluster tourne sur l'image `:0.6.7`. Idempotence dispositive sur cluster réel (SC#2). Phase 12 deprecation livré — flat sections retirées de arrconf.yml, generators sont la seule source. Voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) pour le détail.
+**État actuel** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin). Production cluster tourne sur l'image `:0.6.7`. Idempotence dispositive sur cluster réel (SC#2). Phase 12 deprecation livré — flat sections retirées de arrconf.yml, generators sont la seule source. Phase 13 SuggestArr arch décidé (sidecar Helm, Option A — D-01 lock). Voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) pour le détail.
 
 > 📚 Site GitHub Pages (à venir) pour la doc complète. Ce fichier reste l'index "comment".
 

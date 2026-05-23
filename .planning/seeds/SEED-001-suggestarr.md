@@ -8,10 +8,12 @@ trigger_when:
   - "user mentions wanting more automated content discovery"
   - "Seerr usage stabilized and operator wants to reduce manual request work"
 source: https://github.com/giuseppe99barchetta/SuggestArr
-status: active
+status: closed (Phase 13 architecture decided)
 target_milestone: v0.4.0 (Phases 13-14)
 activated_at: 2026-05-22
 activated_during: /gsd-new-milestone v0.4.0
+closed_in: v0.4.0 Phase 13
+decision_ref: .planning/phases/13-suggestarr-research-spike/13-RESEARCH.md#architecture-decision-d-01-lock
 mapped_to_requirements:
   - REQ-suggestarr-research (Phase 13 — research spike, arch decision)
   - REQ-suggestarr-integration (Phase 14 — deployment + Categories routing)
@@ -48,3 +50,15 @@ SuggestArr analyzes Jellyfin/Plex watch history and automatically creates Sonarr
 
 - Planted during v0.3.0 scoping conversation when the user clarified "j'avais cité preparr mais en fait je pensais à SuggestArr — note pour plus tard".
 - The user's actual v0.3.0 focus is **Categories first-class as pure video organization** — explicitly NOT multi-user / NOT permissions. SuggestArr is the next-but-one milestone candidate, building on top of the Categories propagation model.
+
+## Closure (Phase 13, 2026-05-22)
+
+**Architecture locked:** Option A — Helm sidecar (11th `bjw-s/app-template@5.0.0` alias in `Chart.yaml`).
+
+The D-01 fallback condition (SuggestArr lacks native tag-based routing on the Seerr submission path) is **FALSE**: SuggestArr v2.7.x exposes `SEER_ANIME_PROFILE_CONFIG` — a per-request dict with `serverId` / `profileId` / `rootFolder` / `tags` fields keyed by `anime_tv` / `anime_movie` / `default_tv` / `default_movie`. This satisfies REQ-suggestarr-research's Categories-aware routing requirement natively.
+
+**Decision rationale + full research:** see [`.planning/phases/13-suggestarr-research-spike/13-RESEARCH.md` § Architecture Decision (D-01 lock)](../phases/13-suggestarr-research-spike/13-RESEARCH.md#architecture-decision-d-01-lock).
+
+**Open questions deferred to Phase 14:** see [`.planning/phases/13-suggestarr-research-spike/13-PHASE14-PREFLIGHT.md`](../phases/13-suggestarr-research-spike/13-PHASE14-PREFLIGHT.md).
+
+This seed stays in `.planning/seeds/` as a forensic anchor (CONTEXT D-06: status flip, no deletion). Implementation tracked under REQ-suggestarr-integration → Phase 14.

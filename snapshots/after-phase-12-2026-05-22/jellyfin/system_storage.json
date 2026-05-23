@@ -1,0 +1,114 @@
+{
+  "CacheFolder": {
+    "DeviceId": "/config/cache",
+    "FreeSpace": 650708111360,
+    "Path": "/config/cache",
+    "StorageType": "Fixed",
+    "UsedSpace": 332641234944
+  },
+  "ImageCacheFolder": {
+    "DeviceId": "/config/cache/images",
+    "FreeSpace": 650708111360,
+    "Path": "/config/cache/images",
+    "StorageType": "Fixed",
+    "UsedSpace": 332641234944
+  },
+  "InternalMetadataFolder": {
+    "DeviceId": "/config/data/metadata",
+    "FreeSpace": 650708111360,
+    "Path": "/config/data/metadata",
+    "StorageType": "Fixed",
+    "UsedSpace": 332641234944
+  },
+  "Libraries": [
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/anime",
+          "FreeSpace": 362958553088,
+          "Path": "/media/anime",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        },
+        {
+          "DeviceId": "/media/family",
+          "FreeSpace": 362958553088,
+          "Path": "/media/family",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        },
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 362958553088,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        },
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 362958553088,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        }
+      ],
+      "Id": "d565273fd114d77bdf349a2896867069",
+      "Name": "Séries"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films",
+          "FreeSpace": 362958553088,
+          "Path": "/media/films",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        },
+        {
+          "DeviceId": "/media/films-anime",
+          "FreeSpace": 362958553088,
+          "Path": "/media/films-anime",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        },
+        {
+          "DeviceId": "/media/films-family",
+          "FreeSpace": 362958553088,
+          "Path": "/media/films-family",
+          "StorageType": "Network",
+          "UsedSpace": 2692645126144
+        }
+      ],
+      "Id": "db4c1708cbb5dd1676284a40f2950aba",
+      "Name": "Films"
+    }
+  ],
+  "LogFolder": {
+    "DeviceId": "/config/log",
+    "FreeSpace": 650708111360,
+    "Path": "/config/log",
+    "StorageType": "Fixed",
+    "UsedSpace": 332641234944
+  },
+  "ProgramDataFolder": {
+    "DeviceId": "/config/data",
+    "FreeSpace": 650708111360,
+    "Path": "/config/data",
+    "StorageType": "Fixed",
+    "UsedSpace": 332641234944
+  },
+  "TranscodingTempFolder": {
+    "DeviceId": "/config/cache/transcodes",
+    "FreeSpace": 650708111360,
+    "Path": "/config/cache/transcodes",
+    "StorageType": "Fixed",
+    "UsedSpace": 332641234944
+  },
+  "WebFolder": {
+    "DeviceId": "/usr/share/jellyfin/web",
+    "FreeSpace": 252653367296,
+    "Path": "/usr/share/jellyfin/web",
+    "StorageType": "Fixed",
+    "UsedSpace": 729586659328
+  }
+}

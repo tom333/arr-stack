@@ -1,0 +1,15 @@
+{
+  "embedPoster": true,
+  "enabled": false,
+  "options": {
+    "allowSelfSigned": false,
+    "emailFrom": "",
+    "ignoreTls": false,
+    "requireTls": false,
+    "secure": false,
+    "senderName": "Seerr",
+    "smtpHost": "",
+    "smtpPort": 587,
+    "userEmailRequired": false
+  }
+}

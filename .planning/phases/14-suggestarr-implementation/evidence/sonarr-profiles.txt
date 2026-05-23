@@ -1,0 +1,12 @@
+# Sonarr Quality Profiles (captured 2026-05-22)
+# Source: GET /api/v3/qualityprofile
+
+1	Any
+2	SD
+3	HD-720p
+4	HD-1080p
+5	Ultra-HD
+6	HD - 720p/1080p
+7	MULTi.VF
+8	Anime
+9	Family

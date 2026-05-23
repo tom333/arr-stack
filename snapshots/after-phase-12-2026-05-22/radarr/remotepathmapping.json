@@ -1,0 +1,26 @@
+[
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 1,
+    "localPath": "/data/torrents/complete/",
+    "remotePath": "/data/complete/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 2,
+    "localPath": "/data/torrents/films/",
+    "remotePath": "/data/films/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 3,
+    "localPath": "/data/torrents/films-anime/",
+    "remotePath": "/data/films-anime/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 4,
+    "localPath": "/data/torrents/films-family/",
+    "remotePath": "/data/films-family/"
+  }
+]

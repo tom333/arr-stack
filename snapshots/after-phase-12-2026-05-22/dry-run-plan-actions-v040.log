@@ -1,0 +1,181 @@
+{"step": "managed_tag", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:44.657836Z"}
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-22T04:04:44.662737Z"}
+{"step": "tags", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:44.662803Z"}
+{"action": "add", "name": "series", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.664896Z"}
+{"action": "add", "name": "series-emilie", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.664948Z"}
+{"action": "add", "name": "series-thomas", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.664974Z"}
+{"action": "add", "name": "series-garcons", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.664996Z"}
+{"action": "add", "name": "series-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.665020Z"}
+{"name": "1-moi", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.665043Z"}
+{"name": "anime", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.665063Z"}
+{"name": "arrconf-managed", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.665082Z"}
+{"name": "family", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.665100Z"}
+{"name": "tv", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.665118Z"}
+{"action": "add", "name": "series", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.665140Z"}
+{"action": "add", "name": "series-emilie", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.665158Z"}
+{"action": "add", "name": "series-thomas", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.665179Z"}
+{"action": "add", "name": "series-garcons", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.665197Z"}
+{"action": "add", "name": "series-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.665213Z"}
+{"step": "indexers", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:44.667251Z"}
+{"name": "C411 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.673604Z"}
+{"name": "NorTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.673673Z"}
+{"name": "Torr9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.673699Z"}
+{"name": "Torrent9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.673721Z"}
+{"name": "World-torrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.673745Z"}
+{"name": "ZkTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.673763Z"}
+{"step": "root_folders", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:44.673837Z"}
+{"action": "add", "name": "/media/series-emilie", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.961425Z"}
+{"action": "add", "name": "/media/series-thomas", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.961505Z"}
+{"action": "add", "name": "/media/series-garcons", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.961541Z"}
+{"action": "add", "name": "/media/series-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:44.961569Z"}
+{"name": "/media/anime", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.961619Z"}
+{"name": "/media/family", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:44.961648Z"}
+{"action": "add", "name": "/media/series-emilie", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.961677Z"}
+{"action": "add", "name": "/media/series-thomas", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.961699Z"}
+{"action": "add", "name": "/media/series-garcons", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.961727Z"}
+{"action": "add", "name": "/media/series-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.961751Z"}
+{"step": "remote_path_mappings", "step_index": 5, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:44.961784Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/series-emilie/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964740Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/series-thomas/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964822Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/series-garcons/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964862Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/series-zoe/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964901Z"}
+{"resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/complete/')", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964934Z"}
+{"resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/anime/')", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964965Z"}
+{"resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/family/')", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:44.964992Z"}
+{"step": "download_clients", "step_index": 6, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:44.965024Z"}
+{"app": "sonarr", "error": "download_client 'qBittorrent - S\u00e9ries': tag label 'series' not found in Sonarr/Radarr \u2014 generator output drifted from cluster tags (Phase 12-B: tags derive from categories[]; this should not happen at runtime \u2014 likely a stale test fixture)", "event": "app_failed", "level": "error", "timestamp": "2026-05-22T04:04:44.972355Z"}
+{"step": "managed_tag", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.003077Z"}
+{"id": 1, "event": "managed_tag_found", "level": "info", "timestamp": "2026-05-22T04:04:45.006122Z"}
+{"step": "tags", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.006177Z"}
+{"action": "add", "name": "films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.008160Z"}
+{"action": "add", "name": "nouveaux-films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.008212Z"}
+{"action": "add", "name": "films-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.008242Z"}
+{"action": "add", "name": "films-animation-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.008266Z"}
+{"action": "add", "name": "films-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.008286Z"}
+{"name": "anime", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.008307Z"}
+{"name": "arrconf-managed", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.008325Z"}
+{"name": "family", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.008352Z"}
+{"name": "movies", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.008372Z"}
+{"action": "add", "name": "films", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.008395Z"}
+{"action": "add", "name": "nouveaux-films", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.008414Z"}
+{"action": "add", "name": "films-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.008432Z"}
+{"action": "add", "name": "films-animation-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.008449Z"}
+{"action": "add", "name": "films-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.008466Z"}
+{"step": "indexers", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.010315Z"}
+{"name": "C411 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.016568Z"}
+{"name": "NorTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.016650Z"}
+{"name": "Torr9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.016678Z"}
+{"name": "Torrent9 (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.016697Z"}
+{"name": "World-torrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.016717Z"}
+{"name": "ZkTorrent (Prowlarr)", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.016735Z"}
+{"step": "root_folders", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.016846Z"}
+{"action": "add", "name": "/media/nouveaux-films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.265038Z"}
+{"action": "add", "name": "/media/films-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.265127Z"}
+{"action": "add", "name": "/media/films-animation-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.265161Z"}
+{"action": "add", "name": "/media/films-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.265192Z"}
+{"name": "/media/films-anime", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.265222Z"}
+{"name": "/media/films-family", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.265264Z"}
+{"action": "add", "name": "/media/nouveaux-films", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.265295Z"}
+{"action": "add", "name": "/media/films-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.265322Z"}
+{"action": "add", "name": "/media/films-animation-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.265346Z"}
+{"action": "add", "name": "/media/films-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.265371Z"}
+{"step": "remote_path_mappings", "step_index": 5, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.265402Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/nouveaux-films/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269382Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/films-enfants/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269475Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/films-animation-enfants/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269528Z"}
+{"action": "add", "resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/films-zoe/')", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269573Z"}
+{"resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/complete/')", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269602Z"}
+{"resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/films-anime/')", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269633Z"}
+{"resource": "rpm", "key": "('qbittorrent.selfhost.svc.cluster.local', '/data/films-family/')", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.269658Z"}
+{"step": "download_clients", "step_index": 6, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.269692Z"}
+{"app": "radarr", "error": "download_client 'qBittorrent - Films': tag label 'films' not found in Radarr \u2014 generator output drifted from cluster tags (Phase 12-B: tags derive from categories[]; this should not happen at runtime \u2014 likely a stale test fixture)", "event": "app_failed", "level": "error", "timestamp": "2026-05-22T04:04:45.275964Z"}
+{"action": "update", "name": "Sonarr", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.307306Z"}
+{"action": "update", "name": "Radarr", "diff_fields": ["fields"], "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.307400Z"}
+{"action": "update", "name": "Sonarr", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.307444Z"}
+{"action": "update", "name": "Radarr", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.307471Z"}
+{"app": "prowlarr", "count": 2, "event": "no-op", "level": "info", "timestamp": "2026-05-22T04:04:45.307529Z"}
+{"base_url": "http://localhost:8080", "event": "qbittorrent_login_ok", "level": "info", "timestamp": "2026-05-22T04:04:45.365445Z"}
+{"action": "add", "name": "series", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.369940Z"}
+{"action": "add", "name": "series-emilie", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370028Z"}
+{"action": "add", "name": "series-thomas", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370054Z"}
+{"action": "add", "name": "series-garcons", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370075Z"}
+{"action": "add", "name": "series-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370095Z"}
+{"action": "add", "name": "films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370113Z"}
+{"action": "add", "name": "nouveaux-films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370136Z"}
+{"action": "add", "name": "films-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370157Z"}
+{"action": "add", "name": "films-animation-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370181Z"}
+{"action": "add", "name": "films-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370199Z"}
+{"name": "cleanuparr-unlinked", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370219Z"}
+{"name": "radarr", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370300Z"}
+{"name": "radarr-anime", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370331Z"}
+{"name": "radarr-family", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370353Z"}
+{"name": "radarr-movies", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370384Z"}
+{"name": "sonarr", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370405Z"}
+{"name": "sonarr-anime", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370425Z"}
+{"name": "sonarr-family", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370445Z"}
+{"name": "sonarr-tv", "hint": "not in YAML, prune=False (default)", "event": "prune_skip", "level": "warning", "timestamp": "2026-05-22T04:04:45.370465Z"}
+{"action": "add", "name": "series", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370496Z"}
+{"action": "add", "name": "series", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370515Z"}
+{"action": "add", "name": "series-emilie", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370531Z"}
+{"action": "add", "name": "series-emilie", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370546Z"}
+{"action": "add", "name": "series-thomas", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370562Z"}
+{"action": "add", "name": "series-thomas", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370577Z"}
+{"action": "add", "name": "series-garcons", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370591Z"}
+{"action": "add", "name": "series-garcons", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370605Z"}
+{"action": "add", "name": "series-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370620Z"}
+{"action": "add", "name": "series-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370634Z"}
+{"action": "add", "name": "films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370648Z"}
+{"action": "add", "name": "films", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370662Z"}
+{"action": "add", "name": "nouveaux-films", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370676Z"}
+{"action": "add", "name": "nouveaux-films", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370690Z"}
+{"action": "add", "name": "films-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370704Z"}
+{"action": "add", "name": "films-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370717Z"}
+{"action": "add", "name": "films-animation-enfants", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370731Z"}
+{"action": "add", "name": "films-animation-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370745Z"}
+{"action": "add", "name": "films-zoe", "event": "plan_action", "level": "info", "timestamp": "2026-05-22T04:04:45.370758Z"}
+{"action": "add", "name": "films-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370772Z"}
+{"resource": "qbit_category", "name": "cleanuparr-unlinked", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370789Z"}
+{"resource": "qbit_category", "name": "radarr", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370809Z"}
+{"resource": "qbit_category", "name": "radarr-anime", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370828Z"}
+{"resource": "qbit_category", "name": "radarr-family", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370848Z"}
+{"resource": "qbit_category", "name": "radarr-movies", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370868Z"}
+{"resource": "qbit_category", "name": "sonarr", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370892Z"}
+{"resource": "qbit_category", "name": "sonarr-anime", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370912Z"}
+{"resource": "qbit_category", "name": "sonarr-family", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370931Z"}
+{"resource": "qbit_category", "name": "sonarr-tv", "event": "prune_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.370950Z"}
+{"event": "qbit_preferences_reconcile_skipped", "level": "info", "timestamp": "2026-05-22T04:04:45.370975Z"}
+{"categories_planned": 19, "categories_applied": 0, "dry_run": true, "event": "qbittorrent_reconcile_complete", "level": "info", "timestamp": "2026-05-22T04:04:45.370997Z"}
+{"app": "qbittorrent", "event": "no-op", "level": "info", "timestamp": "2026-05-22T04:04:45.371025Z"}
+{"labels": ["series-zoe"], "hint": "Anime-profile category labels not yet present in Sonarr's tag list. They will be created on this reconcile run; rerun arrconf apply to populate Seerr.animeTags with the new IDs (D-02 transition step).", "event": "seerr_animetags_label_unresolved", "level": "warning", "timestamp": "2026-05-22T04:04:45.401623Z"}
+{"step": "settings_sonarr", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.428514Z"}
+{"resource": "settings_sonarr", "id": 0, "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.437009Z"}
+{"step": "settings_radarr", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.437076Z"}
+{"event": "settings_radarr_no_op", "level": "info", "timestamp": "2026-05-22T04:04:45.442586Z"}
+{"step": "user", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.442665Z"}
+{"resource": "user", "id": 1, "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.449070Z"}
+{"step": "main_settings", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.449138Z"}
+{"event": "main_settings_no_op", "level": "info", "timestamp": "2026-05-22T04:04:45.453609Z"}
+{"app": "seerr", "actions": ["settings_sonarr:dry_run:0", "user:dry_run:1"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-22T04:04:45.453676Z"}
+{"step": "libraries", "step_index": 1, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.478548Z"}
+{"name": "S\u00e9ries", "path": "/media/series", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-22T04:04:45.486199Z"}
+{"resource": "library_path", "name": "S\u00e9ries", "path": "/media/series-emilie", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486274Z"}
+{"resource": "library_path", "name": "S\u00e9ries", "path": "/media/series-thomas", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486302Z"}
+{"resource": "library_path", "name": "S\u00e9ries", "path": "/media/series-garcons", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486324Z"}
+{"resource": "library_path", "name": "S\u00e9ries", "path": "/media/series-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486345Z"}
+{"name": "Films", "path": "/media/films", "event": "library_path_already_present", "level": "info", "timestamp": "2026-05-22T04:04:45.486368Z"}
+{"resource": "library_path", "name": "Films", "path": "/media/nouveaux-films", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486388Z"}
+{"resource": "library_path", "name": "Films", "path": "/media/films-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486407Z"}
+{"resource": "library_path", "name": "Films", "path": "/media/films-animation-enfants", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486424Z"}
+{"resource": "library_path", "name": "Films", "path": "/media/films-zoe", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.486441Z"}
+{"step": "users", "step_index": 2, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.486481Z"}
+{"resource": "user_policy", "user_id": "82fd95db72904569b08d83271823ceaa", "event": "dry_run_skip", "level": "info", "timestamp": "2026-05-22T04:04:45.502789Z"}
+{"step": "server_config", "step_index": 3, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.502859Z"}
+{"event": "server_config_no_op", "level": "info", "timestamp": "2026-05-22T04:04:45.505201Z"}
+{"step": "plugins", "step_index": 4, "event": "step_begin", "level": "info", "timestamp": "2026-05-22T04:04:45.505324Z"}
+{"name": "TMDb", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-22T04:04:45.507727Z"}
+{"name": "OMDb", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-22T04:04:45.507785Z"}
+{"name": "MusicBrainz", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-22T04:04:45.507810Z"}
+{"name": "AudioDB", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-22T04:04:45.507828Z"}
+{"name": "Studio Images", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-22T04:04:45.507848Z"}
+{"name": "Kodi Sync Queue", "status": "Active", "event": "plugin_already_active", "level": "info", "timestamp": "2026-05-22T04:04:45.507869Z"}
+{"app": "jellyfin", "actions": ["library_path:dry_run:S\u00e9ries:/media/series-emilie", "library_path:dry_run:S\u00e9ries:/media/series-thomas", "library_path:dry_run:S\u00e9ries:/media/series-garcons", "library_path:dry_run:S\u00e9ries:/media/series-zoe", "library_path:dry_run:Films:/media/nouveaux-films", "library_path:dry_run:Films:/media/films-enfants", "library_path:dry_run:Films:/media/films-animation-enfants", "library_path:dry_run:Films:/media/films-zoe", "user_policy:dry_run:82fd95db72904569b08d83271823ceaa"], "event": "apply_complete", "level": "info", "timestamp": "2026-05-22T04:04:45.507892Z"}
