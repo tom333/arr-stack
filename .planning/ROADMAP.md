@@ -138,7 +138,14 @@ Plans:
   5. Schema validation indicators (green/red) on each input; submission with invalid data returns 422 with pydantic errors highlighted in-form.
   6. No git automation in the UI — Save shows a toast/notification: "Saved. Review `git diff` then push manually."
   7. README.md gains a "Local config UI" section with launch + workflow instructions.
-**Plans**: TBD (potentially split: 15-A backend + 15-B frontend)
+**Plans**: 2 plans
+
+Plans:
+**Wave 1**
+- [ ] 15-A-backend-PLAN.md — `tools/arrconf-ui/` Python package + FastAPI 4 endpoints + pydantic validation + ruyaml atomic round-trip + semantic diff + Typer CLI (REQ-local-config-ui-backend, REQ-local-config-ui-packaging)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 15-B-frontend-PLAN.md — Svelte 5 + Vite + TS SPA, schema-driven FieldInput (D-13) + HelpTooltip (D-14) + SuggestArrBadge (D-09) + Categories editor + DiffPanel + SaveToast + README update (REQ-local-config-ui-frontend, REQ-local-config-ui-packaging)
 **UI hint**: yes — frontend has visual surfaces (Categories table, per-app forms, diff preview)
 
 ## Progress
