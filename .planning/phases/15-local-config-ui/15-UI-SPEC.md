@@ -114,14 +114,23 @@ Additional derived colors (not new palette entries — derived from above):
 
 ## Surface Inventory and Interaction States
 
+**Page-level focal point hierarchy (top to bottom of attention budget):**
+
+1. **Primary focal point** — the **Categories editor table** (Surface 2). It's the densest interaction area, holds the most operator-facing change surface (10 categories × 4 fields), and is where the typical edit session starts. Visual treatment: positioned immediately under the header (no other content between), takes the full viewport width up to a comfortable max-width (~960px), generous internal row padding.
+2. **Secondary focal point** — the **Save button in the header bar** (Surface 1). Always visible at the top right via sticky positioning. Accent fill draws the eye when the diff-count chip activates. Its visual weight is intentionally smaller than the categories table — operator scans the form to confirm changes, then drifts to Save.
+3. **Tertiary** — per-app collapsible sections (Surface 3) and validation banner (Surface 4) when active.
+4. **Modal/transient layer** — diff panel (Surface 6) and Save toast (Surface 7) take temporary focus when invoked.
+
+When layout ambiguities arise during build (e.g., "should the diff-count chip be bigger?"), default to: reinforce the primary, don't compete with it. The chip stays small and muted.
+
 ### 1. Header bar
 
 **Layout:** Full-width sticky bar at top. Left: app title "arrconf editor" (20px semibold) + current file path (`charts/arr-stack/files/arrconf.yml`) in 12px muted text. Right: diff-count chip + Save button.
 
 **Save button states:**
-- `disabled` (no pending changes): `opacity: 0.4`, `cursor: not-allowed`. Label: "Save".
-- `enabled` (changes pending): accent fill, white label. Label: "Save".
-- `loading` (PUT in flight): accent fill, spinner icon replacing label. No second click possible.
+- `disabled` (no pending changes): `opacity: 0.4`, `cursor: not-allowed`. Label: "Save config".
+- `enabled` (changes pending): accent fill, white label. Label: "Save config".
+- `loading` (PUT in flight): accent fill, label "Saving…" with spinner icon. No second click possible.
 
 **Diff-count chip:**
 - Hidden when no pending changes.
@@ -137,7 +146,7 @@ Additional derived colors (not new palette entries — derived from above):
 **Row interaction:**
 - `↑` button: disabled on first row (`opacity: 0.4`, `cursor: not-allowed`). Active: 32×32px hit target, `--color-muted` fill, moves row up on click.
 - `↓` button: disabled on last row (same). Active: same, moves row down.
-- `✕` button: default state `--color-muted`, hover state `--color-destructive`. Single click → inline confirmation replaces action buttons: `[Confirm delete] [Cancel]` text buttons, no modal. Source: CONTEXT D-08.
+- `✕` button: default state `--color-muted`, hover state `--color-destructive`. Single click → inline confirmation replaces action buttons: `[Confirm delete] [Keep row]` text buttons, no modal. Source: CONTEXT D-08.
 - Row hover: `background: #f1f5f9` (slate-100 tint).
 - Alternate row: even rows use `--color-surface` (`#f8f9fa`), odd rows use `--color-panel` (`#ffffff`).
 
@@ -211,7 +220,7 @@ Additional derived colors (not new palette entries — derived from above):
 
 ### 6. Diff preview modal/panel
 
-**Trigger:** Clicking the "Save" button (when enabled) opens the diff panel BEFORE writing the file.
+**Trigger:** Clicking the "Save config" button (when enabled) opens the diff panel BEFORE writing the file.
 
 **Presentation:** Inline panel below the header bar (NOT a modal overlay — avoids focus-trap complexity for a single-user tool). Panel slides in / appears with a 150ms fade-in transition.
 
@@ -225,7 +234,7 @@ Additional derived colors (not new palette entries — derived from above):
 
 **Actions:**
 - "Confirm & Save" button (accent fill). Triggers PUT /api/config.
-- "Cancel" text button (no fill). Closes the panel, returns to editing.
+- "Keep editing" text button (no fill). Closes the panel, returns to the form.
 
 **Source:** CONTEXT D-07 (semantic summary format), ROADMAP Phase 15 SC#4.
 
@@ -270,17 +279,17 @@ Additional derived colors (not new palette entries — derived from above):
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | "Save" |
+| Primary CTA (Save button label) | "Save config" / "Saving…" (loading state) |
 | Diff panel confirm button | "Confirm & Save" |
-| Diff panel cancel | "Cancel" |
+| Diff panel cancel | "Keep editing" |
 | Empty categories state | "No categories defined. Use the form below to add one." |
 | Add category button | "Add category" |
-| Delete row inline confirm | "Delete this category? [Confirm] [Cancel]" |
+| Delete row inline confirm | "Delete this category? [Confirm] [Keep row]" |
 | Error summary banner | "N validation error(s) — fix the highlighted fields before saving." |
 | Loading state | "Loading arrconf.yml…" |
 | Load failure | "Could not load arrconf.yml — [error]. Check the file path and try again." |
 | Save toast (success) | "Saved — run `git diff` to review, then push." |
-| Save button disabled label | "Save" (same label — state communicated by opacity, not label change) |
+| Save button disabled label | "Save config" (same label — state communicated by opacity, not label change) |
 | Diff count chip | "1 unsaved change" / "N unsaved changes" |
 | Diff panel heading | "Pending changes — review before saving" |
 | Diff no-changes (defensive) | "No pending changes detected." |
@@ -290,7 +299,7 @@ Additional derived colors (not new palette entries — derived from above):
 
 **Tone:** Operator-facing tool. Terse, direct. No exclamation marks. No hedging ("might", "could"). Imperative verbs where actions are involved.
 
-**Destructive action pattern:** Inline two-step for category delete ("Delete this category? [Confirm] [Cancel]") — no modal, no extra friction beyond a second click. Source: CONTEXT D-08.
+**Destructive action pattern:** Inline two-step for category delete ("Delete this category? [Confirm] [Keep row]") — no modal, no extra friction beyond a second click. Source: CONTEXT D-08.
 
 ---
 
@@ -301,12 +310,13 @@ Source: CONTEXT D-08 — "keyboard-accessible" explicitly required for the ↑ �
 | Interaction | Keyboard contract |
 |---|---|
 | Tab navigation | All form inputs, buttons, selects, and collapsible `<summary>` elements are in the natural tab order. No `tabindex` overrides. |
-| Category row ↑ / ↓ | Buttons receive focus; Enter/Space activate them. |
-| Category row delete | ✕ button receives focus; Enter/Space shows inline confirm. Confirm/Cancel buttons are next in tab order. |
-| Diff panel | Panel appears in DOM above the form; first focusable element is "Confirm & Save". Escape key dismisses panel (returns focus to Save button). |
+| Category row ↑ / ↓ | Buttons receive focus; Enter/Space activate them. **MUST have `aria-label="Move {row.name} up"` / `aria-label="Move {row.name} down"`** for screen-reader correctness. |
+| Category row delete | ✕ button receives focus; Enter/Space shows inline confirm. **MUST have `aria-label="Delete category {row.name}"`**. Confirm and "Keep row" buttons are next in tab order. |
+| Diff panel | Panel appears in DOM above the form; first focusable element is "Confirm & Save". Escape key dismisses panel (returns focus to Save button). Container has `role="dialog"` + `aria-labelledby="diff-panel-heading"`. |
 | Collapsible sections | Native `<details>`/`<summary>` — browser-native keyboard support (Enter/Space to toggle). |
-| Toast | Not focusable — auto-dismiss only. No interactive elements inside toast. |
-| Error banner | Dismiss ✕ button receives focus; Enter/Space dismisses. |
+| Toast | Not focusable — auto-dismiss only. No interactive elements inside toast. Container has `role="status"` + `aria-live="polite"` so screen readers announce the "Saved — …" message without stealing focus. |
+| Error banner | Dismiss ✕ button receives focus; Enter/Space dismisses. ✕ has `aria-label="Dismiss error banner"`. Banner container has `role="alert"`. |
+| SuggestArr coupling badge | The 🔗 icon next to each coupled field has `aria-label="Linked to SuggestArr routing — see tooltip"`. Tooltip body is `aria-describedby`-linked to the field. |
 
 ---
 
@@ -323,7 +333,7 @@ The following Svelte components must be authored for Phase 15-B. Each maps to a 
 | `AppSection.svelte` | `src/lib/AppSection.svelte` | Generic `<details>` wrapper; renders field list |
 | `FieldInput.svelte` | `src/lib/FieldInput.svelte` | Renders a single pydantic-typed field (text / number / checkbox / select / list) |
 | `SuggestArrBadge.svelte` | `src/lib/SuggestArrBadge.svelte` | Inline badge + tooltip for the 7 coupled fields |
-| `DiffPanel.svelte` | `src/lib/DiffPanel.svelte` | Structured semantic diff + Confirm & Save / Cancel |
+| `DiffPanel.svelte` | `src/lib/DiffPanel.svelte` | Structured semantic diff + Confirm & Save / Keep editing |
 | `SaveToast.svelte` | `src/lib/SaveToast.svelte` | Fixed-position success notification, auto-dismiss |
 | `ValidationBanner.svelte` | `src/lib/ValidationBanner.svelte` | Top-of-page error count + per-field error wiring |
 | `Spinner.svelte` | `src/lib/Spinner.svelte` | Loading state (CSS-only animation) |
@@ -342,7 +352,7 @@ The following Svelte components must be authored for Phase 15-B. Each maps to a 
 |---|---|---|
 | `GET /api/config` | Page load | 200 JSON — full config object |
 | `PUT /api/config` | "Confirm & Save" click | 200 JSON `{diff: {...}}` or 422 JSON `{detail: [{loc, msg, type}]}` |
-| `GET /api/diff` (optional, if backend exposes it) | "Save" button hover or click — compute diff preview | 200 JSON diff structure per CONTEXT D-07 |
+| `GET /api/diff` (optional, if backend exposes it) | "Save config" button hover or click — compute diff preview | 200 JSON diff structure per CONTEXT D-07 |
 
 If `GET /api/diff` is not implemented in 15-A, the frontend computes the semantic diff client-side by comparing `configState` vs `savedConfig` using the same structural comparison logic. The backend diff is the authoritative one (used post-save for the confirmed diff summary); the frontend diff is the preview.
 
