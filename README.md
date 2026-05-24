@@ -1,8 +1,8 @@
 # arr-stack
 
-> Plateforme média fully-as-code (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin + arrconf + configarr) déployée sur le cluster MicroK8s personnel `my-kluster`.
+> Plateforme média fully-as-code (Sonarr / Radarr / Prowlarr / qBittorrent / Seerr / Jellyfin + arrconf + configarr + SuggestArr) déployée sur le cluster MicroK8s personnel `my-kluster`.
 
-**Statut** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[i]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin) sans aucune édition UI manuelle. Idempotence dispositive sur cluster réel (2ᵉ run = 0 plan_action). Roadmap : voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md).
+**Statut** : milestone **v0.7.0 — Media stack scope closure** livré 2026-05-25. Stack média **complète et fermée** à 9 apps + arrconf + configarr. Cluster prod tourne sur arr-stack tag `v0.14.0` / arrconf image `:0.14.0`. Une seule entrée `categories[]` dans `arrconf.yml` propage sur 6 reconcilers (qBit, Sonarr, Radarr, Seerr, Jellyfin, SuggestArr routing) ; Jellyfin expose 10 libs natives (une par Category) depuis v0.5.0 ; qBit POST credentials env-injection + pre-flight gate depuis v0.5.0 ; observability 4xx body logging depuis v0.6.0. Roadmap complète : voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) et [`.planning/MILESTONES.md`](./.planning/MILESTONES.md).
 
 > 📚 Documentation complète : site GitHub Pages (à venir). Ce README est l'entrée rapide.
 
@@ -10,15 +10,15 @@
 
 arr-stack est structuré autour de deux composants :
 
-1. **`tools/arrconf/`** — script Python (CronJob in-cluster, toutes les 4 h) qui réconcilie la configuration des 6 apps depuis `arrconf.yml` vers leurs APIs REST. Idempotent, diff-before-PUT, `prune: false` par défaut. Couverture v0.3.0 : qBit (categories), Sonarr (tags/root_folders/download_clients/RPMs), Radarr (idem), Prowlarr (app-sync/indexers/download clients/notifications), Seerr (settings/animeTags routing), Jellyfin (super-libraries 2×5 PathInfos). Pattern central depuis v0.3.0 : générateurs purs `categories → resources` + helper `merge_with_manual` (toggle per-resource pour transition).
+1. **`tools/arrconf/`** — script Python (CronJob in-cluster, toutes les 4 h) qui réconcilie la configuration de 6 apps depuis `arrconf.yml` vers leurs APIs REST. Idempotent, diff-before-PUT, `prune: false` par défaut, pre-flight gate sur les credentials qBit (échec rapide avec `ConfigError` si env vars manquantes), structlog avec body excerpt sur 4xx/5xx pour observability. Couverture actuelle (post-v0.7.0) : qBit (categories), Sonarr (tags/root_folders/download_clients env-injected/RPMs/series_tags + content_routing), Radarr (idem côté movies), Prowlarr (app-sync/indexers/download clients/notifications), Seerr (settings/animeTags routing), Jellyfin (**10 VirtualFolder libs**, une par Category — refactor v0.5.0 reverse de D-07-LIB-01). Pattern central : générateurs purs `categories → resources` (depuis v0.3.0, single-source post-v0.4.0 — la couche de transition `merge_with_manual` a été retirée en Phase 12).
 
-2. **`charts/arr-stack/`** — chart Helm umbrella qui empaquette toute la stack (8 apps médias + arrconf + configarr = 10 aliases `bjw-s/app-template@5.0.0`) en un déploiement atomique versionné, consommé par une seule ArgoCD Application côté `my-kluster`.
+2. **`charts/arr-stack/`** — chart Helm umbrella qui empaquette toute la stack (9 apps médias + arrconf + configarr = **11 aliases** `bjw-s/app-template@5.0.0`) en un déploiement atomique versionné, consommé par une seule ArgoCD Application côté `my-kluster`. SuggestArr (auto-content discovery via Jellyfin watch history) ajouté en v0.4.0.
 
 La séparation de responsabilités avec **configarr** est stricte : configarr gère quality profiles / custom formats / quality definitions / media naming (TRaSH-Guides), arrconf gère tout le reste. Voir [`CLAUDE.md`](./CLAUDE.md) "Frontière arrconf / configarr".
 
 ## Local config UI
 
-Phase 15 (v0.4.0) ships a local web UI for editing `charts/arr-stack/files/arrconf.yml` from a browser. Homelab tool — **bound to `0.0.0.0:8765` by default (LAN-accessible)**, no auth scheme. Same trust model as the existing Sonarr/Radarr/Jellyfin UIs already exposed on your home network (everyone on the LAN is trusted; `arrconf.yml` itself contains no secrets).
+Phase 15 (v0.4.0) shipped a local web UI for editing `charts/arr-stack/files/arrconf.yml` from a browser. Homelab tool — **bound to `0.0.0.0:8765` by default (LAN-accessible)**, no auth scheme. Same trust model as the existing Sonarr/Radarr/Jellyfin UIs already exposed on your home network (everyone on the LAN is trusted; `arrconf.yml` itself contains no secrets). Phase 17 (v0.5.0) added CI coverage (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) so backend (FastAPI) and frontend (Svelte 5) regressions are caught at PR time.
 
 ### Launch
 
@@ -95,10 +95,11 @@ Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignor
 
 ### What's NOT in scope
 
-- `configarr.yml` editor (deferred — REQ-config-ui-multi-config v0.5.x).
-- Auto-commit / auto-push (deferred — REQ-config-ui-git-integration v0.5.x).
-- Remote exposure / Ingress / Tailscale (single-tenant homelab; `127.0.0.1` only).
-- Auth (single-operator localhost-only).
+- `configarr.yml` editor (deferred — REQ-config-ui-multi-config carry-forward to v0.7.0+).
+- Auto-commit / auto-push (deferred — REQ-config-ui-git-integration carry-forward to v0.7.0+, post-v0.6.0 close).
+- Packaging arrconf-ui for non-dev install (deferred — REQ-arrconf-ui-distribution v0.7.0+).
+- Remote exposure / Ingress / Tailscale (single-tenant homelab; LAN-only by design).
+- Auth (single-operator LAN-trusted).
 
 ## Architecture
 
@@ -107,7 +108,7 @@ Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignor
 │              ce repo (arr-stack)        │
 │                                         │
 │  charts/arr-stack/                      │
-│    Chart.yaml  ← 10 app-template 5.0.0 │
+│    Chart.yaml  ← 11 app-template 5.0.0 │
 │    values.yaml ← renovate annotations  │
 │    files/arrconf.yml + configarr.yml   │
 └────────────────┬────────────────────────┘
@@ -127,11 +128,11 @@ Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignor
 ┌─────────────────────────────────────────┐
 │  cluster MicroK8s — namespace selfhost  │
 │                                         │
-│  8 Deployments (sonarr radarr prowlarr  │
+│  9 Deployments (sonarr radarr prowlarr  │
 │    qbittorrent cleanuparr seerr         │
-│    flaresolverr jellyfin)               │
+│    flaresolverr jellyfin suggestarr)    │
 │  2 CronJobs (arrconf configarr)        │
-│  2 ConfigMaps + 10 ServiceAccounts     │
+│  2 ConfigMaps + 11 ServiceAccounts     │
 └─────────────────────────────────────────┘
 ```
 
@@ -143,16 +144,19 @@ Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignor
 
 | Composant | Technologie | Version | Rôle |
 |-----------|-------------|---------|------|
-| Umbrella chart | [bjw-s/app-template](https://github.com/bjw-s-labs/helm-charts) | 5.0.0 | 10 aliases (8 médias + arrconf + configarr) |
-| Reconciler Python | arrconf (ce repo) | v0.3.0 | qBit / Sonarr / Radarr / Prowlarr / Seerr / Jellyfin (6 apps) |
+| Umbrella chart | [bjw-s/app-template](https://github.com/bjw-s-labs/helm-charts) | 5.0.0 | 11 aliases (9 médias + arrconf + configarr) |
+| Reconciler Python | arrconf (ce repo) | `:0.14.0` (post-v0.6.0 OBS-01) | qBit / Sonarr / Radarr / Prowlarr / Seerr / Jellyfin (6 apps) ; pre-flight gate qBit creds (v0.5.0) ; 4xx body logging (v0.6.0) |
+| Local config UI | `tools/arrconf-ui/` (FastAPI + Svelte 5) | v0.4.0+ | éditeur browser de `arrconf.yml` ; LAN-trusted ; CI coverage backend triad + frontend quad |
+| Content discovery | [SuggestArr](https://github.com/giuseppe99barchetta/SuggestArr) (v0.4.0) | — | auto-content discovery via Jellyfin watch history → Seerr requests, Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG` |
 | Quality profiles | [configarr](https://configarr.de/docs/intro/) | 1.28.x | TRaSH-Guides custom formats |
 | CI | GitHub Actions | — | `chart-lint.yml` (charts + arrconf — triggers auto-tag) + `arrconf-image.yml` (GHCR build on tag push) + `tests.yml` (3 jobs : `test` arrconf, `arrconf-ui-backend`, `arrconf-ui-frontend`) |
-| Image arrconf | GHCR public | `ghcr.io/tom333/arr-stack-arrconf` | anonymous-pullable |
+| Image arrconf | GHCR public | `ghcr.io/tom333/arr-stack-arrconf:0.14.0` | anonymous-pullable |
 | Renovate | self-hosted via my-kluster | — | suit `customManagers` regex sur `values.yaml` |
 | ArgoCD | côté my-kluster | — | une seule App `arr-stack` |
 | Cluster | MicroK8s | 1.33.x | namespace `selfhost` |
 | Helm | Helm 4.x (≥ 3.18 requis par app-template 5.0.0) | 4.1.4 | umbrella packaging |
-| Python | Python 3.13 + httpx + pydantic v2 + ruyaml | 3.13 | arrconf reconciler |
+| Python | Python 3.13 + httpx + pydantic v2 + ruyaml + structlog | 3.13 | arrconf reconciler |
+| Tests | pytest + respx (no real API calls) + structlog.testing | — | 416 tests, ≥70% coverage (95%+ on differ + reconcilers) |
 
 ## Déploiement
 
@@ -160,7 +164,7 @@ Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignor
 
 - Cluster `my-kluster` opérationnel avec ArgoCD installé et `selfhost-project` créé
 - Secrets `arrconf-env` + `configarr-env` appliqués dans le namespace `selfhost` (cf `my-kluster/secrets/`)
-- PVCs existants pour les 8 apps + `configarr-cache` (provisionnés au premier sync ArgoCD ; persistent storage `Retain` policy assure leur survie cross-cutover)
+- PVCs existants pour les 9 apps + `configarr-cache` (provisionnés au premier sync ArgoCD ; persistent storage `Retain` policy assure leur survie cross-cutover)
 
 ### Vérification locale du chart
 
@@ -175,9 +179,9 @@ helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts
 # Télécharger les dépendances
 helm dependency build charts/arr-stack/
 
-# Workaround Helm 4 multi-alias (nécessaire car 10 aliases du même chart)
+# Workaround Helm 4 multi-alias (nécessaire car 11 aliases du même chart)
 tar -xzf charts/arr-stack/charts/app-template-5.0.0.tgz -C charts/arr-stack/charts/
-for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin arrconf configarr; do
+for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr; do
   [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
 done
 
@@ -273,8 +277,11 @@ Total cible : 25-30 min sans toucher au cluster.
 - [`CLAUDE.md`](./CLAUDE.md) — comment (conventions, workflows, garde-fous, release co-bump pattern)
 - [`.planning/`](./.planning/) — pilotage GSD (PROJECT.md, ROADMAP.md, REQUIREMENTS.md, phases/)
 - [`tools/snapshot/README.md`](./tools/snapshot/README.md) — snapshot raw avant un test risqué (ADR-6)
-- [`tools/arrconf/`](./tools/arrconf/) — code Python du reconciler (incl. `arrconf/generators/` v0.3.0)
-- [`charts/arr-stack/`](./charts/arr-stack/) — chart Helm umbrella (10 aliases app-template 5.0.0)
+- [`tools/arrconf/`](./tools/arrconf/) — code Python du reconciler (incl. `arrconf/generators/categories.py` single-source post-v0.4.0 + pre-flight gate `__main__.py` v0.5.0 + 4xx logging `client_base.py` v0.6.0)
+- [`tools/arrconf-ui/`](./tools/arrconf-ui/) — local config UI (FastAPI backend + Svelte 5 frontend, v0.4.0+) avec CI coverage backend triad + frontend quad (v0.5.0+)
+- [`charts/arr-stack/`](./charts/arr-stack/) — chart Helm umbrella (11 aliases app-template 5.0.0)
+- [`.planning/MILESTONES.md`](./.planning/MILESTONES.md) — historique des milestones (v0.2.0 → v0.7.0) avec décisions et tech debt observée
+- [`.planning/RETROSPECTIVE.md`](./.planning/RETROSPECTIVE.md) — leçons par milestone et tendances cross-milestone
 - [`my-kluster`](https://github.com/tom333/my-kluster) — repo cluster (`argocd/argocd-apps/arr-stack-app.yaml` pointe ici)
 
 ## Licence

@@ -10,18 +10,25 @@
 
 **arr-stack** est un projet à deux composants :
 
-1. **`arrconf`** — script Python (CronJob in-cluster) qui réconcilie la config des apps *arr et apparentées (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Bazarr) depuis YAML vers leurs APIs REST.
+1. **`arrconf`** — script Python (CronJob in-cluster) qui réconcilie la config des apps *arr et apparentées (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin) depuis YAML vers leurs APIs REST.
 2. **`charts/arr-stack/`** — Helm umbrella chart qui empaquette toute la stack média + arrconf + configarr en un déploiement atomique versionné.
 
 Le projet est consommé par le cluster `my-kluster` (sister repo) via une seule ArgoCD Application qui pull ce repo.
 
-**État actuel** : milestone **v0.3.0 — Categories first-class** livré (Phase 10). Une seule entrée `categories[]` dans `arrconf.yml` propage sur les 6 apps (qBit, Sonarr, Radarr, configarr, Seerr, Jellyfin). Production cluster tourne sur l'image `:0.6.7`. Idempotence dispositive sur cluster réel (SC#2). Phase 12 deprecation livré — flat sections retirées de arrconf.yml, generators sont la seule source. Phase 13 SuggestArr arch décidé (sidecar Helm, Option A — D-01 lock). Voir [`.planning/ROADMAP.md`](./.planning/ROADMAP.md) pour le détail.
+**État actuel** (2026-05-25, post-v0.7.0) :
+- **v0.3.0** Categories first-class livré 2026-05-22 — 1 `categories[]` entry → 6 reconcilers ; idempotence dispositive cluster (SC#2)
+- **v0.4.0** Categories cleanup + content discovery + UI livré 2026-05-23 — `merge_with_manual` retiré (generators = single source), **SuggestArr** ajouté comme 11e umbrella alias avec routing Categories-aware via `SEER_ANIME_PROFILE_CONFIG`, **arrconf-ui** ship (FastAPI + Svelte 5, LAN-trusted)
+- **v0.5.0** Jellyfin Categories-as-libs + CI/UX hardening livré 2026-05-24 — Jellyfin émet **10 VirtualFolder libs** (1 par Category, reverse D-07-LIB-01) ; `arrconf-ui` CI coverage ; **qBit POST credentials env-injection** pour Sonarr+Radarr avec pre-flight gate `__main__.py` + fail-fast `ConfigError`
+- **v0.6.0** arrconf observability livré 2026-05-25 — `client_4xx` structlog warning avec `response.text[:500]` body excerpt dans `client_base.py` (closes Sonarr `PathExistsValidator` 400 incident class)
+- **v0.7.0** Media stack scope closure livré 2026-05-25 — stack déclarée complète à 9 apps + arrconf + configarr ; **Bazarr / Lidarr / Whisparr / Readarr explicitement hors scope** (voir `.planning/PROJECT.md` "Out of Scope")
+
+Production cluster tourne sur arr-stack tag `v0.14.0` / arrconf image `:0.14.0`. 416 tests passent (≥70% coverage gate ; 95%+ sur differ + reconcilers). Voir [`.planning/MILESTONES.md`](./.planning/MILESTONES.md) pour le détail.
 
 > 📚 Site GitHub Pages (à venir) pour la doc complète. Ce fichier reste l'index "comment".
 
 ---
 
-## Structure actuelle (post-Phase 10)
+## Structure actuelle (post-v0.7.0)
 
 ```
 arr-stack/
@@ -29,33 +36,42 @@ arr-stack/
 ├── CLAUDE.md                        # ce fichier — HOW
 ├── README.md                        # entrée publique GitHub
 │
-├── tools/arrconf/                   # ★ script Python reconciler (6 apps couvertes en v0.3.0)
+├── tools/arrconf/                   # ★ script Python reconciler (6 apps couvertes)
 │   ├── pyproject.toml
 │   ├── Dockerfile                   # multi-stage, USER 1000:1000
 │   ├── arrconf/
-│   │   ├── __main__.py              # entrypoint CLI ; pré-merge Categories ici (apply + diff)
+│   │   ├── __main__.py              # entrypoint CLI ; pre-flight qBit creds gate (v0.5.0) ; ConfigError → exit 2
 │   │   ├── config.py                # incl. ProwlarrInstance.prowlarr_url (sépare URL accès vs URL injectée)
-│   │   ├── client_base.py           # ArrApiClient + _ArrV3Client mixin (ADR-8)
-│   │   ├── differ.py
+│   │   ├── client_base.py           # ArrApiClient + _ArrV3Client mixin (ADR-8) ; structlog client_4xx warning (v0.6.0 OBS-01)
+│   │   ├── differ.py                # incl. _strip_redacted_fields privacy-by-metadata (D-02.2-AUTH-REGRESSION)
 │   │   ├── merge.py                 # field-merge helpers (Phase 2.1 + 2.2)
-│   │   ├── generators/              # ★ v0.3.0 — pure functions categories → resources
-│   │   │   └── categories.py        # generate_qbit/sonarr/radarr/jellyfin + animeTags
+│   │   ├── exceptions.py            # ConfigError / AuthError / NotFoundError / ServerError hierarchy
+│   │   ├── generators/              # ★ pure functions categories → resources (single-source post-v0.4.0)
+│   │   │   └── categories.py        # generate_qbit/sonarr/radarr/jellyfin (10 libs!) + animeTags
 │   │   ├── reconcilers/             # qbittorrent, sonarr, radarr, prowlarr, seerr, jellyfin
-│   │   │   └── _shared.py           # incl. merge_with_manual() (D-02 per-resource toggle)
+│   │   │   └── _shared.py           # incl. _resolve_qbit_credentials_from_env (v0.5.0 D-18-INJECT-LOC-01)
 │   │   └── resources/               # pydantic schémas par resource type + categories.py
-│   └── tests/                       # 384 tests passants (incl. SC#2 sweep dual-path)
+│   └── tests/                       # 416 tests passants (≥70% coverage gate ; 95%+ sur differ + reconcilers)
+│       ├── test_client_base_4xx_logging.py     # v0.6.0 OBS-01 — 5 respx tests
+│       └── test_qbit_credentials_env_fallback.py  # v0.5.0 Phase 18 — 12 respx tests
+│
+├── tools/arrconf-ui/                # ★ local config UI (v0.4.0 Phase 15)
+│   ├── pyproject.toml               # FastAPI backend, uv-managed
+│   ├── arrconf_ui/                  # Python backend (5 endpoints : GET/PUT /api/config, GET /api/schema, POST /api/diff)
+│   ├── tests/                       # 32 backend tests (v0.5.0 Phase 17 CI coverage)
+│   └── web/                         # Svelte 5 frontend (Vite, IBM Plex Sans/Mono, dark theme, FR i18n)
 │
 ├── tools/scripts/                   # helper scripts (Phase 4)
 │   ├── check-renovate-annotations.sh
 │   └── byte-equivalence-diff.sh
 │
 ├── charts/arr-stack/                # ★ umbrella Helm chart
-│   ├── Chart.yaml                   # 10 app-template@5.0.0 aliases
+│   ├── Chart.yaml                   # 11 app-template@5.0.0 aliases (9 apps médias + arrconf + configarr)
 │   ├── Chart.lock
-│   ├── values.yaml                  # ★ renovate annotations + tag pins
+│   ├── values.yaml                  # ★ renovate annotations + tag pins (arrconf:0.14.0 post-v0.6.0)
 │   ├── values.schema.json
 │   ├── files/
-│   │   ├── arrconf.yml              # arrconf config (mounted ConfigMap)
+│   │   ├── arrconf.yml              # arrconf config (mounted ConfigMap, generators-driven post-v0.4.0)
 │   │   └── configarr.yml            # configarr config (idem)
 │   └── templates/
 │       ├── _helpers.tpl
@@ -66,14 +82,23 @@ arr-stack/
 │   └── values-prod.yaml             # = charts/arr-stack/values.yaml (D-04-VALUES-03)
 │
 ├── schemas/
-│   └── arrconf-schema.json          # généré par `arrconf schema-gen`
+│   └── arrconf-schema.json          # généré par `arrconf schema-gen` (extra="forbid" post-v0.4.0)
 │
 ├── snapshots/                       # baselines ADR-6 + forensics
 │
+├── .planning/                       # GSD pilotage
+│   ├── PROJECT.md                   # WHAT + Core Value + Active + Out of Scope
+│   ├── ROADMAP.md                   # phases + milestones (collapsed historicals)
+│   ├── MILESTONES.md                # v0.2.0 → v0.7.0 historique avec décisions + tech debt
+│   ├── RETROSPECTIVE.md             # leçons par milestone + cross-milestone trends
+│   ├── STATE.md                     # current phase / deferred items / accumulated context
+│   ├── milestones/                  # archived ROADMAPs + REQUIREMENTS + phases par version
+│   └── debug/resolved/              # archived debug sessions (e.g., sonarr-rpm-400-categories)
+│
 └── .github/workflows/
-    ├── arrconf-image.yml            # build + push GHCR
-    ├── chart-lint.yml               # helm lint + kubeconform + guards + auto-tag
-    └── tests.yml                    # ruff + mypy + pytest
+    ├── arrconf-image.yml            # build + push GHCR (push:main paths:tools/arrconf/** OR tags:v*)
+    ├── chart-lint.yml               # helm lint + kubeconform + guards + auto-tag (mathieudutour@v6.2)
+    └── tests.yml                    # 3 jobs : test arrconf (triad Python) + arrconf-ui-backend (triad) + arrconf-ui-frontend (quad)
 ```
 
 Note historique : la section précédente ("Structure cible") était anticipative et listait des templates custom pour les CronJobs arrconf et configarr. D-04-CRON-01 a tranché pour des aliases `bjw-s/app-template` uniformes, ce qui a éliminé ces templates custom et déplacé toute la logique CronJob dans `charts/arr-stack/values.yaml`. Seuls `arrconf-configmap.yaml` et `configarr-configmap.yaml` subsistent dans `templates/` (ConfigMaps pour les fichiers de config).

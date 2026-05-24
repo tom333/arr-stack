@@ -11,7 +11,7 @@
 
 **arr-stack** est un projet de plateforme média **fully-as-code** déployée sur le cluster MicroK8s personnel (`my-kluster`). Il regroupe :
 
-1. **Un script Python custom (`arrconf`)** qui réconcilie la config des applications *arr et apparentées (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Bazarr, ...) depuis un fichier YAML déclaratif vers leurs APIs REST.
+1. **Un script Python custom (`arrconf`)** qui réconcilie la config des applications *arr et apparentées (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin) depuis un fichier YAML déclaratif vers leurs APIs REST.
 2. **Un Helm umbrella chart** qui empaquette toute la stack (les apps elles-mêmes + configarr + arrconf + ressources transverses) en un déploiement atomique versionné.
 3. **Une CI GitHub Actions** qui build l'image arrconf et la pousse sur GHCR.
 4. **Une config Renovate dédiée** qui suit les tags d'image dans le `values.yaml` umbrella.
@@ -55,7 +55,7 @@ Objectif final : ne plus jamais ouvrir l'UI Sonarr/Radarr/qBit/Seerr pour config
 | **Buildarr** | Maintenance en dérive, pas de plugin pour Seerr (remplaçant de Jellyseerr), incompatible avec la trajectoire des apps choisies |
 | **Terraform devopsarr** | Couvre bien Sonarr/Radarr/Prowlarr mais qBittorrent et Seerr n'ont pas de provider mature ; gestion du state lourde dans un Job K8s ; GitHub Actions ne peut pas atteindre le cluster privé |
 | **Recyclarr** | Limité au scope quality profiles + CFs (déjà couvert par configarr, son successeur direct) |
-| **Flemmarr (tel quel)** | Inspiration valide, mais on veut maîtriser le code et étendre à qBit/Seerr/Bazarr |
+| **Flemmarr (tel quel)** | Inspiration valide, mais on veut maîtriser le code et étendre à qBit/Seerr/Jellyfin |
 | **Ansible** | Impératif, drift detection faiblarde, écosystème *arr peu actif |
 | **K8s operators *arr** | Quelques tentatives mais aucun mature/maintenu |
 
@@ -166,9 +166,11 @@ github.com/tom333/my-kluster                  github.com/tom333/arr-stack
 | Configarr | `ghcr.io/raydak-labs/configarr` | Helm umbrella + sa propre config dans `files/configarr.yml` (scope quality profiles / custom formats) |
 | arrconf | `ghcr.io/tom333/arr-stack-arrconf` (nouveau) | Helm umbrella + sa propre config dans `files/arrconf.yml` |
 
-**Apps potentielles ultérieures** (hors scope MVP, ajoutables plus tard sans repenser l'architecture) :
-- Bazarr (sous-titres)
-- Lidarr / Whisparr / Readarr selon besoin
+**Apps explicitement hors scope** (décidé v0.7.0 — voir [MILESTONES.md](.planning/MILESTONES.md)) :
+- **Bazarr (sous-titres)** — Pas de besoin réel : les médias téléchargés ont les sous-titres burned-in ou Jellyfin/Kodi cherche les subs en natif au moment du watch. Bazarr résoudrait un problème qui n'existe pas dans ce homelab.
+- **Lidarr (musique) / Whisparr (adulte) / Readarr (livres)** — Stack média est dimensionnée pour vidéo (séries + films) uniquement. Audio, écrit, et adult content sortent du périmètre intentionnellement.
+
+La media stack est **complète et fermée** post-v0.7.0 : 9 apps (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin, FlareSolverr, Cleanuparr, SuggestArr) + arrconf + configarr. Toute proposition d'ajouter un autre *arr passe par une revue de cette décision dans `.planning/PROJECT.md` "Out of Scope".
 
 ---
 
