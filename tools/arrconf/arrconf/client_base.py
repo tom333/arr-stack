@@ -76,6 +76,15 @@ class ArrApiClient:
             raise AuthError(f"{self.name}: 401 — check API key")
         if response.status_code == 404:
             raise NotFoundError(f"{self.name}: 404 — {method} {path}")
+        if 400 <= response.status_code < 500:
+            log.warning(
+                "client_4xx",
+                client=self.name,
+                method=method,
+                path=path,
+                status_code=response.status_code,
+                body_excerpt=response.text[:500],
+            )
         if 500 <= response.status_code < 600:
             raise ServerError(f"{self.name}: {response.status_code} — {response.text[:200]}")
         response.raise_for_status()
