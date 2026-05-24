@@ -67,7 +67,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 
 - [x] **Phase 16: Jellyfin Categories-as-libs** — `generate_jellyfin()` refactored to emit 10 `VirtualFolder` libs (1 per Category) replacing the 2 super-libs; D-07-LIB-01 reversed by D-16-PRUNE-01; image bump landed as `0.10.x` (tag-collision detour) ; SC#1-2-3 validated live (10 libs in Jellyfin web UI ✓ ; 12 paths pruned from legacy super-libs ✓ ; prune re-locked false ✓) ; closed 2026-05-24
 - [x] **Phase 17: arrconf-ui CI coverage** — `tests.yml` path-filter étendu à `tools/arrconf-ui/**` + 2 nouveaux jobs (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad ci+check+typecheck+build). `chart-lint.yml` intentionally UNCHANGED (architectural SC#3 — UI-only PR ne déclenche jamais auto-tag). Lockfiles `tools/arrconf-ui/uv.lock` + `web/package-lock.json` commités (oversight Phase 15 fix). 3/3 jobs green sur commit `c53c9a3` (test arrconf + arrconf-ui-backend + arrconf-ui-frontend). closed 2026-05-24
-- [ ] **Phase 18: qBit POST credentials fallback** — qBit `download_clients` reconciler injects `QBT_USER` / `QBT_PASS` from env when YAML empty; idempotent; 3-case respx test coverage; arrconf image co-bump `0.8.0 → 0.8.1` (patch — bugfix)
+- [ ] **Phase 18: qBit POST credentials fallback** — qBit `download_clients` reconciler injects `QBT_USER` / `QBT_PASS` from env when YAML empty; idempotent; 3-case respx test coverage; arrconf image co-bump `0.10.0 → 0.10.1` (patch — bugfix)
 
 ## Phase Details
 
@@ -210,7 +210,11 @@ Plans:
   3. Idempotence preserved: a second `arrconf apply` against the live cluster (or unit-test equivalent) emits `0` `plan_action` events on `download_clients` when env-injected credentials match what's already stored cluster-side. No spurious PUT bumps from the new codepath.
   4. Chart-pin co-bump executed in the implementation commit(s): `charts/arr-stack/values.yaml#arrconf.image.tag` bumped from `0.8.0` to `0.8.1` (patch — bugfix), `# renovate: image=...` annotation preserved verbatim. Chart `version:` bumps per existing convention.
   5. Operator UAT: after the chart redeploys with `:0.8.1`, the operator strips `username` / `password` from at least one qBit `download_clients` entry in `arrconf.yml`, commits, waits for ArgoCD sync, and confirms via `kubectl logs -n selfhost <arrconf-cronjob-pod>` that the next `arrconf apply` cycle reports `0` drift on `download_clients` — env injection works end-to-end on the live cluster.
-**Plans**: TBD (refined by `/gsd-plan-phase`)
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+- [ ] 18-A-PLAN.md — Add `_resolve_qbit_credentials_from_env()` helper in `_shared.py` (D-18-INJECT-LOC-01 + D-18-FAIL-FAST-01), wire from `sonarr.py` + `radarr.py` download_clients steps (D-18-SCOPE-01), 5 unit tests covering SC#2 (3 cases) + ConfigError fail-fast + SC#3 idempotence via existing `merge_fields_for_put` (D-18-IDEMPOTENCE-FREE), co-bump `values.yaml` `0.10.0 → 0.10.1` (D-18-CHART-BUMP-01), triad gate (CLAUDE.md), 18-HUMAN-UAT.md operator runbook (REQ-qbit-post-credentials)
 **UI hint**: no
 
 ## Progress
