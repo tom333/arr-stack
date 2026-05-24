@@ -65,7 +65,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 
 ### Phase checklist
 
-- [ ] **Phase 16: Jellyfin Categories-as-libs** — `generate_jellyfin()` refactored to emit 10 `VirtualFolder` libs (1 per Category) replacing the 2 super-libs; D-07-LIB-01 reversed or adapted; arrconf image co-bump `0.7.0 → 0.8.0` (minor — feature)
+- [x] **Phase 16: Jellyfin Categories-as-libs** — `generate_jellyfin()` refactored to emit 10 `VirtualFolder` libs (1 per Category) replacing the 2 super-libs; D-07-LIB-01 reversed by D-16-PRUNE-01; image bump landed as `0.10.x` (tag-collision detour) ; SC#1-2-3 validated live (10 libs in Jellyfin web UI ✓ ; 12 paths pruned from legacy super-libs ✓ ; prune re-locked false ✓) ; closed 2026-05-24
 - [ ] **Phase 17: arrconf-ui CI coverage** — `chart-lint.yml` + `tests.yml` path-filters extended to `tools/arrconf-ui/**`; backend triad (ruff + mypy) + frontend (`npm ci` + `npm run check` + `npm run build`); auto-tag guarded against UI-only changes (no chart-pin co-bump — CI-only change)
 - [ ] **Phase 18: qBit POST credentials fallback** — qBit `download_clients` reconciler injects `QBT_USER` / `QBT_PASS` from env when YAML empty; idempotent; 3-case respx test coverage; arrconf image co-bump `0.8.0 → 0.8.1` (patch — bugfix)
 

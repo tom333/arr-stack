@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
 status: executing
-stopped_at: Phase 16-A code-side complete, awaiting live cluster cutover + HUMAN-UAT
+stopped_at: Phase 16 closed (SC#1-2-3 all validated live). Phase 17 (arrconf-ui CI) and Phase 18 (qBit POST credentials) pending.
 last_updated: "2026-05-24T00:00:00.000Z"
-last_activity: 2026-05-24 -- Phase 16-A code-side merged into main (394 tests pass, cov 84.97%, triad green)
+last_activity: 2026-05-24 -- Phase 16 fully closed live (10 libs visible + 12 paths pruned + prune re-locked)
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
   completed_plans: 1
   percent: 33
@@ -26,10 +26,14 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 16 (Jellyfin Categories-as-libs) — SC#1 validated live, SC#2-3 optional cleanup pending
-Plan: 16-A merged into main (commit `0e116a5`)
-Status: Phase 16 functional in cluster (10 libs visible in Jellyfin web UI). 2 legacy super-libs still hold extra paths (prune=false). Optional cleanup via prune-true flip.
-Last activity: 2026-05-24 — SC#1 dispositive on cluster — 8 `library_created:` events from `:0.10.1` (Phase 16 image), 10 libs visible in Jellyfin web UI confirmed by operator
+Phase: 16 (Jellyfin Categories-as-libs) — CLOSED 2026-05-24, all 3 SC validated live
+Plan: 16-A merged into main, follow-up SC#2 (prune flip) + SC#3 (prune re-lock) shipped
+Status: Phase 16 complete. Live cluster: 10 libs, each with single Category path. Legacy v0.2.0 paths pruned (12 removed). arrconf.yml has prune: false re-locked.
+Last activity: 2026-05-24 — Phase 16 fully closed live (SC#1 10 libs visible + SC#2 12 paths pruned + SC#3 prune re-lock)
+
+### Known follow-up (NOT Phase 16 scope)
+
+- **Sonarr `remote_path_mappings` HTTP 400** — pre-existing bug blocks full-cron runs since at least 7h before Phase 16. arrconf step 5 (sonarr) crashes → jellyfin (step 1 of jellyfin reconciler) never runs in cron context. Phase 16 was validated via manual `--apps jellyfin` job overrides. To unblock the cron, a separate fix is needed (likely a data-shape regression in `_reconcile_remote_path_mappings` or a Sonarr API behavioral change). Scope candidate for a v0.5.x or v0.6.x bugfix phase.
 
 ### Phase 16 close-out checklist (operator)
 
