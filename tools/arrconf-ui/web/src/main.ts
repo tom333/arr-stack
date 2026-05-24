@@ -18,3 +18,5 @@ if (!target) {
 const app = mount(App, { target });
 
 export default app;
+
+// Phase 17 CI trigger probe — 2026-05-24
