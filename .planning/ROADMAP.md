@@ -214,7 +214,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 18-A-PLAN.md — Add `_resolve_qbit_credentials_from_env()` helper in `_shared.py` (D-18-INJECT-LOC-01 + D-18-FAIL-FAST-01), wire from `sonarr.py` + `radarr.py` download_clients steps (D-18-SCOPE-01), 5 unit tests covering SC#2 (3 cases) + ConfigError fail-fast + SC#3 idempotence via existing `merge_fields_for_put` (D-18-IDEMPOTENCE-FREE), co-bump `values.yaml` `0.10.0 → 0.10.1` (D-18-CHART-BUMP-01), triad gate (CLAUDE.md), 18-HUMAN-UAT.md operator runbook (REQ-qbit-post-credentials)
+- [x] 18-A-PLAN.md — Add `_resolve_qbit_credentials_from_env()` helper in `_shared.py` (D-18-INJECT-LOC-01 + D-18-FAIL-FAST-01), wire from `sonarr.py` + `radarr.py` download_clients steps (D-18-SCOPE-01), 5 unit tests covering SC#2 (3 cases) + ConfigError fail-fast + SC#3 idempotence via existing `merge_fields_for_put` (D-18-IDEMPOTENCE-FREE), co-bump `values.yaml` `0.10.0 → 0.10.1` (D-18-CHART-BUMP-01), triad gate (CLAUDE.md), 18-HUMAN-UAT.md operator runbook (REQ-qbit-post-credentials)
 **UI hint**: no
 
 ## Progress
