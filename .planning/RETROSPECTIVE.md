@@ -139,19 +139,59 @@ Cross-milestone learnings, patterns, and observations. Append a new section at e
 
 ---
 
+## Milestone: v0.7.0 — Media stack scope closure
+
+**Shipped:** 2026-05-25
+**Phases:** 0 (doc-only, no `/gsd-execute-phase`) | **Plans:** 0 | **Commits:** 2 (492d28a doc edits + 9b3f815 STATE.md)
+
+### What Was Built
+
+A **decision**, not code. Declared the media stack complete and closed at 9 apps + arrconf + configarr (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin, FlareSolverr, Cleanuparr, SuggestArr). Removed Bazarr from arrconf's intent surface in 4 files (CLAUDE.md, spec.md, PROJECT.md, ROADMAP.md). Declared Bazarr (subtitles), Lidarr (music), Whisparr (adult), Readarr (books) explicitly **out of scope** with rationale documented in PROJECT.md "Out of Scope" section. Three decisions captured: D-19-CLOSURE-01 (stack-is-closed), D-19-RATIONALE-01 (Bazarr-specifically-not-needed), D-19-VIDEO-ONLY-01 (siblings-cover-different-domains-not-bolt-ons).
+
+Total change footprint: ~30 lines edited across 5 files. No code, no tests, no chart bump, no auto-tag.
+
+### What Worked
+
+- **"The milestone IS the decision, the artifact IS the doc edit" pattern.** This was a structural decision that warranted milestone-level traceability (future grep for "why no Bazarr" lands on the v0.7.0 entry in MILESTONES.md) without the scaffolding cost of `/gsd-new-milestone v0.7.0` → `/gsd-discuss-phase 20` → `/gsd-plan-phase 20` → `/gsd-execute-phase 20`. Inline edits + MILESTONES.md entry + git tag = 5 minutes total, full provenance preserved. Pattern documented inline in MILESTONES.md v0.7.0 entry so it's discoverable for future analogous decisions ("REQ-X retired", "ADR-Y reversed", "ecosystem-Z deprecated").
+- **Asking WHY before HOW.** The Out of Scope section explicitly requires reasoning ("*Includes reasoning to prevent re-adding*"). Asking the operator "why is Bazarr out?" *before* writing the entry gave 4 concrete options ("no real need" / "maintenance cost" / "workflow manuel" / "Categories made it redundant") — the chosen rationale ("pas de besoin réel — burned-in subs OR Jellyfin/Kodi native search") is now stable scope-defense rather than an ambivalent "v2 potentiel".
+- **Two-question scope expansion.** Asked separately: "while we're at it, also close Lidarr/Whisparr/Readarr?" The answer (yes — declare stack complete) turned a 1-app cleanup into a 4-decision scope closure, but cost the same effort. Worth keeping the pattern: when cleaning up one "ambivalent maybe" item, audit adjacent ambivalent items in the same pass.
+
+### What Was Inefficient
+
+- **No automated detection of stale doc references.** README.md and CLAUDE.md "État actuel" sections were stale (referenced v0.3.0 / `:0.6.7` / "6 apps couvertes en v0.3.0" / "10 aliases") — drift that built up across v0.4.0, v0.5.0, v0.6.0 closes. None of the milestone-close workflows caught this. Worth adding a "doc drift check" step to `/gsd-complete-milestone` that greps for known-stale tokens (previous milestone version mentions, previous image tag, previous alias count). Surfaced and fixed during this v0.7.0 close as a sweep — added to the v0.7.0 commit batch.
+
+### Patterns Established
+
+- **Zero-phase milestone for structural scope decisions.** New pattern documented in MILESTONES.md v0.7.0 entry: structural scope decisions (declaring out, retiring, deprecating) are valid milestone material even with zero phases — the milestone IS the decision, the artifact IS the doc edit. Future analogous milestones should follow inline-edit + MILESTONES-entry + tag pattern; do NOT run `/gsd-new-milestone` scaffold for these.
+- **"Out of Scope" reasoning as a stop-discussion artifact.** PROJECT.md "Out of Scope" section is now load-bearing — its reasoning is what prevents the same scope-creep conversation from happening at every milestone close. The v0.6.0 close had a v0.7.0+ candidate list that included REQ-bazarr-addition; v0.7.0 removed it explicitly. The next milestone close should NOT re-surface it because the rationale is documented to prevent re-adding.
+
+### Key Lessons
+
+- **Saying "no" is a release.** Three milestones (v0.5.0 v0.6.0 v0.7.0) shipped in the same session, but the third had zero code. The discipline of recording a structural "no" with the same ceremony as a feature shipment prevents the project's intent surface from quietly expanding. Worth keeping.
+- **"V2 potential" is decision debt, not flexibility.** The previous PROJECT.md text said "Bazarr / Lidarr / Whisparr / Readarr — v2 potentiel, ajoutables sans repenser l'architecture". That phrasing was deliberately ambivalent (signaling "maybe later" without committing). v0.7.0 converted that to explicit out-of-scope — clarity is worth more than optionality at this project stage. Future projects: be wary of "v2 potential" lists; they accumulate and dilute scope without ever shipping.
+
+### Cost Observations
+
+- **Smallest milestone in project history (by code).** v0.7.0 = 0 lines of code, 30 lines of docs. v0.6.0 was 2 lines of code (smallest by code+tests). The pattern of micro/zero-code milestones validates that GSD scales down to the smallest meaningful unit of project-state change.
+- **Session total: 3 milestones / 0 phases for v0.7.0 / 1 phase for v0.6.0 / 3 phases for v0.5.0 = 4 phases total + 1 quick task + 1 debug session.** All shipped in one continuous session (~6 hours wall clock). Possible because each milestone was small enough to fit within a single context window without compaction. The "small milestones win" hypothesis is reinforced.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 |
-|--------|--------|--------|--------|--------|--------|
-| Phases shipped | 11 | 3 | 4 | 3 | 1 |
-| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) |
-| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) |
-| Deferred items at close | 16 | — | — | 6 | 6 (unchanged — v0.6.0 closed only OBS-01) |
-| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 |
-| Production cutover successes | 1 (Phase 7 chain in ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue tag in ~5 min) | 1 (Phase 19 v0.14.0 rescue tag in ~5 min) |
-| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories, pre-Phase-18 bug) | 0 |
-| Milestone duration (days) | weeks | — | — | 1 day intensive | 1 day micro |
-| Auto-tag train rescue | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) |
+| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 | v0.7.0 |
+|--------|--------|--------|--------|--------|--------|--------|
+| Phases shipped | 11 | 3 | 4 | 3 | 1 | 0 |
+| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) | 0/0 (doc-only) |
+| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) | 0/0 (no new req, removed REQ-bazarr-addition) |
+| Out-of-scope decisions recorded | 8 | — | — | — | — | 3 (D-19-CLOSURE/RATIONALE/VIDEO-ONLY) |
+| Deferred items at close | 16 | — | — | 6 | 6 | 5 (REQ-bazarr-addition retired, 1 less carry-forward) |
+| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 | 0 |
+| Production cutover successes | 1 (Phase 7 chain ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue ~5 min) | 1 (Phase 19 v0.14.0 rescue ~5 min) | — (no chart change) |
+| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories) | 0 | 0 |
+| Milestone duration | weeks | — | — | 1 day intensive | 1 day micro | <30 min (same-session w/ v0.6.0) |
+| Auto-tag train rescue needed | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) | 0 (no code change) |
+| Code change footprint | 7044 ins (v0.5.0 net) | — | — | 7044 ins | 91 ins (4xx logging + 5 tests + co-bump) | 30 ins (5 doc files) |
 
 **Recurring themes to watch in v0.3.0:**
 
