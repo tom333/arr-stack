@@ -239,7 +239,7 @@ jellyfin:
     base_url: http://jellyfin.selfhost.svc.cluster.local:8096
     libraries:
       enable: true
-      prune: false  # D-07-LIB-01 hardcoded — reconciler refuses DELETE (Pitfall 3 protection)
+      prune: true  # Phase 16 SC#2 cutover — prune extra paths from legacy Séries+Films (8/7 → 1 each). D-16-PRUNE-01 reverses D-07-LIB-01. Revert to false post-cutover (SC#3).
     users:
       enable: true
       prune: false  # D-07-USERS-01 hardcoded — emilie operator-managed, never touched

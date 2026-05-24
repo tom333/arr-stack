@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 16 (Jellyfin Categories-as-libs) — code-side complete, live cutover pending
+Phase: 16 (Jellyfin Categories-as-libs) — SC#1 validated live, SC#2-3 optional cleanup pending
 Plan: 16-A merged into main (commit `0e116a5`)
-Status: Awaiting operator HUMAN-UAT (PR + helm upgrade + live cluster verification)
-Last activity: 2026-05-24 — Phase 16-A code merged (394 tests, cov 84.97%, triad green, Pitfall 16-1 + 16-2 covered)
+Status: Phase 16 functional in cluster (10 libs visible in Jellyfin web UI). 2 legacy super-libs still hold extra paths (prune=false). Optional cleanup via prune-true flip.
+Last activity: 2026-05-24 — SC#1 dispositive on cluster — 8 `library_created:` events from `:0.10.1` (Phase 16 image), 10 libs visible in Jellyfin web UI confirmed by operator
 
 ### Phase 16 close-out checklist (operator)
 
