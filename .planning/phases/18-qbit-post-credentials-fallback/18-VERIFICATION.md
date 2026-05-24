@@ -1,26 +1,28 @@
 ---
 phase: 18-qbit-post-credentials-fallback
-verified: 2026-05-24T00:00:00Z
-status: human_needed
+verified: 2026-05-24T09:10:00Z
+status: passed
 score: 5/5 must-haves verified
 overrides_applied: 0
-re_verification: null
+re_verification: 2026-05-24T09:10:00Z
+uat_close: 2026-05-24T09:10:00Z
 human_verification:
   - test: "SC#1 — verify rendered ConfigMap carries no live qBit credentials"
     expected: "kubectl get configmap arrconf-config returns no explicit username/password values for qBit DCs"
-    why_human: "Requires live cluster access (kubectl -n selfhost) and visual inspection of ConfigMap data"
+    result: "✓ PASS (UAT 2026-05-24): ConfigMap arrconf.yml has 0 username:/password: lines anywhere; only api_key_env: SONARR/RADARR_API_KEY entries + 3 doc comments"
   - test: "SC#2 — ArgoCD-triggered CronJob completes without ConfigError"
     expected: "kubectl create job from cronjob/arrconf; pod exits 0; logs show apply_complete for sonarr+radarr; no missing_env_vars / ConfigError in stderr"
-    why_human: "Requires live ArgoCD-synced cluster and running CronJob workload"
+    result: "✓ PASS (UAT 2026-05-24, pod arrconf-fix-rpm-1779613542-g4zjz): Phase=Succeeded exit 0; no ConfigError; apply_complete for sonarr+radarr+qbittorrent+seerr+jellyfin"
+    note: "Initially partial-passed due to pre-existing pre-Phase-18 RPM 400 bug at Step 5 (sonarr-rpm-400-categories debug session). Resolved via 8x mkdir on qBittorrent volume; clean reconcile then completed end-to-end."
   - test: "SC#3 (dispositive) — Sonarr/Radarr UI Test button returns HTTP 200 on qBit DCs"
     expected: "All visible qBit DCs in Sonarr UI (https://sonarr.tgu.ovh/settings/downloadclients) and Radarr UI test green"
-    why_human: "Requires authenticated browser UI access; this is the end-to-end dispositive proof that env-injected creds actually authenticate against live qBittorrent"
+    result: "✓ PASS (UAT 2026-05-24): API equivalent — 9/9 Sonarr qBit DCs HTTP 200 on /api/v3/downloadclient/test; 9/9 Radarr qBit DCs HTTP 200. Auth confirmed against live qBittorrent for ALL 5 new Phase-18-derived DCs per side"
   - test: "SC#4 — Second CronJob run emits 0 drift on download_clients"
     expected: "2nd manual CronJob trigger logs show 0 add/update/delete plan_action on download_clients step for sonarr+radarr"
-    why_human: "Requires live cluster log inspection over two sequential CronJob firings; the SC#3 idempotence unit tests prove this property in-test but live confirmation is the SC#5 close-out"
+    result: "✓ PASS (UAT 2026-05-24, pod arrconf-uat-sc4-1779613679-b5rd5): 0 plan_actions on download_clients step (sonarr+radarr); no apply_complete for sonarr/radarr/qbittorrent because there were no actions to commit. Dispositive idempotence proof."
   - test: "SC#5 (optional) — Explicit YAML credentials override env"
     expected: "Operator adds explicit username/password in arrconf.yml; next reconcile emits update_field event; YAML values are forwarded byte-for-byte (Sonarr Test would now fail because explicit-pass is wrong)"
-    why_human: "Operator-driven YAML edit + chart redeploy + log inspection; optional/non-blocking"
+    result: "skipped (UAT 2026-05-24): optional, covered by unit test test_yaml_explicit_env_ignored"
 ---
 
 # Phase 18: qBit POST credentials fallback Verification Report

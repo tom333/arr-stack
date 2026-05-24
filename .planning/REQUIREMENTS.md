@@ -20,7 +20,7 @@ Refactor Jellyfin pour rendre les 10 Categories visibles nativement (clients Kod
 
 ### arrconf bugfix
 
-- [ ] **REQ-qbit-post-credentials** — `tools/arrconf/arrconf/reconcilers/qbittorrent.py` (or the relevant `download_clients` POST/PUT codepath in Sonarr/Radarr/etc.) injects `QBT_USER` and `QBT_PASS` from environment variables when the `username` and `password` fields are empty (or omitted) in `arrconf.yml`. If both env vars are missing and YAML values are also empty, the reconciler raises a clear error message. Idempotent: explicit YAML values always win over env. Test coverage: 3 cases via respx — both empty + env set, both explicit, one empty + one explicit (partial).
+- [x] **REQ-qbit-post-credentials** — `tools/arrconf/arrconf/reconcilers/qbittorrent.py` (or the relevant `download_clients` POST/PUT codepath in Sonarr/Radarr/etc.) injects `QBT_USER` and `QBT_PASS` from environment variables when the `username` and `password` fields are empty (or omitted) in `arrconf.yml`. If both env vars are missing and YAML values are also empty, the reconciler raises a clear error message. Idempotent: explicit YAML values always win over env. Test coverage: 3 cases via respx — both empty + env set, both explicit, one empty + one explicit (partial).
 
 ## Future Requirements (deferred)
 
