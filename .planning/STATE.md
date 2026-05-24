@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.6.0
-milestone_name: arrconf observability — 4xx body logging
+milestone: v0.7.0
+milestone_name: Media stack scope closure
 status: Awaiting next milestone
-last_updated: "2026-05-24T21:37:31.904Z"
-last_activity: 2026-05-24 — Milestone v0.6.0 completed and archived
+last_updated: "2026-05-24T21:58:08.517Z"
+last_activity: "2026-05-25 -- v0.7.0 shipped (doc-only scope closure: Bazarr + Lidarr/Whisparr/Readarr declared out of scope)"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: Milestone v0.6.0 complete
+Phase: Not started (defining requirements)
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-05-24 — Milestone v0.6.0 completed and archived
+Last activity: 2026-05-25 -- v0.7.0 shipped (doc-only scope closure: Bazarr + Lidarr/Whisparr/Readarr declared out of scope)
 
 ### Phase 19 success criteria (from ROADMAP.md)
 
