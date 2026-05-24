@@ -184,6 +184,14 @@ def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
 
     resolved = []
     for dc in items:
+        # WR-01 (Phase 18 code review): the helper substitutes ONLY qBit DCs.
+        # FieldKV.extra="allow" means any DC implementation could theoretically
+        # carry username/password fields[] — gate on implementation so a future
+        # generator extension emitting e.g. a Transmission DC won't silently get
+        # QBT_USER/QBT_PASS injected. Non-qBit DCs pass through unchanged.
+        if getattr(dc, "implementation", None) != "QBittorrent":
+            resolved.append(dc)
+            continue
         new_fields = []
         mutated = False
         for f in dc.fields:

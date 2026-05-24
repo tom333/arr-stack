@@ -109,6 +109,50 @@ def test_yaml_partial_username_explicit_password_empty(
     assert _field_value(out, "password") == "from-env"
 
 
+def test_non_qbit_dc_passes_through_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WR-01: helper must be a no-op for DCs whose implementation != 'QBittorrent'.
+
+    Pre-fix, the helper iterated all DCs and matched fields by name regardless
+    of implementation. FieldKV.extra='allow' means any DC could carry
+    username/password fields[]; a future generator emitting a Transmission /
+    SABnzbd DC would silently get QBT_USER/QBT_PASS injected. Gate on
+    implementation to scope the substitution to qBit only.
+    """
+    monkeypatch.setenv("QBT_USER", "qbituser")
+    monkeypatch.setenv("QBT_PASS", "qbitpass")
+
+    # Build a non-qBit DC that happens to have username/password fields[]
+    # (a Transmission DC would have these). The helper must NOT substitute.
+    transmission_dc = DownloadClient(
+        name="Transmission-tv",
+        protocol="torrent",
+        implementation="Transmission",
+        configContract="TransmissionSettings",
+        fields=[
+            FieldKV(name="host", value="transmission.svc"),
+            FieldKV(name="username", value=""),
+            FieldKV(name="password", value=""),
+        ],
+    )
+
+    resolved = _resolve_qbit_credentials_from_env([transmission_dc])
+
+    # Non-qBit DC must pass through with username/password still empty —
+    # NOT "qbituser"/"qbitpass" from env.
+    assert len(resolved) == 1
+    out = resolved[0]
+    assert _field_value(out, "username") == "", (
+        "WR-01: non-qBit DC must NOT receive QBT_USER injection"
+    )
+    assert _field_value(out, "password") == "", (
+        "WR-01: non-qBit DC must NOT receive QBT_PASS injection"
+    )
+    # And the DC instance is returned as-is (no model_copy churn).
+    assert out is transmission_dc
+
+
 def test_yaml_empty_env_unset_raises_config_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
