@@ -1,5 +1,42 @@
 # Milestones
 
+## v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (Shipped: 2026-05-24)
+
+**Phases:** 3 (16-18) | **Plans:** 3/3 | **Commits:** 31 since v0.4.0 close | **Cluster:** arr-stack tag `v0.13.0` (with rescue tag `v0.12.1`), arrconf image `:0.12.1`
+
+### Delivered
+
+Jellyfin now exposes the 10 v0.3.0 Categories as native top-level libraries (1 `VirtualFolder` per Category instead of 2 super-libs), making Categories visible structurally in every Jellyfin client — web, Swiftfin, and most importantly **JellyCon on the LibreELEC salon mini-PC** (Kodi-side visibility was the original driver). `tools/arrconf-ui/**` is now covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad, both green on closure commit) while remaining architecturally isolated from `chart-lint.yml` (UI-only PRs do NOT trigger auto-tag, by design). qBit POST credentials now resolve from `QBT_USER` / `QBT_PASS` env vars at reconcile time with a pre-flight gate in `__main__.py` and fail-fast `ConfigError` when both YAML and env are empty — verified dispositively on the live cluster with 9/9 Sonarr + 9/9 Radarr qBit DCs returning HTTP 200 on `/api/v3/downloadclient/test` (auth confirmed against live qBittorrent).
+
+### Key accomplishments
+
+1. **Jellyfin Categories-as-libs** (Phase 16) — `generate_jellyfin()` refactored to emit 10 `VirtualFolder` libs (1 per Category) replacing the 2 super-libs (D-07-LIB-01 reversed by D-16-PRUNE-01). `_reconcile_libraries()` extended with CREATE + prune-gated DELETE so the cutover doesn't destroy operator-added ad-hoc libs. SC#1-2-3 validated live on cluster: 10 libs visible in Jellyfin web UI ✓, 12 paths pruned from legacy super-libs ✓, prune re-locked false post-cutover ✓. SC#4 (JellyCon LibreELEC top-level browse) carry-forward per D-16-JELLYCON-UAT-01. Image bump landed as `0.10.x` after a tag-collision detour caught and documented in CLAUDE.md.
+
+2. **arrconf-ui CI coverage** (Phase 17) — `tests.yml` path-filter extended to include `tools/arrconf-ui/**` + 2 new jobs (`arrconf-ui-backend` triad `ruff format --check` + `ruff check` + `mypy .` + `pytest -q` 32 tests / 13 files mypy-clean; `arrconf-ui-frontend` quad `npm ci` + `npm run check` + `npm run typecheck` + `npm run build` 92 files / 0 errors). `chart-lint.yml` intentionally UNCHANGED (architectural SC#3 dispositive — UI-only PR never triggers auto-tag). Lockfiles `tools/arrconf-ui/uv.lock` + `web/package-lock.json` committed (Phase 15 oversight fix). 3/3 jobs green on closure commit `c53c9a3`.
+
+3. **qBit POST credentials fallback** (Phase 18) — `_resolve_qbit_credentials_from_env()` helper in `_shared.py` injects `QBT_USER` / `QBT_PASS` for Sonarr+Radarr qBit DCs when YAML fields are empty; YAML explicit wins verbatim when present; both empty raises `ConfigError` (D-18-FAIL-FAST-01). Pre-flight gate in `__main__.py` (added during code-review auto-fix CR-02) validates ALL qBit DC credentials BEFORE any Step 1-5 POSTs fire, preventing partial-reconcile state on missing env. 12 respx tests cover the 5 mandated cases + asymmetric env tests + idempotence regression test. Idempotence acquired by construction via existing `differ.merge_fields_for_put` + `_strip_redacted_fields` (D-02.2-AUTH-REGRESSION + D-18-IDEMPOTENCE-FREE). Code review auto-fix loop: 2 BLOCKERs + 5 WARNINGs surfaced and resolved before live deploy. Cluster UAT: 9/9 Sonarr + 9/9 Radarr qBit DCs HTTP 200 on `/api/v3/downloadclient/test`; 0 plan_actions on download_clients on 2nd run (idempotence dispositive).
+
+4. **Side-quest unblock: Sonarr RPM 400 debug** (during Phase 18 UAT) — surfaced a pre-existing bug that pre-dated Phase 18 by ≥3 image versions: Sonarr v4's `PathExistsValidator` on `POST /api/v3/remotepathmapping` was rejecting categories[]-derived RPMs because the matching `/data/<category>/` dirs didn't exist on the qBittorrent volume (CLAUDE.md filesystem-migration runbook never ran on `/data/torrents/`). Captured via `/gsd-debug` session, fixed via 8× `mkdir -p` operator command, debug session archived to `.planning/debug/resolved/sonarr-rpm-400-categories.md`.
+
+### Decisions
+
+- **D-16-PRUNE-01** — Reverses D-07-LIB-01. Single-tenant homelab UX (everybody sees everything) doesn't need the "clean 2-section UI" rationale; 10 libs is the right native Kodi/JellyCon shape.
+- **D-16-JELLYCON-UAT-01** — JellyCon LibreELEC top-level browse UAT carry-forward, non-blocking for Phase 16 close.
+- **D-17-WORKFLOW-01** — Path-filter on `tests.yml` triggers ALL 3 jobs on any matching path; `chart-lint.yml` intentionally unchanged so UI-only PRs never trigger auto-tag.
+- **D-18-INJECT-LOC-01** — Helper lives in `_shared.py` and is called from Sonarr + Radarr Step 6 between `_resolve_download_client_tag_labels` and `_ensure_managed_tag_in_desired`.
+- **D-18-FAIL-FAST-01** — Pinned `ConfigError` message format `f"download_client '{dc.name}': username is empty in YAML AND QBT_USER env is unset/empty"`.
+- **D-18-SCOPE-01** — Helper wired into Sonarr + Radarr ONLY; Prowlarr/Seerr/Jellyfin/qBittorrent-native untouched.
+- **D-18-IDEMPOTENCE-FREE** — SC#3 idempotence reuses the existing `differ._strip_redacted_fields` privacy-by-metadata stripping; no new code path.
+- **D-18-CHART-BUMP-01** — Initial patch bump 0.10.0 → 0.10.1, then 0.10.1 → 0.10.2 in the fix-batch with CR-01/CR-02 auto-fix commits, then 0.10.2 → 0.12.1 as a final co-bump to align with the v0.13.0 auto-tag train.
+
+### Tech debt observed (carry-forward to v0.6.0+)
+
+- **client_base.py 4xx body logging** — `_request` logs `response.text[:200]` only for 5xx; 4xx raises raw `HTTPStatusError` with no body excerpt. This is why the Sonarr `PathExistsValidator` 400 went unsurfaced for 3 image versions. 2-line change candidate for an observability micro-plan.
+- **Tag train alignment** — Auto-tag minored to v0.13.0 because Phase 17's `feat(17): arrconf-ui CI coverage` commit was unreleased between v0.12.0 (Phase 16 SC#3) and the Phase 18 push. The "Accumulated-bumps escape hatch" pattern from CLAUDE.md handled it correctly (manual `v0.12.1` rescue tag at HEAD), but the underlying issue — auto-tag aggregates ALL unreleased conventional-commit bumps from prior phases — should be a process note for future milestones.
+- **HUMAN-UAT format consistency** — Audit-open parser doesn't recognize the project's Markdown `**Status:**` header convention (only YAML frontmatter `status:`). Headers updated to `Status: closed` during this milestone close, but a future micro-plan could standardize on frontmatter-style metadata across all HUMAN-UAT files.
+
+---
+
 ## v0.4.0 Categories cleanup + content discovery + local config UI (Shipped: 2026-05-23)
 
 **Phases:** 4 (12-15) | **Plans:** 11/11 | **Commits:** 73 | **Cluster:** arr-stack chart `v0.8.2`, arrconf image `:0.7.0`

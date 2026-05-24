@@ -1,8 +1,9 @@
 # Phase 16 — Jellyfin Categories-as-libs — HUMAN UAT
 
 **Phase:** 16
-**Status:** in_progress (mandatory scenarios pending operator close-out)
+**Status:** closed
 **Date:** 2026-05-24
+**Closed:** 2026-05-24 — SC#1-2-3 validated live (10 libs visible in Jellyfin web UI ✓, 12 paths pruned from legacy super-libs ✓, prune re-locked false ✓). SC#4 (JellyCon) and SC#5 (legacy zombie sweep) carry-forward per D-16-JELLYCON-UAT-01. See ROADMAP.md Phase 16 entry.
 
 ## Context
 

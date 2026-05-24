@@ -1,8 +1,9 @@
 # Phase 17 — arrconf-ui CI coverage — HUMAN-UAT
 
 **Phase:** 17
-**Status:** Pending operator validation (post-PR-merge)
+**Status:** closed
 **Plan:** 17-A
+**Closed:** 2026-05-24 — 3/3 CI jobs green on commit c53c9a3 (test arrconf + arrconf-ui-backend + arrconf-ui-frontend). Architectural SC#3 dispositive (UI-only PR doesn't trigger chart-lint/auto-tag). Scenario 4 (UI-only dummy PR) optional/non-blocking. See ROADMAP.md Phase 17 entry.
 
 ## Pre-PR baseline (already confirmed by orchestrator 2026-05-24)
 

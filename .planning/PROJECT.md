@@ -8,42 +8,40 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Shipped: v0.4.0 Categories cleanup + content discovery + local config UI** (2026-05-23). v0.2.0 transition layer fully ripped out (generators are the only source); SuggestArr deployed as 11th umbrella alias with Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG`; `arrconf-ui` ships as FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation + ruyaml round-trip + dark theme. Production cluster running chart `v0.8.2` / image `:0.7.0`. Full archive: [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md).
+**Shipped: v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** (2026-05-24). Jellyfin emits 10 `VirtualFolder` libs (1 per Category) — reverses D-07-LIB-01, makes Categories visible structurally in JellyCon/Kodi (LibreELEC salon) and every other Jellyfin client. `tools/arrconf-ui/**` covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) while staying architecturally isolated from `chart-lint.yml` (UI-only PRs do NOT trigger auto-tag). qBit POST credentials env-injected for Sonarr+Radarr with pre-flight gate + fail-fast `ConfigError`; UAT dispositive 9/9 + 9/9 qBit DCs HTTP 200 + 0 plan_actions on 2nd run (idempotence proven). Production cluster running arr-stack tag `v0.13.0` (with rescue tag `v0.12.1`) / arrconf image `:0.12.1`. Full archive: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMAP.md).
 
 <details>
-<summary>Previous state — v0.3.0 Categories first-class (2026-05-22)</summary>
+<summary>Previous state — v0.4.0 Categories cleanup + content discovery + local config UI (2026-05-23)</summary>
 
-1 declarative `categories[]` entry in `arrconf.yml` propagates to all 6 apps + chart initContainer + dispositive idempotence on live cluster. Production cluster running chart `v0.7.0` / image `:0.6.7`. Archive: [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [audit](v0.3.0-MILESTONE-AUDIT.md) `passed_with_caveats`.
+v0.2.0 transition layer fully ripped out (generators are the only source); SuggestArr deployed as 11th umbrella alias with Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG`; `arrconf-ui` ships as FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation + ruyaml round-trip + dark theme. Production cluster ran chart `v0.8.2` / image `:0.7.0` at close. Archive: [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md).
 
 </details>
 
-## Current Milestone: v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening
+<details>
+<summary>Earlier state — v0.3.0 Categories first-class (2026-05-22)</summary>
 
-**Goal:** Refactor Jellyfin pour rendre les 10 Categories visibles nativement (clients Kodi/JellyCon sur LibreELEC salon, ainsi que Swiftfin, web, etc.), restaurer la couverture CI sur `tools/arrconf-ui`, et fixer le fallback credentials côté qBit POST.
+1 declarative `categories[]` entry in `arrconf.yml` propagates to all 6 apps + chart initContainer + dispositive idempotence on live cluster. Production cluster ran chart `v0.7.0` / image `:0.6.7`. Archive: [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [audit](v0.3.0-MILESTONE-AUDIT.md) `passed_with_caveats`.
 
-**Target features:**
+</details>
 
-- **REQ-jellyfin-categories-as-libs** — `tools/arrconf/arrconf/generators/categories.py::generate_jellyfin()` émet 10 `VirtualFolders` (1 par Category, chacun avec son `PathInfo` `/media/<name>`) au lieu des 2 super-libs actuels (`Séries` + `Films`). Reverse D-07-LIB-01. Re-évaluer le hardcoded `prune: false` sur jellyfin.libraries — soit l'opérateur paie un prune flip explicite dans `arrconf.yml`, soit on garde la protection mais avec une logique "préserver les libs ajoutées hors-arrconf". Migration douce côté UI : pas de migration filesystem (les `/media/<name>` existent déjà depuis v0.3.0).
-- **REQ-arrconf-ui-ci** — Étendre le path-filter de `chart-lint.yml` + `tests.yml` pour couvrir `tools/arrconf-ui/**`. Pipeline minimal : `ruff` + `mypy` côté Python (réutiliser le triad existant), `npm ci` + `npm run check` + `npm run build` côté frontend. Pas de auto-tag bump (la modification UI ne doit pas tagger le chart).
-- **REQ-qbit-post-credentials** — Quand les champs `username` / `password` d'un `download_clients` qBit sont empty dans `arrconf.yml`, le reconciler arrconf injecte respectivement `QBT_USER` et `QBT_PASS` depuis les env vars. Idempotent : ne touche pas si valeurs explicites présentes. Test unitaire couvre les 3 cas (empty/empty, explicit/explicit, partial).
+## Next Milestone: v0.6.0 (planning TBD)
 
-**Key context:**
+**Goal:** TBD — to be scoped via `/gsd-new-milestone v0.6.0`.
 
-- **Driver principal Kodi/JellyCon visibilité.** Sur le mini-PC LibreELEC salon, l'opérateur veut naviguer les 10 Categories comme libs top-level. Le modèle 2-superlibs hérité de v0.3.0 (D-07-LIB-01) rendait les Categories invisibles structurellement.
-- **Reverse D-07-LIB-01 acceptable.** Le rationnel original (UI Jellyfin "propre" avec 2 sections claires) reposait sur le confort multi-user. Stack étant single-tenant (tout le monde voit tout, accounts pour login uniquement), ce rationnel ne tient plus.
-- **Pas de migration filesystem.** Les 10 `/media/<name>` existent déjà depuis Phase 9 (v0.3.0). Le refactor est strictement déclaratif — `helm upgrade` réémet la lib config, Jellyfin re-scanne, c'est tout.
-- **Categories-related Jellyfin features future-proofing.** Si la base 10-libs marche, un futur REQ-jellyfin-collections (Collections par Category) deviendra strict surplus — la 10-libs résout déjà le besoin user.
-- **arrconf-ui sub-projet hors path-filter** depuis v0.4.0 (homelab pragma assumé). v0.5.0 paie la dette en rajoutant l'arrconf-ui CI.
+**Candidate requirements** (from v0.6.0+ backlog):
 
-**Explicitly OUT of v0.5.0 scope:**
+- **REQ-bazarr-addition** — Bazarr (subtitles) as the 8th *arr-stack app
+- **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install
+- **REQ-config-ui-git-integration** — auto-commit/push from UI (deferred from v0.5.0 — operator now ready to decide)
+- **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière check)
+- **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval)
+- **REQ-client-base-4xx-logging** — `client_base.py:80` 4xx body excerpt (v0.5.0 carry-forward, 2-line observability micro-plan; would have caught the Sonarr `PathExistsValidator` 400 3 image versions earlier)
 
-- REQ-bazarr-addition (subtitles) — sera proposée seule au prochain milestone si l'opérateur la veut
-- REQ-arrconf-ui-distribution (packaging non-dev), REQ-config-ui-git-integration, REQ-config-ui-multi-config — pas dans ce milestone
-- REQ-jellyfin-collections — surplus si REQ-jellyfin-categories-as-libs livre la visibilité
-- SuggestArr ingress + auto-submit, Phase 9 / Phase 10 HUMAN-UAT — carry-forward maintenu
-- D-07-PLAYLIST-MGMT-NULL — re-verify sur Jellyfin 11.x upgrade (carry-forward inchangé)
+**Carry-forward (non-blocking)**:
 
-**Projected phases:** TBD (gsd-roadmapper)
+- REQ-jellyfin-collections — superseded by v0.5.0's 10-libs (only re-surface if Kodi/JellyCon UAT shows a gap)
+- D-07-PLAYLIST-MGMT-NULL — re-verify on Jellyfin 11.x upgrade
+- Phase 9 / Phase 10 HUMAN-UAT cluster scenarios (v0.3.0 carry-forward, operator-exercise opt-in)
 
 ## Core Value
 
@@ -73,18 +71,22 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 - [x] **REQ-app-coverage** — v0.2.0 (Phases 1, 3, 5, 6, 7). 6 *arr-stack apps managed declaratively: Sonarr (Phase 1+3), Radarr (Phase 3), Prowlarr (Phase 3), qBittorrent (Phase 5), Seerr (Phase 6), Jellyfin (Phase 7). FlareSolverr + Cleanuparr deployed via Helm only (env config).
 - [x] **REQ-phase-roadmap** — v0.2.0 meta-req. Roadmap instantiated 2026-05-07, 11/12 phases shipped, each independently deliverable + verifiable.
 
+### Validated (v0.5.0)
+
+<!-- Shipped 2026-05-24 in v0.5.0. -->
+
+- [x] **REQ-jellyfin-categories-as-libs** — v0.5.0 (Phase 16): `generate_jellyfin()` emits 10 `VirtualFolder` libs (1 per Category) instead of 2 super-libs. D-07-LIB-01 reversed by D-16-PRUNE-01. `_reconcile_libraries()` extended with CREATE + prune-gated DELETE. SC#1-2-3 validated live on cluster (10 libs in Jellyfin web UI ✓, 12 paths pruned from legacy super-libs ✓, prune re-locked false ✓). JellyCon LibreELEC UAT (SC#4) carry-forward non-blocking per D-16-JELLYCON-UAT-01.
+- [x] **REQ-arrconf-ui-ci** — v0.5.0 (Phase 17): `tests.yml` path-filter extended to include `tools/arrconf-ui/**`; 2 new jobs (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) green on closure commit `c53c9a3`. `chart-lint.yml` intentionally UNCHANGED — UI-only PRs do NOT trigger auto-tag (architectural SC#3 dispositive per D-17-WORKFLOW-01).
+- [x] **REQ-qbit-post-credentials** — v0.5.0 (Phase 18): `_resolve_qbit_credentials_from_env()` helper in `_shared.py` + pre-flight gate in `__main__.py` (CR-02 auto-fix). 12 respx tests covering 5 SC + asymmetric env + idempotence. Cluster UAT dispositive: 9/9 Sonarr + 9/9 Radarr qBit DCs HTTP 200 on `/test`, 0 plan_actions on 2nd run.
+
 ### Active
 
-<!-- Scoped for v0.5.0. -->
-
-- [ ] **REQ-jellyfin-categories-as-libs** — `generate_jellyfin()` emits 10 `VirtualFolders` (1 per Category) instead of 2 super-libs with PathInfos. Reverses D-07-LIB-01. Hardcoded `prune: false` on jellyfin.libraries re-evaluated. No filesystem migration (10 `/media/<name>` already exist since Phase 9). Driver: Kodi/JellyCon visibility on the LibreELEC salon mini-PC.
-- [ ] **REQ-arrconf-ui-ci** — Extend `chart-lint.yml` + `tests.yml` path-filters to cover `tools/arrconf-ui/**`. Runs Python triad (ruff + mypy) on backend + `npm ci` + `npm run check` + `npm run build` on frontend. Pays the v0.4.0 CI dette.
-- [ ] **REQ-qbit-post-credentials** — arrconf qBit `download_clients` POST injects `QBT_USER` / `QBT_PASS` from env when YAML values are empty. Idempotent. 3-case test coverage (empty/empty, explicit/explicit, partial).
+<!-- Scoped for v0.6.0+ — to be refined via /gsd-new-milestone. -->
 
 <details>
-<summary>Carried from v0.3.0 (not in v0.5.0 scope)</summary>
+<summary>Carry-forward from v0.3.0 (UAT operator-exercise opt-in)</summary>
 
-- [ ] **REQ-readme-onboarding** — README exists but not yet operator-validated against the < 30-min onboarding metric. Will be revisited after v0.5.0 ships.
+- [ ] **REQ-readme-onboarding** — README exists but not yet operator-validated against the < 30-min onboarding metric. Will be revisited when an operator other than the author tries to bootstrap.
 - [x] **REQ-secret-management** — sealed-secrets baseline is stable. No external-secret migration planned (REQ-eso-akeyless-migration retired 2026-05-22). Considered closed.
 
 </details>
@@ -230,4 +232,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 — v0.5.0 milestone scoped (Jellyfin Categories-as-libs + arrconf-ui CI + qBit POST credentials)*
+*Last updated: 2026-05-24 — v0.5.0 milestone shipped (Jellyfin Categories-as-libs + arrconf-ui CI + qBit POST credentials). Ready for `/gsd-new-milestone v0.6.0`.*

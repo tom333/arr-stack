@@ -59,16 +59,60 @@ Cross-milestone learnings, patterns, and observations. Append a new section at e
 
 ---
 
+## Milestone: v0.5.0 — Jellyfin Categories-as-libs + CI/UX hardening
+
+**Shipped:** 2026-05-24
+**Phases:** 3 (16-18) | **Plans:** 3/3 | **Commits:** 31 since v0.4.0 close (1-day intensive)
+
+### What Was Built
+
+- **Phase 16** — `generate_jellyfin()` refactored to emit 10 `VirtualFolder` libs (1 per Category) replacing the 2 super-libs. D-07-LIB-01 reversed by D-16-PRUNE-01. `_reconcile_libraries()` extended with CREATE + prune-gated DELETE. Cluster UAT: 10 libs visible in web UI, 12 paths pruned from legacy super-libs, prune re-locked false.
+- **Phase 17** — `tests.yml` path-filter extended to cover `tools/arrconf-ui/**` + 2 new jobs (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad). `chart-lint.yml` intentionally UNCHANGED — UI-only PRs do not trigger auto-tag (architectural SC#3 dispositive).
+- **Phase 18** — qBit POST credentials env-injection (`QBT_USER` / `QBT_PASS`) for Sonarr+Radarr download_clients with pre-flight gate in `__main__.py` and fail-fast `ConfigError`. 12 respx tests; 95.38% coverage. Cluster UAT dispositive: 9/9 + 9/9 qBit DCs HTTP 200 on `/api/v3/downloadclient/test`; 0 plan_actions on 2nd run.
+- **Side-quest unblock** — Pre-existing Sonarr `PathExistsValidator` 400 bug (pre-dated Phase 18 by ≥3 image versions) surfaced and resolved via `/gsd-debug sonarr-rpm-400-categories`; fix was 8× `mkdir -p` on the qBittorrent volume.
+
+### What Worked
+
+- **Code review auto-fix loop after first execution** — `/gsd-code-review` then `--fix` caught 2 BLOCKERs (CR-01 `ConfigError` not in caught exception tuple → wrong exit code; CR-02 fail-fast happened AFTER partial reconcile) that would have shipped untreated. Both required relaxing the plan's "do not touch `__main__.py`" rule mid-execution — the user's authorization for the deviation was clear, the fix was self-contained, and Triade Python stayed green throughout. Pattern worth keeping: always run `/gsd-code-review` immediately after `/gsd-execute-phase` and before declaring "shipping ready".
+- **Skill chaining stayed shallow** — `/gsd-execute-phase 18` → `/gsd-verify-work 18` → `/gsd-debug` (mid-UAT) → resume `/gsd-verify-work 18` → `/gsd-complete-milestone` all in one session, with each skill cleanly handing off state via planning artifacts (no implicit context). The debug session was opened, resolved, and archived without polluting Phase 18's scope.
+- **CLAUDE.md "Accumulated-bumps escape hatch" runbook paid off** — the chart pin diverged from the auto-tag train (v0.10.x in values.yaml vs v0.13.0 auto-tag), and the explicit `git tag v0.12.1 HEAD && git push origin v0.12.1` rescue was already documented as a known pattern from Phase 10. Worth keeping the pattern as a recurring footgun reference.
+
+### What Was Inefficient
+
+- **`gsd-sdk milestone.complete` accomplishments extraction is shallow** — it pulled the first SUMMARY.md bullets verbatim including a "Rule 1 - Bug" boilerplate fragment that wasn't a real accomplishment. Required manual rewriting of the v0.5.0 MILESTONES.md entry to bring it up to v0.4.0's quality. Worth either improving the extractor or making the manual rewrite an explicit step in the workflow.
+- **Phase 17 had no SUMMARY.md at the time of milestone close** — executed inline pre-`/gsd-execute-phase` worktree convention; a retroactive SUMMARY.md had to be authored from commits + ROADMAP closure note to satisfy the formal close. Worth establishing a project convention: even inline-executed phases get a SUMMARY.md at close.
+- **HUMAN-UAT format vs verify-work UAT.md format** — the project uses Markdown `**Status:**` headers in HUMAN-UAT.md (operator runbooks) while `audit-open` reads YAML frontmatter `status:`. Resulted in 3 "unknown" false-positives during pre-close audit. Worth standardizing on frontmatter-style metadata across all UAT artifacts.
+
+### Patterns Established
+
+- **`/gsd-debug` mid-UAT side-quest pattern** — A UAT may surface a pre-existing bug unrelated to the current phase. Opening a `/gsd-debug` session within the UAT context (instead of failing the UAT or scoping a new phase) keeps the bug investigation atomic, archives it to `.planning/debug/resolved/`, and lets the UAT resume cleanly once the side-quest closes. Phase 18 used this pattern; recommend codifying.
+- **Pre-flight gate vs in-reconcile gate (D-18 fix-batch lesson)** — When a reconciler step depends on external state (env vars, filesystem, secrets), the validation MUST run as a pre-flight gate BEFORE any side-effecting POSTs. CR-02 caught this: validating mid-reconcile means a partial cluster write on failure. The fix added a parallel pre-flight gate to the existing qBittorrent `__main__.py:269-281` gate. Worth extending to other reconcilers as a defense-in-depth audit.
+
+### Key Lessons
+
+- **Don't block "do not touch X" rules dogmatically** — Phase 18's plan said "do not touch `__main__.py`" but the code review revealed that constraint contradicted SC#1 (CLI exit code 2 on missing env). The right call was to override the constraint when it conflicted with success criteria, not to relax SC#1.
+- **Observability tech debt compounds silently** — `client_base.py:80` logs `response.text[:200]` for 5xx but not 4xx; this is why the Sonarr `PathExistsValidator` 400 went unsurfaced for 3 image versions. A 2-line change. Worth scoping as a v0.6.0 micro-plan to prevent the next silent 4xx from biting.
+- **Auto-tag train aggregates ALL unreleased commits** — Phase 17's `feat(17)` was unreleased between v0.12.0 (Phase 16 SC#3) and the Phase 18 push, so `mathieudutour/github-tag-action` minor-bumped on the combined diff (v0.13.0, not the patch I expected). The CLAUDE.md escape hatch handled it, but the underlying issue should become a process note: **push intermediate tags between phases or accept the minor bump.**
+
+### Cost Observations
+
+- **Single-day milestone close-out** — Phase 16 planned 2026-05-22, executed 2026-05-23–24, Phases 17-18 executed 2026-05-24 in succession. The intensive close-out worked because each phase was a small, well-scoped change (1 plan, 1 SUMMARY) and the test/lint infrastructure was already solid from v0.4.0. Worth keeping milestones small (3 phases ≈ 1-2 days) rather than dragging them across weeks.
+- **Cluster UAT efficiency** — Using port-forward + local curl + Python `urllib.request` for the 18-DC `/test` endpoint sweeps (Sonarr + Radarr, 18 total) ran in ~10s and was scriptable. Worth keeping this pattern (vs UI-click sweep) for future dispositive auth tests.
+- Model mix: orchestrator opus-4-7; executor/verifier/code-reviewer/code-fixer/debugger sonnet-4-6 (per config.json). No model changes from v0.4.0.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v0.2.0 | (next milestones append here) |
-|--------|--------|-------------------------------|
-| Phases shipped | 11 | — |
-| Plans shipped | 65/66 | — |
-| Validated requirements | 17/19 | — |
-| Deferred items at close | 16 | — |
-| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — |
-| Production cutover successes | 1 (Phase 7 chain dispositive in ~45 min) | — |
+| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 |
+|--------|--------|--------|--------|--------|
+| Phases shipped | 11 | 3 | 4 | 3 |
+| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 |
+| Validated requirements | 17/19 | — | — | 3/3 (REQ-jellyfin-categories-as-libs, REQ-arrconf-ui-ci, REQ-qbit-post-credentials) |
+| Deferred items at close | 16 | — | — | 6 (5 v0.3-4 carry-forward + 1 v0.5 new: client_base.py 4xx logging) |
+| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override after code review) |
+| Production cutover successes | 1 (Phase 7 chain in ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue tag in ~5 min) |
+| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories, pre-Phase-18 bug surfaced + resolved mid-UAT) |
 
 **Recurring themes to watch in v0.3.0:**
 

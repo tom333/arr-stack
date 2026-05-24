@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
-status: milestone_complete
-last_updated: "2026-05-24T08:09:30.211Z"
-last_activity: 2026-05-24 -- Phase 18 shipped (15 commits, chart pin 0.10.0 → 0.12.1)
+status: Awaiting next milestone
+last_updated: "2026-05-24T09:34:16.736Z"
+last_activity: 2026-05-24 — Milestone v0.5.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 3
-  completed_plans: 2
-  percent: 43
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -25,17 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 18
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-24
-
-<details>
-<summary>Previous: Phase 16 CLOSED 2026-05-24 (3 SC validated live, 10 libs visible in Jellyfin web UI)</summary>
-
-Plan 16-A merged into main, follow-up SC#2 (prune flip) + SC#3 (prune re-lock) shipped. Live cluster: 10 libs, each with single Category path. Legacy v0.2.0 paths pruned (12 removed). arrconf.yml has prune: false re-locked.
-
-</details>
+Phase: Milestone v0.5.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-24 — Milestone v0.5.0 completed and archived
 
 ### Known follow-up (NOT Phase 16 scope)
 
@@ -94,6 +87,4 @@ Items carried from v0.3.0 / v0.4.0 close — not in v0.5.0 scope, may be re-eval
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 16` to gather Phase 16 (Jellyfin Categories-as-libs) context — surface D-07-LIB-01 decision, prune policy, JellyCon UAT scope.
-- Then `/gsd-plan-phase 16` → `/gsd-execute-phase 16`.
-- Phases 17 (arrconf-ui CI) and 18 (qBit POST credentials) follow sequentially after Phase 16.
+- Start the next milestone with /gsd-new-milestone

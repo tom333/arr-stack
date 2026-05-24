@@ -1,9 +1,10 @@
 # Phase 18 — qBit POST credentials fallback — HUMAN-UAT
 
 **Phase:** 18
-**Status:** Pending operator validation
+**Status:** closed
 **Date:** 2026-05-24
-**Triggered after:** ArgoCD sync of the chart with arrconf image `:0.10.1` (post-merge of the Phase 18 PR)
+**Closed:** 2026-05-24 — all SC pass dispositively (9/9 Sonarr + 9/9 Radarr qBit DCs HTTP 200 on /api/v3/downloadclient/test; idempotence proven on 2nd run; ConfigMap clean of live creds). SC#2 unblock required separate debug session (sonarr-rpm-400-categories, archived). Image: ghcr.io/tom333/arr-stack-arrconf:0.12.1.
+**Triggered after:** ArgoCD sync of the chart with arrconf image `:0.12.1` (post-merge of the Phase 18 PR; auto-tag created v0.13.0 + manual rescue v0.12.1 per CLAUDE.md accumulated-bumps escape hatch).
 
 ## Context
 
