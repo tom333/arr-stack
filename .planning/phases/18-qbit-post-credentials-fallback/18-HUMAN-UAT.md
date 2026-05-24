@@ -178,25 +178,23 @@ normal operation.
 
 ## Result tracking
 
-| Scenario | Status              | Date       | Notes |
-|----------|---------------------|------------|-------|
-| SC#1     | ✓ pass              | 2026-05-24 | ConfigMap carries no live qBit credentials. Cluster Synced on `:0.12.1`. |
-| SC#2     | ⚠ partial           | 2026-05-24 | Phase 18 pre-flight gate verified (no `ConfigError` raised → env vars present). Pod exits 1 due to PRE-EXISTING bug at Step 5 `_reconcile_remote_path_mappings` (HTTP 400 from Sonarr `/api/v3/remotepathmapping`) — same crash on prior image `:0.9.0` BEFORE Phase 18 deployed. NOT a Phase 18 regression. |
-| SC#3     | 🚫 blocked          | 2026-05-24 | Depends on Step 5 succeeding to reach Step 6 (download_clients). Blocked by RPM bug. |
-| SC#4     | 🚫 blocked          | 2026-05-24 | Same dependency. |
-| SC#5     | 🚫 blocked (optional) | 2026-05-24 | Same dependency. Already covered by unit test `test_yaml_explicit_env_ignored`. |
+| Scenario | Status            | Date       | Notes |
+|----------|-------------------|------------|-------|
+| SC#1     | ✓ pass            | 2026-05-24 | ConfigMap carries no live qBit credentials. Cluster Synced on `:0.12.1`. |
+| SC#2     | ✓ pass            | 2026-05-24 | After resolving the RPM 400 blocker (see Disposition below), pod exits 0, all 5 apps emit `apply_complete`. Step 6 download_clients runs: Sonarr+Radarr each add 5 qBit DCs with env-injected credentials. |
+| SC#3     | ✓ pass            | 2026-05-24 | Dispositive — POST /api/v3/downloadclient/test returns HTTP 200 for ALL 9 Sonarr qBit DCs AND ALL 9 Radarr qBit DCs (incl. 5 new Phase-18-derived each side). Auth confirmed against live qBittorrent. |
+| SC#4     | ✓ pass            | 2026-05-24 | 2nd reconcile produces 0 plan_actions on download_clients step (both sonarr+radarr). Sonarr+Radarr+qBittorrent emit no apply_complete because there were no actions to commit. Dispositive idempotence proof. |
+| SC#5     | skipped (optional)| 2026-05-24 | Already covered by unit test `test_yaml_explicit_env_ignored`. Skipped to avoid mutating production YAML for a property proven by deterministic unit test. |
 
 ### Disposition
 
-Phase 18 code is fully verified at unit-test, mypy, lint, helm-lint, schema-drift, and cluster-deploy levels (411 tests pass, 95.38% coverage, image `:0.12.1` synced via ArgoCD). The end-to-end cluster proof (SC#3 dispositive — Sonarr UI "Test" button green) requires fixing a separate pre-existing bug that long pre-dates Phase 18.
+Phase 18 is **dispositively verified end-to-end** on the live cluster.
 
-**Recommended next action:** open a new debug session for the RPM bug.
+**Cluster-side blocker resolved mid-UAT.** SC#2 initially partial-passed (Phase 18 pre-flight gate verified, but Step 5 `_reconcile_remote_path_mappings` 400'd against Sonarr). The 400 was a pre-existing bug that pre-dated Phase 18 by ≥3 image versions — investigated and resolved via a separate debug session `.planning/debug/sonarr-rpm-400-categories.md`. Root cause: Sonarr v4 enforces `PathExistsValidator` on `LocalPath`; the v0.3.0 Categories cutover never created the matching `/data/<category>/` dirs on the qBittorrent volume. Operator-side fix (8× `mkdir -p` in the qBittorrent pod) unblocked the reconcile.
 
-```text
-/gsd-debug "RPM 400 — sonarr reconciler POSTs categories[] paths not present on qBittorrent volume; aligns with CLAUDE.md §'Filesystem migration v0.2.0 → v0.3.0' runbook (documented but unexecuted on cluster)"
-```
+After the unblock, all SC#1-SC#4 passed in a single re-run of `arrconf apply`. SC#5 skipped (unit-test-covered).
 
-Re-open this UAT (SC#3, SC#4) once the RPM bug is resolved and a clean reconcile reaches Step 6.
+**REQ-qbit-post-credentials is fully satisfied.** Phase 18 ready to mark complete in ROADMAP.md.
 
 ## Phase 18 close criteria
 
