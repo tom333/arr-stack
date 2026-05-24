@@ -1,0 +1,48 @@
+# Requirements — Milestone v0.6.0
+
+**Milestone:** v0.6.0 arrconf observability — 4xx body logging
+**Status:** Active (defining)
+**Started:** 2026-05-24
+
+## Goal
+
+Plug the observability gap surfaced by the v0.5.0 Sonarr `PathExistsValidator` 400 incident. `tools/arrconf/arrconf/client_base.py` `_request` currently logs `response.text[:200]` for 5xx responses (line 80) but raises raw `HTTPStatusError` for 4xx via `response.raise_for_status()` (line 81) — the server's actual error message is invisible to `arrconf` logs. Add symmetric 4xx body logging so future API regressions are debuggable on first occurrence.
+
+## v0.6.0 Requirements
+
+### Observability
+
+- [ ] **OBS-01** (REQ-client-base-4xx-logging) — `_request` in `tools/arrconf/arrconf/client_base.py:79-81` logs `response.text[:500]` for 4xx responses (HTTP status 400-499) before `raise_for_status()` raises the `HTTPStatusError`. The structured log entry MUST include: the client name (e.g., `sonarr`), the HTTP method (GET/POST/PUT/DELETE), the request path, the status code, and the response body excerpt. The format mirrors the existing 5xx log pattern at line 80 but uses a distinct event name (e.g., `client_4xx`) to keep log filters cleanly separable. A new respx test asserts that on a 400 response with a non-empty JSON body, the log payload contains the body excerpt verbatim (or its first 500 chars if longer).
+
+## Future Requirements
+
+Deferred to v0.7.0+ (see PROJECT.md Active section for full list):
+
+- REQ-bazarr-addition — Bazarr (subtitles) 8th *arr app
+- REQ-config-ui-git-integration — auto-commit/push from arrconf-ui
+- REQ-arrconf-ui-distribution — packaging non-dev install
+- REQ-config-ui-multi-config — configarr.yml editing in same UI
+- REQ-suggestarr-ingress — SuggestArr ingress + auto-submit
+- HUMAN-UAT frontmatter standardization
+
+## Out of Scope (v0.6.0)
+
+### Scope discipline (explicit)
+
+- **Anything that touches reconcilers, generators, or apps** — v0.6.0 is observability surgery on `client_base.py`. No reconciler changes, no new resource types, no app additions, no UI changes.
+- **Logging refactor / structured logging library swap** — keep using existing `structlog` patterns. No replacement of the logging library; no new log destinations.
+- **Generic HTTP wrapper improvements** — only the 4xx→log path is in scope. Do NOT bundle retry logic improvements, connection pooling tweaks, or auth header standardization.
+- **Live cluster forensic deployment of past 4xx incidents** — the fix is forward-looking. No retroactive log replay or backfill.
+
+### Reasoning
+
+This is a deliberate micro-milestone. The v0.5.0 close-out surfaced the observability debt explicitly, the fix is small enough to be a single phase / single plan / single commit. Scope creep would defeat the purpose. If a discovery during execution suggests an adjacent improvement (e.g., 4xx logging surfaces that some 4xx are expected and should NOT be logged at WARN level), capture as a seed/follow-up, do NOT bundle into v0.6.0.
+
+## Traceability
+
+| REQ-ID | Description | Phase | Status |
+|--------|-------------|-------|--------|
+| OBS-01 | client_base.py 4xx body excerpt logging + test | 19 | Not started |
+
+---
+*Last updated: 2026-05-24 — v0.6.0 requirements defined (single observability requirement)*
