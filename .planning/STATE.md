@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: arrconf observability — 4xx body logging
-status: planning
-last_updated: "2026-05-24T11:00:00.000Z"
-last_activity: 2026-05-24
+status: completed
+last_updated: "2026-05-24T21:29:58.848Z"
+last_activity: "2026-05-25 -- Quick task 260525-bj5 (OBS-01) shipped: client_base.py 4xx logging + chart co-bump 0.13.0"
 progress:
   total_phases: 1
   completed_phases: 0
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 19 — arrconf observability — 4xx body logging (not started)
 Plan: — (Phase 19-A TBD; 1 plan expected in Wave 1)
-Status: Ready to plan (roadmap defined, requirements mapped)
-Last activity: 2026-05-24 — v0.6.0 roadmap created (Phase 19, OBS-01 mapped, coverage 1/1)
+Status: v0.6.0 Phase 19 functionally complete via quick task — ready to archive milestone
+Last activity: 2026-05-25 -- Quick task 260525-bj5 (OBS-01) shipped: client_base.py 4xx logging + chart co-bump 0.13.0
 
 Progress: [          ] 0% (0/1 phases, 0/1 plans)
 
@@ -77,8 +77,15 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.6.0 scope, may b
 | upgrade_check | D-07-PLAYLIST-MGMT-NULL re-verify on Jellyfin 11.x upgrade | watch-only | v0.3.0 close (2026-05-22) |
 | process | HUMAN-UAT frontmatter standardization (audit-open parser compat) | deferred | v0.5.0 close (2026-05-24) |
 
+## Quick Tasks Completed
+
+| Quick ID | Description | Date | Commit | Tests |
+|----------|-------------|------|--------|-------|
+| 260525-bj5 | client_base.py 4xx response.text[:500] logging (OBS-01) + respx test + chart co-bump 0.12.1 → 0.13.0 | 2026-05-25 | 9726d81 | 416 pass (+5 new) |
+
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 19` — finalize structured-log event name + excerpt cap before planning
-- `/gsd-plan-phase 19` — emit Phase 19-A (single plan, Wave 1)
-- `/gsd-execute-phase 19` — apply 4xx logging + respx test + Triade Python + chart co-bump in one commit
+**v0.6.0 — Phase 19 ready to close via `/gsd-quick` cycle (OBS-01 implemented)**
+
+- `/gsd-execute-phase 19` is functionally **already done** via the quick task above (260525-bj5). The Phase 19 plan was sized as a quick task and executed atomically. Mark Phase 19 complete inline + close the v0.6.0 milestone.
+- Or `/gsd-complete-milestone v0.6.0` to archive directly (Phase 19's deliverable is committed and tested).
