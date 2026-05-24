@@ -109,6 +109,69 @@ def test_yaml_partial_username_explicit_password_empty(
     assert _field_value(out, "password") == "from-env"
 
 
+def test_yaml_empty_only_qbt_user_set_raises_on_password(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WR-04: YAML both empty + only QBT_USER set + QBT_PASS unset → ConfigError
+    naming the password field and the QBT_PASS env var.
+
+    Operator-realistic failure mode: SealedSecret keys QBT_USER correctly but
+    a typo on the password key (e.g. `QBT_PASSWORD` instead of `QBT_PASS`).
+    Per-field error messages must be validated so the operator can grep
+    `kubectl logs` for the exact missing env var.
+    """
+    monkeypatch.setenv("QBT_USER", "qbituser")
+    monkeypatch.delenv("QBT_PASS", raising=False)
+
+    dc = _build_qbit_dc(name="qBittorrent-tv", username="", password="")
+
+    with pytest.raises(ConfigError) as exc_info:
+        _resolve_qbit_credentials_from_env([dc])
+
+    msg = str(exc_info.value)
+    assert "download_client 'qBittorrent-tv'" in msg
+    assert "password is empty in YAML AND QBT_PASS env is unset/empty" in msg
+
+
+def test_yaml_empty_only_qbt_pass_set_raises_on_username(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WR-04: YAML both empty + only QBT_PASS set + QBT_USER unset → ConfigError
+    naming the username field first (field-order matters)."""
+    monkeypatch.delenv("QBT_USER", raising=False)
+    monkeypatch.setenv("QBT_PASS", "qbitpass")
+
+    dc = _build_qbit_dc(name="qBittorrent-anime", username="", password="")
+
+    with pytest.raises(ConfigError) as exc_info:
+        _resolve_qbit_credentials_from_env([dc])
+
+    msg = str(exc_info.value)
+    assert "download_client 'qBittorrent-anime'" in msg
+    assert "username is empty in YAML AND QBT_USER env is unset/empty" in msg
+
+
+def test_yaml_password_explicit_username_empty_qbt_user_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WR-04: YAML password explicit + username empty + QBT_USER unset →
+    ConfigError on username (the YAML password is forwarded; the empty username
+    field is the one that needs env, which is missing)."""
+    monkeypatch.delenv("QBT_USER", raising=False)
+    # QBT_PASS not consulted because YAML password is explicit; set or not
+    # is irrelevant — pin it to a sentinel to make the assertion explicit.
+    monkeypatch.setenv("QBT_PASS", "irrelevant")
+
+    dc = _build_qbit_dc(name="qBittorrent-family", username="", password="explicit-pass")
+
+    with pytest.raises(ConfigError) as exc_info:
+        _resolve_qbit_credentials_from_env([dc])
+
+    msg = str(exc_info.value)
+    assert "download_client 'qBittorrent-family'" in msg
+    assert "username is empty in YAML AND QBT_USER env is unset/empty" in msg
+
+
 def test_whitespace_only_yaml_username_is_treated_as_empty(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
