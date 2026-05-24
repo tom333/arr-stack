@@ -5,7 +5,7 @@
 - ✅ **v0.2.0 forceSave fix** — Phases 0-7 (shipped 2026-05-17)
 - ✅ **v0.3.0 Categories first-class** — Phases 9-11 (shipped 2026-05-22)
 - ✅ **v0.4.0 Categories cleanup + content discovery + local config UI** — Phases 12-15 (shipped 2026-05-23)
-- 🚧 **v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** — Phases 16-18 (in progress)
+- ✅ **v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** — Phases 16-18 (shipped 2026-05-24)
 
 ## Phases
 
@@ -59,7 +59,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 - [x] **Phase 14: SuggestArr implementation** — Helm sidecar OR declarative reconciler OR CronJob (per Phase 13 decision); SealedSecret + ConfigMap; Categories routing wiring; integration test (completed 2026-05-22)
 - [x] **Phase 15: Local config UI** — `tools/arrconf-ui/` FastAPI backend + frontend (React/Svelte TBD) + full file editor + pydantic-driven validation + ruyaml round-trip + potentially split into 15-A backend + 15-B frontend during plan-phase (completed 2026-05-23)
 
-### 🚧 v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (Phases 16-18)
+### ✅ v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (Phases 16-18) — shipped 2026-05-24
 
 **Goal**: Refactor Jellyfin pour rendre les 10 Categories visibles nativement (clients Kodi/JellyCon sur LibreELEC salon + Swiftfin + web), restaurer la couverture CI sur `tools/arrconf-ui`, et fixer le fallback credentials côté qBit POST.
 
@@ -67,7 +67,7 @@ Audit: [`v0.3.0-MILESTONE-AUDIT.md`](v0.3.0-MILESTONE-AUDIT.md) — `passed_with
 
 - [x] **Phase 16: Jellyfin Categories-as-libs** — `generate_jellyfin()` refactored to emit 10 `VirtualFolder` libs (1 per Category) replacing the 2 super-libs; D-07-LIB-01 reversed by D-16-PRUNE-01; image bump landed as `0.10.x` (tag-collision detour) ; SC#1-2-3 validated live (10 libs in Jellyfin web UI ✓ ; 12 paths pruned from legacy super-libs ✓ ; prune re-locked false ✓) ; closed 2026-05-24
 - [x] **Phase 17: arrconf-ui CI coverage** — `tests.yml` path-filter étendu à `tools/arrconf-ui/**` + 2 nouveaux jobs (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad ci+check+typecheck+build). `chart-lint.yml` intentionally UNCHANGED (architectural SC#3 — UI-only PR ne déclenche jamais auto-tag). Lockfiles `tools/arrconf-ui/uv.lock` + `web/package-lock.json` commités (oversight Phase 15 fix). 3/3 jobs green sur commit `c53c9a3` (test arrconf + arrconf-ui-backend + arrconf-ui-frontend). closed 2026-05-24
-- [ ] **Phase 18: qBit POST credentials fallback** — qBit `download_clients` reconciler injects `QBT_USER` / `QBT_PASS` from env when YAML empty; idempotent; 3-case respx test coverage; arrconf image co-bump `0.10.0 → 0.10.1` (patch — bugfix)
+- [x] **Phase 18: qBit POST credentials fallback** — `_resolve_qbit_credentials_from_env()` helper in `_shared.py` + pre-flight gate in `__main__.py` (CR-02 fix) inject `QBT_USER`/`QBT_PASS` for Sonarr+Radarr qBit DCs when YAML empty; idempotent (D-02.2-AUTH-REGRESSION + D-18-IDEMPOTENCE-FREE); 12 respx tests; arrconf image co-bump `0.10.0 → 0.12.1` (patch — bugfix, with accumulated-bumps catch-up to align with v0.13.0 auto-tag train); UAT all SC pass dispositively (9/9 Sonarr + 9/9 Radarr qBit DCs HTTP 200 on /test endpoint); SC#2 unblock required separate debug session (`sonarr-rpm-400-categories` — pre-existing PathExistsValidator bug on /api/v3/remotepathmapping, fixed via 8x mkdir on qBittorrent volume); closed 2026-05-24
 
 ## Phase Details
 
@@ -224,7 +224,7 @@ Plans:
 | v0.2.0 forceSave fix | 11 | 65/66 | ✅ Shipped | 2026-05-17 |
 | v0.3.0 Categories first-class | 3 | 16/16 | ✅ Shipped | 2026-05-22 |
 | v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 11/11 | ✅ Shipped | 2026-05-23 |
-| v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening | 3 | 0/TBD | 🚧 In progress | — |
+| v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening | 3 | 3/3 | ✅ Shipped | 2026-05-24 |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)
