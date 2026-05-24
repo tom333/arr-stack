@@ -110,8 +110,7 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 - Phase 10 SC#1 cluster apply Categories-derived path (empty arrconf.yml flat sections to exercise) — REQ-categories-deprecation will exercise this naturally
 - Phase 10 SC#3 TVDB-anime live routing test in Seerr UI
 
-**v0.7.0+ carry-forward backlog**:
-- REQ-bazarr-addition — Bazarr (subtitles) as an 8th *arr-stack app
+**v0.7.0+ carry-forward backlog** (REQ-bazarr-addition removed in v0.7.0 — declared out of scope, see PROJECT.md):
 - REQ-arrconf-ui-distribution — package `arrconf-ui` for non-dev install
 - REQ-config-ui-git-integration — auto-commit/push from UI (after v0.5.0 ships and operator decides)
 - REQ-config-ui-multi-config — configarr.yml editing in same UI (ADR-5 frontière check)

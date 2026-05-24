@@ -1,5 +1,41 @@
 # Milestones
 
+## v0.7.0 Media stack scope closure (Shipped: 2026-05-25)
+
+**Phases:** 0 (doc-only, no phases) | **Plans:** 0 | **Commits:** 1 | **Cluster:** unchanged (arrconf image `:0.14.0`, no code or chart change)
+
+### Delivered
+
+Declared the media stack **complete and closed** — Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin, FlareSolverr, Cleanuparr, SuggestArr (9 apps) + arrconf + configarr. Removed Bazarr from the project's intent surface (CLAUDE.md, spec.md, PROJECT.md, ROADMAP.md) and explicitly declared Bazarr / Lidarr / Whisparr / Readarr **out of scope** with rationale documented to prevent re-introduction at the next backlog review.
+
+This was a deliberate documentation-only scope-narrowing milestone, executed inline (no formal `/gsd-execute-phase` cycle) because the change footprint was 5 file edits with no code, tests, or chart bump. Pattern validated: structural scope decisions can be milestone-recorded without scaffolding overhead.
+
+### Key accomplishments
+
+1. **Bazarr removed from arrconf scope description** — CLAUDE.md and spec.md (lines 13 / 14) listed `(Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Bazarr)` as the apps arrconf manages. Updated to `(Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin)` — matches the actual implemented scope.
+
+2. **Bazarr removed from spec.md alternative-comparison row** — The Flemmarr line in the alternatives-rejected table said "...étendre à qBit/Seerr/Bazarr"; updated to "...étendre à qBit/Seerr/Jellyfin" to match the actual extension path that shipped (v0.2.0 → v0.5.0).
+
+3. **"Apps potentielles ultérieures" section rewritten** — spec.md §5.3 (image inventory) previously listed Bazarr + Lidarr/Whisparr/Readarr as "hors scope MVP, ajoutables plus tard sans repenser l'architecture". Rewritten as **"Apps explicitement hors scope (décidé v0.7.0)"** with the reason documented inline (no need / homelab UX preference / out of media-video domain).
+
+4. **PROJECT.md "Out of Scope" reasoning expanded** — Replaced the bullet `Bazarr / Lidarr / Whisparr / Readarr — v2 potentiel` (which was an ambivalent "maybe later") with 3 explicit entries: Bazarr (no real need — burned-in subs OR Jellyfin/Kodi native search suffices), Lidarr/Whisparr/Readarr (stack scope = video only, not audio/written/adult), and a stack-closure entry (the 9 apps are complete).
+
+5. **REQ-bazarr-addition removed** from PROJECT.md "Next Milestone candidates", PROJECT.md "Active carry-forward", and ROADMAP.md "v0.7.0+ carry-forward backlog". The requirement no longer exists.
+
+### Decisions
+
+- **D-19-CLOSURE-01** — The media stack is declared complete at 9 apps. Future *arr additions require an explicit revisit of the v0.7.0 Out of Scope decision, not a quiet bump.
+- **D-19-RATIONALE-01** — Bazarr's specific rationale (no real need) is documented to prevent it being re-suggested at every milestone close. Burned-in subs cover the typical case; Jellyfin/Kodi native search covers the rest at watch-time, with operator quality control.
+- **D-19-VIDEO-ONLY-01** — Lidarr/Whisparr/Readarr are explicitly out because the project scope is **video media** (séries + films). Audio/written/adult content domains have different UX needs (library structure, metadata sources, naming conventions, user preferences) that would warrant their own stack, not a bolt-on.
+
+### Why v0.7.0 had no phases
+
+The change was 5 file edits totaling ~30 lines, doc-only, with no test or build impact. Going through `/gsd-discuss-phase 20` → `/gsd-plan-phase 20` → `/gsd-execute-phase 20` → `/gsd-verify-work 20` would have generated 4-5x more orchestration artifacts than actual content. Inline execution with a milestone entry preserves the historical record (a future grep for "why is Bazarr not in this stack" finds this v0.7.0 decision) without the scaffolding.
+
+Pattern documented: **structural scope decisions** (declaring something explicitly out, retiring a planned-but-never-built feature, archiving a research direction) are valid milestone material even with zero phases — the milestone IS the decision, the artifact IS the doc edit.
+
+---
+
 ## v0.6.0 arrconf observability — 4xx body logging (Shipped: 2026-05-25)
 
 **Phases:** 1 (Phase 19) | **Plans:** 1/1 (shipped via /gsd-quick 260525-bj5 instead of /gsd-execute-phase — pattern-appropriate for a 2-line code change) | **Commits:** 5 | **Cluster:** arr-stack tag `v0.14.0`, arrconf image `:0.14.0`

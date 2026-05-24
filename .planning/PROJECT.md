@@ -28,15 +28,16 @@ v0.2.0 transition layer fully ripped out (generators are the only source); Sugge
 
 **Goal:** TBD — to be scoped via `/gsd-new-milestone v0.7.0`.
 
-**Candidate requirements** (from v0.6.0+ backlog, refined post v0.6.0 close):
+**Candidate requirements** (from v0.6.0+ backlog, refined post v0.7.0 scope-closure):
 
-- **REQ-bazarr-addition** — Bazarr (subtitles) as the 8th *arr-stack app
 - **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui (deferred from v0.5.0 and v0.6.0)
 - **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install
 - **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière check)
 - **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval)
-- **REQ-auto-tag-rescue-automation** — NEW carry-forward from v0.6.0: standardize the chart-pin co-bump rescue commit as a post-push hook OR phase-final step. v0.5.0 + v0.6.0 both required it; the third recurrence justifies automation.
+- **REQ-auto-tag-rescue-automation** — Carry-forward from v0.6.0: standardize the chart-pin co-bump rescue commit as a post-push hook OR phase-final step. v0.5.0 + v0.6.0 both required it; the third recurrence justifies automation.
 - **HUMAN-UAT frontmatter standardization** — convert all Phase HUMAN-UAT.md to YAML frontmatter for `audit-open` parser compatibility
+
+REQ-bazarr-addition was **removed** in v0.7.0 (declared explicitly out of scope — see Out of Scope section + MILESTONES.md v0.7.0 entry).
 
 **Carry-forward (non-blocking)**:
 
@@ -93,7 +94,6 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 <details>
 <summary>Carry-forward to v0.7.0+</summary>
 
-- [ ] **REQ-bazarr-addition** — Bazarr (subtitles) as 8th *arr-stack app. Operator decision.
 - [ ] **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui. Operator decision (deferred from v0.5.0 + v0.6.0).
 - [ ] **REQ-arrconf-ui-distribution** — packaging arrconf-ui for non-dev install.
 - [ ] **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière re-check needed).
@@ -124,7 +124,9 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 - **Buildarr / Terraform devopsarr / Recyclarr / Flemmarr / Ansible / operators K8s** — Évalués et rejetés (cf intel/context.md alternatives-rejected ; principal blocant : cluster privé inaccessible depuis GitHub Actions)
 - **Apply distant depuis GitHub Actions** — Cluster privé, GHA ne peut pas atteindre les APIs *arr ; reconciliation in-cluster uniquement (CronJob)
 - **Tag `:latest` en production** — Toutes les images doivent être pinnées (Phase 4 traite les `:latest` existants : qbittorrent, flaresolverr, cleanuparr)
-- **Bazarr / Lidarr / Whisparr / Readarr** — v2 potentiel, ajoutables sans repenser l'architecture
+- **Bazarr (sous-titres)** — v0.7.0 decision: pas de besoin réel. Les médias téléchargés ont les sous-titres burned-in ou Jellyfin/Kodi cherche les subs en natif au moment du watch. Bazarr résoudrait un problème qui n'existe pas dans ce homelab. Ne pas ré-évaluer sans un cas d'usage concret nouveau (e.g., contenu sans subs récurrent dans une langue précise).
+- **Lidarr (musique) / Whisparr (adulte) / Readarr (livres)** — v0.7.0 decision: stack média = vidéo (séries + films) uniquement. Audio, écrit, et adult content sortent du périmètre intentionnellement. La phrase "ajoutable sans repenser l'architecture" (pré-v0.7.0) reste techniquement vraie mais n'est pas une intention.
+- **Media stack additions au-delà des 9 apps actuelles** — v0.7.0 decision: la stack est complète et fermée. Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin/FlareSolverr/Cleanuparr/SuggestArr couvrent l'usage. Toute proposition d'ajouter un *arr passe par revue de cette décision.
 - **Déploiement direct depuis ce repo** — Toujours via my-kluster + ArgoCD ; jamais `helm install` ou `kubectl apply` depuis arr-stack
 
 ## Context
