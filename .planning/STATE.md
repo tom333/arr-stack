@@ -5,9 +5,9 @@ milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
 status: planning
 stopped_at: ""
 last_updated: "2026-05-24T00:00:00.000Z"
-last_activity: 2026-05-24 -- Milestone v0.5.0 started
+last_activity: 2026-05-24 -- Roadmap created (Phases 16-18)
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap drafted, awaiting `/gsd-discuss-phase 16`)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-24 — Milestone v0.5.0 started
+Status: Roadmap ready
+Last activity: 2026-05-24 — Roadmap created (Phases 16-18)
 
 ## Accumulated Context
 
@@ -46,15 +46,15 @@ Quick reference to 7 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
 - **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3, NOT qBit/Jellyfin)
 
-Plus milestone-specific decisions to be added during phase planning.
+Plus milestone-specific decisions to be added during phase planning. Phase 16 must explicitly address D-07-LIB-01 (reverse or adapt the `prune: false` hardcoded on jellyfin.libraries).
 
 ### Blockers/Concerns
 
-None. v0.5.0 anchor is an internal refactor with no external dependency.
+None. v0.5.0 anchor (Phase 16) is an internal refactor with no external dependency.
 
 ### Pending Todos
 
-None at milestone open. To be populated during phase discussion.
+None at roadmap-ready. To be populated during `/gsd-discuss-phase 16`.
 
 ## Deferred Items
 
@@ -71,4 +71,6 @@ Items carried from v0.3.0 / v0.4.0 close — not in v0.5.0 scope, may be re-eval
 
 ## Operator Next Steps
 
-- Approve roadmap (this session) → `/gsd-discuss-phase [N]` to gather phase context, then `/gsd-plan-phase [N]`, then `/gsd-execute-phase [N]`.
+- `/gsd-discuss-phase 16` to gather Phase 16 (Jellyfin Categories-as-libs) context — surface D-07-LIB-01 decision, prune policy, JellyCon UAT scope.
+- Then `/gsd-plan-phase 16` → `/gsd-execute-phase 16`.
+- Phases 17 (arrconf-ui CI) and 18 (qBit POST credentials) follow sequentially after Phase 16.

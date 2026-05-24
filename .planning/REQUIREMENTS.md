@@ -50,8 +50,6 @@ Explicit exclusions with reasoning to prevent re-adding mid-milestone:
 
 | Requirement | Phase(s) | Status |
 |-------------|----------|--------|
-| REQ-jellyfin-categories-as-libs | TBD | Active |
-| REQ-arrconf-ui-ci | TBD | Active |
-| REQ-qbit-post-credentials | TBD | Active |
-
-*(Filled by gsd-roadmapper.)*
+| REQ-jellyfin-categories-as-libs | Phase 16 | Active |
+| REQ-arrconf-ui-ci | Phase 17 | Active |
+| REQ-qbit-post-credentials | Phase 18 | Active |
