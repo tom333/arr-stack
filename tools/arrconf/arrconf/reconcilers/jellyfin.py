@@ -1,9 +1,14 @@
-"""Jellyfin reconciler — Phase 7 scope (D-07-LIB-01/02, D-07-USERS-01, D-07-CONFIG-01).
+"""Jellyfin reconciler — Phase 7 baseline + Phase 16 library lifecycle.
 
 Reconciles 4 resources against a Jellyfin 10.11.8 instance (D-07-ORDER-01 order):
 
-1. libraries → POST /Library/VirtualFolders/Paths
-   (Pitfall 2 idempotence shim — set-membership check before POST)
+1. libraries → POST /Library/VirtualFolders + POST /Library/VirtualFolders/Paths
+   + DELETE /Library/VirtualFolders/Paths + DELETE /Library/VirtualFolders
+   (Phase 16 D-16-LIB-CREATE-01 + D-16-PRUNE-01 + D-16-PATH-DELETE-01.
+    Pitfall 16-1 mitigation: match-by-Name pre-check before POST CREATE.
+    Pitfall 16-2 mitigation: NotFoundError tolerance on DELETE Lib.
+    Pitfall 2 carry-forward: set-membership skip on POST Path.
+    Pitfall 8 carry-forward: PathInfos is the source of truth, NEVER Locations.)
 2. users.admin → POST /Users/{id}/Policy
    (Pitfall 4: POST not PUT)
    (Pitfall 6 carry-forward D-06-OPENAPI-01: re-inject AuthenticationProviderId
@@ -22,9 +27,12 @@ Frontière (ADR-5): This reconciler MUST NEVER reach /api/v3/qualityprofile,
 any *arr instance. Negative respx test enforces.
 
 Hardcoded protections:
-- libraries.prune = False (D-07-LIB-01) → reconciler NEVER DELETEs paths.
 - users.prune = False (D-07-USERS-01) → reconciler NEVER DELETEs users (emilie protection).
 - plugins has no uninstall path (D-07-PLUGINS-01 activation-only).
+
+Library prune is opt-in via JellyfinLibrariesSection.prune (D-16-PRUNE-01 reverses
+D-07-LIB-01 hardcoded false). Operator flips True for cutover PR, back to False
+post-UAT to preserve user-added libs.
 """
 
 from __future__ import annotations
@@ -42,6 +50,7 @@ from arrconf.config import (
     JellyfinServerConfigSection,
     JellyfinUsersSection,
 )
+from arrconf.exceptions import NotFoundError
 from arrconf.resources.jellyfin.library import JellyfinLibrary
 
 log = structlog.get_logger()
@@ -104,20 +113,198 @@ def _server_config_equivalent(cluster: dict[str, Any], merged: dict[str, Any]) -
     return True
 
 
+def _create_library(
+    client: JellyfinClient,
+    desired_lib: JellyfinLibrary,
+    dry_run: bool,
+) -> str | None:
+    """Create a new Jellyfin VirtualFolder via POST /Library/VirtualFolders.
+
+    Single-call create-with-paths: paths array is in the QUERY STRING (not body).
+    Body is empty AddVirtualFolderDto ({}) — LibraryOptions is nullable per OpenAPI 10.11.9.
+
+    Phase 16 (D-16-LIB-CREATE-01). Idempotence shim — caller MUST verify Name absence
+    in cluster snapshot BEFORE invoking (Pitfall 16-1: POST duplicates with suffix).
+    """
+    if dry_run:
+        log.info(
+            "dry_run_skip",
+            resource="library_create",
+            name=desired_lib.name,
+            collection_type=desired_lib.collection_type,
+            paths=desired_lib.paths,
+        )
+        return f"library_create:dry_run:{desired_lib.name}"
+
+    client._request(
+        "POST",
+        LIBRARY_VIRTUALFOLDERS_PATH,
+        params={
+            "name": desired_lib.name,
+            "collectionType": desired_lib.collection_type,
+            "paths": desired_lib.paths,  # httpx repeats key for list values (A2)
+            "refreshLibrary": "false",
+        },
+        json={},  # AddVirtualFolderDto with LibraryOptions=null
+    )
+    log.info(
+        "library_created",
+        name=desired_lib.name,
+        collection_type=desired_lib.collection_type,
+        paths=desired_lib.paths,
+    )
+    return f"library_created:{desired_lib.name}"
+
+
+def _add_missing_paths(
+    client: JellyfinClient,
+    desired_lib: JellyfinLibrary,
+    cluster_lib: dict[str, Any],
+    dry_run: bool,
+) -> list[str]:
+    """Add desired paths absent from cluster_lib (Phase 7 Pitfall 2 idempotence shim).
+
+    Pitfall 8: PathInfos is the source of truth, NEVER Locations (stale projection).
+    """
+    library_options = cluster_lib.get("LibraryOptions") or {}
+    path_infos = library_options.get("PathInfos") or []
+    existing_paths: set[str] = {p.get("Path") for p in path_infos if p.get("Path")}
+    actions: list[str] = []
+
+    for path in desired_lib.paths:
+        if path in existing_paths:
+            log.info("library_path_already_present", name=desired_lib.name, path=path)
+            continue
+
+        if dry_run:
+            log.info("dry_run_skip", resource="library_path", name=desired_lib.name, path=path)
+            actions.append(f"library_path:dry_run:{desired_lib.name}:{path}")
+            continue
+
+        # POST /Library/VirtualFolders/Paths?refreshLibrary=false
+        # Body: MediaPathDto {Name, Path, PathInfo: {Path}} per RESEARCH §703-712.
+        client._request(
+            "POST",
+            LIBRARY_PATHS_PATH,
+            params={"refreshLibrary": "false"},
+            json={"Name": desired_lib.name, "Path": path, "PathInfo": {"Path": path}},
+        )
+        log.info("library_path_added", name=desired_lib.name, path=path)
+        actions.append(f"library_path:added:{desired_lib.name}:{path}")
+
+    return actions
+
+
+def _prune_library_paths(
+    client: JellyfinClient,
+    desired_lib: JellyfinLibrary,
+    cluster_lib: dict[str, Any],
+    section: JellyfinLibrariesSection,
+    dry_run: bool,
+) -> list[str]:
+    """Remove paths present in cluster but NOT in desired set (D-16-PATH-DELETE-01).
+
+    Gated by section.prune (D-16-PRUNE-01). When prune=False (default), no-op.
+    Pitfall 8 carry-forward: diff PathInfos, NEVER Locations.
+    """
+    if not section.prune:
+        return []
+
+    desired_paths: set[str] = set(desired_lib.paths)
+    path_infos = (cluster_lib.get("LibraryOptions") or {}).get("PathInfos") or []
+    cluster_paths: set[str] = {p.get("Path") for p in path_infos if p.get("Path")}
+    excess: set[str] = cluster_paths - desired_paths
+    actions: list[str] = []
+
+    for path in sorted(excess):  # deterministic for tests
+        if dry_run:
+            log.info(
+                "dry_run_skip",
+                resource="library_path_delete",
+                name=desired_lib.name,
+                path=path,
+            )
+            actions.append(f"library_path_pruned:dry_run:{desired_lib.name}:{path}")
+            continue
+
+        client._request(
+            "DELETE",
+            LIBRARY_PATHS_PATH,
+            params={
+                "name": desired_lib.name,
+                "path": path,
+                "refreshLibrary": "false",
+            },
+        )
+        log.info("library_path_pruned", name=desired_lib.name, path=path)
+        actions.append(f"library_path_pruned:{desired_lib.name}:{path}")
+
+    return actions
+
+
+def _prune_libraries(
+    client: JellyfinClient,
+    current_libraries: list[dict[str, Any]],
+    desired_libraries: list[JellyfinLibrary],
+    section: JellyfinLibrariesSection,
+    dry_run: bool,
+) -> list[str]:
+    """Remove cluster libs NOT in the desired set (D-16-PRUNE-01).
+
+    Gated by section.prune. When prune=False (default), no-op.
+    Pitfall 16-2: DELETE returns 404 on missing lib — wrap in NotFoundError tolerance.
+    Filesystem is NEVER touched (verified live 2026-05-24 — RESEARCH §POST/DELETE probe).
+    """
+    if not section.prune:
+        return []
+
+    desired_names: set[str] = {lib.name for lib in desired_libraries}
+    actions: list[str] = []
+
+    for cluster_lib in current_libraries:
+        cluster_name = cluster_lib.get("Name")
+        if not cluster_name or cluster_name in desired_names:
+            continue
+
+        if dry_run:
+            log.info("dry_run_skip", resource="library_delete", name=cluster_name)
+            actions.append(f"library_pruned:dry_run:{cluster_name}")
+            continue
+
+        try:
+            client._request(
+                "DELETE",
+                LIBRARY_VIRTUALFOLDERS_PATH,
+                params={"name": cluster_name, "refreshLibrary": "false"},
+            )
+            log.info("library_pruned", name=cluster_name)
+            actions.append(f"library_pruned:{cluster_name}")
+        except NotFoundError:
+            # Pitfall 16-2: 404 — lib already gone (concurrent operator action). No-op.
+            log.info("library_already_absent", name=cluster_name)
+
+    return actions
+
+
 def _reconcile_libraries(
     client: JellyfinClient,
     section: JellyfinLibrariesSection,
     desired_libraries: list[JellyfinLibrary],
     dry_run: bool,
 ) -> list[str]:
-    """Reconcile /Library/VirtualFolders/Paths — idempotence shim (Pitfall 2).
+    """Reconcile Jellyfin libraries — Phase 16 full lifecycle (D-16-*).
 
-    ``desired_libraries`` is the generator output (Phase 12-B D-01: items field removed
-    from JellyfinLibrariesSection).
+    Order within run:
+      1. GET cluster snapshot once
+      2. For each desired lib:
+         a. if not in cluster → CREATE (POST /Library/VirtualFolders with all paths)
+         b. if in cluster → ADD missing paths (Phase 7 Pitfall 2 idempotence shim)
+         c. if section.prune → DELETE excess paths (D-16-PATH-DELETE-01)
+      3. If section.prune → DELETE cluster libs not in desired set (D-16-PRUNE-01)
 
-    D-07-LIB-01: add missing paths to existing libraries. Match by Name.
-    Reconciler NEVER creates new libraries (operator bootstraps Séries + Films via UI).
-    Reconciler NEVER DELETEs paths (Pitfall 3 + D-07-LIB-01 prune=False hardcoded).
+    Pitfall 16-1 (CRITIQUE): POST /Library/VirtualFolders is NOT idempotent —
+    Jellyfin silently appends `Name2`/`Name3` on duplicate Names. Match-by-Name
+    from the pre-fetched snapshot is the ONLY mitigation.
     """
     if not section.enable:
         log.info("libraries_reconcile_skipped")
@@ -125,58 +312,29 @@ def _reconcile_libraries(
 
     log.info("step_begin", step="libraries", step_index=1)
     current_libraries: list[dict[str, Any]] = client.get(LIBRARY_VIRTUALFOLDERS_PATH)
+    by_name: dict[str, dict[str, Any]] = {
+        lib["Name"]: lib for lib in current_libraries if lib.get("Name")
+    }
     actions: list[str] = []
 
     for desired_lib in desired_libraries:
-        cluster_lib = next(
-            (lib for lib in current_libraries if lib.get("Name") == desired_lib.name),
-            None,
-        )
+        cluster_lib = by_name.get(desired_lib.name)
+
         if cluster_lib is None:
-            log.warning(
-                "library_missing_skip",
-                name=desired_lib.name,
-                hint=(
-                    "Operator must create the library via Jellyfin UI Dashboard "
-                    "before arrconf can add paths to it (D-07-LIB-01)."
-                ),
-            )
+            # Pitfall 16-1: verify absence by Name BEFORE POST or Jellyfin duplicates with suffix.
+            action = _create_library(client, desired_lib, dry_run)
+            if action:
+                actions.append(action)
             continue
 
-        # Pitfall 8: PathInfos is the source of truth, NEVER Locations (stale display projection).
-        library_options = cluster_lib.get("LibraryOptions") or {}
-        path_infos = library_options.get("PathInfos") or []
-        existing_paths: set[str] = {p.get("Path") for p in path_infos if p.get("Path")}
+        # Existing lib → add missing paths (Phase 7 pattern, extracted to helper).
+        actions += _add_missing_paths(client, desired_lib, cluster_lib, dry_run)
 
-        for path in desired_lib.paths:
-            if path in existing_paths:
-                log.info("library_path_already_present", name=desired_lib.name, path=path)
-                continue  # Pitfall 2 idempotence shim — no-op for already-present paths
+        # Prune excess paths (Phase 16 new behavior, prune-gated).
+        actions += _prune_library_paths(client, desired_lib, cluster_lib, section, dry_run)
 
-            if dry_run:
-                log.info(
-                    "dry_run_skip",
-                    resource="library_path",
-                    name=desired_lib.name,
-                    path=path,
-                )
-                actions.append(f"library_path:dry_run:{desired_lib.name}:{path}")
-                continue
-
-            # POST /Library/VirtualFolders/Paths?refreshLibrary=false
-            # Body: MediaPathDto {Name, Path, PathInfo: {Path}} per RESEARCH §703-712.
-            client._request(
-                "POST",
-                LIBRARY_PATHS_PATH,
-                params={"refreshLibrary": "false"},
-                json={
-                    "Name": desired_lib.name,
-                    "Path": path,
-                    "PathInfo": {"Path": path},
-                },
-            )
-            log.info("library_path_added", name=desired_lib.name, path=path)
-            actions.append(f"library_path:added:{desired_lib.name}:{path}")
+    # Phase 16: prune entire libs not in desired set (D-16-PRUNE-01).
+    actions += _prune_libraries(client, current_libraries, desired_libraries, section, dry_run)
 
     return actions
 

@@ -34,6 +34,13 @@ _QBIT_IMPLEMENTATION: Final[str] = "QBittorrent"
 _QBIT_CONFIG_CONTRACT: Final[str] = "QBittorrentSettings"
 
 
+# D-16-COLLECTIONTYPE-01: same mapping as Phase 7 (unchanged from old impl).
+_KIND_TO_COLLECTION_TYPE: Final[dict[str, str]] = {
+    "series": "tvshows",
+    "movies": "movies",
+}
+
+
 # ---------------------------------------------------------------------------
 # Typed containers for multi-resource generator outputs (D-03b/c/d/e)
 # ---------------------------------------------------------------------------
@@ -190,15 +197,26 @@ def generate_radarr_resources(cfg: RootConfig) -> RadarrDerived:
 
 
 def generate_jellyfin_libraries(cfg: RootConfig) -> list[JellyfinLibrary]:
-    """REQ-categories-jellyfin-paths: 2 super-libraries 'Séries' + 'Films' (D-07-LIB-01).
+    """REQ-jellyfin-categories-as-libs: 10 libs, one per Category (D-16-LIB-CREATE-01).
 
-    Order of paths within each library follows the order of ``cfg.categories``.
+    Phase 16 reverses Phase 7's 2-super-libs design (`Séries`/`Films` with multi-path
+    PathInfos). Each Category now becomes its own JellyfinLibrary with:
+      - name           = c.display       (D-16-LIB-NAME-01 — UI-facing label)
+      - collection_type = kind→type map  (D-16-COLLECTIONTYPE-01 — unchanged)
+      - paths          = [c.base_path]   (single PathInfo per lib)
+
+    Order of output follows ``cfg.categories`` order — deterministic for tests
+    and operator readability of the resulting JSON.
+
+    Returns empty list when ``cfg.categories`` is empty (no implicit super-libs).
     """
-    series_paths = [c.base_path for c in cfg.categories if c.kind == "series"]
-    movies_paths = [c.base_path for c in cfg.categories if c.kind == "movies"]
     return [
-        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=series_paths),
-        JellyfinLibrary(name="Films", collection_type="movies", paths=movies_paths),
+        JellyfinLibrary(
+            name=c.display,
+            collection_type=_KIND_TO_COLLECTION_TYPE[c.kind],
+            paths=[c.base_path],
+        )
+        for c in cfg.categories
     ]
 
 

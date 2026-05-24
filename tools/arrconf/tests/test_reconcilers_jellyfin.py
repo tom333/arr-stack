@@ -1042,3 +1042,355 @@ def test_jellyfin_does_not_call_arr_v3_quality_endpoints(
     assert not sentinel_customformat.called, (
         "Jellyfin reconciler MUST NOT call /api/v3/customformat (ADR-5 frontiere)"
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 16 — library lifecycle tests (D-16-LIB-CREATE-01 + D-16-PRUNE-01 +
+# D-16-PATH-DELETE-01 + Pitfall 16-1 / 16-2 guards)
+# ---------------------------------------------------------------------------
+
+
+def _ten_lib_desired() -> list[JellyfinLibrary]:
+    """Post-Phase-16 desired state — 10 libs (5 tvshows + 5 movies, 1 path each)."""
+    return [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+        JellyfinLibrary(
+            name="Séries - Émilie", collection_type="tvshows", paths=["/media/series-emilie"]
+        ),
+        JellyfinLibrary(
+            name="Séries - Thomas", collection_type="tvshows", paths=["/media/series-thomas"]
+        ),
+        JellyfinLibrary(
+            name="Séries - Garçons", collection_type="tvshows", paths=["/media/series-garcons"]
+        ),
+        JellyfinLibrary(
+            name="Séries - Zoé", collection_type="tvshows", paths=["/media/series-zoe"]
+        ),
+        JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+        JellyfinLibrary(
+            name="Nouveaux Films", collection_type="movies", paths=["/media/nouveaux-films"]
+        ),
+        JellyfinLibrary(
+            name="Films - Enfants", collection_type="movies", paths=["/media/films-enfants"]
+        ),
+        JellyfinLibrary(
+            name="Films - Animation Enfants",
+            collection_type="movies",
+            paths=["/media/films-animation-enfants"],
+        ),
+        JellyfinLibrary(name="Films - Zoé", collection_type="movies", paths=["/media/films-zoe"]),
+    ]
+
+
+def _legacy_2_lib_cluster_fixture() -> list[dict[str, Any]]:
+    """Pre-cutover cluster GET: 2 super-libs with multi-path PathInfos."""
+    return [
+        {
+            "Name": "Séries",
+            "ItemId": "d565273fd114d77bdf349a2896867069",
+            "CollectionType": "tvshows",
+            "Locations": ["/media/series", "/media/anime", "/media/family"],
+            "LibraryOptions": {
+                "PathInfos": [
+                    {"Path": "/media/series"},
+                    {"Path": "/media/anime"},
+                    {"Path": "/media/family"},
+                ]
+            },
+        },
+        {
+            "Name": "Films",
+            "ItemId": "db4c1708cbb5dd1676284a40f2950aba",
+            "CollectionType": "movies",
+            "Locations": ["/media/films", "/media/films-anime", "/media/films-family"],
+            "LibraryOptions": {
+                "PathInfos": [
+                    {"Path": "/media/films"},
+                    {"Path": "/media/films-anime"},
+                    {"Path": "/media/films-family"},
+                ]
+            },
+        },
+    ]
+
+
+@respx.mock
+def test_library_create_uses_query_params_and_empty_body() -> None:
+    """Pattern 1: POST /Library/VirtualFolders with query params + body={}."""
+    # GET returns empty cluster (no libs exist).
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+    post_route = respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=False)
+    desired = [
+        JellyfinLibrary(
+            name="Séries - Émilie", collection_type="tvshows", paths=["/media/series-emilie"]
+        )
+    ]
+
+    actions = _reconcile_libraries(client, section, desired, dry_run=False)
+
+    assert post_route.called is True
+    assert post_route.call_count == 1
+    request = post_route.calls.last.request
+    assert request.url.params["name"] == "Séries - Émilie"
+    assert request.url.params["collectionType"] == "tvshows"
+    assert request.url.params["paths"] == "/media/series-emilie"
+    assert request.url.params["refreshLibrary"] == "false"
+    # Body must be empty JSON {}
+    assert json.loads(request.content) == {}
+    assert any("library_created:Séries - Émilie" in a for a in actions)
+
+
+@respx.mock
+def test_library_create_skipped_when_name_already_exists() -> None:
+    """Pitfall 16-1: POST not idempotent — match by Name in pre-fetched snapshot."""
+    cluster_fixture = [
+        {
+            "Name": "Séries",
+            "ItemId": "d565273fd114d77bdf349a2896867069",
+            "CollectionType": "tvshows",
+            "Locations": ["/media/series"],
+            "LibraryOptions": {"PathInfos": [{"Path": "/media/series"}]},
+        }
+    ]
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=cluster_fixture)
+    )
+    post_route = respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=False)
+    desired = [JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"])]
+
+    actions = _reconcile_libraries(client, section, desired, dry_run=False)
+
+    # CRITICAL: no CREATE call must fire.
+    assert post_route.called is False
+    assert all("library_created" not in a for a in actions)
+
+
+@respx.mock
+def test_library_prune_paths_removes_excess() -> None:
+    """D-16-PATH-DELETE-01: prune=True → DELETE /Library/VirtualFolders/Paths for excess."""
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=_legacy_2_lib_cluster_fixture()),
+    )
+    delete_route = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=True)
+    desired = [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+        JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+    ]
+
+    _reconcile_libraries(client, section, desired, dry_run=False)
+
+    # Séries: prune /media/anime + /media/family (2 calls)
+    # Films:  prune /media/films-anime + /media/films-family (2 calls)
+    assert delete_route.call_count == 4
+    # Verify sorted deterministic order — for Séries, /media/anime sorts before /media/family.
+    series_calls = [c for c in delete_route.calls if c.request.url.params.get("name") == "Séries"]
+    series_paths_deleted = [c.request.url.params["path"] for c in series_calls]
+    assert series_paths_deleted == sorted(series_paths_deleted)
+
+
+@respx.mock
+def test_library_prune_paths_disabled_when_prune_false() -> None:
+    """D-16-PRUNE-01: prune=False → reconciler does NOT issue DELETE Paths."""
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=_legacy_2_lib_cluster_fixture()),
+    )
+    delete_paths_route = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+    delete_lib_route = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=False)
+    desired = [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+        JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+    ]
+
+    _reconcile_libraries(client, section, desired, dry_run=False)
+
+    assert delete_paths_route.called is False
+    assert delete_lib_route.called is False
+
+
+@respx.mock
+def test_library_prune_lib_removes_orphans() -> None:
+    """D-16-PRUNE-01: prune=True → DELETE /Library/VirtualFolders for orphan libs."""
+    cluster_fixture = _legacy_2_lib_cluster_fixture() + [
+        {
+            "Name": "ManualLib",
+            "ItemId": "manuallib-uuid",
+            "CollectionType": "tvshows",
+            "Locations": ["/media/manual"],
+            "LibraryOptions": {"PathInfos": [{"Path": "/media/manual"}]},
+        }
+    ]
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=cluster_fixture)
+    )
+    delete_route = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+    # Allow side-channel writes triggered by the path-add / path-prune branches.
+    respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+    respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(return_value=httpx.Response(204))
+    respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=True)
+    desired = [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+        JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+    ]
+
+    actions = _reconcile_libraries(client, section, desired, dry_run=False)
+
+    # DELETE Lib called ONCE for ManualLib (not for Séries or Films).
+    delete_targets = [c.request.url.params.get("name") for c in delete_route.calls]
+    assert delete_targets == ["ManualLib"]
+    assert any("library_pruned:ManualLib" in a for a in actions)
+
+
+@respx.mock
+def test_library_prune_lib_tolerates_404() -> None:
+    """Pitfall 16-2: DELETE /Library/VirtualFolders 404 → log library_already_absent, no raise."""
+    cluster_fixture = _legacy_2_lib_cluster_fixture() + [
+        {
+            "Name": "GhostLib",
+            "ItemId": "ghost-uuid",
+            "CollectionType": "tvshows",
+            "Locations": ["/media/ghost"],
+            "LibraryOptions": {"PathInfos": [{"Path": "/media/ghost"}]},
+        }
+    ]
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=cluster_fixture)
+    )
+    respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(404, text="Error processing request.")
+    )
+    respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+    respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(return_value=httpx.Response(204))
+    respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=True)
+    desired = [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+        JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+    ]
+
+    # MUST NOT raise NotFoundError.
+    actions = _reconcile_libraries(client, section, desired, dry_run=False)
+    # No "library_pruned:GhostLib" action emitted (since the DELETE 404'd).
+    assert all("library_pruned:GhostLib" not in a for a in actions)
+
+
+@respx.mock
+def test_library_prune_lib_disabled_when_prune_false() -> None:
+    """D-16-PRUNE-01: prune=False → no DELETE Lib calls even if orphans exist."""
+    cluster_fixture = _legacy_2_lib_cluster_fixture() + [
+        {
+            "Name": "ManualLib",
+            "ItemId": "ml-uuid",
+            "CollectionType": "tvshows",
+            "Locations": [],
+            "LibraryOptions": {"PathInfos": []},
+        }
+    ]
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=cluster_fixture)
+    )
+    delete_lib_route = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=False)
+    desired = [
+        JellyfinLibrary(name="Séries", collection_type="tvshows", paths=["/media/series"]),
+        JellyfinLibrary(name="Films", collection_type="movies", paths=["/media/films"]),
+    ]
+
+    _reconcile_libraries(client, section, desired, dry_run=False)
+    assert delete_lib_route.called is False
+
+
+@respx.mock
+def test_jellyfin_create_and_prune_dry_run() -> None:
+    """dry_run=True → zero HTTP writes (CREATE / DELETE) — only dry_run_skip logs."""
+    respx.get(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(200, json=_legacy_2_lib_cluster_fixture()),
+    )
+    post_create = respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+    post_add_path = respx.post(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+    delete_path = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders/Paths").mock(
+        return_value=httpx.Response(204)
+    )
+    delete_lib = respx.delete(f"{JELLYFIN_BASE}/Library/VirtualFolders").mock(
+        return_value=httpx.Response(204)
+    )
+
+    from arrconf.reconcilers.jellyfin import _reconcile_libraries
+
+    client = _make_client()
+    section = JellyfinLibrariesSection(enable=True, prune=True)
+    desired = _ten_lib_desired()
+
+    actions = _reconcile_libraries(client, section, desired, dry_run=True)
+
+    # No HTTP writes — only the initial GET fired.
+    assert post_create.called is False
+    assert post_add_path.called is False
+    assert delete_path.called is False
+    assert delete_lib.called is False
+
+    # dry_run markers present in actions.
+    assert any("library_create:dry_run:" in a for a in actions)
+    # 8 new libs would be created (10 desired - 2 cluster present: Séries + Films).
+    create_dry_runs = [a for a in actions if "library_create:dry_run:" in a]
+    assert len(create_dry_runs) == 8

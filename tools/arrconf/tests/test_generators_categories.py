@@ -292,51 +292,46 @@ def test_generate_radarr_rpm_trailing_slashes(cfg_production: RootConfig) -> Non
 # ===== Jellyfin =====
 
 
-def test_generate_jellyfin_libraries_2_supers(cfg_production: RootConfig) -> None:
-    """REQ-categories-jellyfin-paths: exactly 2 libraries 'Séries' + 'Films'."""
+def test_generate_jellyfin_libraries_ten_libs(cfg_production: RootConfig) -> None:
+    """REQ-jellyfin-categories-as-libs: 10 categories → 10 libs (D-16-LIB-CREATE-01)."""
     result = generate_jellyfin_libraries(cfg_production)
-    assert len(result) == 2
-    series_lib, films_lib = result
-    assert series_lib.name == "Séries"
-    assert series_lib.collection_type == "tvshows"
-    assert len(series_lib.paths) == 5
-    assert films_lib.name == "Films"
-    assert films_lib.collection_type == "movies"
-    assert len(films_lib.paths) == 5
+    assert len(result) == 10
+    # First entry mirrors first Category in production fixture — Séries.
+    assert result[0].name == "Séries"
+    assert result[0].collection_type == "tvshows"
+    assert result[0].paths == ["/media/series"]
 
 
 def test_generate_jellyfin_paths_match_base_paths(cfg_production: RootConfig) -> None:
+    """D-16-LIB-CREATE-01: each lib has exactly 1 PathInfo = categories[i].base_path."""
     result = generate_jellyfin_libraries(cfg_production)
-    series_lib, films_lib = result
-    assert series_lib.paths == [
+    expected_paths = [
         "/media/series",
         "/media/series-emilie",
         "/media/series-thomas",
         "/media/series-garcons",
         "/media/series-zoe",
-    ]
-    assert films_lib.paths == [
         "/media/films",
         "/media/nouveaux-films",
         "/media/films-enfants",
         "/media/films-animation-enfants",
         "/media/films-zoe",
     ]
+    assert [lib.paths for lib in result] == [[p] for p in expected_paths]
 
 
 def test_generate_jellyfin_all_series_no_movies() -> None:
+    """D-16-LIB-CREATE-01: series-only cfg → only tvshows libs (no implicit empty Films)."""
     cfg = _make_cfg([c for c in PRODUCTION_CATEGORIES if c["kind"] == "series"])
     result = generate_jellyfin_libraries(cfg)
-    assert len(result) == 2
-    assert len(result[0].paths) == 5  # Séries
-    assert result[1].paths == []  # Films (empty)
+    assert len(result) == 5
+    assert all(lib.collection_type == "tvshows" for lib in result)
 
 
 def test_generate_jellyfin_libraries_empty(cfg_empty: RootConfig) -> None:
+    """D-16-LIB-CREATE-01: empty cfg → empty list (no implicit super-libs — Phase 16 reversal)."""
     result = generate_jellyfin_libraries(cfg_empty)
-    assert len(result) == 2
-    assert result[0].paths == []
-    assert result[1].paths == []
+    assert result == []
 
 
 # ===== animeTags =====
