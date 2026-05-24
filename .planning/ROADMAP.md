@@ -6,6 +6,7 @@
 - ✅ **v0.3.0 Categories first-class** — Phases 9-11 (shipped 2026-05-22)
 - ✅ **v0.4.0 Categories cleanup + content discovery + local config UI** — Phases 12-15 (shipped 2026-05-23)
 - ✅ **v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** — Phases 16-18 (shipped 2026-05-24)
+- 🚧 **v0.6.0 arrconf observability — 4xx body logging** — Phase 19 (in progress, started 2026-05-24)
 
 ## Phases
 
@@ -80,19 +81,21 @@ Full archived details: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMA
 
 </details>
 
-### 📋 v0.6.0 (Phases 19+) — planning TBD
+### 🚧 v0.6.0 arrconf observability — 4xx body logging (in progress)
 
-Candidates from v0.6.0+ backlog (see "Backlog" section below for full list):
+- [ ] **Phase 19: arrconf observability — 4xx body logging** — `client_base.py:79-81` logs `response.text[:500]` for 4xx responses symmetric with existing 5xx logging; respx test asserts body excerpt presence
 
-- Bazarr (8th *arr app, subtitles)
-- arrconf-ui distribution (packaging non-dev install)
-- arrconf-ui git integration (auto-commit/push from UI)
-- arrconf-ui multi-config (edit configarr.yml in same UI)
-- SuggestArr ingress + auto-submit
-- client_base.py 4xx body logging micro-plan (Phase 18 carry-forward)
+## Phase Details
 
-To scope v0.6.0: `/gsd-new-milestone v0.6.0`.
-
+### Phase 19: arrconf observability — 4xx body logging
+**Goal**: Close the v0.5.0 observability gap by surfacing 4xx response bodies in `arrconf` logs. Today `_request` in `tools/arrconf/arrconf/client_base.py` logs `response.text[:200]` for 5xx (line 80) but raises raw `HTTPStatusError` for 4xx — the server's actual error message is invisible, which is why Sonarr's `PathExistsValidator` 400 went unsurfaced for 3 image versions. Add symmetric 4xx body logging so future API regressions are debuggable on first occurrence.
+**Depends on**: v0.5.0 (Phase 18) — landed `:0.12.1` baseline that this fix co-bumps from
+**Requirements**: OBS-01
+**Success Criteria** (what must be TRUE):
+  1. On any 4xx HTTP response inside `_request`, a structured log event (e.g. `client_4xx`) is emitted containing the client name, HTTP method, request path, status code, and `response.text[:500]` excerpt — verified by a new respx test that asserts the body excerpt appears verbatim in the captured log output.
+  2. Triade Python green locally and in CI: `cd tools/arrconf && uv run ruff format --check . && uv run ruff check . && uv run mypy arrconf && uv run pytest -q` exits 0 on the commit that ships the fix (CI `tests.yml` gates pass on push).
+  3. Chart-pin co-bump applied in the same commit per CLAUDE.md "Release pin co-bump pattern": `charts/arr-stack/values.yaml#arrconf.image.tag` advances from `0.12.1` to `0.13.0` (minor bump — this is a `feat` adding observability surface) with the Renovate annotation `# renovate: image=ghcr.io/tom333/arr-stack-arrconf` preserved verbatim above `repository:`.
+**Plans**: TBD (1 plan expected in Wave 1 — Phase 19-A)
 
 ## Progress
 
@@ -102,13 +105,14 @@ To scope v0.6.0: `/gsd-new-milestone v0.6.0`.
 | v0.3.0 Categories first-class | 3 | 16/16 | ✅ Shipped | 2026-05-22 |
 | v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 11/11 | ✅ Shipped | 2026-05-23 |
 | v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening | 3 | 3/3 | ✅ Shipped | 2026-05-24 |
+| v0.6.0 arrconf observability — 4xx body logging | 1 | 0/1 | 🚧 In progress | — |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)
 - Phase 10 SC#1 cluster apply Categories-derived path (empty arrconf.yml flat sections to exercise) — REQ-categories-deprecation will exercise this naturally
 - Phase 10 SC#3 TVDB-anime live routing test in Seerr UI
 
-**v0.6.0+ carry-forward backlog**:
+**v0.7.0+ carry-forward backlog**:
 - REQ-bazarr-addition — Bazarr (subtitles) as an 8th *arr-stack app
 - REQ-arrconf-ui-distribution — package `arrconf-ui` for non-dev install
 - REQ-config-ui-git-integration — auto-commit/push from UI (after v0.5.0 ships and operator decides)

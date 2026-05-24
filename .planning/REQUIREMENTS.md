@@ -1,7 +1,7 @@
 # Requirements — Milestone v0.6.0
 
 **Milestone:** v0.6.0 arrconf observability — 4xx body logging
-**Status:** Active (defining)
+**Status:** Active (planned)
 **Started:** 2026-05-24
 
 ## Goal
@@ -42,7 +42,7 @@ This is a deliberate micro-milestone. The v0.5.0 close-out surfaced the observab
 
 | REQ-ID | Description | Phase | Status |
 |--------|-------------|-------|--------|
-| OBS-01 | client_base.py 4xx body excerpt logging + test | 19 | Not started |
+| OBS-01 | client_base.py 4xx body excerpt logging + test | 19 | Planned |
 
 ---
-*Last updated: 2026-05-24 — v0.6.0 requirements defined (single observability requirement)*
+*Last updated: 2026-05-24 — v0.6.0 roadmap created (Phase 19, single plan, OBS-01 mapped).*
