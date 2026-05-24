@@ -162,7 +162,11 @@ def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
 
     Fails fast with ``ConfigError`` when YAML field is empty AND env var is unset
     or empty — operator gets a clear message naming the offending DC. Maps to CLI
-    exit code 2 via ``__main__.py`` (D-18-FAIL-FAST-01).
+    exit code 2 via the pre-flight gate ``_qbit_creds_required_for_sonarr_radarr``
+    in ``__main__.py`` (primary path) AND via the dedicated ``except ConfigError``
+    handlers in the Sonarr/Radarr apply+diff branches (defense-in-depth, D-18-FAIL-FAST-01).
+    The pre-flight gate is what ensures Steps 1-5 (tags, indexers, root_folders,
+    RPMs) are NEVER POSTed before the env contract is validated.
 
     Reads ``os.environ`` directly on each call (NOT ``settings.py``) so that
     pytest ``monkeypatch.setenv()`` interleaves with reconcile cycles in tests

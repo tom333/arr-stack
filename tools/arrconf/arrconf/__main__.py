@@ -140,6 +140,38 @@ def _selected_apps(apps: str | None) -> set[str]:
     return selected
 
 
+def _qbit_creds_required_for_sonarr_radarr(root: RootConfig, targets: set[str]) -> bool:
+    """Return True if a Sonarr or Radarr reconcile/diff will need QBT_USER/QBT_PASS.
+
+    Phase 18 (REQ-qbit-post-credentials): the Categories generator emits qBit
+    download_clients with empty ``username``/``password`` fields[]; the helper
+    ``_resolve_qbit_credentials_from_env`` substitutes them from env at reconcile
+    time, raising ``ConfigError`` when env is also unset. To convert that
+    in-reconcile failure into a pre-flight fail-fast (so Steps 1-5 don't write
+    to the cluster), this predicate is evaluated BEFORE any Sonarr/Radarr client
+    is constructed.
+
+    True when:
+      - At least one of {sonarr, radarr} is in ``targets`` AND
+      - That app's ``main`` instance is declared in YAML AND
+      - ``root.categories`` is non-empty (the generator emits at least one
+        qBit DC with empty creds — the production shape since v0.3.0).
+
+    A non-empty ``categories`` list is the dispositive signal because
+    ``generate_sonarr_resources`` / ``generate_radarr_resources`` always emit a
+    qBit DC per category, and those DCs always carry ``username=""`` /
+    ``password=""`` from the generator (the Phase 18 helper is the only path
+    that fills them in).
+    """
+    if not root.categories:
+        return False
+    if "sonarr" in targets and "main" in root.sonarr:
+        return True
+    if "radarr" in targets and "main" in root.radarr:
+        return True
+    return False
+
+
 @app.callback()
 def main(
     ctx: typer.Context,
@@ -182,6 +214,26 @@ def apply(
     settings = Settings()
     failures: list[str] = []
 
+    # Phase 18 (REQ-qbit-post-credentials): pre-flight QBT_USER/QBT_PASS gate
+    # for Sonarr/Radarr. Mirrors the qBittorrent gate (lines 269-281) so the
+    # helper's ConfigError never fires inside reconcile() — Steps 1-5 (tags,
+    # indexers, root_folders, RPMs) must not be POSTed before the credential
+    # contract is validated. Fixes CR-02 (partial cluster writes) and CR-01
+    # (uncaught ConfigError → traceback exit 1 instead of exit 2).
+    if _qbit_creds_required_for_sonarr_radarr(root, targets):
+        missing = [
+            k
+            for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
+            if not v
+        ]
+        if missing:
+            log.error(
+                "missing_env_vars",
+                apps=sorted(targets & {"sonarr", "radarr"}),
+                missing=missing,
+            )
+            raise typer.Exit(code=2)
+
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
         # Phase 12-A (D-03/D-04): generators called here; derived object passed directly
@@ -206,6 +258,15 @@ def apply(
                 log.info("no-op", app="sonarr", count=len(result.plan))
             else:
                 log.info("apply_complete", app="sonarr", actions=result.actions_taken)
+        except ConfigError as e:
+            # Phase 18 (CR-01 defense-in-depth): the helper raises ConfigError
+            # when YAML+env credentials are both empty. The pre-flight gate
+            # above is the primary path; this handler catches stragglers (e.g.
+            # tests that exercise reconcile_sonarr directly bypassing the gate)
+            # so they still exit with the documented code 2 instead of a
+            # traceback (exit 1).
+            log.error("config_error", app="sonarr", error=str(e))
+            raise typer.Exit(code=2) from e
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="sonarr", error=str(e))
             failures.append("sonarr")
@@ -235,6 +296,10 @@ def apply(
                 log.info("no-op", app="radarr", count=len(radarr_result.plan))
             else:
                 log.info("apply_complete", app="radarr", actions=radarr_result.actions_taken)
+        except ConfigError as e:
+            # Phase 18 (CR-01 defense-in-depth): mirror of Sonarr branch.
+            log.error("config_error", app="radarr", error=str(e))
+            raise typer.Exit(code=2) from e
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="radarr", error=str(e))
             failures.append("radarr")
@@ -486,6 +551,26 @@ def diff(
     targets = _selected_apps(apps)
     settings = Settings()
     max_code = 0
+
+    # Phase 18 (REQ-qbit-post-credentials): pre-flight QBT_USER/QBT_PASS gate
+    # for Sonarr/Radarr diff. diff_sonarr/diff_radarr exercises the same
+    # helper chain as reconcile_sonarr/reconcile_radarr — pre-validating the
+    # env contract here keeps the diff CLI in line with apply's fail-fast
+    # semantics (exit 2 instead of an in-reconcile ConfigError traceback).
+    if _qbit_creds_required_for_sonarr_radarr(root, targets):
+        missing = [
+            k
+            for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
+            if not v
+        ]
+        if missing:
+            log.error(
+                "missing_env_vars",
+                apps=sorted(targets & {"sonarr", "radarr"}),
+                missing=missing,
+            )
+            raise typer.Exit(code=2)
+
     if "sonarr" in targets and "main" in root.sonarr:
         instance = root.sonarr["main"]
         # Phase 12-B: Plan-A shim removed — .items attribute deleted from Section models (D-01).
@@ -499,6 +584,10 @@ def diff(
             client = SonarrClient(base_url=instance.base_url, api_key=api_key)
             code = diff_sonarr(client, root)
             max_code = max(max_code, code)
+        except ConfigError as e:
+            # Phase 18 (CR-01 defense-in-depth): same straggler catch as apply.
+            log.error("config_error", app="sonarr", error=str(e))
+            raise typer.Exit(code=2) from e
         # WR-03 (Phase 3 code review): also catch ReconcileError — _reconcile_host_config
         # can raise "host_config GET returned no id ..." and the apply branch already
         # catches both. Without this, the diff CLI would crash with an unhandled
@@ -522,6 +611,10 @@ def diff(
             )
             code = diff_radarr(radarr_diff_client, root)
             max_code = max(max_code, code)
+        except ConfigError as e:
+            # Phase 18 (CR-01 defense-in-depth): mirror of Sonarr diff branch.
+            log.error("config_error", app="radarr", error=str(e))
+            raise typer.Exit(code=2) from e
         # WR-03: mirror Sonarr branch — _reconcile_host_config can raise ReconcileError.
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="radarr", error=str(e))

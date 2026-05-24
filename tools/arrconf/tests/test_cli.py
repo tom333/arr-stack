@@ -8,6 +8,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+import respx
 from typer.testing import CliRunner
 
 from arrconf.__main__ import app
@@ -377,3 +378,127 @@ def test_apply_invalid_app_qbittorent_typo_rejected(
     assert result.exit_code == 2, (
         f"CR-03: --apps qbittorent must exit 2 (typo), got {result.exit_code}: {result.stdout!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 18 (REQ-qbit-post-credentials): pre-flight gate for Sonarr/Radarr
+# when categories[] is non-empty. CR-01 / CR-02 fix — ensures exit code 2 with
+# structured `missing_env_vars` log, AND that NO Sonarr/Radarr API call is
+# issued before the env contract is validated (partial-write guard).
+# ---------------------------------------------------------------------------
+
+
+_SONARR_RADARR_CATEGORIES_CFG = """\
+categories:
+  - name: series
+    kind: series
+    profile: general
+    display: Series
+    base_path: /media/series
+sonarr:
+  main:
+    base_url: http://sonarr.test
+radarr:
+  main:
+    base_url: http://radarr.test
+"""
+
+
+def test_apply_sonarr_missing_qbt_user_preflight_exit_2(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CR-01/CR-02 fix: QBT_USER unset + categories[] non-empty + --apps sonarr
+    → exit 2 with `missing_env_vars` log BEFORE any HTTP call lands."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(_SONARR_RADARR_CATEGORIES_CFG)
+    monkeypatch.setenv("SONARR_API_KEY", "fake")
+    monkeypatch.setenv("RADARR_API_KEY", "fake")
+    monkeypatch.delenv("QBT_USER", raising=False)
+    monkeypatch.setenv("QBT_PASS", "secret")
+
+    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr"])
+    assert result.exit_code == 2, (
+        f"CR-01: expected exit 2, got {result.exit_code}: {result.stdout!r}"
+    )
+    assert "missing_env_vars" in result.stdout, (
+        f"CR-01: expected `missing_env_vars` event, got: {result.stdout!r}"
+    )
+    assert "QBT_USER" in result.stdout, f"CR-01: expected QBT_USER in log, got: {result.stdout!r}"
+
+
+def test_apply_radarr_missing_qbt_pass_preflight_exit_2(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CR-01/CR-02 fix: QBT_PASS unset + categories[] non-empty + --apps radarr
+    → exit 2 BEFORE any reconcile HTTP call."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(_SONARR_RADARR_CATEGORIES_CFG)
+    monkeypatch.setenv("SONARR_API_KEY", "fake")
+    monkeypatch.setenv("RADARR_API_KEY", "fake")
+    monkeypatch.setenv("QBT_USER", "admin")
+    monkeypatch.delenv("QBT_PASS", raising=False)
+
+    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "radarr"])
+    assert result.exit_code == 2
+    assert "missing_env_vars" in result.stdout
+    assert "QBT_PASS" in result.stdout
+
+
+def test_apply_sonarr_radarr_preflight_blocks_http_calls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, respx_mock: respx.MockRouter
+) -> None:
+    """CR-02 dispositive: when QBT_USER/QBT_PASS are unset, the pre-flight gate
+    must trip BEFORE the Sonarr/Radarr reconciler issues any HTTP request.
+
+    Mocks every conceivable Sonarr/Radarr endpoint and asserts call_count == 0
+    on each. Failing this test = the gate is in the wrong place (back at Step 6
+    inside reconcile_sonarr — the pre-CR-02 bug).
+    """
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(_SONARR_RADARR_CATEGORIES_CFG)
+    monkeypatch.setenv("SONARR_API_KEY", "fake")
+    monkeypatch.setenv("RADARR_API_KEY", "fake")
+    monkeypatch.delenv("QBT_USER", raising=False)
+    monkeypatch.delenv("QBT_PASS", raising=False)
+
+    sonarr_tag_get = respx_mock.get("http://sonarr.test/api/v3/tag")
+    sonarr_tag_post = respx_mock.post("http://sonarr.test/api/v3/tag")
+    radarr_tag_get = respx_mock.get("http://radarr.test/api/v3/tag")
+    radarr_tag_post = respx_mock.post("http://radarr.test/api/v3/tag")
+    sonarr_indexer_get = respx_mock.get("http://sonarr.test/api/v3/indexer")
+    sonarr_rootfolder_get = respx_mock.get("http://sonarr.test/api/v3/rootfolder")
+
+    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr,radarr"])
+    assert result.exit_code == 2, (
+        f"CR-02: expected exit 2 from pre-flight gate, got {result.exit_code}: {result.stdout!r}"
+    )
+    # Dispositive: zero HTTP calls fired on either reconciler.
+    assert sonarr_tag_get.call_count == 0, "CR-02: Step 1 GET /tag must NOT fire"
+    assert sonarr_tag_post.call_count == 0, "CR-02: Step 1 POST /tag must NOT fire"
+    assert radarr_tag_get.call_count == 0, "CR-02: Radarr Step 1 GET /tag must NOT fire"
+    assert radarr_tag_post.call_count == 0, "CR-02: Radarr Step 1 POST /tag must NOT fire"
+    assert sonarr_indexer_get.call_count == 0, "CR-02: Step 3 GET /indexer must NOT fire"
+    assert sonarr_rootfolder_get.call_count == 0, "CR-02: Step 4 GET /rootfolder must NOT fire"
+
+
+def test_apply_sonarr_radarr_no_categories_no_preflight_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The pre-flight gate only fires when categories[] is non-empty. An empty
+    categories list means the generator emits no qBit DCs, so QBT_USER/QBT_PASS
+    are not required for Sonarr/Radarr — exit must not be 2 on this path."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("sonarr:\n  main:\n    base_url: http://sonarr.test\n")
+    monkeypatch.setenv("SONARR_API_KEY", "fake")
+    monkeypatch.delenv("QBT_USER", raising=False)
+    monkeypatch.delenv("QBT_PASS", raising=False)
+
+    # No categories[] declared → gate must not fire. The reconcile itself will
+    # fail (no Sonarr at sonarr.test) — that's fine, just not with exit 2 from
+    # the qBit credential gate.
+    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr"])
+    if result.exit_code == 2:
+        # An exit 2 here is acceptable only if it's NOT triggered by the qBit gate
+        assert "missing_env_vars" not in result.stdout or "QBT_USER" not in result.stdout, (
+            f"Pre-flight gate must NOT fire when categories[] is empty: {result.stdout!r}"
+        )
