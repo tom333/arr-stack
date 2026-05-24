@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5.0
-milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
-status: Awaiting next milestone
-last_updated: "2026-05-24T09:34:16.736Z"
-last_activity: 2026-05-24 — Milestone v0.5.0 completed and archived
+milestone: v0.6.0
+milestone_name: arrconf observability — 4xx body logging
+status: planning
+last_updated: "2026-05-24T10:13:42.706Z"
+last_activity: 2026-05-24
 progress:
-  total_phases: 7
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: Milestone v0.5.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-24 — Milestone v0.5.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-05-24 — Milestone v0.6.0 started
 
 ### Known follow-up (NOT Phase 16 scope)
 

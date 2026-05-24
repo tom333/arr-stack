@@ -24,24 +24,33 @@ v0.2.0 transition layer fully ripped out (generators are the only source); Sugge
 
 </details>
 
-## Next Milestone: v0.6.0 (planning TBD)
+## Current Milestone: v0.6.0 arrconf observability — 4xx body logging
 
-**Goal:** TBD — to be scoped via `/gsd-new-milestone v0.6.0`.
+**Goal:** Plug the observability gap surfaced by the v0.5.0 Sonarr `PathExistsValidator` 400 incident — `arrconf/client_base.py` 4xx `HTTPStatusError` raises with no `response.text` excerpt, so client-side reconcile crashes lose the server's actual error message. Add `response.text[:500]` to the 4xx path symmetric with the existing 5xx logging, so future API regressions are debuggable on first occurrence instead of waiting 3 image versions.
 
-**Candidate requirements** (from v0.6.0+ backlog):
+**Target features:**
 
-- **REQ-bazarr-addition** — Bazarr (subtitles) as the 8th *arr-stack app
-- **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install
-- **REQ-config-ui-git-integration** — auto-commit/push from UI (deferred from v0.5.0 — operator now ready to decide)
-- **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière check)
-- **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval)
-- **REQ-client-base-4xx-logging** — `client_base.py:80` 4xx body excerpt (v0.5.0 carry-forward, 2-line observability micro-plan; would have caught the Sonarr `PathExistsValidator` 400 3 image versions earlier)
+- **REQ-client-base-4xx-logging** — `_request` in `tools/arrconf/arrconf/client_base.py:80` logs `response.text[:500]` for 4xx responses (parallel to existing 5xx logging at line 80). New respx test verifies the body excerpt is included in the raised exception's structured log payload.
 
-**Carry-forward (non-blocking)**:
+**Key context:**
 
-- REQ-jellyfin-collections — superseded by v0.5.0's 10-libs (only re-surface if Kodi/JellyCon UAT shows a gap)
-- D-07-PLAYLIST-MGMT-NULL — re-verify on Jellyfin 11.x upgrade
-- Phase 9 / Phase 10 HUMAN-UAT cluster scenarios (v0.3.0 carry-forward, operator-exercise opt-in)
+- **Single-phase, single-requirement micro-milestone.** This is intentional — closes a specific v0.5.0 tech debt item without scope creep. Phase 19 continues numbering from v0.5.0's Phase 18.
+- **2-line code change + 1 respx test + co-bump.** Smallest milestone in the project's history. Expected execution time: ~1-2 hours from plan to ship.
+- **Driver = v0.5.0 incident.** Sonarr's `PathExistsValidator` 400 went unsurfaced for 3 image versions because `client_base.py` only logs `response.text[:200]` for 5xx (`if 500 <= response.status_code < 600:` at line 79). 4xx raises raw `HTTPStatusError` from `response.raise_for_status()` at line 81 — the actual JSON error array is invisible to `arrconf` logs. The Phase 18 UAT debug session captured the body via manual curl reproduction, but that was after the bug had blocked Phase 17's CronJob for weeks.
+
+**Explicitly OUT of v0.6.0 scope:**
+
+- **REQ-bazarr-addition** (Bazarr subtitles) — operator decision deferred
+- **REQ-config-ui-git-integration** (auto-commit/push from arrconf-ui) — operator decision deferred
+- **REQ-arrconf-ui-distribution** (packaging non-dev install) — deferred
+- **REQ-config-ui-multi-config** (configarr.yml in same UI) — deferred, requires ADR-5 frontière re-check
+- **REQ-suggestarr-ingress** (auto-submit) — deferred
+- **HUMAN-UAT frontmatter standardization** — deferred, audit-open parser warning is minor
+- **Phase 9 / Phase 10 HUMAN-UAT cluster scenarios** — v0.3.0 carry-forward maintenu
+- **D-07-PLAYLIST-MGMT-NULL** — re-verify on Jellyfin 11.x upgrade (carry-forward inchangé)
+- **REQ-jellyfin-collections** — superseded by v0.5.0's 10-libs (only re-surface if Kodi/JellyCon UAT shows a gap)
+
+**Projected phases:** Phase 19 (single phase, single plan).
 
 ## Core Value
 
@@ -81,7 +90,21 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 
 ### Active
 
-<!-- Scoped for v0.6.0+ — to be refined via /gsd-new-milestone. -->
+<!-- Scoped for v0.6.0. -->
+
+- [ ] **REQ-client-base-4xx-logging** — `tools/arrconf/arrconf/client_base.py:80` `_request` logs `response.text[:500]` for 4xx responses, symmetric with existing 5xx logging. New respx test verifies the body excerpt appears in the raised `HTTPStatusError` context. Driver: v0.5.0 Sonarr `PathExistsValidator` 400 incident (bug went unsurfaced for 3 image versions because 4xx response bodies were never logged).
+
+<details>
+<summary>Carry-forward to v0.7.0+ (not in v0.6.0 scope)</summary>
+
+- [ ] **REQ-bazarr-addition** — Bazarr (subtitles) as 8th *arr-stack app. Operator decision.
+- [ ] **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui. Operator decision.
+- [ ] **REQ-arrconf-ui-distribution** — packaging arrconf-ui for non-dev install.
+- [ ] **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière re-check needed).
+- [ ] **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval).
+- [ ] **HUMAN-UAT frontmatter standardization** — convert all Phase HUMAN-UAT.md to YAML frontmatter for `audit-open` parser compatibility.
+
+</details>
 
 <details>
 <summary>Carry-forward from v0.3.0 (UAT operator-exercise opt-in)</summary>
@@ -232,4 +255,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 — v0.5.0 milestone shipped (Jellyfin Categories-as-libs + arrconf-ui CI + qBit POST credentials). Ready for `/gsd-new-milestone v0.6.0`.*
+*Last updated: 2026-05-24 — v0.6.0 milestone scoped (single-phase observability micro-milestone — client_base.py 4xx body logging).*
