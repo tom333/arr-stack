@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
 status: executing
-stopped_at: Phase 16 closed (SC#1-2-3 all validated live). Phase 17 (arrconf-ui CI) and Phase 18 (qBit POST credentials) pending.
+stopped_at: Phase 17 closed (3/3 CI jobs green + SC#3 architectural). Phase 18 (qBit POST credentials) pending.
 last_updated: "2026-05-24T00:00:00.000Z"
-last_activity: 2026-05-24 -- Phase 16 fully closed live (10 libs visible + 12 paths pruned + prune re-locked)
+last_activity: 2026-05-24 -- Phase 17 closed (tests.yml ARRCONFUI jobs green on c53c9a3, chart-lint.yml correctly silent on UI-only commits)
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -26,10 +26,17 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 16 (Jellyfin Categories-as-libs) — CLOSED 2026-05-24, all 3 SC validated live
-Plan: 16-A merged into main, follow-up SC#2 (prune flip) + SC#3 (prune re-lock) shipped
-Status: Phase 16 complete. Live cluster: 10 libs, each with single Category path. Legacy v0.2.0 paths pruned (12 removed). arrconf.yml has prune: false re-locked.
-Last activity: 2026-05-24 — Phase 16 fully closed live (SC#1 10 libs visible + SC#2 12 paths pruned + SC#3 prune re-lock)
+Phase: 17 (arrconf-ui CI coverage) — CLOSED 2026-05-24, all SC validated
+Plan: 17-A merged into main (commit `31829e5` + lockfile fix `c53c9a3` + UI probe `9f60f00`)
+Status: Phase 17 complete. 3/3 tests.yml jobs green (test + arrconf-ui-backend + arrconf-ui-frontend). chart-lint.yml correctly silent on Phase 17 commits (SC#3 architectural). Lockfile oversight from Phase 15 also fixed.
+Last activity: 2026-05-24 — Phase 17 closed (CI green on c53c9a3, SC#3 dispositive — chart-lint.yml has NOT run on any of 31829e5/9f60f00/c53c9a3)
+
+<details>
+<summary>Previous: Phase 16 CLOSED 2026-05-24 (3 SC validated live, 10 libs visible in Jellyfin web UI)</summary>
+
+Plan 16-A merged into main, follow-up SC#2 (prune flip) + SC#3 (prune re-lock) shipped. Live cluster: 10 libs, each with single Category path. Legacy v0.2.0 paths pruned (12 removed). arrconf.yml has prune: false re-locked.
+
+</details>
 
 ### Known follow-up (NOT Phase 16 scope)
 
