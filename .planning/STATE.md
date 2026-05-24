@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
 status: executing
-last_updated: "2026-05-24T06:29:39.458Z"
-last_activity: 2026-05-24 -- Phase 18 planning complete
+last_updated: "2026-05-24T06:38:07.742Z"
+last_activity: 2026-05-24 -- Phase 18 execution started
 progress:
   total_phases: 7
   completed_phases: 1
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Refactor Jellyfin pour exposer les 10 Categories comme libs top-level (visibilité Kodi/JellyCon), restaurer la CI sur arrconf-ui, fixer le qBit POST credentials fallback.
+**Current focus:** Phase 18 — qbit-post-credentials-fallback
 
 ## Current Position
 
-Phase: 17 (arrconf-ui CI coverage) — CLOSED 2026-05-24, all SC validated
-Plan: 17-A merged into main (commit `31829e5` + lockfile fix `c53c9a3` + UI probe `9f60f00`)
-Status: Ready to execute
-Last activity: 2026-05-24 -- Phase 18 planning complete
+Phase: 18 (qbit-post-credentials-fallback) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 18
+Last activity: 2026-05-24 -- Phase 18 execution started
 
 <details>
 <summary>Previous: Phase 16 CLOSED 2026-05-24 (3 SC validated live, 10 libs visible in Jellyfin web UI)</summary>

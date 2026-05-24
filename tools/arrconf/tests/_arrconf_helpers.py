@@ -154,7 +154,17 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         for app_entry in instance.apps.items:
             prowlarr_env_overrides[app_entry.api_key_env] = "fake-key-for-phase9-fixture"
 
-    with respx.mock(assert_all_called=False) as mock:
+    # Phase 18 (REQ-qbit-post-credentials): Sonarr/Radarr reconcilers call
+    # _resolve_qbit_credentials_from_env on their download_clients before reconcile;
+    # the helper fail-fasts with ConfigError when QBT_USER / QBT_PASS are unset and
+    # the generator-emitted creds are empty (which is the production shape).
+    # Patch fake credentials so dry-run sweeps exercise the post-injection path.
+    qbit_env_overrides = {
+        "QBT_USER": "fake-qbit-user-for-phase18",
+        "QBT_PASS": "fake-qbit-pass-for-phase18",
+    }
+
+    with respx.mock(assert_all_called=False) as mock, patch.dict(os.environ, qbit_env_overrides):
         _register_sonarr_routes(mock, cfg)
         _register_radarr_routes(mock, cfg)
         _register_prowlarr_routes(mock, cfg)
