@@ -180,7 +180,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 16-A-PLAN.md — Generator refactor (10 libs) + reconciler lifecycle extension (CREATE + prune-gated DELETE Path/Lib with 404 tolerance) + tests + co-bump 0.7.0→0.8.0 + HUMAN-UAT (D-16-LIB-CREATE-01, D-16-LIB-NAME-01, D-16-PRUNE-01, D-16-PATH-DELETE-01, D-16-COLLECTIONTYPE-01, D-16-JELLYCON-UAT-01)
+- [x] 16-A-PLAN.md — Generator refactor (10 libs) + reconciler lifecycle extension (CREATE + prune-gated DELETE Path/Lib with 404 tolerance) + tests + co-bump 0.7.0→0.8.0 + HUMAN-UAT (D-16-LIB-CREATE-01, D-16-LIB-NAME-01, D-16-PRUNE-01, D-16-PATH-DELETE-01, D-16-COLLECTIONTYPE-01, D-16-JELLYCON-UAT-01) — code-side complete 2026-05-24, 394 tests + 1 skipped, cov 84.97%, triad green ; live cluster cutover + HUMAN-UAT Scenarios 1-3 pending operator
 **UI hint**: no
 
 ### Phase 17: arrconf-ui CI coverage

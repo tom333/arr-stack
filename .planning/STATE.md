@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
-status: planning
-stopped_at: ""
+status: executing
+stopped_at: Phase 16-A code-side complete, awaiting live cluster cutover + HUMAN-UAT
 last_updated: "2026-05-24T00:00:00.000Z"
-last_activity: 2026-05-24 -- Roadmap created (Phases 16-18)
+last_activity: 2026-05-24 -- Phase 16-A code-side merged into main (394 tests pass, cov 84.97%, triad green)
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -26,10 +26,23 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: Not started (roadmap drafted, awaiting `/gsd-discuss-phase 16`)
-Plan: —
-Status: Roadmap ready
-Last activity: 2026-05-24 — Roadmap created (Phases 16-18)
+Phase: 16 (Jellyfin Categories-as-libs) — code-side complete, live cutover pending
+Plan: 16-A merged into main (commit `0e116a5`)
+Status: Awaiting operator HUMAN-UAT (PR + helm upgrade + live cluster verification)
+Last activity: 2026-05-24 — Phase 16-A code merged (394 tests, cov 84.97%, triad green, Pitfall 16-1 + 16-2 covered)
+
+### Phase 16 close-out checklist (operator)
+
+1. Push `main` to origin (triggers auto-tag CI → v0.8.3 patch bump + arrconf image `:0.8.0` build on GHCR).
+2. Wait for Renovate PR on `my-kluster` bumping `targetRevision` to the new arr-stack tag, merge it.
+3. ArgoCD sync → new chart deployed, new arrconf image rolled out.
+4. Optionally open a follow-up PR on arr-stack: flip `jellyfin.libraries.prune: true` in `charts/arr-stack/files/arrconf.yml` for the cutover (auto-prunes legacy Séries+Films libs).
+5. Run HUMAN-UAT scenarios from `.planning/phases/16-jellyfin-categories-as-libs/16-HUMAN-UAT.md` :
+   - Scenario 1 (mandatory) — Jellyfin web UI shows 10 libs
+   - Scenario 2 (mandatory) — Watched state preserved on ≥ 3 series after reshape
+   - Scenario 3 (mandatory) — Flip `prune: false` post-cutover to lock the state
+   - Scenario 4 (carry-forward, non-blocking) — JellyCon on LibreELEC top-level shows 10 libs
+   - Scenario 5 (optional) — Legacy v0.2.0 paths zombie sweep
 
 ## Accumulated Context
 
