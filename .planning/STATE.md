@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: arrconf observability — 4xx body logging
-status: completed
-last_updated: "2026-05-24T21:29:58.848Z"
-last_activity: "2026-05-25 -- Quick task 260525-bj5 (OBS-01) shipped: client_base.py 4xx logging + chart co-bump 0.13.0"
+status: Awaiting next milestone
+last_updated: "2026-05-24T21:37:31.904Z"
+last_activity: 2026-05-24 — Milestone v0.6.0 completed and archived
 progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 1
-  completed_plans: 0
-  percent: 0
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 16
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 19 — arrconf observability — 4xx body logging (not started)
-Plan: — (Phase 19-A TBD; 1 plan expected in Wave 1)
-Status: v0.6.0 Phase 19 functionally complete via quick task — ready to archive milestone
-Last activity: 2026-05-25 -- Quick task 260525-bj5 (OBS-01) shipped: client_base.py 4xx logging + chart co-bump 0.13.0
-
-Progress: [          ] 0% (0/1 phases, 0/1 plans)
+Phase: Milestone v0.6.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-24 — Milestone v0.6.0 completed and archived
 
 ### Phase 19 success criteria (from ROADMAP.md)
 
@@ -85,7 +83,4 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.6.0 scope, may b
 
 ## Operator Next Steps
 
-**v0.6.0 — Phase 19 ready to close via `/gsd-quick` cycle (OBS-01 implemented)**
-
-- `/gsd-execute-phase 19` is functionally **already done** via the quick task above (260525-bj5). The Phase 19 plan was sized as a quick task and executed atomically. Mark Phase 19 complete inline + close the v0.6.0 milestone.
-- Or `/gsd-complete-milestone v0.6.0` to archive directly (Phase 19's deliverable is committed and tested).
+- Start the next milestone with /gsd-new-milestone

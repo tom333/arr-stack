@@ -8,49 +8,41 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Shipped: v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** (2026-05-24). Jellyfin emits 10 `VirtualFolder` libs (1 per Category) — reverses D-07-LIB-01, makes Categories visible structurally in JellyCon/Kodi (LibreELEC salon) and every other Jellyfin client. `tools/arrconf-ui/**` covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) while staying architecturally isolated from `chart-lint.yml` (UI-only PRs do NOT trigger auto-tag). qBit POST credentials env-injected for Sonarr+Radarr with pre-flight gate + fail-fast `ConfigError`; UAT dispositive 9/9 + 9/9 qBit DCs HTTP 200 + 0 plan_actions on 2nd run (idempotence proven). Production cluster running arr-stack tag `v0.13.0` (with rescue tag `v0.12.1`) / arrconf image `:0.12.1`. Full archive: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMAP.md).
+**Shipped: v0.6.0 arrconf observability — 4xx body logging** (2026-05-25). `arrconf/client_base.py` `_request` now emits a `client_4xx` structlog warning with `response.text[:500]` body excerpt before raising `httpx.HTTPStatusError` on any 4xx response (symmetric to the existing 5xx logging). 5 respx tests added (416 total, up from 411). Closes the v0.5.0 observability tech debt: the Sonarr `PathExistsValidator` 400 incident class can no longer hide for 3 image versions. Single-phase micro-milestone shipped via `/gsd-quick` (commit `9726d81`) in ~30 min. Production cluster running arr-stack tag `v0.14.0` / arrconf image `:0.14.0`. Archive: [`milestones/v0.6.0-ROADMAP.md`](milestones/v0.6.0-ROADMAP.md).
 
 <details>
-<summary>Previous state — v0.4.0 Categories cleanup + content discovery + local config UI (2026-05-23)</summary>
+<summary>Previous state — v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (2026-05-24)</summary>
 
-v0.2.0 transition layer fully ripped out (generators are the only source); SuggestArr deployed as 11th umbrella alias with Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG`; `arrconf-ui` ships as FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation + ruyaml round-trip + dark theme. Production cluster ran chart `v0.8.2` / image `:0.7.0` at close. Archive: [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md).
+Jellyfin emits 10 `VirtualFolder` libs (1 per Category) — reverses D-07-LIB-01, makes Categories visible structurally in JellyCon/Kodi (LibreELEC salon). `tools/arrconf-ui/**` covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) while architecturally isolated from `chart-lint.yml`. qBit POST credentials env-injected for Sonarr+Radarr with pre-flight gate + fail-fast `ConfigError`; UAT dispositive 9/9 + 9/9 qBit DCs HTTP 200 + 0 plan_actions on 2nd run. Production cluster ran arr-stack tag `v0.13.0` (with rescue tag `v0.12.1`) / arrconf image `:0.12.1` at close. Archive: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMAP.md).
 
 </details>
 
 <details>
-<summary>Earlier state — v0.3.0 Categories first-class (2026-05-22)</summary>
+<summary>Earlier state — v0.4.0 Categories cleanup + content discovery + local config UI (2026-05-23)</summary>
 
-1 declarative `categories[]` entry in `arrconf.yml` propagates to all 6 apps + chart initContainer + dispositive idempotence on live cluster. Production cluster ran chart `v0.7.0` / image `:0.6.7`. Archive: [`milestones/v0.3.0-ROADMAP.md`](milestones/v0.3.0-ROADMAP.md) + [audit](v0.3.0-MILESTONE-AUDIT.md) `passed_with_caveats`.
+v0.2.0 transition layer fully ripped out (generators are the only source); SuggestArr deployed as 11th umbrella alias with Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG`; `arrconf-ui` ships as FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation + ruyaml round-trip + dark theme. Archive: [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md).
 
 </details>
 
-## Current Milestone: v0.6.0 arrconf observability — 4xx body logging
+## Next Milestone: v0.7.0 (planning TBD)
 
-**Goal:** Plug the observability gap surfaced by the v0.5.0 Sonarr `PathExistsValidator` 400 incident — `arrconf/client_base.py` 4xx `HTTPStatusError` raises with no `response.text` excerpt, so client-side reconcile crashes lose the server's actual error message. Add `response.text[:500]` to the 4xx path symmetric with the existing 5xx logging, so future API regressions are debuggable on first occurrence instead of waiting 3 image versions.
+**Goal:** TBD — to be scoped via `/gsd-new-milestone v0.7.0`.
 
-**Target features:**
+**Candidate requirements** (from v0.6.0+ backlog, refined post v0.6.0 close):
 
-- **REQ-client-base-4xx-logging** — `_request` in `tools/arrconf/arrconf/client_base.py:80` logs `response.text[:500]` for 4xx responses (parallel to existing 5xx logging at line 80). New respx test verifies the body excerpt is included in the raised exception's structured log payload.
+- **REQ-bazarr-addition** — Bazarr (subtitles) as the 8th *arr-stack app
+- **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui (deferred from v0.5.0 and v0.6.0)
+- **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install
+- **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière check)
+- **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval)
+- **REQ-auto-tag-rescue-automation** — NEW carry-forward from v0.6.0: standardize the chart-pin co-bump rescue commit as a post-push hook OR phase-final step. v0.5.0 + v0.6.0 both required it; the third recurrence justifies automation.
+- **HUMAN-UAT frontmatter standardization** — convert all Phase HUMAN-UAT.md to YAML frontmatter for `audit-open` parser compatibility
 
-**Key context:**
+**Carry-forward (non-blocking)**:
 
-- **Single-phase, single-requirement micro-milestone.** This is intentional — closes a specific v0.5.0 tech debt item without scope creep. Phase 19 continues numbering from v0.5.0's Phase 18.
-- **2-line code change + 1 respx test + co-bump.** Smallest milestone in the project's history. Expected execution time: ~1-2 hours from plan to ship.
-- **Driver = v0.5.0 incident.** Sonarr's `PathExistsValidator` 400 went unsurfaced for 3 image versions because `client_base.py` only logs `response.text[:200]` for 5xx (`if 500 <= response.status_code < 600:` at line 79). 4xx raises raw `HTTPStatusError` from `response.raise_for_status()` at line 81 — the actual JSON error array is invisible to `arrconf` logs. The Phase 18 UAT debug session captured the body via manual curl reproduction, but that was after the bug had blocked Phase 17's CronJob for weeks.
-
-**Explicitly OUT of v0.6.0 scope:**
-
-- **REQ-bazarr-addition** (Bazarr subtitles) — operator decision deferred
-- **REQ-config-ui-git-integration** (auto-commit/push from arrconf-ui) — operator decision deferred
-- **REQ-arrconf-ui-distribution** (packaging non-dev install) — deferred
-- **REQ-config-ui-multi-config** (configarr.yml in same UI) — deferred, requires ADR-5 frontière re-check
-- **REQ-suggestarr-ingress** (auto-submit) — deferred
-- **HUMAN-UAT frontmatter standardization** — deferred, audit-open parser warning is minor
-- **Phase 9 / Phase 10 HUMAN-UAT cluster scenarios** — v0.3.0 carry-forward maintenu
-- **D-07-PLAYLIST-MGMT-NULL** — re-verify on Jellyfin 11.x upgrade (carry-forward inchangé)
-- **REQ-jellyfin-collections** — superseded by v0.5.0's 10-libs (only re-surface if Kodi/JellyCon UAT shows a gap)
-
-**Projected phases:** Phase 19 (single phase, single plan).
+- REQ-jellyfin-collections — superseded by v0.5.0's 10-libs (only re-surface if Kodi/JellyCon UAT shows a gap)
+- D-07-PLAYLIST-MGMT-NULL — re-verify on Jellyfin 11.x upgrade
+- Phase 9 / Phase 10 HUMAN-UAT cluster scenarios (v0.3.0 carry-forward, operator-exercise opt-in)
 
 ## Core Value
 
@@ -88,20 +80,25 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 - [x] **REQ-arrconf-ui-ci** — v0.5.0 (Phase 17): `tests.yml` path-filter extended to include `tools/arrconf-ui/**`; 2 new jobs (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) green on closure commit `c53c9a3`. `chart-lint.yml` intentionally UNCHANGED — UI-only PRs do NOT trigger auto-tag (architectural SC#3 dispositive per D-17-WORKFLOW-01).
 - [x] **REQ-qbit-post-credentials** — v0.5.0 (Phase 18): `_resolve_qbit_credentials_from_env()` helper in `_shared.py` + pre-flight gate in `__main__.py` (CR-02 auto-fix). 12 respx tests covering 5 SC + asymmetric env + idempotence. Cluster UAT dispositive: 9/9 Sonarr + 9/9 Radarr qBit DCs HTTP 200 on `/test`, 0 plan_actions on 2nd run.
 
+### Validated (v0.6.0)
+
+<!-- Shipped 2026-05-25 in v0.6.0. -->
+
+- [x] **REQ-client-base-4xx-logging** — v0.6.0 (Phase 19 via /gsd-quick 260525-bj5): `_request` in `arrconf/client_base.py` emits `client_4xx` structlog warning with `response.text[:500]` body excerpt before `raise_for_status()` raises `httpx.HTTPStatusError`. 5 respx tests (411 → 416). Closes v0.5.0 observability tech debt.
+
 ### Active
 
-<!-- Scoped for v0.6.0. -->
-
-- [ ] **REQ-client-base-4xx-logging** — `tools/arrconf/arrconf/client_base.py:80` `_request` logs `response.text[:500]` for 4xx responses, symmetric with existing 5xx logging. New respx test verifies the body excerpt appears in the raised `HTTPStatusError` context. Driver: v0.5.0 Sonarr `PathExistsValidator` 400 incident (bug went unsurfaced for 3 image versions because 4xx response bodies were never logged).
+<!-- Scoped for v0.7.0+ — to be refined via /gsd-new-milestone v0.7.0. -->
 
 <details>
-<summary>Carry-forward to v0.7.0+ (not in v0.6.0 scope)</summary>
+<summary>Carry-forward to v0.7.0+</summary>
 
 - [ ] **REQ-bazarr-addition** — Bazarr (subtitles) as 8th *arr-stack app. Operator decision.
-- [ ] **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui. Operator decision.
+- [ ] **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui. Operator decision (deferred from v0.5.0 + v0.6.0).
 - [ ] **REQ-arrconf-ui-distribution** — packaging arrconf-ui for non-dev install.
 - [ ] **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière re-check needed).
 - [ ] **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval).
+- [ ] **REQ-auto-tag-rescue-automation** — NEW: standardize chart-pin co-bump rescue as a post-push hook or phase-final step. v0.5.0 + v0.6.0 both required manual rescue; third recurrence would justify automation.
 - [ ] **HUMAN-UAT frontmatter standardization** — convert all Phase HUMAN-UAT.md to YAML frontmatter for `audit-open` parser compatibility.
 
 </details>
@@ -255,4 +252,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 — v0.6.0 milestone scoped (single-phase observability micro-milestone — client_base.py 4xx body logging).*
+*Last updated: 2026-05-25 — v0.6.0 milestone shipped (client_base.py 4xx logging via /gsd-quick). Ready for `/gsd-new-milestone v0.7.0`.*

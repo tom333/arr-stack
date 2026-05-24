@@ -102,17 +102,56 @@ Cross-milestone learnings, patterns, and observations. Append a new section at e
 
 ---
 
+## Milestone: v0.6.0 — arrconf observability — 4xx body logging
+
+**Shipped:** 2026-05-25
+**Phases:** 1 (Phase 19) | **Plans:** 1/1 (via `/gsd-quick` instead of `/gsd-execute-phase`) | **Commits:** 5
+
+### What Was Built
+
+`client_4xx` structlog warning event in `ArrApiClient._request` between the 404 NotFoundError fast-path and the 5xx ServerError block. Payload: `client`, `method`, `path`, `status_code`, `body_excerpt=response.text[:500]`. Preserves `raise_for_status()` behavior — no new exception type. 5 respx tests cover the matrix (400 verbatim, 422 truncation, 401/404 short-circuit, 500 no cross-fire). Chart-pin 0.12.1 → 0.14.0 (initial 0.13.0 then rescue alignment with v0.14.0 auto-tag). v0.5.0's Sonarr `PathExistsValidator` 400 incident class can no longer hide for 3 image versions.
+
+### What Worked
+
+- **`/gsd-quick` as the right tool for micro-milestones.** Phase 19's full plan was overhead for a 2-line code change. The quick task bypassed discuss/plan/execute and went straight to atomic-commit execution with TDD discipline (5 tests RED → 9-line implementation GREEN). End-to-end (planner spawn → executor merge → milestone close) ran ~30 minutes. Pattern validated: when a milestone is sized as a single requirement / single phase / single deliverable, `/gsd-quick` is the natural path and the milestone close folds the quick task into the phase via a `[x] ... shipped via /gsd-quick <slug>` annotation in ROADMAP.md.
+- **Same-session multi-skill chain stayed coherent.** Within a single session: `/gsd-execute-phase 18` → `/gsd-verify-work 18` → `/gsd-debug sonarr-rpm-400-categories` (resolved mid-UAT) → resume UAT → `/gsd-complete-milestone v0.5.0` → `/gsd-new-milestone v0.6.0` → `/gsd-quick "client_base 4xx logging"` → `/gsd-complete-milestone v0.6.0`. 2 milestones shipped from a single conversation, with every handoff via planning artifacts (no implicit context carry-over). Skills compose cleanly when each writes structured state to disk.
+
+### What Was Inefficient
+
+- **`milestone.complete` accomplishments extractor pulled garbage.** Same issue as v0.5.0 close, but worse this time because v0.6.0's "phases" list (per the SDK's view) included stale Phase 9/10/11 v0.3.0 carry-forward directories. SDK reported "3 phases, 16 plans, 14 tasks" for a milestone that was 1 phase / 1 plan / 1 quick task. MILESTONES.md had to be rewritten from scratch. **Same recurring inefficiency from v0.5.0 — confirms this is a real SDK gap, not a one-off.**
+- **Auto-tag train mismatch happened AGAIN.** v0.5.0 had v0.13.0 vs values.yaml 0.12.1; v0.6.0 has v0.14.0 vs values.yaml 0.13.0. Both fixed in one extra commit each, but recurring across consecutive milestones means the CLAUDE.md "Accumulated-bumps escape hatch" runbook is being used every milestone close. Process candidate: standardize the rescue commit as the LAST commit of every milestone close cycle, OR automate it via a post-push hook.
+- **Untracked PLAN.md blocked the worktree merge.** During /gsd-quick orchestration, the planner wrote PLAN.md to the main tree (uncommitted); the executor in the worktree ALSO created/committed the same path; the worktree merge then refused to overwrite the untracked file. Resolved by `rm -f` of the main-tree copy, but worth either (a) committing PLAN.md to main BEFORE spawning the executor (`pre-dispatch plan commit` per workflow step 5.6 — which was skipped because we're on a main-branch quick task, not a feature branch), or (b) having the planner write PLAN.md directly to the worktree's path namespace.
+
+### Patterns Established
+
+- **Micro-milestone via `/gsd-quick` close-out pattern:** when ROADMAP.md describes a milestone as "1 phase, 1 plan", `/gsd-quick` is the right execution path. At milestone close, mark the phase `[x]` in ROADMAP with a `shipped via /gsd-quick <slug>` note, archive the `.planning/quick/<slug>/` directory to `.planning/milestones/v<X.Y>-quick/`. Quick artifacts coexist with phase artifacts in archives — no migration friction.
+- **MILESTONES.md manual rewrite is a workflow step, not a fix.** Given the SDK extractor's recurring miss, treat the auto-generated entry as a placeholder and immediately follow the SDK call with a structured rewrite mirroring the previous milestone's quality. This is now a known step, not an exception.
+
+### Key Lessons
+
+- **Tag train alignment is a process problem, not a one-off bug.** v0.5.0 and v0.6.0 both required rescue commits. The fix is procedural (push intermediate tags between phases) OR automated (post-push hook that verifies values.yaml matches the latest auto-tag and emits a rescue commit). Worth scoping in v0.7.0 if it bites a third time.
+- **The planner's "single atomic commit" rule for tiny tasks is correct.** Phase 19's plan explicitly said "ALL changes in ONE commit per CLAUDE.md co-bump pattern" — the executor honored it (commit `9726d81` has code + test + chart pin together). For micro-tasks, batching is the right granularity; per-task commits would have added 3× the release-chain ceremony for no review value.
+
+### Cost Observations
+
+- **Smallest milestone in project history.** 1 day (started 2026-05-24, shipped 2026-05-25), 1 requirement, 1 deliverable, ~30 min execution, 5 commits. Worth keeping as the model for future observability / 2-line micro-plans.
+- **Model mix unchanged from v0.5.0.** orchestrator opus-4-7; planner/executor sonnet-4-6. No changes warranted.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 |
-|--------|--------|--------|--------|--------|
-| Phases shipped | 11 | 3 | 4 | 3 |
-| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 |
-| Validated requirements | 17/19 | — | — | 3/3 (REQ-jellyfin-categories-as-libs, REQ-arrconf-ui-ci, REQ-qbit-post-credentials) |
-| Deferred items at close | 16 | — | — | 6 (5 v0.3-4 carry-forward + 1 v0.5 new: client_base.py 4xx logging) |
-| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override after code review) |
-| Production cutover successes | 1 (Phase 7 chain in ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue tag in ~5 min) |
-| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories, pre-Phase-18 bug surfaced + resolved mid-UAT) |
+| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 |
+|--------|--------|--------|--------|--------|--------|
+| Phases shipped | 11 | 3 | 4 | 3 | 1 |
+| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) |
+| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) |
+| Deferred items at close | 16 | — | — | 6 | 6 (unchanged — v0.6.0 closed only OBS-01) |
+| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 |
+| Production cutover successes | 1 (Phase 7 chain in ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue tag in ~5 min) | 1 (Phase 19 v0.14.0 rescue tag in ~5 min) |
+| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories, pre-Phase-18 bug) | 0 |
+| Milestone duration (days) | weeks | — | — | 1 day intensive | 1 day micro |
+| Auto-tag train rescue | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) |
 
 **Recurring themes to watch in v0.3.0:**
 

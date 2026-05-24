@@ -1,5 +1,37 @@
 # Milestones
 
+## v0.6.0 arrconf observability — 4xx body logging (Shipped: 2026-05-25)
+
+**Phases:** 1 (Phase 19) | **Plans:** 1/1 (shipped via /gsd-quick 260525-bj5 instead of /gsd-execute-phase — pattern-appropriate for a 2-line code change) | **Commits:** 5 | **Cluster:** arr-stack tag `v0.14.0`, arrconf image `:0.14.0`
+
+### Delivered
+
+`arrconf/client_base.py` now emits a structured `client_4xx` log event with `response.text[:500]` body excerpt before raising `httpx.HTTPStatusError` on any 4xx response. The v0.5.0 Sonarr `PathExistsValidator` 400 incident — which went unsurfaced for 3 image versions because client_base only logged 5xx response bodies — is no longer possible: the server's actual JSON error message now appears in `arrconf` logs on first occurrence.
+
+Sized as a deliberate micro-milestone (single phase, single deliverable, ~1-2 hours from plan to ship). Executed via `/gsd-quick` rather than full `/gsd-execute-phase` because the change footprint (2 lines of code + 1 test file + 1 chart-pin co-bump) didn't warrant the discuss/plan/execute orchestration overhead. Pattern validated for future micro-milestones.
+
+### Key accomplishments
+
+1. **client_4xx structured log event** (Phase 19 / OBS-01) — Inserted a 9-line block in `ArrApiClient._request` between the 404 `NotFoundError` fast-path (line 78) and the 5xx `ServerError` block (line 79). Payload includes `client` (self.name), `method`, `path`, `status_code`, and `body_excerpt` (`response.text[:500]`). Preserves caller contract: no new exception type, no change to `raise_for_status()` behavior. 401 `AuthError` and 404 `NotFoundError` continue to short-circuit BEFORE the new block, so typed exceptions do NOT trigger spurious `client_4xx` events.
+
+2. **5 respx tests** (`test_client_base_4xx_logging.py`, 82 lines) — Uses `structlog.testing.capture_logs()` (established pattern from `test_reconcilers_sonarr.py:1126`) and `respx` for HTTP mocking. Covers: 400 with short JSON body verbatim, 422 with body > 500 chars truncated, 401 short-circuit (no client_4xx event), 404 short-circuit (no event), 500 ServerError unchanged (no cross-fire). Test count: 411 → 416.
+
+3. **Chart-pin co-bump 0.12.1 → 0.14.0** — Initial atomic commit (`9726d81`) bumped to 0.13.0 per the SC#3 spec. Auto-tag minor-bumped to v0.14.0 (because `feat:` commit prefix with `default_bump: patch` config still produces minor on `feat:`), so a follow-up rescue commit (`a994a9e`) aligned values.yaml → 0.14.0 to match the actual GHCR-published image. The same accumulated-tag-train trap as v0.5.0's `v0.13.0` vs `v0.12.1` mismatch — the existing escape-hatch pattern in CLAUDE.md handled it cleanly.
+
+### Decisions
+
+- **No new exception type for 4xx.** The new block is observational only; `response.raise_for_status()` continues to raise `httpx.HTTPStatusError` as before. Preserves caller contract and minimizes surface area.
+- **Distinct event name `client_4xx`.** Symmetric to a hypothetical future `client_5xx` if `ServerError` is ever refactored to structlog. Keeps log filters cleanly separable from the typed-exception fast-paths.
+- **`text[:500]` cap (vs 5xx's `text[:200]` cap).** 4xx bodies typically contain validation error arrays with field paths and messages (e.g., Sonarr's `PathExistsValidator` response is ~150 chars per error × N errors). 500 chars accommodates 2-3 validation errors without truncation. The 5xx cap stays at 200 (5xx bodies are usually generic stack traces — first 200 chars are enough to identify the failure class).
+- **Shipped via `/gsd-quick`** (not `/gsd-execute-phase`) — Phase 19 was correctly recognized as size-appropriate for the quick path during scope confirmation. Pattern: micro-milestones (≤ 3 tasks, ≤ 1 hour, no architectural decisions) may bypass discuss/plan/execute and go straight to quick orchestration; Phase 19 remains in ROADMAP.md as `[x]` with a "shipped via /gsd-quick" note for traceability.
+
+### Tech debt observed (carry-forward to v0.7.0+)
+
+- **Auto-tag train alignment STILL bites every milestone close.** v0.5.0 hit it (v0.13.0 auto-tag vs values.yaml 0.12.1), v0.6.0 hit it again (v0.14.0 auto-tag vs values.yaml 0.13.0). Both resolved cleanly via the CLAUDE.md "Accumulated-bumps escape hatch", but the recurrence suggests a process improvement: either (a) push every conventional-commit phase commit individually so auto-tag fires per-commit and chart-pin co-bumps stay in lock-step, OR (b) add a post-push verification step that compares the latest auto-tag against `values.yaml#arrconf.image.tag` and emits a rescue commit automatically. Candidate for a v0.7.0 process micro-plan.
+- **`milestone.complete` SDK accomplishments extractor pulls stale phase data.** When v0.6.0 closed via a quick task, the SDK scanned `.planning/phases/` (which still has Phase 9/10/11 v0.3.0 carry-forward) and extracted random one-liners that have nothing to do with v0.6.0. The MILESTONES.md entry had to be manually rewritten. Worth either improving the extractor to scope by milestone phase range, OR making the manual rewrite an explicit step in the workflow.
+
+---
+
 ## v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (Shipped: 2026-05-24)
 
 **Phases:** 3 (16-18) | **Plans:** 3/3 | **Commits:** 31 since v0.4.0 close | **Cluster:** arr-stack tag `v0.13.0` (with rescue tag `v0.12.1`), arrconf image `:0.12.1`
