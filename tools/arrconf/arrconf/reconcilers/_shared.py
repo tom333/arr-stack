@@ -10,11 +10,12 @@ both SonarrClient and RadarrClient (ADR-8 / client_base.py).
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
-from arrconf.exceptions import ReconcileError
+from arrconf.exceptions import ConfigError, ReconcileError
 from arrconf.resources.sonarr.remote_path_mapping import RemotePathMapping
 from arrconf.resources.sonarr.tag import Tag
 
@@ -147,4 +148,66 @@ def _resolve_download_client_tag_labels(
             if tag_id not in resolved_ids:
                 resolved_ids.append(tag_id)
         resolved.append(dc.model_copy(update={"tags": resolved_ids}))
+    return resolved
+
+
+def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
+    """Inject QBT_USER / QBT_PASS env vars into qBit download_client fields[].
+
+    For each ``DownloadClient`` in ``items``, walk ``fields[]`` and for any entry
+    named ``username`` or ``password`` whose ``value`` is ``""`` (or ``None``),
+    substitute the corresponding environment variable (``QBT_USER`` / ``QBT_PASS``).
+    Explicit YAML values always win — env is consulted only when YAML field is
+    empty/missing.
+
+    Fails fast with ``ConfigError`` when YAML field is empty AND env var is unset
+    or empty — operator gets a clear message naming the offending DC. Maps to CLI
+    exit code 2 via ``__main__.py`` (D-18-FAIL-FAST-01).
+
+    Reads ``os.environ`` directly on each call (NOT ``settings.py``) so that
+    pytest ``monkeypatch.setenv()`` interleaves with reconcile cycles in tests
+    (D-18-INJECT-LOC-01 consequence).
+
+    Returns new ``DownloadClient`` instances via ``model_copy`` — input list is
+    not mutated. Symmetry with ``_resolve_download_client_tag_labels`` (line 103).
+
+    Phase 18 (REQ-qbit-post-credentials). Sonarr and Radarr both call this helper
+    from their respective ``download_clients`` reconcile step, BEFORE the
+    differ-driven POST/PUT body composition (D-18-SCOPE-01).
+    """
+    env_user = os.environ.get("QBT_USER", "")
+    env_pass = os.environ.get("QBT_PASS", "")
+
+    resolved = []
+    for dc in items:
+        new_fields = []
+        mutated = False
+        for f in dc.fields:
+            if f.name == "username":
+                current = f.value
+                if current is None or current == "":
+                    if not env_user:
+                        raise ConfigError(
+                            f"download_client '{dc.name}': username is empty "
+                            f"in YAML AND QBT_USER env is unset/empty"
+                        )
+                    new_fields.append(f.model_copy(update={"value": env_user}))
+                    mutated = True
+                    continue
+            if f.name == "password":
+                current = f.value
+                if current is None or current == "":
+                    if not env_pass:
+                        raise ConfigError(
+                            f"download_client '{dc.name}': password is empty "
+                            f"in YAML AND QBT_PASS env is unset/empty"
+                        )
+                    new_fields.append(f.model_copy(update={"value": env_pass}))
+                    mutated = True
+                    continue
+            new_fields.append(f)
+        if mutated:
+            resolved.append(dc.model_copy(update={"fields": new_fields}))
+        else:
+            resolved.append(dc)
     return resolved

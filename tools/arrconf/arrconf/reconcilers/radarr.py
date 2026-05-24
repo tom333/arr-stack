@@ -69,6 +69,7 @@ from arrconf.generators.categories import RadarrDerived
 from arrconf.reconcilers._shared import (
     _reconcile_remote_path_mappings,
     _resolve_download_client_tag_labels,
+    _resolve_qbit_credentials_from_env,
 )
 from arrconf.resources.sonarr.download_client import DownloadClient
 from arrconf.resources.sonarr.host_config import HostConfig
@@ -540,6 +541,7 @@ def reconcile_radarr(
     label_resolved = _resolve_download_client_tag_labels(
         derived.download_clients, all_tags, app_name="Radarr"
     )
+    label_resolved = _resolve_qbit_credentials_from_env(label_resolved)
     desired_dcs = [_ensure_managed_tag_in_desired(dc, managed_tag_id) for dc in label_resolved]
 
     dc_plan = reconcile(

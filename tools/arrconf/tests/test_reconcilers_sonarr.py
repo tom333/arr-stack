@@ -200,6 +200,7 @@ def test_update_omits_privacy_credential_fields_from_put_body(
     respx_mock: respx.MockRouter,
     sonarr_downloadclient_fixture: list[dict[str, Any]],
     sonarr_tag_managed_fixture: list[dict[str, Any]],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Integration regression — v0.1.5 / D-02.2-AUTH-REGRESSION / ADR-8.1.
 
@@ -218,7 +219,16 @@ def test_update_omits_privacy_credential_fields_from_put_body(
     Plan 02 forceSave URL-param tests verify `?forceSave=true` is still set
     on this same UPDATE — the merge-layer omission and the HTTP-layer bypass
     are independent layered defenses.
+
+    Phase 18 (REQ-qbit-post-credentials) extends the test scope: the helper
+    now injects QBT_USER / QBT_PASS into desired's empty credential fields
+    BEFORE merge_fields_for_put runs. The omission contract is unchanged —
+    merge_fields_for_put OMITS credential fields regardless of whether desired
+    carries env-injected values or empty strings (the privacy-by-metadata
+    strip path in differ.py is value-blind).
     """
+    monkeypatch.setenv("QBT_USER", "phase18-fake-user")
+    monkeypatch.setenv("QBT_PASS", "phase18-fake-pass")
     _mock_base_gets(
         respx_mock, sonarr_tag_managed_fixture, downloadclients=sonarr_downloadclient_fixture
     )
@@ -267,30 +277,48 @@ def test_update_omits_privacy_credential_fields_from_put_body(
     body = put_route.calls.last.request.content.decode()
     body_json = json.loads(body)
     field_names = {f["name"] for f in body_json.get("fields", [])}
-
-    # v0.1.5 / D-02.2-AUTH-REGRESSION contract: privacy=password|userName fields
-    # are OMITTED from the PUT body. Sonarr preserves stored values via absence.
-    assert "password" not in field_names, (
-        "v0.1.5: privacy=password field must be OMITTED from PUT body, "
-        "NOT substituted with cluster mask (D-02.2-AUTH-REGRESSION / ADR-8.1)"
-    )
-    assert "username" not in field_names, (
-        "v0.1.5: privacy=userName field must be OMITTED from PUT body, "
-        "NOT substituted with cluster value (uniform omit-by-metadata strategy)"
-    )
+    fields_by_name = {f["name"]: f for f in body_json.get("fields", [])}
 
     # Non-credential fields ARE present (host, port, tvCategory carry through normally):
     assert "host" in field_names, "non-credential field 'host' must remain in PUT body"
     assert "port" in field_names, "non-credential field 'port' must remain in PUT body"
     assert "tvCategory" in field_names, "non-credential field 'tvCategory' must remain in PUT body"
 
-    # The API mask token must NOT appear ANYWHERE in the body (defensive against
-    # any future leak path):
+    # The cluster's API mask token must NEVER appear in the PUT body (defensive
+    # against the v0.1.4 substitution regression that wrote the literal mask back
+    # as a credential — D-02.2-AUTH-REGRESSION / ADR-8.1).
     assert "********" not in body, (
-        "API mask must not appear in PUT body — credentials must be omitted, not masked"
+        "API mask must not appear in PUT body — defensive guard against the v0.1.4 "
+        "substitution regression (D-02.2-AUTH-REGRESSION / ADR-8.1)"
     )
     assert "***REDACTED***" not in body, (
-        "in-tree redaction token must not appear in PUT body — credentials omitted"
+        "in-tree redaction token must not appear in PUT body — defensive guard "
+        "against fixture sentinel leaking via the substitution path"
+    )
+
+    # Phase 18 / REQ-qbit-post-credentials: post-helper, desired carries env-injected
+    # values for empty YAML creds. merge_fields_for_put's "Desired has a real value:
+    # user intends credential rotation; pass through as-is" branch (differ.py CR-01)
+    # then forwards them into the PUT body. The composite contract is:
+    #   (a) credentials ARE present in the PUT body when desired has a real value
+    #   (b) the value sent is EXACTLY the env-injected value (no cluster mask leak)
+    # This proves Phase 18 closes the gap: Sonarr now receives real creds on UPDATE
+    # too (not just CREATE) when the operator rotates QBT_USER / QBT_PASS.
+    assert "username" in field_names, (
+        "Phase 18: post-injection, username field must be PRESENT in PUT body with "
+        "the env-injected value (rotation intent — differ.py CR-01 gap-closure)"
+    )
+    assert "password" in field_names, (
+        "Phase 18: post-injection, password field must be PRESENT in PUT body with "
+        "the env-injected value (rotation intent — differ.py CR-01 gap-closure)"
+    )
+    assert fields_by_name["username"]["value"] == "phase18-fake-user", (
+        "Phase 18: env-injected QBT_USER must be the value carried in the PUT body "
+        "(not the cluster mask, not the empty string)"
+    )
+    assert fields_by_name["password"]["value"] == "phase18-fake-pass", (
+        "Phase 18: env-injected QBT_PASS must be the value carried in the PUT body "
+        "(not the cluster mask, not the empty string)"
     )
 
 
