@@ -517,21 +517,29 @@ class SeerrInstance(BaseModel):
 
 
 class JellyfinLibrariesSection(BaseModel):
-    """Jellyfin libraries section — enable + prune (D-07-LIB-01); items derived from categories.
+    """Jellyfin libraries section — enable + prune (D-16-PRUNE-01); items derived from categories.
 
     Scope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions
     sub-fields stay operator-managed.
 
-    prune: FALSE hardcoded — D-07-LIB-01 explicitly disallows automatic DELETE
-    of paths from cluster libraries (Pitfall 3 — DELETE removes ALL matching
-    entries; reconciler refuses to ever DELETE in Phase 7).
+    prune: opt-in per section (D-16-PRUNE-01 — reverses D-07-LIB-01 hardcoded false).
+    When True, the reconciler DELETEs PathInfos present in cluster but not in desired
+    (D-16-PATH-DELETE-01) AND DELETEs entire libs not in desired set. Operator-driven
+    flag — flip to True for the cutover PR, back to False after UAT to avoid drift on
+    user-added libs. NotFoundError on DELETE Lib is tolerated (Pitfall 16-2).
     """
 
     model_config = ConfigDict(extra="forbid")
-    enable: bool = Field(default=True, description="Opt-in default-ON for the 2 merged libraries.")
+    enable: bool = Field(
+        default=True, description="Opt-in default-ON for the Categories-derived libraries."
+    )
     prune: bool = Field(
         default=False,
-        description="Opt-in deletion (D-04). MUST be False in Phase 7 (D-07-LIB-01).",
+        description=(
+            "Opt-in deletion (D-16-PRUNE-01 — Phase 16 reverses D-07-LIB-01). "
+            "When True, reconciler DELETEs excess PathInfos and orphaned libs. "
+            "Flip True only during cutover PR; reset to False post-UAT."
+        ),
     )
 
 

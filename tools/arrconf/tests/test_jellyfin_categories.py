@@ -1,4 +1,12 @@
-"""Phase 10 wiring test: Categories->Jellyfin 2 super-libraries (REQ-categories-jellyfin-paths)."""
+"""Phase 16 wiring test: Categories → 10 Jellyfin libs (REQ-jellyfin-categories-as-libs).
+
+Phase 16 (D-16-LIB-CREATE-01 + D-16-LIB-NAME-01 + D-16-COLLECTIONTYPE-01) replaces
+the Phase 7 / Phase 10 ``2 super-libs (Séries, Films) with multi-path PathInfos``
+design. Each Category in ``cfg.categories`` becomes its own JellyfinLibrary with
+a single PathInfo /media/<name>.
+
+Fixture mirrors the production ``charts/arr-stack/files/arrconf.yml`` 10-category list.
+"""
 
 from __future__ import annotations
 
@@ -6,41 +14,6 @@ from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_jellyfin_libraries
 
 PRODUCTION_CATEGORIES = [
-    {
-        "name": "films",
-        "kind": "movies",
-        "profile": "general",
-        "display": "Films",
-        "base_path": "/media/films",
-    },
-    {
-        "name": "nouveaux-films",
-        "kind": "movies",
-        "profile": "general",
-        "display": "Films - Nouveaux",
-        "base_path": "/media/nouveaux-films",
-    },
-    {
-        "name": "films-enfants",
-        "kind": "movies",
-        "profile": "family",
-        "display": "Films - Enfants",
-        "base_path": "/media/films-enfants",
-    },
-    {
-        "name": "films-animation-enfants",
-        "kind": "movies",
-        "profile": "family",
-        "display": "Films - Animation Enfants",
-        "base_path": "/media/films-animation-enfants",
-    },
-    {
-        "name": "films-zoe",
-        "kind": "movies",
-        "profile": "anime",
-        "display": "Films - Zoé",
-        "base_path": "/media/films-zoe",
-    },
     {
         "name": "series",
         "kind": "series",
@@ -76,6 +49,41 @@ PRODUCTION_CATEGORIES = [
         "display": "Séries - Zoé",
         "base_path": "/media/series-zoe",
     },
+    {
+        "name": "films",
+        "kind": "movies",
+        "profile": "general",
+        "display": "Films",
+        "base_path": "/media/films",
+    },
+    {
+        "name": "nouveaux-films",
+        "kind": "movies",
+        "profile": "general",
+        "display": "Nouveaux Films",
+        "base_path": "/media/nouveaux-films",
+    },
+    {
+        "name": "films-enfants",
+        "kind": "movies",
+        "profile": "family",
+        "display": "Films - Enfants",
+        "base_path": "/media/films-enfants",
+    },
+    {
+        "name": "films-animation-enfants",
+        "kind": "movies",
+        "profile": "family",
+        "display": "Films - Animation Enfants",
+        "base_path": "/media/films-animation-enfants",
+    },
+    {
+        "name": "films-zoe",
+        "kind": "movies",
+        "profile": "anime",
+        "display": "Films - Zoé",
+        "base_path": "/media/films-zoe",
+    },
 ]
 
 
@@ -83,61 +91,69 @@ def _build_cfg() -> RootConfig:
     return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
 
 
-def test_jellyfin_libraries_wiring() -> None:
-    """5+5 -> 2 libraries with 5 paths each."""
+def test_generate_jellyfin_libraries_ten_libs() -> None:
+    """REQ-jellyfin-categories-as-libs: 10 categories → 10 JellyfinLibrary entries."""
     cfg = _build_cfg()
-    generated = generate_jellyfin_libraries(cfg)
-    assert len(generated) == 2
-    series_lib = next(lib for lib in generated if lib.name == "Séries")
-    films_lib = next(lib for lib in generated if lib.name == "Films")
-    assert len(series_lib.paths) == 5
-    assert len(films_lib.paths) == 5
-    assert series_lib.collection_type == "tvshows"
-    assert films_lib.collection_type == "movies"
+    libs = generate_jellyfin_libraries(cfg)
+    assert len(libs) == 10
 
 
-def test_jellyfin_libraries_path_content() -> None:
+def test_generate_jellyfin_libraries_collection_type_mapping() -> None:
+    """D-16-COLLECTIONTYPE-01: kind='series' → tvshows, kind='movies' → movies."""
     cfg = _build_cfg()
-    generated = generate_jellyfin_libraries(cfg)
-    series_lib = next(lib for lib in generated if lib.name == "Séries")
-    films_lib = next(lib for lib in generated if lib.name == "Films")
-    assert "/media/series-zoe" in series_lib.paths
-    assert "/media/films-zoe" in films_lib.paths
-    # Cross-check: series base_paths must not appear in Films, and vice versa.
-    for p in series_lib.paths:
-        assert not p.startswith("/media/films")
-    for p in films_lib.paths:
-        assert p.startswith("/media/films") or p.startswith("/media/nouveaux-films")
+    libs = generate_jellyfin_libraries(cfg)
+
+    series_libs = [lib for lib in libs if lib.collection_type == "tvshows"]
+    movies_libs = [lib for lib in libs if lib.collection_type == "movies"]
+    assert len(series_libs) == 5
+    assert len(movies_libs) == 5
+
+    # Cross-check pairing: kind matches collection_type position-by-position.
+    for cat, lib in zip(PRODUCTION_CATEGORIES, libs, strict=True):
+        expected = "tvshows" if cat["kind"] == "series" else "movies"
+        assert lib.collection_type == expected, (
+            f"Category {cat['name']!r} (kind={cat['kind']!r}) → "
+            f"expected collection_type={expected!r}, got {lib.collection_type!r}"
+        )
 
 
-def test_jellyfin_no_categories_returns_two_empty_libraries() -> None:
-    """Generator always returns 2 libraries; when cfg is empty they have no paths.
+def test_generate_jellyfin_libraries_names_match_display() -> None:
+    """D-16-LIB-NAME-01: lib.name = categories[].display (UTF-8 verbatim)."""
+    cfg = _build_cfg()
+    libs = generate_jellyfin_libraries(cfg)
 
-    The reconciler's _reconcile_libraries will simply skip them
-    (library_missing_skip warning if cluster doesn't have them, or no-op if it does).
-    """
+    expected_names = [c["display"] for c in PRODUCTION_CATEGORIES]
+    actual_names = [lib.name for lib in libs]
+    assert actual_names == expected_names
+
+    # Explicit UTF-8 spot-checks (guard against accidental normalization).
+    assert "Séries - Émilie" in actual_names
+    assert "Séries - Zoé" in actual_names
+    assert "Films - Animation Enfants" in actual_names
+
+
+def test_generate_jellyfin_libraries_paths_single_per_lib() -> None:
+    """Each lib has exactly 1 PathInfo: /media/<categories[].name>."""
+    cfg = _build_cfg()
+    libs = generate_jellyfin_libraries(cfg)
+
+    for cat, lib in zip(PRODUCTION_CATEGORIES, libs, strict=True):
+        assert len(lib.paths) == 1
+        assert lib.paths[0] == cat["base_path"]
+        assert lib.paths[0] == f"/media/{cat['name']}"
+
+
+def test_generate_jellyfin_libraries_order_follows_categories() -> None:
+    """Generator preserves cfg.categories ordering (deterministic for tests + ops)."""
+    cfg = _build_cfg()
+    libs = generate_jellyfin_libraries(cfg)
+
+    for cat, lib in zip(PRODUCTION_CATEGORIES, libs, strict=True):
+        assert lib.name == cat["display"]
+
+
+def test_generate_jellyfin_libraries_empty_cfg() -> None:
+    """Empty cfg.categories → empty list (no implicit super-libs — Phase 16 reversal)."""
     cfg_empty = RootConfig()
-    generated = generate_jellyfin_libraries(cfg_empty)
-    assert len(generated) == 2
-    assert generated[0].paths == []
-    assert generated[1].paths == []
-
-
-def test_jellyfin_only_series_no_movies() -> None:
-    """Films library has empty paths when cfg has only series categories."""
-    cfg = RootConfig.model_validate(
-        {"categories": [c for c in PRODUCTION_CATEGORIES if c["kind"] == "series"]}
-    )
-    generated = generate_jellyfin_libraries(cfg)
-    series_lib = next(lib for lib in generated if lib.name == "Séries")
-    films_lib = next(lib for lib in generated if lib.name == "Films")
-    assert len(series_lib.paths) == 5
-    assert films_lib.paths == []
-
-
-def test_jellyfin_libraries_order() -> None:
-    """Library order is [Séries, Films] (matches generator output)."""
-    cfg = _build_cfg()
-    generated = generate_jellyfin_libraries(cfg)
-    assert generated[0].name == "Séries"
-    assert generated[1].name == "Films"
+    libs = generate_jellyfin_libraries(cfg_empty)
+    assert libs == []

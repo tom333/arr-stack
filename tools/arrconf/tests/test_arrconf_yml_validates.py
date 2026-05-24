@@ -237,12 +237,18 @@ def test_arrconf_yml_validates_jellyfin() -> None:
     j = cfg.jellyfin["main"]
     assert j.base_url == "http://jellyfin.selfhost.svc.cluster.local:8096"
 
-    # Libraries (D-07-LIB-01: 2 entries, multi-path) — now generator-derived (Phase 12-B)
+    # Libraries (Phase 16 D-16-LIB-CREATE-01: 10 entries, 1 PathInfo each)
     jf_libraries = generate_jellyfin_libraries(cfg)
-    assert len(jf_libraries) == 2
+    assert len(jf_libraries) == 10
+    # First entry mirrors first Category in arrconf.yml — Séries.
     assert jf_libraries[0].name == "Séries"
     assert jf_libraries[0].collection_type == "tvshows"
-    assert j.libraries.prune is False  # D-07-LIB-01 hardcoded
+    assert jf_libraries[0].paths == ["/media/series"]
+    # 5 tvshows + 5 movies (D-16-COLLECTIONTYPE-01 mapping)
+    assert sum(1 for lib in jf_libraries if lib.collection_type == "tvshows") == 5
+    assert sum(1 for lib in jf_libraries if lib.collection_type == "movies") == 5
+    # D-16-PRUNE-01 default — operator opts in via YAML at cutover time.
+    assert j.libraries.prune is False
 
     # Users (D-07-USERS-01: admin only, emilie protection)
     assert j.users.admin.IsAdministrator is True
