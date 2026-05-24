@@ -404,3 +404,100 @@ def test_second_apply_zero_drift_on_download_clients_with_env_injected_creds(
     assert actions_for_qbit == [Action.NO_OP], (
         f"expected NO_OP for qBittorrent-tv, got {actions_for_qbit}"
     )
+
+
+def _qbit_cluster_dc_payload_no_privacy() -> dict[str, Any]:
+    """Defensive variant: same shape as ``_qbit_cluster_dc_payload`` but with
+    privacy metadata stripped from every field. Exercises the value-based mask
+    strip in ``differ.py:115-120`` (``f["value"] in _API_MASK_VALUES``) — the
+    defense-in-depth path that catches a Sonarr API regression where privacy
+    metadata is omitted from the GET response.
+
+    WR-05 (Phase 18 code review): without this payload variant, the SC#3
+    idempotence proof depends entirely on the privacy metadata being returned
+    by the upstream API. If a future Sonarr/Radarr release drops the privacy
+    field from /downloadclient GET responses (or a server-side bug omits it),
+    the existing test still passes but production regresses to UPDATE-every-cycle.
+    """
+    payload = _qbit_cluster_dc_payload()
+    for f in payload["fields"]:
+        f.pop("privacy", None)
+    return payload
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_second_apply_zero_drift_value_based_mask_strip(
+    monkeypatch: pytest.MonkeyPatch,
+    respx_mock: respx.MockRouter,
+) -> None:
+    """WR-05: 2nd apply idempotence holds even when the cluster GET omits privacy
+    metadata, relying solely on the value-based ``"********"`` mask strip in
+    ``differ.py:115-120``.
+
+    This is the defense-in-depth complement to
+    ``test_second_apply_zero_drift_on_download_clients_with_env_injected_creds``:
+    that test exercises the metadata-driven strip (privacy='userName'/'password');
+    this one exercises the value-driven strip (any string-valued field whose
+    value is in ``_API_MASK_VALUES``). If a Sonarr server-side regression ever
+    drops the privacy metadata, only this second path keeps SC#3 satisfied.
+    """
+    monkeypatch.setenv("QBT_USER", "qbituser")
+    monkeypatch.setenv("QBT_PASS", "qbitpass")
+
+    cluster_dc = _qbit_cluster_dc_payload_no_privacy()
+    # Sanity: confirm the fixture really stripped the privacy metadata.
+    for f in cluster_dc["fields"]:
+        assert "privacy" not in f, (
+            "WR-05 fixture is supposed to drop privacy metadata to exercise the "
+            "value-based strip — found privacy on a field"
+        )
+
+    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=_managed_tag_payload()))
+    respx_mock.get("/indexer").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/rootfolder").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/downloadclient").mock(return_value=httpx.Response(200, json=[cluster_dc]))
+    respx_mock.get("/notification").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/remotepathmapping").mock(return_value=httpx.Response(200, json=[]))
+    respx_mock.get("/series").mock(return_value=httpx.Response(200, json=[]))
+
+    post_route = respx_mock.post("/downloadclient")
+    put_route = respx_mock.put(
+        url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+(?:\?.*)?$"
+    )
+    delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
+
+    desired_dc = _build_qbit_dc(name="qBittorrent-tv", username="", password="")
+    desired_dc = desired_dc.model_copy(update={"tags": [1]})
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        download_clients=DownloadClientsSection(prune=False),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[desired_dc],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    assert post_route.call_count == 0
+    assert put_route.call_count == 0, (
+        "WR-05: 2nd apply must be NO_OP even when privacy metadata is missing — "
+        "value-based '********' strip in differ.py:115-120 must absorb the delta"
+    )
+    assert delete_route.call_count == 0
+
+    actions_for_qbit = [
+        p.action
+        for p in result.plan
+        if p.desired is not None and p.desired.name == "qBittorrent-tv"
+    ]
+    assert actions_for_qbit == [Action.NO_OP], (
+        f"WR-05: expected NO_OP for qBittorrent-tv (value-based strip), got {actions_for_qbit}"
+    )

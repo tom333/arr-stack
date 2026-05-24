@@ -78,11 +78,24 @@ def _credential_field_names(*models: BaseModel) -> set[str]:
     on every field. To make the diff symmetric for credential fields we union the
     names from BOTH sides — if EITHER side flags a name as credential-privacy, we
     strip it from BOTH sides of the diff.
+
+    WR-05 (Phase 18 code review): in addition to privacy metadata, ALSO infer
+    credential names from API mask VALUES (``"********"`` / ``"***REDACTED***"``).
+    If a cluster GET regresses on returning privacy metadata (e.g. upstream API
+    change) but still returns masked values, the name-by-value path keeps the
+    diff symmetric — without this, the cluster side would lose username/password
+    entries from its dump (value-mask strip) but the desired side would retain
+    them (real env-injected values), producing a spurious UPDATE every cycle.
+    Defense-in-depth for the Phase 18 SC#3 idempotence contract.
     """
     names: set[str] = set()
     for m in models:
         for f in getattr(m, "fields", []) or []:
             if getattr(f, "privacy", None) in _CREDENTIAL_PRIVACY_VALUES:
+                names.add(f.name)
+            # WR-05: name-by-value inference for the privacy-missing regression.
+            value = getattr(f, "value", None)
+            if isinstance(value, str) and value in _API_MASK_VALUES:
                 names.add(f.name)
     return names
 
