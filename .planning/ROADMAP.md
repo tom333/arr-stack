@@ -193,7 +193,11 @@ Plans:
   3. A PR that touches **only** `tools/arrconf-ui/**` (no `tools/arrconf/**` or `charts/**` change) does **not** trigger the auto-tag step in `chart-lint.yml` (operator-visible: no new `vX.Y.Z` tag created on merge). README updated to document the new CI matrix and which paths trigger which workflow.
   4. The PR that ships REQ-arrconf-ui-ci itself (which touches `.github/workflows/*.yml`) shows the new arrconf-ui CI jobs green on GitHub before merge — operator-checkable on the PR's "Checks" tab.
   5. **No** chart-pin co-bump of `charts/arr-stack/values.yaml#arrconf.image.tag` (CI-only change does not touch `tools/arrconf/**`, so the arrconf image does not rebuild).
-**Plans**: TBD (refined by `/gsd-plan-phase`)
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+- [ ] 17-A-PLAN.md — Extend `tests.yml` path-filter union + add `arrconf-ui-backend` (uv triad + pytest -q, no cov threshold) + `arrconf-ui-frontend` (npm ci + check + typecheck + build, Node 22) jobs; preserve `chart-lint.yml` bit-for-bit; update README CI matrix; write 17-HUMAN-UAT.md (D-17-WORKFLOW-01, D-17-FRONTEND-01, D-17-COVERAGE-01, D-17-NODE-01, D-17-NO-CHART-LINT-CHANGE)
 **UI hint**: no
 
 ### Phase 18: qBit POST credentials fallback

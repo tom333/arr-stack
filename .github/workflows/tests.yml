@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'tools/arrconf/**'
+      - 'tools/arrconf-ui/**'
       - 'schemas/**'
       - 'examples/**'
       - '.github/workflows/tests.yml'
@@ -11,6 +12,7 @@ on:
     branches: [main]
     paths:
       - 'tools/arrconf/**'
+      - 'tools/arrconf-ui/**'
       - 'schemas/**'
       - 'examples/**'
 
@@ -80,3 +82,69 @@ jobs:
             head -1 examples/baseline-sonarr.yml | grep -qF '# yaml-language-server: $schema=../schemas/arrconf-schema.json' \
               || (echo "::error::examples/baseline-sonarr.yml missing yaml-language-server modeline (D-16, Pitfall 5)"; exit 1)
           fi
+
+  arrconf-ui-backend:
+    # Phase 17 — REQ-arrconf-ui-ci. Python triad on the FastAPI backend.
+    # No --cov-fail-under (D-17-COVERAGE-01 — UI backend is glue, threshold deferred).
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/arrconf-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.11.x"
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies (frozen, includes sibling editable arrconf)
+        run: uv sync --frozen
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check .
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Type check (mypy)
+        run: uv run mypy .
+
+      - name: Run tests
+        run: uv run pytest -q
+
+  arrconf-ui-frontend:
+    # Phase 17 — REQ-arrconf-ui-ci. Full Svelte/Vite quad.
+    # D-17-FRONTEND-01: ci + check + typecheck + build (tsc --noEmit catches pure .ts files
+    # not covered by svelte-check).
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/arrconf-ui/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22 (D-17-NODE-01 — hardcoded LTS active)
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tools/arrconf-ui/web/package-lock.json
+
+      - name: Install dependencies (npm ci — deterministic from package-lock.json)
+        run: npm ci
+
+      - name: svelte-check
+        run: npm run check
+
+      - name: TypeScript no-emit (catches pure .ts files outside .svelte)
+        run: npm run typecheck
+
+      - name: Build (Vite)
+        run: npm run build

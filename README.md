@@ -82,6 +82,17 @@ npm run build       # produces tools/arrconf-ui/web/dist/
 
 After build, `arrconf-ui` auto-serves the bundle from FastAPI's `StaticFiles` mount at `/`.
 
+### CI coverage
+
+Depuis Phase 17 (v0.5.0), tout PR touchant `tools/arrconf-ui/**` déclenche `tests.yml` avec 2 jobs dédiés :
+
+| Job | Working dir | Steps |
+|-----|-------------|-------|
+| `arrconf-ui-backend` | `tools/arrconf-ui` | `uv sync --frozen` → `ruff format --check` → `ruff check` → `mypy .` → `pytest -q` |
+| `arrconf-ui-frontend` | `tools/arrconf-ui/web` | `npm ci` → `npm run check` (svelte-check) → `npm run typecheck` (tsc --noEmit) → `npm run build` (Vite) |
+
+Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignore intentionnellement `tools/arrconf-ui/**`** — un PR touchant seulement la UI ne déclenche PAS l'auto-tag chain, donc pas de release semver/GHCR rebuild inutile pour une feature CI-only.
+
 ### What's NOT in scope
 
 - `configarr.yml` editor (deferred — REQ-config-ui-multi-config v0.5.x).
@@ -135,7 +146,7 @@ After build, `arrconf-ui` auto-serves the bundle from FastAPI's `StaticFiles` mo
 | Umbrella chart | [bjw-s/app-template](https://github.com/bjw-s-labs/helm-charts) | 5.0.0 | 10 aliases (8 médias + arrconf + configarr) |
 | Reconciler Python | arrconf (ce repo) | v0.3.0 | qBit / Sonarr / Radarr / Prowlarr / Seerr / Jellyfin (6 apps) |
 | Quality profiles | [configarr](https://configarr.de/docs/intro/) | 1.28.x | TRaSH-Guides custom formats |
-| CI | GitHub Actions | — | `chart-lint.yml` + `arrconf-image.yml` + `tests.yml` |
+| CI | GitHub Actions | — | `chart-lint.yml` (charts + arrconf — triggers auto-tag) + `arrconf-image.yml` (GHCR build on tag push) + `tests.yml` (3 jobs : `test` arrconf, `arrconf-ui-backend`, `arrconf-ui-frontend`) |
 | Image arrconf | GHCR public | `ghcr.io/tom333/arr-stack-arrconf` | anonymous-pullable |
 | Renovate | self-hosted via my-kluster | — | suit `customManagers` regex sur `values.yaml` |
 | ArgoCD | côté my-kluster | — | une seule App `arr-stack` |
