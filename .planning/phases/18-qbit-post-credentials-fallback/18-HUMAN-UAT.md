@@ -178,13 +178,25 @@ normal operation.
 
 ## Result tracking
 
-| Scenario | Status     | Date | Notes |
-|----------|------------|------|-------|
-| SC#1     | pending    | —    | —     |
-| SC#2     | pending    | —    | —     |
-| SC#3     | pending    | —    | —     |
-| SC#4     | pending    | —    | —     |
-| SC#5     | pending (optional) | — | — |
+| Scenario | Status              | Date       | Notes |
+|----------|---------------------|------------|-------|
+| SC#1     | ✓ pass              | 2026-05-24 | ConfigMap carries no live qBit credentials. Cluster Synced on `:0.12.1`. |
+| SC#2     | ⚠ partial           | 2026-05-24 | Phase 18 pre-flight gate verified (no `ConfigError` raised → env vars present). Pod exits 1 due to PRE-EXISTING bug at Step 5 `_reconcile_remote_path_mappings` (HTTP 400 from Sonarr `/api/v3/remotepathmapping`) — same crash on prior image `:0.9.0` BEFORE Phase 18 deployed. NOT a Phase 18 regression. |
+| SC#3     | 🚫 blocked          | 2026-05-24 | Depends on Step 5 succeeding to reach Step 6 (download_clients). Blocked by RPM bug. |
+| SC#4     | 🚫 blocked          | 2026-05-24 | Same dependency. |
+| SC#5     | 🚫 blocked (optional) | 2026-05-24 | Same dependency. Already covered by unit test `test_yaml_explicit_env_ignored`. |
+
+### Disposition
+
+Phase 18 code is fully verified at unit-test, mypy, lint, helm-lint, schema-drift, and cluster-deploy levels (411 tests pass, 95.38% coverage, image `:0.12.1` synced via ArgoCD). The end-to-end cluster proof (SC#3 dispositive — Sonarr UI "Test" button green) requires fixing a separate pre-existing bug that long pre-dates Phase 18.
+
+**Recommended next action:** open a new debug session for the RPM bug.
+
+```text
+/gsd-debug "RPM 400 — sonarr reconciler POSTs categories[] paths not present on qBittorrent volume; aligns with CLAUDE.md §'Filesystem migration v0.2.0 → v0.3.0' runbook (documented but unexecuted on cluster)"
+```
+
+Re-open this UAT (SC#3, SC#4) once the RPM bug is resolved and a clean reconcile reaches Step 6.
 
 ## Phase 18 close criteria
 
