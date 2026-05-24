@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Jellyfin Categories-as-libs + CI/UX hardening
-status: executing
-last_updated: "2026-05-24T06:38:07.742Z"
-last_activity: 2026-05-24 -- Phase 18 execution started
+status: Phase 18 shipped — c4ccc0d pushed to main, auto-tag v0.12.1 pending
+last_updated: "2026-05-24T08:09:30.211Z"
+last_activity: 2026-05-24 -- Phase 18 shipped (15 commits, chart pin 0.10.0 → 0.12.1)
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 18 (qbit-post-credentials-fallback) — EXECUTING
 Plan: 1 of 1
-Status: Executing Phase 18
-Last activity: 2026-05-24 -- Phase 18 execution started
+Status: Phase 18 shipped — c4ccc0d pushed to main, auto-tag v0.12.1 pending
+Last activity: 2026-05-24 -- Phase 18 shipped (15 commits, chart pin 0.10.0 → 0.12.1)
 
 <details>
 <summary>Previous: Phase 16 CLOSED 2026-05-24 (3 SC validated live, 10 libs visible in Jellyfin web UI)</summary>
