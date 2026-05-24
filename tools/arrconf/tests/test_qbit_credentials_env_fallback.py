@@ -109,6 +109,51 @@ def test_yaml_partial_username_explicit_password_empty(
     assert _field_value(out, "password") == "from-env"
 
 
+def test_whitespace_only_yaml_username_is_treated_as_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WR-03: a YAML value of '   ' must be treated as empty (env substitution).
+
+    Pre-fix, the equality check `current == ""` returned False for whitespace
+    strings, so an operator-supplied `username: "   "` bypassed the fallback
+    and was forwarded byte-for-byte to Sonarr/Radarr (silent runtime 401).
+    """
+    monkeypatch.setenv("QBT_USER", "qbituser")
+    monkeypatch.setenv("QBT_PASS", "qbitpass")
+
+    dc = _build_qbit_dc(username="   ", password="\t\n")
+    resolved = _resolve_qbit_credentials_from_env([dc])
+
+    out = resolved[0]
+    assert _field_value(out, "username") == "qbituser", (
+        "WR-03: whitespace-only YAML username must trigger env substitution"
+    )
+    assert _field_value(out, "password") == "qbitpass", (
+        "WR-03: whitespace-only YAML password must trigger env substitution"
+    )
+
+
+def test_whitespace_only_env_var_raises_config_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WR-03: an env var of '   ' must be treated as unset (raise ConfigError).
+
+    Pre-fix, `not env_user` was False for whitespace strings — the helper
+    would forward the whitespace blob into the field, producing a runtime
+    401 instead of the documented fail-fast.
+    """
+    monkeypatch.setenv("QBT_USER", "   ")
+    monkeypatch.setenv("QBT_PASS", "qbitpass")
+
+    dc = _build_qbit_dc(username="", password="")
+
+    with pytest.raises(ConfigError) as exc_info:
+        _resolve_qbit_credentials_from_env([dc])
+
+    msg = str(exc_info.value)
+    assert "QBT_USER env is unset/empty" in msg
+
+
 def test_non_qbit_dc_passes_through_unchanged(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

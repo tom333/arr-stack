@@ -154,11 +154,17 @@ def _resolve_download_client_tag_labels(
 def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
     """Inject QBT_USER / QBT_PASS env vars into qBit download_client fields[].
 
-    For each ``DownloadClient`` in ``items``, walk ``fields[]`` and for any entry
-    named ``username`` or ``password`` whose ``value`` is ``""`` (or ``None``),
-    substitute the corresponding environment variable (``QBT_USER`` / ``QBT_PASS``).
-    Explicit YAML values always win — env is consulted only when YAML field is
-    empty/missing.
+    For each qBit ``DownloadClient`` in ``items`` (gated on
+    ``implementation == "QBittorrent"`` per WR-01), walk ``fields[]`` and for
+    any entry named ``username`` or ``password`` whose ``value`` is empty —
+    treating ``None``, ``""``, and whitespace-only strings as empty per
+    WR-03 — substitute the corresponding environment variable (``QBT_USER`` /
+    ``QBT_PASS``). Env values are also whitespace-stripped: a SealedSecret
+    keyed ``QBT_USER: "   "`` is treated as unset, raising ``ConfigError``
+    rather than silently producing a runtime 401 against qBit.
+
+    Explicit YAML values always win — env is consulted only when the YAML
+    field is empty/missing (or whitespace-only).
 
     Fails fast with ``ConfigError`` when YAML field is empty AND env var is unset
     or empty — operator gets a clear message naming the offending DC. Maps to CLI
@@ -179,8 +185,14 @@ def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
     from their respective ``download_clients`` reconcile step, BEFORE the
     differ-driven POST/PUT body composition (D-18-SCOPE-01).
     """
-    env_user = os.environ.get("QBT_USER", "")
-    env_pass = os.environ.get("QBT_PASS", "")
+    # WR-03 (Phase 18 code review): treat whitespace-only strings as empty on
+    # BOTH sides (env and YAML). A SealedSecret with `QBT_USER: "   "` or a YAML
+    # field with `username: "   "` would otherwise silently bypass the fallback
+    # and the fail-fast gate, producing a confusing runtime 401 against qBit.
+    env_user_raw = os.environ.get("QBT_USER", "")
+    env_pass_raw = os.environ.get("QBT_PASS", "")
+    env_user = env_user_raw.strip()
+    env_pass = env_pass_raw.strip()
 
     resolved = []
     for dc in items:
@@ -197,7 +209,8 @@ def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
         for f in dc.fields:
             if f.name == "username":
                 current = f.value
-                if current is None or current == "":
+                # WR-03: whitespace-only YAML values are treated as empty too.
+                if current is None or (isinstance(current, str) and current.strip() == ""):
                     if not env_user:
                         raise ConfigError(
                             f"download_client '{dc.name}': username is empty "
@@ -208,7 +221,8 @@ def _resolve_qbit_credentials_from_env(items: list[Any]) -> list[Any]:
                     continue
             if f.name == "password":
                 current = f.value
-                if current is None or current == "":
+                # WR-03: whitespace-only YAML values are treated as empty too.
+                if current is None or (isinstance(current, str) and current.strip() == ""):
                     if not env_pass:
                         raise ConfigError(
                             f"download_client '{dc.name}': password is empty "
