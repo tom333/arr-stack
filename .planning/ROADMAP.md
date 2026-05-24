@@ -176,7 +176,11 @@ Plans:
   3. Unit tests cover the new layout: `tools/arrconf/tests/` gains coverage for `generate_jellyfin()` producing 10 `VirtualFolder` entries from a 10-Category fixture, and the `categories[].kind` → Jellyfin `CollectionType` mapping is asserted per kind value (`tvshows` for `kind: tv`, `movies` for `kind: movies`). The pre-Phase-12 sweep test (Phase 12 SC#5 dispositive) continues to pass.
   4. Chart-pin co-bump executed in the implementation commit(s): `charts/arr-stack/values.yaml#arrconf.image.tag` bumped from `0.7.0` to `0.8.0` (minor — new feature), `# renovate: image=...` annotation preserved verbatim above `repository:`. The chart's own `version:` in `Chart.yaml` bumps accordingly per existing convention.
   5. Operator UAT confirms 10-libs visibility from at least the Jellyfin web UI (mandatory) ; JellyCon on the salon LibreELEC mini-PC verification is documented as a scenario in `16-HUMAN-UAT.md` but **may be deferred** as a carry-forward HUMAN-UAT item if the operator hasn't yet installed JellyCon — non-blocking for Phase 16 close.
-**Plans**: TBD (refined by `/gsd-plan-phase`)
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+- [ ] 16-A-PLAN.md — Generator refactor (10 libs) + reconciler lifecycle extension (CREATE + prune-gated DELETE Path/Lib with 404 tolerance) + tests + co-bump 0.7.0→0.8.0 + HUMAN-UAT (D-16-LIB-CREATE-01, D-16-LIB-NAME-01, D-16-PRUNE-01, D-16-PATH-DELETE-01, D-16-COLLECTIONTYPE-01, D-16-JELLYCON-UAT-01)
 **UI hint**: no
 
 ### Phase 17: arrconf-ui CI coverage
