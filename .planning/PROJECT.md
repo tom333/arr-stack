@@ -8,42 +8,75 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Shipped: v0.6.0 arrconf observability — 4xx body logging** (2026-05-25). `arrconf/client_base.py` `_request` now emits a `client_4xx` structlog warning with `response.text[:500]` body excerpt before raising `httpx.HTTPStatusError` on any 4xx response (symmetric to the existing 5xx logging). 5 respx tests added (416 total, up from 411). Closes the v0.5.0 observability tech debt: the Sonarr `PathExistsValidator` 400 incident class can no longer hide for 3 image versions. Single-phase micro-milestone shipped via `/gsd-quick` (commit `9726d81`) in ~30 min. Production cluster running arr-stack tag `v0.14.0` / arrconf image `:0.14.0`. Archive: [`milestones/v0.6.0-ROADMAP.md`](milestones/v0.6.0-ROADMAP.md).
+**Shipped: v0.7.0 Media stack scope closure** (2026-05-25). Stack média déclarée **complète et fermée** à 9 apps + arrconf + configarr. Bazarr / Lidarr / Whisparr / Readarr explicitement hors scope avec rationale documentée (cf "Out of Scope" section + MILESTONES.md v0.7.0). Doc-only zero-phase milestone — la décision EST le livrable. Production cluster running arr-stack tag `v0.14.0` / arrconf image `:0.14.0`. Archive: [`milestones/v0.7.0-ROADMAP.md`](milestones/v0.7.0-ROADMAP.md).
 
 <details>
-<summary>Previous state — v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (2026-05-24)</summary>
+<summary>Previous state — v0.6.0 arrconf observability 4xx body logging (2026-05-25)</summary>
 
-Jellyfin emits 10 `VirtualFolder` libs (1 per Category) — reverses D-07-LIB-01, makes Categories visible structurally in JellyCon/Kodi (LibreELEC salon). `tools/arrconf-ui/**` covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) while architecturally isolated from `chart-lint.yml`. qBit POST credentials env-injected for Sonarr+Radarr with pre-flight gate + fail-fast `ConfigError`; UAT dispositive 9/9 + 9/9 qBit DCs HTTP 200 + 0 plan_actions on 2nd run. Production cluster ran arr-stack tag `v0.13.0` (with rescue tag `v0.12.1`) / arrconf image `:0.12.1` at close. Archive: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMAP.md).
+`arrconf/client_base.py` `_request` emits `client_4xx` structlog warning with `response.text[:500]` body excerpt before raising `httpx.HTTPStatusError`. 5 respx tests (416 total). Closes v0.5.0 observability tech debt. Single-phase micro shipped via `/gsd-quick` (commit `9726d81`). Archive: [`milestones/v0.6.0-ROADMAP.md`](milestones/v0.6.0-ROADMAP.md).
 
 </details>
 
 <details>
-<summary>Earlier state — v0.4.0 Categories cleanup + content discovery + local config UI (2026-05-23)</summary>
+<summary>Earlier state — v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening (2026-05-24)</summary>
+
+Jellyfin émet 10 `VirtualFolder` libs (1 par Category). arrconf-ui CI coverage. qBit POST credentials env-injected pour Sonarr+Radarr avec pre-flight gate. Archive: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMAP.md).
+
+</details>
+
+<details>
+<summary>Even earlier — v0.4.0 Categories cleanup + content discovery + local config UI (2026-05-23)</summary>
 
 v0.2.0 transition layer fully ripped out (generators are the only source); SuggestArr deployed as 11th umbrella alias with Categories-aware routing via `SEER_ANIME_PROFILE_CONFIG`; `arrconf-ui` ships as FastAPI + Svelte 5 SPA editing `arrconf.yml` from the LAN with pydantic validation + ruyaml round-trip + dark theme. Archive: [`milestones/v0.4.0-ROADMAP.md`](milestones/v0.4.0-ROADMAP.md).
 
 </details>
 
-## Next Milestone: v0.7.0 (planning TBD)
+## Current Milestone: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out
 
-**Goal:** TBD — to be scoped via `/gsd-new-milestone v0.7.0`.
+**Goal:** Fermer la migration v0.2.0 → v0.3.0 Categories qui n'a été appliquée qu'à moitié. Phase 16 v0.5.0 a refait Jellyfin (10 libs Category-driven). Le filesystem migration runbook côté Jellyfin a été suivi. **Mais** les root_folders legacy de Radarr/Sonarr (`/media/films`, `/media/films-anime`, `/media/films-family`, `/media/series`, `/media/anime`, `/media/family`), les tags legacy (`movies`, `family`, `films`, `anime`), et le DC catch-all `qBittorrent` (no tags) coexistent toujours avec les v0.3.0 Categories — surfacé via "La Planète des Alphas" stuck sur `/media/films-family` (2026-05-25). Symétrique au fix Sonarr RPM 400 d'hier mais côté metadata + filesystem cette fois.
 
-**Candidate requirements** (from v0.6.0+ backlog, refined post v0.7.0 scope-closure):
+**Target features:**
 
-- **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui (deferred from v0.5.0 and v0.6.0)
-- **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install
+- **REQ-categories-cleanup-audit** — Inventaire exhaustif des items qui pointent vers les legacy paths/tags : combien de films Radarr, combien de séries Sonarr, quels qBit save_paths, quels DCs. Mapping `legacy → Category` cible. Livrable: `20-AUDIT.md`.
+- **REQ-categories-cleanup-migration** — Migration filesystem (`mv` côté qBittorrent volume) + Radarr/Sonarr API metadata (PUT `rootFolderPath` + `tags` + `path`) + Jellyfin re-scan post-migration. Snapshot ADR-6 mandatory pre/post chaque app.
+- **REQ-categories-cleanup-arrconf-prune** — arrconf reconciler étendu : prune les legacy root_folders/tags via `prune: true` filtré aux Categories, validation pydantic refuse les paths non-Categories, décision sur DC catch-all `qBittorrent` (prune OU low-priority tag fallback).
+- **REQ-categories-cleanup-uat** — Dispositive : nouveau Seerr request kids → atterrit dans `/media/films-enfants/`, qBit category correcte, save_path `/data/torrents/films-enfants/`. 5 SC documentés. Chart pin co-bump 0.14.x → 0.15.0 (minor — cleanup feature).
+
+**Key context:**
+
+- **Symétrique au fix Sonarr RPM 400 d'hier** (debug session `sonarr-rpm-400-categories`, résolue 2026-05-25). Ce fix-là a créé les `/data/torrents/<cat>/` manquants côté qBittorrent volume. v0.8.0 fait l'équivalent côté metadata Radarr/Sonarr + Jellyfin re-scan.
+- **Destructive — risque réel.** Filesystem `mv` + mutations Radarr/Sonarr DB. ADR-6 snapshots avant ET après chaque phase. Plan B documenté (restore PVC snapshot, re-import depuis .torrent files).
+- **Pas de nouveau scope.** Tout ce que ce milestone livre est déjà supposé être en place depuis v0.3.0 ; on ferme juste une migration incomplète. Compense la dette "single-tenant a accepté un partial cutover" de v0.3.0.
+- **Phase numbering :** continue depuis v0.7.0 (Phase 19 v0.6.0) = Phases 20-23 prévues.
+
+**Explicitly OUT of v0.8.0 scope:**
+
+- **Nouveau contenu** — pas d'ajout de Categories, pas de nouvelle app, pas de nouveau reconciler step (apart des prune steps qui sont du cleanup).
+- **Re-import historique** — les watch states / dates d'ajout des items migrés sont préservés best-effort. Si Jellyfin perd le watch state d'un item dans le `mv`, on accepte (single-user, kids regardent en boucle).
+- **Operator UI cleanup Jellyfin** — déjà fait Phase 16 v0.5.0 ; v0.8.0 ne touche pas la lib config Jellyfin (seulement re-scan).
+- **REQ-config-ui-git-integration, arrconf-ui-distribution, etc.** — carry-forward v0.9.0+ inchangé.
+
+**Projected phases:** Phase 20 (audit) → Phase 21 (filesystem + metadata migration) → Phase 22 (arrconf prune reconciler) → Phase 23 (UAT + chart bump). 4 phases, ~3-4j operator-time.
+
+## v0.9.0+ carry-forward backlog (post-v0.8.0)
+
+- **REQ-config-ui-git-integration** — auto-commit/push from arrconf-ui (rule out per v0.7.0 operator decision : arrconf-ui reste local-only)
+- **REQ-arrconf-ui-distribution** — package `arrconf-ui` for non-dev install (out per v0.7.0 decision)
 - **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière check)
 - **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval)
-- **REQ-auto-tag-rescue-automation** — Carry-forward from v0.6.0: standardize the chart-pin co-bump rescue commit as a post-push hook OR phase-final step. v0.5.0 + v0.6.0 both required it; the third recurrence justifies automation.
-- **HUMAN-UAT frontmatter standardization** — convert all Phase HUMAN-UAT.md to YAML frontmatter for `audit-open` parser compatibility
-
-REQ-bazarr-addition was **removed** in v0.7.0 (declared explicitly out of scope — see Out of Scope section + MILESTONES.md v0.7.0 entry).
+- **REQ-auto-tag-rescue-automation** — Carry-forward from v0.6.0: standardize chart-pin co-bump rescue. v0.5.0 + v0.6.0 both required it.
+- **REQ-arrconf-dry-run-pr-gate** — NEW (proposé pendant scoping v0.8.0): GHA job qui run `arrconf apply --dry-run` sur chaque PR et comment le diff. Réutilise les snapshots ADR-6 déjà commités. ~1 phase.
+- **REQ-jellyfin-native-subtitles** — NEW (proposé pendant scoping v0.8.0): activer Open Subtitles plugin Jellyfin + per-library subtitle preferences. Continuité de v0.7.0 "Jellyfin/Kodi cherche les subs en natif" decision.
+- **REQ-jellyfin-skip-intro** — NEW (proposé pendant scoping v0.8.0): chapter markers + skip intro markers (kids replay UX).
+- **REQ-radarr-sonarr-lists** — NEW (proposé pendant scoping v0.8.0): TMDb/Trakt list auto-import. Native Radarr/Sonarr feature unconfigured.
+- **REQ-radarr-sonarr-release-profiles** — NEW (proposé pendant scoping v0.8.0): preferred/required/ignored keywords per tag. Different from configarr custom formats. Native Radarr/Sonarr scope, arrconf non-géré.
+- **HUMAN-UAT frontmatter standardization** — convert all Phase HUMAN-UAT.md to YAML frontmatter.
 
 **Carry-forward (non-blocking)**:
 
-- REQ-jellyfin-collections — superseded by v0.5.0's 10-libs (only re-surface if Kodi/JellyCon UAT shows a gap)
+- REQ-jellyfin-collections — superseded by v0.5.0's 10-libs
 - D-07-PLAYLIST-MGMT-NULL — re-verify on Jellyfin 11.x upgrade
-- Phase 9 / Phase 10 HUMAN-UAT cluster scenarios (v0.3.0 carry-forward, operator-exercise opt-in)
+- Phase 9 / Phase 10 HUMAN-UAT cluster scenarios (v0.3.0 carry-forward)
 
 ## Core Value
 
@@ -254,4 +287,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — v0.6.0 milestone shipped (client_base.py 4xx logging via /gsd-quick). Ready for `/gsd-new-milestone v0.7.0`.*
+*Last updated: 2026-05-25 — v0.8.0 milestone scoped (Categories cleanup — v0.2.0 legacy migration close-out). Phase 20 audit next.*

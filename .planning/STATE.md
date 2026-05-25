@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.7.0
-milestone_name: Media stack scope closure
-status: Awaiting next milestone
-last_updated: "2026-05-24T21:58:08.517Z"
-last_activity: "2026-05-25 -- v0.7.0 shipped (doc-only scope closure: Bazarr + Lidarr/Whisparr/Readarr declared out of scope)"
+milestone: v0.8.0
+milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
+status: planning
+last_updated: "2026-05-25T07:15:44.721Z"
+last_activity: 2026-05-25
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-25 -- v0.7.0 shipped (doc-only scope closure: Bazarr + Lidarr/Whisparr/Readarr declared out of scope)
+Status: Defining requirements
+Last activity: 2026-05-25 — Milestone v0.8.0 started
 
 ### Phase 19 success criteria (from ROADMAP.md)
 
