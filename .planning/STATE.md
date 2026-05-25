@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: planning
-last_updated: "2026-05-25T07:15:44.721Z"
+last_updated: "2026-05-25T08:00:00.000Z"
 last_activity: 2026-05-25
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
@@ -21,20 +21,21 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 19 — arrconf observability — 4xx body logging
+**Current focus:** Phase 20 — Categories cleanup audit (legacy v0.2.0 items/tags/paths inventory)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 20 — Categories cleanup audit (Not started, ready for `/gsd-discuss-phase 20`)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-25 — Milestone v0.8.0 started
+Status: Roadmap created; Phase 20 next
+Last activity: 2026-05-25 — v0.8.0 ROADMAP created (4 phases mapped 1-to-1 to 4 requirements, 100% coverage)
 
-### Phase 19 success criteria (from ROADMAP.md)
+### Phase 20 success criteria (from ROADMAP.md)
 
-1. On any 4xx HTTP response in `_request`, a structured log event (e.g. `client_4xx`) is emitted containing client name, HTTP method, request path, status code, and `response.text[:500]` excerpt — respx test asserts excerpt presence.
-2. Triade Python green: `cd tools/arrconf && uv run ruff format --check . && uv run ruff check . && uv run mypy arrconf && uv run pytest -q` exits 0; CI `tests.yml` gates pass on push.
-3. Chart-pin co-bump `0.12.1 → 0.13.0` in the same commit per CLAUDE.md "Release pin co-bump pattern"; Renovate annotation preserved verbatim.
+1. `.planning/phases/20-categories-cleanup-audit/20-AUDIT.md` exists and lists every Radarr movie + Sonarr series whose `rootFolderPath` is a legacy v0.2.0 path, with target Category path resolved per item.
+2. Audit captures every qBit torrent whose `save_path` starts with a legacy `/data/torrents/<legacy>/` segment, with target Category save_path resolved.
+3. Audit enumerates every Radarr/Sonarr tag that is legacy (`movies`, `family`, `films`, `anime`) vs Category, with proposed prune/rename action per tag.
+4. `legacy_path → Category` and `legacy_tag → Category_tag` mapping tables are committed and validated against CLAUDE.md "Filesystem migration v0.2.0 → v0.3.0" reference table.
 
 ## Accumulated Context
 
@@ -51,19 +52,19 @@ Quick reference to 8 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
 - **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3, NOT qBit/Jellyfin)
 
-Phase 19 decisions to be captured during `/gsd-discuss-phase 19` (anticipated: structured-log event-name choice, body-excerpt cap value reaffirmation, distinct event name vs reuse of an existing log event).
+v0.8.0 decisions to be captured during `/gsd-discuss-phase 20` → `22` (anticipated: ambiguous-item mapping rules in Phase 20; DC catch-all `qBittorrent` disposition in Phase 22 — prune vs `unsorted` low-priority fallback).
 
 ### Blockers/Concerns
 
-None. Phase 19 is a localized 2-3 line change to `client_base.py` with no external dependency. The only release-train consideration is the chart-pin co-bump (well-rehearsed pattern from v0.3.0–v0.5.0).
+None as of roadmap-ready. Risk register documented in `.planning/REQUIREMENTS.md` — primary destructive concerns (`mv` watch state, API mutation regressions, DC prune cutting in-flight torrents, over-prune at apply) are gated by ADR-6 snapshots + per-item operator-driven execution + Triade Python + `--dry-run` discipline.
 
 ### Pending Todos
 
-None at roadmap-ready. To be populated during `/gsd-discuss-phase 19` → `/gsd-plan-phase 19`.
+None at roadmap-ready. To be populated during `/gsd-discuss-phase 20` → `/gsd-plan-phase 20`.
 
 ## Deferred Items
 
-Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.6.0 scope, may be re-evaluated for v0.7.0+:
+Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may be re-evaluated for v0.9.0+:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
@@ -79,8 +80,10 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.6.0 scope, may b
 
 | Quick ID | Description | Date | Commit | Tests |
 |----------|-------------|------|--------|-------|
-| 260525-bj5 | client_base.py 4xx response.text[:500] logging (OBS-01) + respx test + chart co-bump 0.12.1 → 0.13.0 | 2026-05-25 | 9726d81 | 416 pass (+5 new) |
+| 260525-bj5 | client_base.py 4xx response.text[:500] logging (OBS-01) + respx test + chart co-bump 0.12.1 → 0.14.0 | 2026-05-25 | 9726d81 | 416 pass (+5 new) |
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- `/gsd-discuss-phase 20` — resolve ambiguous `legacy → Category` mapping rules before audit execution
+- `/gsd-plan-phase 20` — break audit into executable steps (API queries, mapping tables, doc output)
+- `/gsd-execute-phase 20` — produce `20-AUDIT.md`

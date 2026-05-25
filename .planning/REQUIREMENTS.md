@@ -81,10 +81,10 @@ C'est une **migration cleanup**, pas une feature. Le scope est délimité par "c
 
 | REQ-ID | Description | Phase | Status |
 |--------|-------------|-------|--------|
-| CAT-CLEANUP-01 | Audit legacy items/tags/paths | 20 | Not started |
-| CAT-CLEANUP-02 | Filesystem + metadata migration | 21 | Not started |
-| CAT-CLEANUP-03 | arrconf reconciler prune extensions | 22 | Not started |
-| CAT-CLEANUP-04 | UAT dispositive end-to-end | 23 | Not started |
+| CAT-CLEANUP-01 | Audit legacy items/tags/paths | 20 | Planned |
+| CAT-CLEANUP-02 | Filesystem + metadata migration | 21 | Planned |
+| CAT-CLEANUP-03 | arrconf reconciler prune extensions | 22 | Planned |
+| CAT-CLEANUP-04 | UAT dispositive end-to-end | 23 | Planned |
 
 ---
-*Last updated: 2026-05-25 — v0.8.0 requirements defined (4 requirements, 4 phases planned)*
+*Last updated: 2026-05-25 — v0.8.0 roadmap created (4 phases mapped 1-to-1 to 4 requirements; coverage 100%)*
