@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: planning
-last_updated: "2026-05-25T08:00:00.000Z"
-last_activity: 2026-05-25
+status: Roadmap created; Phase 20 next
+last_updated: "2026-05-25T07:37:02.830Z"
+last_activity: 2026-05-25 — v0.8.0 ROADMAP created (4 phases mapped 1-to-1 to 4 requirements, 100% coverage)
 progress:
   total_phases: 4
   completed_phases: 0
