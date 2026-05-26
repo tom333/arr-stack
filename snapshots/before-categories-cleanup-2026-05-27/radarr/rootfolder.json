@@ -1,0 +1,73 @@
+[
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 1,
+    "path": "/media/films",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 2,
+    "path": "/media/films-anime",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 3,
+    "path": "/media/films-family",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 4,
+    "path": "/media/nouveaux-films",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 5,
+    "path": "/media/films-enfants",
+    "unmappedFolders": [
+      {
+        "name": "Now You See Me 2 (2016)",
+        "path": "/media/films-enfants/Now You See Me 2 (2016)",
+        "relativePath": "Now You See Me 2 (2016)"
+      },
+      {
+        "name": "Spy Kids 2 The Island of Lost Dreams (2002)",
+        "path": "/media/films-enfants/Spy Kids 2 The Island of Lost Dreams (2002)",
+        "relativePath": "Spy Kids 2 The Island of Lost Dreams (2002)"
+      }
+    ]
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 6,
+    "path": "/media/films-animation-enfants",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437458829312,
+    "id": 7,
+    "path": "/media/films-zoe",
+    "unmappedFolders": [
+      {
+        "name": "Snow White (2025)",
+        "path": "/media/films-zoe/Snow White (2025)",
+        "relativePath": "Snow White (2025)"
+      },
+      {
+        "name": "Spirit - Stallion of the Cimarron (2002)",
+        "path": "/media/films-zoe/Spirit - Stallion of the Cimarron (2002)",
+        "relativePath": "Spirit - Stallion of the Cimarron (2002)"
+      }
+    ]
+  }
+]

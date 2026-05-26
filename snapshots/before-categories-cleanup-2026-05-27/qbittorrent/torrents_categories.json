@@ -1,0 +1,173 @@
+{
+  "cleanuparr-unlinked": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "cleanuparr-unlinked",
+    "ratio_limit": -2,
+    "savePath": "",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "films": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "films",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/films",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "films-animation-enfants": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "films-animation-enfants",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/films-animation-enfants",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "films-enfants": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "films-enfants",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/films-enfants",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "films-zoe": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "films-zoe",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/films-zoe",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "nouveaux-films": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "nouveaux-films",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/nouveaux-films",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr",
+    "ratio_limit": -2,
+    "savePath": "",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr-anime": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr-anime",
+    "ratio_limit": -2,
+    "savePath": "/data/films-anime",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr-family": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr-family",
+    "ratio_limit": -2,
+    "savePath": "/data/films-family",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "radarr-movies": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "radarr-movies",
+    "ratio_limit": -2,
+    "savePath": "/data/films",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "series": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "series",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/series",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "series-emilie": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "series-emilie",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/series-emilie",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "series-garcons": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "series-garcons",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/series-garcons",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "series-thomas": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "series-thomas",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/series-thomas",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "series-zoe": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "series-zoe",
+    "ratio_limit": -2,
+    "savePath": "/data/torrents/series-zoe",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr",
+    "ratio_limit": -2,
+    "savePath": "",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr-anime": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr-anime",
+    "ratio_limit": -2,
+    "savePath": "/data/anime",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr-family": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr-family",
+    "ratio_limit": -2,
+    "savePath": "/data/family",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  },
+  "sonarr-tv": {
+    "download_path": null,
+    "inactive_seeding_time_limit": -2,
+    "name": "sonarr-tv",
+    "ratio_limit": -2,
+    "savePath": "/data/series",
+    "seeding_time_limit": -2,
+    "share_limit_action": "Default"
+  }
+}

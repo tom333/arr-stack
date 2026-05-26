@@ -1,0 +1,42 @@
+[
+  {
+    "id": 5,
+    "label": "1-moi"
+  },
+  {
+    "id": 3,
+    "label": "anime"
+  },
+  {
+    "id": 1,
+    "label": "arrconf-managed"
+  },
+  {
+    "id": 4,
+    "label": "family"
+  },
+  {
+    "id": 16,
+    "label": "series"
+  },
+  {
+    "id": 17,
+    "label": "series-emilie"
+  },
+  {
+    "id": 19,
+    "label": "series-garcons"
+  },
+  {
+    "id": 18,
+    "label": "series-thomas"
+  },
+  {
+    "id": 20,
+    "label": "series-zoe"
+  },
+  {
+    "id": 2,
+    "label": "tv"
+  }
+]

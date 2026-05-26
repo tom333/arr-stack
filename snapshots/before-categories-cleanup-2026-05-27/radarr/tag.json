@@ -1,0 +1,38 @@
+[
+  {
+    "id": 3,
+    "label": "anime"
+  },
+  {
+    "id": 1,
+    "label": "arrconf-managed"
+  },
+  {
+    "id": 4,
+    "label": "family"
+  },
+  {
+    "id": 5,
+    "label": "films"
+  },
+  {
+    "id": 8,
+    "label": "films-animation-enfants"
+  },
+  {
+    "id": 7,
+    "label": "films-enfants"
+  },
+  {
+    "id": 9,
+    "label": "films-zoe"
+  },
+  {
+    "id": 2,
+    "label": "movies"
+  },
+  {
+    "id": 6,
+    "label": "nouveaux-films"
+  }
+]
