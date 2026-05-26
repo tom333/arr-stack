@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: executing
-last_updated: "2026-05-26T09:13:21.062Z"
-last_activity: 2026-05-26 -- Phase 21 planning complete
+last_updated: "2026-05-26T09:32:30.000Z"
+last_activity: 2026-05-26 -- Phase 21 Plan 01 Tasks 1-6 executed; Task 7 awaits operator (live cluster apply)
 progress:
   total_phases: 4
   completed_phases: 1
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 20 — categories-cleanup-audit
+**Current focus:** Phase 21 — filesystem-metadata-migration
 
 ## Current Position
 
-Phase: 20 — COMPLETE
-Plan: 1 of 1
-Status: Ready to execute
-Last activity: 2026-05-26 -- Phase 21 planning complete
+Phase: 21 (filesystem-metadata-migration) — AWAITING-HUMAN-ACTION
+Plan: 1 of 1 (Tasks 1-6 of 7 complete)
+Status: Plan 21-01 Tasks 1-6 committed; Task 7 (live cluster apply) awaits operator — see 21-RUNBOOK.md
+Last activity: 2026-05-26 -- Plan 21-01 script + runbook delivered; ready for operator Étape 1-5 execution
 
 ### Phase 20 success criteria (from ROADMAP.md)
 
@@ -56,7 +56,16 @@ v0.8.0 decisions to be captured during `/gsd-discuss-phase 20` → `22` (anticip
 
 ### Blockers/Concerns
 
-None as of roadmap-ready. Risk register documented in `.planning/REQUIREMENTS.md` — primary destructive concerns (`mv` watch state, API mutation regressions, DC prune cutting in-flight torrents, over-prune at apply) are gated by ADR-6 snapshots + per-item operator-driven execution + Triade Python + `--dry-run` discipline.
+**Phase 21 Task 7 — BLOCKING human-action checkpoint.** Operator must execute the live cluster apply per `21-RUNBOOK.md`:
+1. Étape 1 — `tools/snapshot/snapshot.sh --output snapshots/before-categories-cleanup-$(date +%F)/` + commit
+2. Étape 2 — `kubectl port-forward` (4 apps) + extract sealed-secret `arrconf-env`
+3. Étape 3 — Dry-run obligatoire
+4. Étape 4 — `--apply` (halt-on-error; re-run if halt)
+5. Étape 5 — Post-snapshot + diff + commit
+
+Resume signal expected: "migration applied, SC1-SC5 verified" (or halt + recovery narrative).
+
+Risk register documented in `.planning/REQUIREMENTS.md` — primary destructive concerns (`mv` watch state, API mutation regressions, DC prune cutting in-flight torrents, over-prune at apply) are gated by ADR-6 snapshots + per-item operator-driven execution + Triade Python + `--dry-run` discipline.
 
 ### Pending Todos
 
@@ -84,6 +93,12 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 20` — resolve ambiguous `legacy → Category` mapping rules before audit execution
-- `/gsd-plan-phase 20` — break audit into executable steps (API queries, mapping tables, doc output)
-- `/gsd-execute-phase 20` — produce `20-AUDIT.md`
+1. **Phase 21 Task 7 (BLOCKING)** — execute live cluster migration per
+   `.planning/phases/21-filesystem-metadata-migration/21-RUNBOOK.md` :
+   - `tools/snapshot/snapshot.sh --output snapshots/before-categories-cleanup-$(date +%F)/` + commit
+   - `kubectl port-forward` (radarr/sonarr/qbittorrent/jellyfin) + extract `arrconf-env`
+   - `uv run --project tools/arrconf python tools/scripts/migrate-categories.py --audit … --dry-run`
+   - `uv run --project tools/arrconf python tools/scripts/migrate-categories.py --audit … --apply`
+   - Post-snapshot + diff + commit + audit-verify sanity check
+2. Once SC1-SC5 verified, run `/gsd-verify-work 21` to close Phase 21.
+3. Then `/gsd-spec-phase 22` → arrconf prune reconciler (CAT-CLEANUP-03 ; will bump `arrconf.image.tag` 0.14.x → 0.15.0 per CLAUDE.md §"Release pin co-bump pattern").
