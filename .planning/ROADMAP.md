@@ -98,7 +98,7 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 ### 🚧 v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (in progress)
 
 - [x] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (0/1 plans) (completed 2026-05-26)
-- [ ] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (0/1 plans)
+- [x] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (1/1 plans) (completed 2026-05-27)
 - [ ] Phase 22: arrconf prune reconciler — prune legacy root_folders/tags + DC catch-all decision (0/2 plans)
 - [ ] Phase 23: UAT dispositive — end-to-end Seerr-to-disk verification + chart bump 0.14.x → 0.15.0 (0/1 plans)
 
@@ -131,7 +131,7 @@ Plans:
 **Plans**: 1 plan (~1 day operator-time, step-by-step kubectl exec)
 
 Plans:
-- [ ] 21-01-PLAN.md — One-shot script tools/scripts/migrate-categories.py + 21-RUNBOOK.md + ADR-6 pre+post snapshots + operator live run (holistic single plan per D-21-PLAN-01)
+- [x] 21-01-PLAN.md — One-shot script tools/scripts/migrate-categories.py + 21-RUNBOOK.md + ADR-6 pre+post snapshots + operator live run (holistic single plan per D-21-PLAN-01)
 
 ### Phase 22: arrconf prune reconciler — lock the cleanup in
 **Goal**: Extend arrconf so the legacy v0.2.0 paths/tags cannot drift back: pydantic validation refuses non-Category `rootFolderPath`, reconcilers prune legacy root_folders + tags filtered to Categories, and the qBit DC catch-all decision (full prune OR low-priority `unsorted` fallback) is implemented + tested. Ship via chart-pin co-bump 0.14.x → 0.15.0.

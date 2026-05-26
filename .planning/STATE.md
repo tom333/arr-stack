@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: executing
-last_updated: "2026-05-26T09:32:30.000Z"
-last_activity: 2026-05-26 -- Phase 21 Plan 01 Tasks 1-6 executed; Task 7 awaits operator (live cluster apply)
+last_updated: "2026-05-27T07:10:00.000Z"
+last_activity: 2026-05-27 -- Phase 21 complete (live migration applied, SC1-SC5 verified)
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 2
   percent: 50
 ---
 
@@ -21,14 +21,27 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 21 — filesystem-metadata-migration
+**Current focus:** Phase 22 — arrconf prune reconciler (next)
 
 ## Current Position
 
-Phase: 21 (filesystem-metadata-migration) — AWAITING-HUMAN-ACTION
-Plan: 1 of 1 (Tasks 1-6 of 7 complete)
-Status: Plan 21-01 Tasks 1-6 committed; Task 7 (live cluster apply) awaits operator — see 21-RUNBOOK.md
-Last activity: 2026-05-26 -- Plan 21-01 script + runbook delivered; ready for operator Étape 1-5 execution
+Phase: 21 — COMPLETE (live migration applied 2026-05-27, all 7 tasks done)
+Plan: 1 of 1 (all 7 tasks complete)
+Status: Phase 21 complete; ready for Phase 22
+Last activity: 2026-05-27 -- Phase 21 complete (SC1-SC5 verified on live cluster)
+
+### Phase 21 close-out notes (carry into Phase 22)
+
+- Audit-vs-disk drift: 10 of 11 FS-move items were `both_missing` at apply (files removed
+  between Phase 20 audit and the 2026-05-27 run). Their Radarr/Sonarr DB records were
+  synced to Category root folders anyway (operator decision) — they now show as MISSING
+  on disk. Phase 22 / operator must decide per-item (re-download via monitored search, or
+  remove from the *arr).
+- Script gained `--media-root` (host NFS translation), `_maybe_rename` (disk-state-keyed),
+  and `both_missing` soft-skip during the live run. See 21-01-SUMMARY.md §Deviations.
+- Leftover `series-zoe/Winx Club` (bare, no year) dir remains beside moved `Winx Club (2004)`
+  — harmless, operator may prune.
+- 3 PRUNE_PHASE_22 orphan torrents still on `/data/complete` — Phase 22 owns.
 
 ### Phase 20 success criteria (from ROADMAP.md)
 
@@ -57,6 +70,7 @@ v0.8.0 decisions to be captured during `/gsd-discuss-phase 20` → `22` (anticip
 ### Blockers/Concerns
 
 **Phase 21 Task 7 — BLOCKING human-action checkpoint.** Operator must execute the live cluster apply per `21-RUNBOOK.md`:
+
 1. Étape 1 — `tools/snapshot/snapshot.sh --output snapshots/before-categories-cleanup-$(date +%F)/` + commit
 2. Étape 2 — `kubectl port-forward` (4 apps) + extract sealed-secret `arrconf-env`
 3. Étape 3 — Dry-run obligatoire
@@ -95,6 +109,7 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 1. **Phase 21 Task 7 (BLOCKING)** — execute live cluster migration per
    `.planning/phases/21-filesystem-metadata-migration/21-RUNBOOK.md` :
+
    - `tools/snapshot/snapshot.sh --output snapshots/before-categories-cleanup-$(date +%F)/` + commit
    - `kubectl port-forward` (radarr/sonarr/qbittorrent/jellyfin) + extract `arrconf-env`
    - `uv run --project tools/arrconf python tools/scripts/migrate-categories.py --audit … --dry-run`
