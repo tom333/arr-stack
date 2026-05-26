@@ -97,7 +97,7 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 
 ### 🚧 v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (in progress)
 
-- [ ] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (0/1 plans)
+- [x] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (0/1 plans) (completed 2026-05-26)
 - [ ] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (0/1 plans)
 - [ ] Phase 22: arrconf prune reconciler — prune legacy root_folders/tags + DC catch-all decision (0/2 plans)
 - [ ] Phase 23: UAT dispositive — end-to-end Seerr-to-disk verification + chart bump 0.14.x → 0.15.0 (0/1 plans)
@@ -116,7 +116,7 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 **Plans**: 1 plan (~half-day)
 
 Plans:
-- [ ] 20-01-PLAN.md — Audit module + Typer commands + tests + chart bump + operator-edit + verify gate (holistic single plan per CONTEXT.md)
+- [x] 20-01-PLAN.md — Audit module + Typer commands + tests + chart bump + operator-edit + verify gate (holistic single plan per CONTEXT.md)
 
 ### Phase 21: Filesystem + metadata migration
 **Goal**: Move every item identified in Phase 20 audit to its Category target — filesystem `mv` on the Jellyfin NFS volume + qBit `setLocation` for in-flight torrents + Radarr/Sonarr API mutations + post-migration re-scans — leaving the cluster functional throughout.
