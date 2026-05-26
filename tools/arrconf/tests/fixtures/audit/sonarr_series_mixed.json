@@ -1,0 +1,79 @@
+[
+  {
+    "id": 51,
+    "title": "Avatar: La Légende d'Aang",
+    "rootFolderPath": "/media/anime",
+    "path": "/media/anime/Avatar La Legende d'Aang",
+    "tags": [3],
+    "genres": ["Animation", "Action"],
+    "monitored": true,
+    "year": 2005,
+    "tvdbId": 74852
+  },
+  {
+    "id": 52,
+    "title": "T'choupi à l'école",
+    "rootFolderPath": "/media/family",
+    "path": "/media/family/T'choupi a l'ecole",
+    "tags": [2],
+    "genres": ["Family", "Kids"],
+    "monitored": true,
+    "year": 2003,
+    "tvdbId": 74000
+  },
+  {
+    "id": 53,
+    "title": "The Mandalorian",
+    "rootFolderPath": "/media/series",
+    "path": "/media/series/The Mandalorian",
+    "tags": [1],
+    "genres": ["Science Fiction", "Action"],
+    "monitored": true,
+    "year": 2019,
+    "tvdbId": 361753
+  },
+  {
+    "id": 54,
+    "title": "One Piece",
+    "rootFolderPath": "/media/anime",
+    "path": "/media/anime/One Piece",
+    "tags": [3],
+    "genres": ["Animation", "Action"],
+    "monitored": true,
+    "year": 1999,
+    "tvdbId": 81797
+  },
+  {
+    "id": 55,
+    "title": "Bluey",
+    "rootFolderPath": "/media/series-garcons",
+    "path": "/media/series-garcons/Bluey",
+    "tags": [],
+    "genres": ["Kids", "Animation"],
+    "monitored": true,
+    "year": 2018,
+    "tvdbId": 368249
+  },
+  {
+    "id": 56,
+    "title": "Naruto",
+    "rootFolderPath": "/media/series-zoe",
+    "path": "/media/series-zoe/Naruto",
+    "tags": [],
+    "genres": ["Animation", "Action"],
+    "monitored": true,
+    "year": 2002,
+    "tvdbId": 78857
+  },
+  {
+    "id": 57,
+    "title": "Stranger Things",
+    "rootFolderPath": "/media/series",
+    "path": "/media/series/Stranger Things",
+    "tags": [],
+    "genres": ["Science Fiction", "Drama"],
+    "monitored": true,
+    "year": 2016,
+    "tvdbId": 305074
+  }
+]

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: executing
-last_updated: "2026-05-26T06:36:09.743Z"
-last_activity: 2026-05-26 -- Phase 20 planning complete
+last_updated: "2026-05-26T06:49:19.388Z"
+last_activity: 2026-05-26 -- Phase 20 execution started
 progress:
   total_phases: 4
   completed_phases: 0
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 20 — Categories cleanup audit (legacy v0.2.0 items/tags/paths inventory)
+**Current focus:** Phase 20 — categories-cleanup-audit
 
 ## Current Position
 
-Phase: 20 — Categories cleanup audit (Not started, ready for `/gsd-discuss-phase 20`)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-26 -- Phase 20 planning complete
+Phase: 20 (categories-cleanup-audit) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 20
+Last activity: 2026-05-26 -- Phase 20 execution started
 
 ### Phase 20 success criteria (from ROADMAP.md)
 

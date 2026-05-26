@@ -1,0 +1,47 @@
+[
+  {
+    "hash": "aaaa000000000000000000000000000000000000",
+    "name": "In Your Dreams 2025",
+    "category": "films-enfants",
+    "save_path": "/data/films-enfants",
+    "state": "downloading",
+    "size": 1073741824,
+    "progress": 0.5
+  },
+  {
+    "hash": "bbbb000000000000000000000000000000000000",
+    "name": "Old.Pirates.movie.2020",
+    "category": "movies",
+    "save_path": "/data/films",
+    "state": "seeding",
+    "size": 4294967296,
+    "progress": 1.0
+  },
+  {
+    "hash": "cccc000000000000000000000000000000000000",
+    "name": "Studio.Ghibli.pack",
+    "category": "anime",
+    "save_path": "/data/films-anime",
+    "state": "completed",
+    "size": 10737418240,
+    "progress": 1.0
+  },
+  {
+    "hash": "dddd000000000000000000000000000000000000",
+    "name": "Random kids show",
+    "category": "family",
+    "save_path": "/data/family",
+    "state": "seeding",
+    "size": 2147483648,
+    "progress": 1.0
+  },
+  {
+    "hash": "eeee000000000000000000000000000000000000",
+    "name": "Bluey.S01",
+    "category": "series-garcons",
+    "save_path": "/data/series-garcons",
+    "state": "seeding",
+    "size": 3221225472,
+    "progress": 1.0
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "Name": "Séries",
+    "ItemId": "aaa1",
+    "CollectionType": "tvshows",
+    "Locations": ["/media/series"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/series", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Séries - Émilie",
+    "ItemId": "aaa2",
+    "CollectionType": "tvshows",
+    "Locations": ["/media/series-emilie"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/series-emilie", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Séries - Thomas",
+    "ItemId": "aaa3",
+    "CollectionType": "tvshows",
+    "Locations": ["/media/series-thomas"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/series-thomas", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Séries - Garçons",
+    "ItemId": "aaa4",
+    "CollectionType": "tvshows",
+    "Locations": ["/media/series-garcons"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/series-garcons", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Séries - Zoé",
+    "ItemId": "aaa5",
+    "CollectionType": "tvshows",
+    "Locations": ["/media/series-zoe"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/series-zoe", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Films",
+    "ItemId": "bbb1",
+    "CollectionType": "movies",
+    "Locations": ["/media/films"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/films", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Nouveaux Films",
+    "ItemId": "bbb2",
+    "CollectionType": "movies",
+    "Locations": ["/media/nouveaux-films"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/nouveaux-films", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Films - Enfants",
+    "ItemId": "bbb3",
+    "CollectionType": "movies",
+    "Locations": ["/media/films-enfants"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/films-enfants", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Films - Animation Enfants",
+    "ItemId": "bbb4",
+    "CollectionType": "movies",
+    "Locations": ["/media/films-animation-enfants"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/films-animation-enfants", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  },
+  {
+    "Name": "Films - Zoé",
+    "ItemId": "bbb5",
+    "CollectionType": "movies",
+    "Locations": ["/media/films-zoe"],
+    "LibraryOptions": {"PathInfos": [{"Path": "/media/films-zoe", "NetworkPath": null}]},
+    "RefreshStatus": "Idle"
+  }
+]

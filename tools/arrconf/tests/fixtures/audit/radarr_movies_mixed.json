@@ -1,0 +1,80 @@
+[
+  {
+    "id": 11,
+    "title": "Les Alphas (2013)",
+    "rootFolderPath": "/media/films-family",
+    "path": "/media/films-family/Les Alphas (2013)",
+    "tags": [4],
+    "genres": ["Family"],
+    "monitored": true,
+    "year": 2013,
+    "tmdbId": 111111,
+    "hasFile": true
+  },
+  {
+    "id": 12,
+    "title": "Spirited Away (2001)",
+    "rootFolderPath": "/media/films-anime",
+    "path": "/media/films-anime/Spirited Away (2001)",
+    "tags": [3],
+    "genres": ["Animation", "Family"],
+    "monitored": true,
+    "year": 2001,
+    "tmdbId": 129
+  },
+  {
+    "id": 17,
+    "title": "Inception (2010)",
+    "rootFolderPath": "/media/films",
+    "path": "/media/films/Inception (2010)",
+    "tags": [1],
+    "genres": ["Action", "Science Fiction"],
+    "monitored": true,
+    "year": 2010,
+    "tmdbId": 27205
+  },
+  {
+    "id": 21,
+    "title": "Coco (2017)",
+    "rootFolderPath": "/media/films-enfants",
+    "path": "/media/films-enfants/Coco (2017)",
+    "tags": [7],
+    "genres": ["Animation", "Family"],
+    "monitored": true,
+    "year": 2017,
+    "tmdbId": 354912
+  },
+  {
+    "id": 22,
+    "title": "Le Voyage de Chihiro (2001)",
+    "rootFolderPath": "/media/films-zoe",
+    "path": "/media/films-zoe/Le Voyage de Chihiro (2001)",
+    "tags": [8],
+    "genres": ["Animation", "Family"],
+    "monitored": true,
+    "year": 2001,
+    "tmdbId": 129
+  },
+  {
+    "id": 33,
+    "title": "Avatar (2009)",
+    "rootFolderPath": "/media/films",
+    "path": "/media/films/Avatar (2009)",
+    "tags": [],
+    "genres": ["Action", "Adventure", "Science Fiction"],
+    "monitored": true,
+    "year": 2009,
+    "tmdbId": 19995
+  },
+  {
+    "id": 44,
+    "title": "Big Hero 6 (2014)",
+    "rootFolderPath": "/media/films-family",
+    "path": "/media/films-family/Big Hero 6 (2014)",
+    "tags": [4],
+    "genres": ["Animation", "Family"],
+    "monitored": true,
+    "year": 2014,
+    "tmdbId": 177572
+  }
+]
