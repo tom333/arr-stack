@@ -23,6 +23,7 @@ from arrconf.config import (
     SeriesTagsSection,
     SonarrInstance,
     TagItem,
+    TagsSection,
 )
 from arrconf.differ import Action
 from arrconf.generators.categories import SonarrDerived
@@ -356,11 +357,19 @@ def test_prune_skip_default(
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
-def test_prune_protected_without_managed_tag(
+def test_prune_executes_unmanaged_dc_when_prune_true(
     respx_mock: respx.MockRouter,
     sonarr_tag_managed_fixture: list[dict[str, Any]],
 ) -> None:
-    """T-01-04: prune=True on a DC without arrconf-managed tag → 0 DELETE."""
+    """Phase 22 / D-04 / force_prune: prune=True on a DC without arrconf-managed tag → DELETE.
+
+    This is a behaviour change from T-01-04: with force_prune wired to
+    instance.download_clients.prune, even a DC with a non-managed tag (tags=[5])
+    is deleted when the operator explicitly opts in via prune=True. The D-02
+    PRUNE_PROTECTED protection is bypassed by the force_prune path (D-04).
+    To preserve a DC without arrconf-managed, the operator must set prune=False
+    (the default). See test_catch_all_dc_prune_false_protects_untagged for that path.
+    """
     orphan_unmanaged = [
         {
             "id": 99,
@@ -371,13 +380,15 @@ def test_prune_protected_without_managed_tag(
             "implementation": "QBittorrent",
             "configContract": "QBittorrentSettings",
             "fields": [],
-            "tags": [5],  # NOT the managed tag id (=1)
+            "tags": [5],  # NOT the managed tag id (=1) — force_prune still fires
             "removeCompletedDownloads": True,
             "removeFailedDownloads": True,
         }
     ]
     _mock_base_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=orphan_unmanaged)
-    delete_route = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
+    delete_route = respx_mock.delete(
+        url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$"
+    ).mock(return_value=httpx.Response(204))
 
     instance = SonarrInstance(
         base_url="http://sonarr.test",
@@ -396,8 +407,8 @@ def test_prune_protected_without_managed_tag(
         dry_run=False,
     )
 
-    assert delete_route.call_count == 0
-    assert any(p.action == Action.PRUNE_PROTECTED for p in result.plan)
+    assert delete_route.call_count == 1
+    assert any(p.action == Action.DELETE and p.name == "manual-qbit" for p in result.plan)
 
 
 @pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
@@ -1265,3 +1276,238 @@ def test_download_client_tags_label_resolution_uses_just_created_id(
         f"String 'tv' must not appear in tags body — label resolution must produce integer. "
         f"Got: {tags_in_body}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 22 prune tests — root_folders, tags, catch-all DC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_root_folder_prune_deletes_legacy_path(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """D-04/D-05: cluster has /media/anime (legacy), desired has only Category paths.
+    With root_folders.prune=True → DELETE issued for the legacy path.
+    """
+    legacy_rf = [
+        {
+            "id": 10,
+            "path": "/media/anime",
+            "accessible": True,
+            "freeSpace": 0,
+            "unmappedFolders": [],
+        }
+    ]
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, rootfolders=legacy_rf)
+    # Mock DELETE (prune) and POST (ADD /media/series which is new in desired).
+    delete_rf = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/rootfolder/\d+$").mock(
+        return_value=httpx.Response(200)
+    )
+    respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 11, "path": "/media/series"})
+    )
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        root_folders=RootFoldersSection(prune=True),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[RootFolder(path="/media/series")],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    # result.plan only contains the DC plan; root_folder actions are in actions_taken.
+    assert delete_rf.call_count == 1
+    assert "delete:/media/anime" in result.actions_taken
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_root_folder_prune_false_skips_legacy(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """prune=False → legacy /media/anime root folder is PRUNE_SKIP, 0 DELETE."""
+    legacy_rf = [
+        {
+            "id": 10,
+            "path": "/media/anime",
+            "accessible": True,
+            "freeSpace": 0,
+            "unmappedFolders": [],
+        }
+    ]
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, rootfolders=legacy_rf)
+    delete_rf = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/rootfolder/\d+$")
+    # Mock POST for the ADD action on /media/series (desired but not in cluster).
+    respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 11, "path": "/media/series"})
+    )
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        root_folders=RootFoldersSection(prune=False),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[RootFolder(path="/media/series")],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    # result.plan only contains DC plan. For root_folders, check actions_taken.
+    assert delete_rf.call_count == 0
+    assert "delete:/media/anime" not in result.actions_taken
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_tag_prune_deletes_legacy_tag(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """D-04/D-05: cluster tags [tv, anime, arrconf-managed]; desired Category tags [tv].
+    With tags.prune=True → DELETE for "anime"; "arrconf-managed" NEVER deleted.
+    """
+    cluster_tags = [
+        {"id": 1, "label": "arrconf-managed"},
+        {"id": 2, "label": "tv"},
+        {"id": 3, "label": "anime"},
+    ]
+    _mock_phase3_gets(respx_mock, cluster_tags)
+    delete_tag = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/tag/\d+$").mock(
+        return_value=httpx.Response(200)
+    )
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        tags=TagsSection(prune=True),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[TagItem(label="tv")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    # _reconcile_tags actions do not propagate to result.actions_taken.
+    # Verify via respx call counts: exactly 1 DELETE (for "anime"), not for "arrconf-managed".
+    assert delete_tag.call_count == 1
+    # arrconf-managed is id=1, anime is id=3. Assert the deleted id was 3 (anime).
+    deleted_url = str(delete_tag.calls.last.request.url)
+    assert deleted_url.endswith("/3"), (
+        f"DELETE must target tag id=3 (anime), not arrconf-managed (id=1). Got: {deleted_url}"
+    )
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_catch_all_dc_prune_deletes_untagged(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """SC#4 / D-01: catch-all qBittorrent (id=1, tags=[]) deleted when prune=True.
+    This is the force_prune path (D-02 PRUNE_PROTECTED bypass for untagged DCs).
+    """
+    catch_all_dc = [
+        {
+            "id": 1,
+            "name": "qBittorrent",
+            "enable": True,
+            "protocol": "torrent",
+            "priority": 1,
+            "implementation": "QBittorrent",
+            "configContract": "QBittorrentSettings",
+            "fields": [],
+            "tags": [],  # untagged catch-all — no arrconf-managed
+            "removeCompletedDownloads": True,
+            "removeFailedDownloads": True,
+        }
+    ]
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=catch_all_dc)
+    delete_dc = respx_mock.delete(
+        url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$"
+    ).mock(return_value=httpx.Response(204))
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        download_clients=DownloadClientsSection(prune=True),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    assert delete_dc.call_count == 1
+    assert any(p.action == Action.DELETE and p.name == "qBittorrent" for p in result.plan)
+
+
+@pytest.mark.respx(base_url="http://sonarr.test/api/v3", assert_all_called=False)
+def test_catch_all_dc_prune_false_protects_untagged(
+    respx_mock: respx.MockRouter,
+    sonarr_tag_managed_fixture: list[dict[str, Any]],
+) -> None:
+    """Regression guard: prune=False → catch-all qBittorrent (untagged) → PRUNE_SKIP."""
+    catch_all_dc = [
+        {
+            "id": 1,
+            "name": "qBittorrent",
+            "enable": True,
+            "protocol": "torrent",
+            "priority": 1,
+            "implementation": "QBittorrent",
+            "configContract": "QBittorrentSettings",
+            "fields": [],
+            "tags": [],
+            "removeCompletedDownloads": True,
+            "removeFailedDownloads": True,
+        }
+    ]
+    _mock_phase3_gets(respx_mock, sonarr_tag_managed_fixture, downloadclients=catch_all_dc)
+    delete_dc = respx_mock.delete(url__regex=r"^http://sonarr\.test/api/v3/downloadclient/\d+$")
+
+    instance = SonarrInstance(
+        base_url="http://sonarr.test",
+        download_clients=DownloadClientsSection(prune=False),
+    )
+    client = SonarrClient(base_url="http://sonarr.test", api_key="fake")
+    result = reconcile_sonarr(
+        client,
+        instance,
+        SonarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    assert delete_dc.call_count == 0
+    assert any(p.action == Action.PRUNE_SKIP and p.name == "qBittorrent" for p in result.plan)

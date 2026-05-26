@@ -9,10 +9,13 @@ the doc — they are intentionally coupled.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
-from arrconf.config import RootConfig
+from arrconf.config import RootConfig, load_config
+from arrconf.exceptions import ConfigError
 
 
 def test_load_config_rejects_legacy_items_field() -> None:
@@ -47,3 +50,24 @@ def test_load_config_rejects_legacy_items_field() -> None:
     # CLAUDE.md "field-path resolution" claim.
     paths = [tuple(e["loc"]) for e in extra_forbidden]
     assert any("items" in p for p in paths), f"items not in any error loc: {paths}"
+
+
+def test_load_config_rejects_legacy_category_name(tmp_path: Path) -> None:
+    """SC#3 / D-07 / D-08: synthetic config with a films-family category -> ConfigError (exit 2).
+
+    The Category must be model_validate-VALID (all required fields present,
+    base_path == /media/films-family) so the D-04 base_path invariant passes
+    and the D-08 legacy-name guard is what rejects it.
+    """
+    cfg_file = tmp_path / "arrconf.yml"
+    cfg_file.write_text(
+        "categories:\n"
+        "  - name: films-family\n"
+        "    kind: movies\n"
+        "    profile: family\n"
+        "    display: Films Family\n"
+        "    base_path: /media/films-family\n"
+    )
+    with pytest.raises(ConfigError) as exc_info:
+        load_config(cfg_file)
+    assert "films-family" in str(exc_info.value)

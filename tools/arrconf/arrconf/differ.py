@@ -254,7 +254,7 @@ def reconcile[T: BaseModel](
     match_key: str = "name",
     prune: bool = False,
     managed_tag_id: int | None = None,
-    force_prune: bool = False,   # NEW — D-04 untagged prune path (D-02 PRUNE_PROTECTED bypass)
+    force_prune: bool = False,  # NEW — D-04 untagged prune path (D-02 PRUNE_PROTECTED bypass)
 ) -> list[PlannedAction[T]]:
     """Run the generic reconcile algorithm.
 
@@ -301,8 +301,12 @@ def reconcile[T: BaseModel](
                 # legacy catch-all DC (id=1). Caller constrains the desired set
                 # to the allowlist (D-03: generator output) — that is the trust boundary.
                 plan.append(PlannedAction(Action.DELETE, name, cur, None, []))
-                log.info("plan_action", action="delete", name=name,
-                         hint="force_prune=True, no managed-tag check")
+                log.info(
+                    "plan_action",
+                    action="delete",
+                    name=name,
+                    hint="force_prune=True, no managed-tag check",
+                )
             else:
                 plan.append(PlannedAction(Action.PRUNE_PROTECTED, name, cur, None, []))
                 log.warning("prune_protected", name=name, hint="missing arrconf-managed tag")

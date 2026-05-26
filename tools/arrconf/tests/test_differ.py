@@ -113,6 +113,27 @@ def test_no_managed_tag_id_treats_as_protected() -> None:
     assert plan[0].action == Action.PRUNE_PROTECTED
 
 
+def test_force_prune_deletes_untagged_resource() -> None:
+    """D-04: force_prune=True bypasses managed-tag check -> DELETE even with no tag."""
+    cur = _dc("legacy-qbit", tags=[])
+    plan = reconcile(current=[cur], desired=[], prune=True, managed_tag_id=99, force_prune=True)
+    assert plan[0].action == Action.DELETE
+
+
+def test_force_prune_false_still_protects_untagged() -> None:
+    """D-02/D-04: force_prune=False (default) preserves PRUNE_PROTECTED behaviour."""
+    cur = _dc("legacy-qbit", tags=[])
+    plan = reconcile(current=[cur], desired=[], prune=True, managed_tag_id=99, force_prune=False)
+    assert plan[0].action == Action.PRUNE_PROTECTED
+
+
+def test_force_prune_requires_prune_true() -> None:
+    """force_prune without prune=True -> PRUNE_SKIP (prune=False still wins)."""
+    cur = _dc("legacy-qbit", tags=[])
+    plan = reconcile(current=[cur], desired=[], prune=False, force_prune=True)
+    assert plan[0].action == Action.PRUNE_SKIP
+
+
 # --- merge_fields_for_put tests (D-31 / D-32 / D-33 / D-35) ---------------------------------
 
 

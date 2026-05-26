@@ -31,6 +31,7 @@ from arrconf.config import (
     RadarrInstance,
     RootFoldersSection,
     TagItem,
+    TagsSection,
 )
 from arrconf.differ import Action
 from arrconf.generators.categories import RadarrDerived
@@ -914,3 +915,191 @@ def test_download_client_tags_label_resolution_uses_just_created_id_radarr(
         f"String 'movies' must not appear in tags body — label resolution must produce integer. "
         f"Got: {tags_in_body}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 22 prune tests — root_folders, tags, catch-all DC (mirror of sonarr)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_root_folder_prune_deletes_legacy_films_anime(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """D-04/D-05: cluster has /media/films-anime (legacy Radarr path), desired has only
+    Category paths. With root_folders.prune=True → DELETE issued.
+    """
+    legacy_rf = [
+        {
+            "id": 10,
+            "path": "/media/films-anime",
+            "accessible": True,
+            "freeSpace": 0,
+            "unmappedFolders": [],
+        }
+    ]
+    _mock_radarr_gets(respx_mock, rootfolders=legacy_rf)
+    # Mock DELETE (prune) and POST (ADD /media/films which is new in desired).
+    delete_rf = respx_mock.delete(url__regex=rf"^{RADARR_BASE}/api/v3/rootfolder/\d+$").mock(
+        return_value=httpx.Response(200)
+    )
+    respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 11, "path": "/media/films"})
+    )
+
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        root_folders=RootFoldersSection(prune=True),
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    result = reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[],
+            root_folders=[RootFolder(path="/media/films")],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    # result.plan only contains DC plan; root_folder actions are in actions_taken.
+    assert delete_rf.call_count == 1
+    assert "delete:/media/films-anime" in result.actions_taken
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_root_folder_prune_false_skips_legacy(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """prune=False → legacy /media/films-anime root folder is PRUNE_SKIP, 0 DELETE."""
+    legacy_rf = [
+        {
+            "id": 10,
+            "path": "/media/films-anime",
+            "accessible": True,
+            "freeSpace": 0,
+            "unmappedFolders": [],
+        }
+    ]
+    _mock_radarr_gets(respx_mock, rootfolders=legacy_rf)
+    delete_rf = respx_mock.delete(url__regex=rf"^{RADARR_BASE}/api/v3/rootfolder/\d+$")
+    # Mock POST for the ADD action on /media/films (desired but not in cluster).
+    respx_mock.post("/rootfolder").mock(
+        return_value=httpx.Response(201, json={"id": 11, "path": "/media/films"})
+    )
+
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        root_folders=RootFoldersSection(prune=False),
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    result = reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[],
+            root_folders=[RootFolder(path="/media/films")],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    # result.plan only contains DC plan. For root_folders, check actions_taken.
+    assert delete_rf.call_count == 0
+    assert "delete:/media/films-anime" not in result.actions_taken
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_tag_prune_deletes_legacy_films_family_tag(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """D-04/D-05: cluster tags [movies, films-family, arrconf-managed]; desired [movies].
+    With tags.prune=True → DELETE for "films-family"; "arrconf-managed" NEVER deleted.
+    """
+    cluster_tags = [
+        {"id": 1, "label": "arrconf-managed"},
+        {"id": 2, "label": "movies"},
+        {"id": 3, "label": "films-family"},
+    ]
+    _mock_radarr_gets(respx_mock, tag=cluster_tags)
+    delete_tag = respx_mock.delete(url__regex=rf"^{RADARR_BASE}/api/v3/tag/\d+$").mock(
+        return_value=httpx.Response(200)
+    )
+
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        tags=TagsSection(prune=True),
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[TagItem(label="movies")],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    # _reconcile_tags actions do not propagate to result.actions_taken.
+    # Verify via respx call counts: exactly 1 DELETE (for "films-family"), not "arrconf-managed".
+    assert delete_tag.call_count == 1
+    # arrconf-managed is id=1, films-family is id=3. Assert the deleted id was 3.
+    deleted_url = str(delete_tag.calls.last.request.url)
+    assert deleted_url.endswith("/3"), (
+        f"DELETE must target tag id=3 (films-family), not arrconf-managed (id=1). "
+        f"Got: {deleted_url}"
+    )
+
+
+@pytest.mark.respx(base_url=f"{RADARR_BASE}/api/v3", assert_all_called=False)
+def test_catch_all_dc_prune_deletes_untagged(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """SC#4 / D-01: catch-all qBittorrent (id=1, tags=[]) deleted when prune=True (Radarr).
+    This is the force_prune path (D-02 PRUNE_PROTECTED bypass for untagged DCs).
+    """
+    catch_all_dc = [
+        {
+            "id": 1,
+            "name": "qBittorrent",
+            "enable": True,
+            "protocol": "torrent",
+            "priority": 1,
+            "implementation": "QBittorrent",
+            "configContract": "QBittorrentSettings",
+            "fields": [],
+            "tags": [],  # untagged catch-all — no arrconf-managed
+            "removeCompletedDownloads": True,
+            "removeFailedDownloads": True,
+        }
+    ]
+    _mock_radarr_gets(respx_mock, downloadclients=catch_all_dc)
+    delete_dc = respx_mock.delete(url__regex=rf"^{RADARR_BASE}/api/v3/downloadclient/\d+$").mock(
+        return_value=httpx.Response(204)
+    )
+
+    instance = RadarrInstance(
+        base_url=RADARR_BASE,
+        download_clients=DownloadClientsSection(prune=True),
+    )
+    client = RadarrClient(base_url=RADARR_BASE, api_key="fake")
+    result = reconcile_radarr(
+        client,
+        instance,
+        RadarrDerived(
+            tags=[],
+            root_folders=[],
+            download_clients=[],
+            remote_path_mappings=[],
+        ),
+        dry_run=False,
+    )
+
+    assert delete_dc.call_count == 1
+    assert any(p.action == Action.DELETE and p.name == "qBittorrent" for p in result.plan)

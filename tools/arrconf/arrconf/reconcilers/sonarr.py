@@ -179,7 +179,7 @@ def _reconcile_list_resource(
     prune: bool,
     managed_tag_id: int | None,
     dry_run: bool,
-    force_prune: bool = False,   # NEW — passthrough to reconcile()
+    force_prune: bool = False,  # NEW — passthrough to reconcile()
 ) -> list[str]:
     """Reconcile a list-type resource (indexers / notifications / root_folders).
 
@@ -197,7 +197,7 @@ def _reconcile_list_resource(
         match_key=match_key,
         prune=prune,
         managed_tag_id=managed_tag_id,
-        force_prune=force_prune,   # NEW
+        force_prune=force_prune,  # NEW
     )
     # NOTE: _execute is typed to DownloadClient today; the cast to a generic
     # list is safe at runtime because _execute only uses BaseModel API
@@ -308,7 +308,7 @@ def _reconcile_tags(
         prune=section.prune,
         managed_tag_id=None,
         dry_run=dry_run,
-        force_prune=section.prune,   # NEW — D-04/D-05 legacy tag prune
+        force_prune=section.prune,  # NEW — D-04/D-05 legacy tag prune
     )
     # Re-fetch to get server-assigned IDs for any newly created tags.
     # In dry_run mode, no tags were actually created so the GET returns the
@@ -533,7 +533,7 @@ def reconcile_sonarr(
         prune=instance.root_folders.prune,
         managed_tag_id=None,
         dry_run=dry_run,
-        force_prune=instance.root_folders.prune,   # NEW — D-04/D-05 legacy root prune
+        force_prune=instance.root_folders.prune,  # NEW — D-04/D-05 legacy root prune
     )
 
     # Step 5: Remote path mappings (composite-key DELETE+ADD; D-05-PATHMAP-01).
@@ -562,7 +562,7 @@ def reconcile_sonarr(
         match_key="name",
         prune=instance.download_clients.prune,
         managed_tag_id=managed_tag_id,
-        force_prune=instance.download_clients.prune,   # NEW — D-01 full prune of catch-all DC id=1
+        force_prune=instance.download_clients.prune,  # NEW — D-01 full prune of catch-all DC id=1
     )
 
     actions_taken += _execute(client, DOWNLOAD_CLIENT_PATH, plan, dry_run)
