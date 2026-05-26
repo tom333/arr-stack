@@ -288,6 +288,103 @@ def _batch_refresh_radarr(radarr: RadarrClient, movie_ids: list[int], *, dry_run
     log.info("refresh_complete", app="radarr", count=len(movie_ids))
 
 
+def _migrate_sonarr_items(
+    sonarr: SonarrClient,
+    items: list[dict[str, Any]],
+    tag_label_to_id: dict[str, int],
+    state: dict[str, Any],
+    state_path: Path,
+    *,
+    dry_run: bool,
+) -> list[int]:
+    """Per-item migrate loop with halt-on-first-error (D-21-FAIL-01).
+
+    Mechanically identical to _migrate_radarr_items but on /series/{id}.
+    Same order: os.rename (if move_and_retag) → API PUT → mark completed.
+    """
+    migrated_ids: list[int] = []
+    completed: list[int] = state["completed"]["sonarr"]
+
+    for series in items:
+        sid = series["id"]
+        if sid in completed:
+            log.info("skip_already_completed", app="sonarr", id=sid, title=series.get("title", ""))
+            continue
+
+        to_block = series.get("to") or {}
+        action = to_block.get("action")
+        target_rfp = to_block.get("rootFolderPath", "")
+        target_tag_labels: list[str] = to_block.get("tags", [])
+        current_path = series.get("current_path", "")
+        current_rfp = series.get("current_rootFolder", "")
+
+        try:
+            if action == "move_and_retag":
+                new_path = current_path.replace(current_rfp, target_rfp, 1)
+                if dry_run:
+                    log.info(
+                        "dry_run_fs_move",
+                        app="sonarr",
+                        id=sid,
+                        src=current_path,
+                        dst=new_path,
+                    )
+                else:
+                    log.info("fs_move", app="sonarr", id=sid, src=current_path, dst=new_path)
+                    os.rename(current_path, new_path)
+
+            target_tag_ids = [
+                tag_label_to_id[label] for label in target_tag_labels if label in tag_label_to_id
+            ]
+            if dry_run:
+                log.info(
+                    "dry_run_sonarr_put",
+                    id=sid,
+                    target_rfp=target_rfp,
+                    target_tag_labels=target_tag_labels,
+                )
+            else:
+                current_body = sonarr.get(f"/series/{sid}")
+                current_body["rootFolderPath"] = target_rfp
+                current_body["tags"] = target_tag_ids
+                if isinstance(current_body.get("path"), str) and current_rfp:
+                    current_body["path"] = current_body["path"].replace(current_rfp, target_rfp, 1)
+                sonarr.put("/series", id=sid, json=current_body)
+
+            completed.append(sid)
+            state["completed"]["sonarr"] = completed
+            if not dry_run:
+                _save_state(state, state_path)
+            migrated_ids.append(sid)
+
+        except (ApiClientError, AuthError, NotFoundError, ServerError, OSError) as exc:
+            log.error(
+                "migration_halt",
+                app="sonarr",
+                id=sid,
+                title=series.get("title", ""),
+                step=action,
+                error=str(exc),
+                hint="Snapshot forensic (tools/snapshot/snapshot.sh), diagnose, fix, re-run",
+            )
+            sys.exit(1)
+
+    return migrated_ids
+
+
+def _batch_refresh_sonarr(sonarr: SonarrClient, series_ids: list[int], *, dry_run: bool) -> None:
+    """Single POST /api/v3/command to refresh all migrated series (D-21-ORDER-03)."""
+    if not series_ids:
+        log.info("refresh_skip", app="sonarr", reason="no migrated series")
+        return
+    body = {"name": "RefreshSeries", "seriesIds": series_ids}
+    if dry_run:
+        log.info("dry_run_sonarr_refresh", body=body)
+        return
+    sonarr.post("/command", json=body)
+    log.info("refresh_complete", app="sonarr", count=len(series_ids))
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point — orchestrate audit load + per-app loops + final summary."""
     args = _parse_args(argv)
@@ -340,20 +437,43 @@ def main(argv: list[str] | None = None) -> int:
         )
         _batch_refresh_radarr(radarr, radarr_migrated, dry_run=args.dry_run)
 
-    # TODO Task 3: build sonarr client + _migrate_sonarr_items + _batch_refresh_sonarr
+    # Sonarr branch (Task 3)
+    sonarr_migrated: list[int] = []
+    if "sonarr" in targets:
+        sonarr_base = os.environ.get("SONARR_URL", "http://localhost:8989")
+        sonarr = SonarrClient(base_url=sonarr_base, api_key=os.environ["SONARR_API_KEY"])
+        # HTTP — gated to keep --dry-run zero-network (Task 5 revision)
+        if not args.dry_run:
+            sonarr_tag_map = _build_tag_label_to_id(sonarr)
+            log.info("sonarr_tag_map_loaded", count=len(sonarr_tag_map))
+        else:
+            sonarr_tag_map = {}
+            log.info("dry_run_sonarr_tag_map_skip", reason="dry-run — no GET /tag")
+        sonarr_migrated = _migrate_sonarr_items(
+            sonarr,
+            audit["sonarr"]["series_to_migrate"],
+            sonarr_tag_map,
+            state,
+            args.state_file,
+            dry_run=args.dry_run,
+        )
+        _batch_refresh_sonarr(sonarr, sonarr_migrated, dry_run=args.dry_run)
+
     # TODO Task 4: build qbit client + _migrate_qbit_torrents
     # TODO Task 5: build jellyfin client + _refresh_jellyfin
 
     # Silence unused-import warnings while skeleton is incomplete.
-    # These are wired up in Tasks 3-5.
+    # These are wired up in Tasks 4-5.
     _ = (
-        SonarrClient,
         QbittorrentClient,
         JellyfinClient,
     )
 
     log.info(
-        "migration_skeleton_complete", dry_run=args.dry_run, radarr_migrated=len(radarr_migrated)
+        "migration_skeleton_complete",
+        dry_run=args.dry_run,
+        radarr_migrated=len(radarr_migrated),
+        sonarr_migrated=len(sonarr_migrated),
     )
     return 0
 
