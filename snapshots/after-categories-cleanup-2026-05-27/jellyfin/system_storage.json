@@ -1,0 +1,190 @@
+{
+  "CacheFolder": {
+    "DeviceId": "/config/cache",
+    "FreeSpace": 647835820032,
+    "Path": "/config/cache",
+    "StorageType": "Fixed",
+    "UsedSpace": 335513526272
+  },
+  "ImageCacheFolder": {
+    "DeviceId": "/config/cache/images",
+    "FreeSpace": 647835820032,
+    "Path": "/config/cache/images",
+    "StorageType": "Fixed",
+    "UsedSpace": 335513526272
+  },
+  "InternalMetadataFolder": {
+    "DeviceId": "/config/data/metadata",
+    "FreeSpace": 647835820032,
+    "Path": "/config/data/metadata",
+    "StorageType": "Fixed",
+    "UsedSpace": 335513526272
+  },
+  "Libraries": [
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 437458829312,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        },
+        {
+          "DeviceId": "/media/series",
+          "FreeSpace": 437458829312,
+          "Path": "/media/series",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "d565273fd114d77bdf349a2896867069",
+      "Name": "Séries"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/nouveaux-films",
+          "FreeSpace": 437458829312,
+          "Path": "/media/nouveaux-films",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "e2ba58d6533afdb0a7a5959760036434",
+      "Name": "Nouveaux Films"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series-zoe",
+          "FreeSpace": 437458829312,
+          "Path": "/media/series-zoe",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "5c0ee23e279fc806825bdba8ce31a9a2",
+      "Name": "Séries - Zoé"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series-garcons",
+          "FreeSpace": 437458829312,
+          "Path": "/media/series-garcons",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "1fd674e560a52365318be536bb341f80",
+      "Name": "Séries - Garçons"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films-animation-enfants",
+          "FreeSpace": 437458829312,
+          "Path": "/media/films-animation-enfants",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "d1c4a1c2e7cf8d5bff227877f0db292a",
+      "Name": "Films - Animation Enfants"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films-enfants",
+          "FreeSpace": 437458829312,
+          "Path": "/media/films-enfants",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "1542c6020a254a0836285581626ee231",
+      "Name": "Films - Enfants"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series-thomas",
+          "FreeSpace": 437458829312,
+          "Path": "/media/series-thomas",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "9e418a7278b80fc996f1a8231ab2842a",
+      "Name": "Séries - Thomas"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films",
+          "FreeSpace": 437458829312,
+          "Path": "/media/films",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "db4c1708cbb5dd1676284a40f2950aba",
+      "Name": "Films"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/films-zoe",
+          "FreeSpace": 437458829312,
+          "Path": "/media/films-zoe",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "5249199f9a94d38db21803fbb11961a1",
+      "Name": "Films - Zoé"
+    },
+    {
+      "Folders": [
+        {
+          "DeviceId": "/media/series-emilie",
+          "FreeSpace": 437458829312,
+          "Path": "/media/series-emilie",
+          "StorageType": "Network",
+          "UsedSpace": 2618144849920
+        }
+      ],
+      "Id": "26da273f8df508f2c2c5ef6e853f3985",
+      "Name": "Séries - Émilie"
+    }
+  ],
+  "LogFolder": {
+    "DeviceId": "/config/log",
+    "FreeSpace": 647835820032,
+    "Path": "/config/log",
+    "StorageType": "Fixed",
+    "UsedSpace": 335513526272
+  },
+  "ProgramDataFolder": {
+    "DeviceId": "/config/data",
+    "FreeSpace": 647835820032,
+    "Path": "/config/data",
+    "StorageType": "Fixed",
+    "UsedSpace": 335513526272
+  },
+  "TranscodingTempFolder": {
+    "DeviceId": "/config/cache/transcodes",
+    "FreeSpace": 647835820032,
+    "Path": "/config/cache/transcodes",
+    "StorageType": "Fixed",
+    "UsedSpace": 335513526272
+  },
+  "WebFolder": {
+    "DeviceId": "/usr/share/jellyfin/web",
+    "FreeSpace": 506850217984,
+    "Path": "/usr/share/jellyfin/web",
+    "StorageType": "Fixed",
+    "UsedSpace": 475389808640
+  }
+}

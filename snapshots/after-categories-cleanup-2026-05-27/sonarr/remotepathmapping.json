@@ -1,0 +1,50 @@
+[
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 1,
+    "localPath": "/data/torrents/complete/",
+    "remotePath": "/data/complete/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 2,
+    "localPath": "/data/torrents/series/",
+    "remotePath": "/data/series/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 3,
+    "localPath": "/data/torrents/anime/",
+    "remotePath": "/data/anime/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 4,
+    "localPath": "/data/torrents/family/",
+    "remotePath": "/data/family/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 6,
+    "localPath": "/data/torrents/series-emilie/",
+    "remotePath": "/data/series-emilie/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 7,
+    "localPath": "/data/torrents/series-thomas/",
+    "remotePath": "/data/series-thomas/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 8,
+    "localPath": "/data/torrents/series-garcons/",
+    "remotePath": "/data/series-garcons/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 9,
+    "localPath": "/data/torrents/series-zoe/",
+    "remotePath": "/data/series-zoe/"
+  }
+]

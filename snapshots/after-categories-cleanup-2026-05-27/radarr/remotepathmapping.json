@@ -1,0 +1,50 @@
+[
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 1,
+    "localPath": "/data/torrents/complete/",
+    "remotePath": "/data/complete/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 2,
+    "localPath": "/data/torrents/films/",
+    "remotePath": "/data/films/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 3,
+    "localPath": "/data/torrents/films-anime/",
+    "remotePath": "/data/films-anime/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 4,
+    "localPath": "/data/torrents/films-family/",
+    "remotePath": "/data/films-family/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 5,
+    "localPath": "/data/torrents/nouveaux-films/",
+    "remotePath": "/data/nouveaux-films/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 6,
+    "localPath": "/data/torrents/films-enfants/",
+    "remotePath": "/data/films-enfants/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 7,
+    "localPath": "/data/torrents/films-animation-enfants/",
+    "remotePath": "/data/films-animation-enfants/"
+  },
+  {
+    "host": "qbittorrent.selfhost.svc.cluster.local",
+    "id": 8,
+    "localPath": "/data/torrents/films-zoe/",
+    "remotePath": "/data/films-zoe/"
+  }
+]
