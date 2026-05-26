@@ -217,7 +217,10 @@ def _maybe_rename(
 
     - src exists, dst missing  → normal rename (the planned mv)
     - src missing, dst exists  → already moved; log fs_move_skip; continue
-    - both missing             → orphan/deleted; halt (raise FileNotFoundError)
+    - both missing             → file vanished (manual cleanup since audit);
+                                 log fs_move_skip_file_missing; continue to
+                                 API PUT (Radarr/Sonarr flag it missing on the
+                                 next library scan — operator cleans up later)
     - both exist               → collision; halt (raise FileExistsError)
 
     Dry-run logs the state of all four cases without raising — operator sees
@@ -271,9 +274,16 @@ def _maybe_rename(
             hint="dst exists, src missing — proceeding to API PUT only",
         )
     elif state == "both_missing":
-        raise FileNotFoundError(
-            f"{app} id={id_}: neither host_src={host_src!r} nor host_dst={host_dst!r} exist; "
-            "orphan or deleted item — operator must decide (un-monitor in API or remove from audit)"
+        log.warning(
+            "fs_move_skip_file_missing",
+            app=app,
+            id=id_,
+            src=src,
+            dst=dst,
+            host_src=host_src,
+            host_dst=host_dst,
+            hint="neither src nor dst on disk — file removed since audit; "
+            "API PUT proceeds, item will surface as missing on next library scan",
         )
     else:  # both_exist
         raise FileExistsError(
