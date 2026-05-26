@@ -38,3 +38,7 @@ charts/*/charts/*.tgz
 
 # CRITIQUE : NE PAS ignorer snapshots/ — versionnés Git par ADR-6
 # (pas de pattern snapshots/ ici — c'est volontaire, voir CLAUDE.md "ne pas faire")
+
+# Phase 21 — migration resume state (live IDs, not a project artifact)
+.migration-state.json
+.migration-state.*.tmp
