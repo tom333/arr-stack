@@ -25,10 +25,23 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 22 (arrconf-prune-reconciler-lock-the-cleanup-in) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 22
-Last activity: 2026-05-26 -- Phase 22 execution started
+Phase: 22 (arrconf-prune-reconciler-lock-the-cleanup-in) — EXECUTING (paused at human-action checkpoint)
+Plan: 22-01 ✅ complete | 22-02 ⏸ Task 1 done, Task 2 (live cleanup) BLOCKED on operator
+Status: Awaiting operator live cleanup — Phase 22 NOT verified/complete yet
+Last activity: 2026-05-26 -- Phase 22 wave 1 shipped, image :0.15.0 published, wave 2 docs written, live checkpoint deferred
+
+### Phase 22 resume point (RUN AFTER arrconf :0.15.0 IS DEPLOYED)
+
+- **22-01 DONE**: `force_prune` differ path + legacy-name denylist guard + Sonarr/Radarr wiring + tests
+  (455 pytest pass, `mypy arrconf` clean) + chart co-bump `0.14.1 → 0.15.0`. Merged to main.
+- **Release shipped**: `main` pushed; auto-tag created `v0.15.0`; `ghcr.io/tom333/arr-stack-arrconf:0.15.0`
+  published to GHCR (verified). Awaiting Renovate PR on my-kluster → ArgoCD sync to deploy `:0.15.0`.
+- **22-02 Task 1 DONE**: `22-RUNBOOK.md` (321 lines) + `22-ADR-PLAN-SPLIT.md` (104 lines) committed (`3964c90`).
+- **22-02 Task 2 PENDING (blocking human-action)**: execute `22-RUNBOOK.md` live once `:0.15.0` is deployed —
+  SC#2 dry-run gate (`0 plan_action`) → delete 3 orphan torrents (`deleteFiles=true`) → re-monitor 10 missing
+  records → ADR-6 pre/post snapshots. **To resume**: run the runbook, then `/gsd-execute-phase 22` and reply
+  with `applied: SC#2 0 plan_action confirmed, 3 orphans deleted, N re-monitored / M deferred`. That completes
+  22-02 (writes SUMMARY) and triggers phase verification + completion.
 
 ### Phase 21 close-out notes (carry into Phase 22)
 
