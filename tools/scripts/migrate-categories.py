@@ -385,6 +385,103 @@ def _batch_refresh_sonarr(sonarr: SonarrClient, series_ids: list[int], *, dry_ru
     log.info("refresh_complete", app="sonarr", count=len(series_ids))
 
 
+def _migrate_qbit_torrents(
+    torrents: list[dict[str, Any]],
+    state: dict[str, Any],
+    state_path: Path,
+    *,
+    dry_run: bool,
+    qbit_base_url: str = "",
+    qbit_username: str = "",
+    qbit_password: str = "",
+) -> int:
+    """Per-torrent setLocation + setCategory with halt-on-error.
+
+    D-21-QBIT-01: direct setLocation, NO pause/resume.
+    D-21-QBIT-02: setCategory immediately after setLocation (same loop iteration).
+    D-21-QBIT-03: skip orphans flagged `to.save_path == 'PRUNE_PHASE_22'` (Phase 22 owns).
+
+    QbittorrentClient.__init__ performs POST /api/v2/auth/login IMMEDIATELY
+    (client_base.py:257-316). To keep --dry-run zero-HTTP, the client is
+    constructed lazily inside this function and only when `not dry_run`.
+    """
+    migrated = 0
+    completed: list[str] = state["completed"]["qbittorrent"]
+
+    # Deferred construction — no HTTP under --dry-run (Task 5 revision)
+    qbit: QbittorrentClient | None = None
+    if not dry_run:
+        qbit = QbittorrentClient(
+            base_url=qbit_base_url,
+            username=qbit_username,
+            password=qbit_password,
+        )
+
+    for t in torrents:
+        hash_ = t["hash"]
+        if hash_ in completed:
+            log.info("skip_already_completed", app="qbit", hash=hash_[:12])
+            continue
+
+        to_block = t.get("to") or {}
+        new_location = to_block.get("save_path", "")
+
+        # D-21-QBIT-03 — skip orphans silently
+        if new_location == "PRUNE_PHASE_22":
+            log.info(
+                "skip_orphan",
+                hash=hash_[:12],
+                name=t.get("name", "")[:60],
+                reason="PRUNE_PHASE_22 — Phase 22 owns",
+            )
+            continue
+
+        # Derive category from save_path (D-21-QBIT-02): /data/torrents/<cat> → <cat>
+        # The category name comes directly from the audit YAML — no API call needed
+        # to print it under --dry-run.
+        new_category = new_location.removeprefix("/data/torrents/").rstrip("/")
+
+        try:
+            if dry_run:
+                log.info(
+                    "dry_run_qbit_setLocation",
+                    hash=hash_[:12],
+                    location=new_location,
+                    category=new_category,
+                )
+            else:
+                assert qbit is not None  # narrowed by `not dry_run` branch above
+                # D-21-QBIT-01 — direct setLocation, NO pause/resume
+                qbit.post_form(
+                    "/torrents/setLocation",
+                    data={"hashes": hash_, "location": new_location},
+                )
+                # D-21-QBIT-02 — setCategory immediately after, same loop iteration
+                qbit.post_form(
+                    "/torrents/setCategory",
+                    data={"hashes": hash_, "category": new_category},
+                )
+
+            completed.append(hash_)
+            state["completed"]["qbittorrent"] = completed
+            if not dry_run:
+                _save_state(state, state_path)
+            migrated += 1
+
+        except (ApiClientError, AuthError) as exc:
+            log.error(
+                "migration_halt",
+                app="qbittorrent",
+                hash=hash_[:12],
+                name=t.get("name", "")[:60],
+                error=str(exc),
+                hint="Snapshot forensic (tools/snapshot/snapshot.sh), diagnose, fix, re-run",
+            )
+            sys.exit(1)
+
+    return migrated
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point — orchestrate audit load + per-app loops + final summary."""
     args = _parse_args(argv)
@@ -459,21 +556,35 @@ def main(argv: list[str] | None = None) -> int:
         )
         _batch_refresh_sonarr(sonarr, sonarr_migrated, dry_run=args.dry_run)
 
-    # TODO Task 4: build qbit client + _migrate_qbit_torrents
+    # qBittorrent branch (Task 4)
+    # NOTE: QbittorrentClient.__init__ performs HTTP login immediately
+    # (client_base.py:257-316). Client construction is deferred inside
+    # _migrate_qbit_torrents so --dry-run is genuinely zero-HTTP.
+    qbit_migrated_count = 0
+    if "qbittorrent" in targets:
+        qbit_migrated_count = _migrate_qbit_torrents(
+            audit["qbittorrent"]["torrents_to_relocate"],
+            state,
+            args.state_file,
+            dry_run=args.dry_run,
+            qbit_base_url=os.environ.get("QBT_URL", "http://localhost:8080"),
+            qbit_username=os.environ["QBT_USER"],
+            qbit_password=os.environ["QBT_PASS"],
+        )
+        log.info("qbit_migration_complete", migrated=qbit_migrated_count)
+
     # TODO Task 5: build jellyfin client + _refresh_jellyfin
 
     # Silence unused-import warnings while skeleton is incomplete.
-    # These are wired up in Tasks 4-5.
-    _ = (
-        QbittorrentClient,
-        JellyfinClient,
-    )
+    # JellyfinClient wired in Task 5.
+    _ = (JellyfinClient,)
 
     log.info(
         "migration_skeleton_complete",
         dry_run=args.dry_run,
         radarr_migrated=len(radarr_migrated),
         sonarr_migrated=len(sonarr_migrated),
+        qbit_migrated=qbit_migrated_count,
     )
     return 0
 
