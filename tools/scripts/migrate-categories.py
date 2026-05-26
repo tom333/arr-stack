@@ -482,6 +482,26 @@ def _migrate_qbit_torrents(
     return migrated
 
 
+def _refresh_jellyfin(jellyfin: JellyfinClient, *, dry_run: bool) -> None:
+    """Single global /Library/Refresh — D-21-JF-01.
+
+    Single-user homelab accepts watch-state best-effort per CLAUDE.md
+    Filesystem migration runbook precedent. The 10 Category libs MUST keep
+    ItemCount > 0 post-refresh per ROADMAP SC5.
+
+    PITFALL — Jellyfin 204 response: ArrApiClient.post() calls .json() on the
+    response. Jellyfin's /Library/Refresh returns HTTP 204 with empty body,
+    causing JSONDecodeError. Call _request("POST", ...) directly to bypass
+    the .json() decode — same workaround used in arrconf/reconcilers/jellyfin.py
+    for other 204 endpoints (21-PATTERNS.md §9).
+    """
+    if dry_run:
+        log.info("dry_run_jellyfin_refresh")
+        return
+    jellyfin._request("POST", "/Library/Refresh")
+    log.info("jellyfin_refresh_dispatched")
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point — orchestrate audit load + per-app loops + final summary."""
     args = _parse_args(argv)
@@ -573,18 +593,28 @@ def main(argv: list[str] | None = None) -> int:
         )
         log.info("qbit_migration_complete", migrated=qbit_migrated_count)
 
-    # TODO Task 5: build jellyfin client + _refresh_jellyfin
-
-    # Silence unused-import warnings while skeleton is incomplete.
-    # JellyfinClient wired in Task 5.
-    _ = (JellyfinClient,)
+    # Jellyfin branch (Task 5) — D-21-JF-01: single global refresh, NOT per-lib
+    if "jellyfin" in targets:
+        if args.dry_run:
+            # No client construction needed — _refresh_jellyfin's dry_run branch
+            # only logs. Avoid even instantiating the client under --dry-run for
+            # zero-HTTP symmetry with the qBit branch.
+            log.info("dry_run_jellyfin_refresh")
+        else:
+            jellyfin_base = os.environ.get("JELLYFIN_URL", "http://localhost:8096")
+            jellyfin = JellyfinClient(
+                base_url=jellyfin_base,
+                api_key=os.environ["JELLYFIN_API_KEY"],
+            )
+            _refresh_jellyfin(jellyfin, dry_run=False)
 
     log.info(
-        "migration_skeleton_complete",
-        dry_run=args.dry_run,
+        "migration_complete",
         radarr_migrated=len(radarr_migrated),
         sonarr_migrated=len(sonarr_migrated),
         qbit_migrated=qbit_migrated_count,
+        jellyfin_refreshed="jellyfin" in targets,
+        dry_run=args.dry_run,
     )
     return 0
 
