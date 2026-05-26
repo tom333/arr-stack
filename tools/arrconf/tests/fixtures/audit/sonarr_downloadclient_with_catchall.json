@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "qBittorrent",
+    "implementation": "QBittorrent",
+    "configContract": "QBittorrentSettings",
+    "tags": [],
+    "priority": 1,
+    "enable": true,
+    "fields": [
+      {"name": "host", "value": "qbittorrent.selfhost.svc.cluster.local"},
+      {"name": "port", "value": 8080},
+      {"name": "username", "value": "***REDACTED***"},
+      {"name": "password", "value": "***REDACTED***"}
+    ]
+  },
+  {
+    "id": 2,
+    "name": "qBittorrent - Séries - Zoé",
+    "implementation": "QBittorrent",
+    "configContract": "QBittorrentSettings",
+    "tags": [5],
+    "priority": 1,
+    "enable": true,
+    "fields": [
+      {"name": "host", "value": "qbittorrent.selfhost.svc.cluster.local"},
+      {"name": "port", "value": 8080},
+      {"name": "username", "value": "***REDACTED***"},
+      {"name": "password", "value": "***REDACTED***"}
+    ]
+  },
+  {
+    "id": 3,
+    "name": "qBittorrent - Séries - Garçons",
+    "implementation": "QBittorrent",
+    "configContract": "QBittorrentSettings",
+    "tags": [6],
+    "priority": 1,
+    "enable": true,
+    "fields": [
+      {"name": "host", "value": "qbittorrent.selfhost.svc.cluster.local"},
+      {"name": "port", "value": 8080},
+      {"name": "username", "value": "***REDACTED***"},
+      {"name": "password", "value": "***REDACTED***"}
+    ]
+  }
+]

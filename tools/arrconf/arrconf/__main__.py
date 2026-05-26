@@ -15,6 +15,7 @@ from typing import Any
 import structlog
 import typer
 
+from arrconf.audit import run_audit, verify_audit
 from arrconf.client_base import JellyfinClient, ProwlarrClient, RadarrClient, SonarrClient
 from arrconf.config import RootConfig, load_config
 from arrconf.diff_cmd import diff_jellyfin, diff_prowlarr, diff_radarr, diff_sonarr
@@ -471,6 +472,107 @@ def apply(
     if failures:
         raise typer.Exit(code=1)
     raise typer.Exit(code=0)
+
+
+@app.command()
+def audit(
+    ctx: typer.Context,
+    apps: str | None = typer.Option(None, help="Comma-separated apps (default: all 5)"),
+    output: Path = typer.Option(
+        Path(".planning/phases/20-categories-cleanup-audit/20-AUDIT.md"),
+        "--output",
+        "-o",
+        help="Path for the generated audit markdown",
+    ),
+) -> None:
+    """Read-only inventory of v0.2.0 legacy state across the stack (Phase 20)."""
+    log = structlog.get_logger()
+    try:
+        root = load_config(ctx.obj["config_path"])
+    except ConfigError as e:
+        log.error("config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+    except ScopeViolationError as e:
+        log.error("scope_violation", error=str(e))
+        raise typer.Exit(code=2) from e
+
+    targets = _selected_apps(apps)
+    settings = Settings()
+
+    # Per-app env-var fail-fast gates — mirrors apply (lines 245-247, 280-282, etc.)
+    required_keys: list[tuple[str, str, Any]] = []
+    if "sonarr" in targets and "main" in root.sonarr:
+        required_keys.append(("sonarr", "SONARR_API_KEY", settings.sonarr_api_key))
+    if "radarr" in targets and "main" in root.radarr:
+        required_keys.append(("radarr", "RADARR_API_KEY", settings.radarr_api_key))
+    if "seerr" in targets and "main" in root.seerr:
+        required_keys.append(("seerr", "SEERR_API_KEY", settings.seerr_api_key))
+    if "jellyfin" in targets and "main" in root.jellyfin:
+        required_keys.append(("jellyfin", "JELLYFIN_API_KEY", settings.jellyfin_api_key))
+    for app_name, env_var, val in required_keys:
+        if not val:
+            log.error("missing_api_key", app=app_name, env_var=env_var)
+            raise typer.Exit(code=2)
+    if "qbittorrent" in targets and "main" in root.qbittorrent:
+        missing = [
+            k
+            for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
+            if not v
+        ]
+        if missing:
+            log.error("missing_env_vars", app="qbittorrent", missing=missing)
+            raise typer.Exit(code=2)
+
+    try:
+        run_audit(root, settings, output_path=output, targets=targets)
+    except ConfigError as e:
+        log.error("config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+    log.info("audit_complete", output=str(output))
+    raise typer.Exit(code=0)
+
+
+@app.command(name="audit-verify")
+def audit_verify_cmd(
+    ctx: typer.Context,
+    input: Path = typer.Option(
+        Path(".planning/phases/20-categories-cleanup-audit/20-AUDIT.md"),
+        "--input",
+        "-i",
+        help="Path of the 20-AUDIT.md to verify",
+    ),
+) -> None:
+    """Verify 20-AUDIT.md pre-commit gates: no `?` cells, YAML parses, paths/tags exist."""
+    log = structlog.get_logger()
+    try:
+        root = load_config(ctx.obj["config_path"])
+    except ConfigError as e:
+        log.error("config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+
+    settings = Settings()
+    # For Gate 4 (live tag re-GET) we need Sonarr+Radarr clients if available.
+    # If their API keys are missing, fall back to skipping Gate 4 (log a warning).
+    sonarr_client: SonarrClient | None = None
+    radarr_client: RadarrClient | None = None
+    if "main" in root.sonarr and settings.sonarr_api_key:
+        sonarr_client = SonarrClient(
+            base_url=root.sonarr["main"].base_url,
+            api_key=settings.sonarr_api_key.get_secret_value(),
+        )
+    if "main" in root.radarr and settings.radarr_api_key:
+        radarr_client = RadarrClient(
+            base_url=root.radarr["main"].base_url,
+            api_key=settings.radarr_api_key.get_secret_value(),
+        )
+    if sonarr_client is None or radarr_client is None:
+        log.warning(
+            "audit_verify_tag_gate_skipped",
+            reason="missing API keys — Gate 4 live tag re-GET skipped",
+        )
+
+    exit_code = verify_audit(input, root, sonarr_client, radarr_client)
+    raise typer.Exit(code=exit_code)
 
 
 @app.command()

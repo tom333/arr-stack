@@ -1,0 +1,10 @@
+[
+  {"id": 1, "label": "movies"},
+  {"id": 2, "label": "family"},
+  {"id": 3, "label": "anime"},
+  {"id": 4, "label": "films"},
+  {"id": 7, "label": "films-enfants"},
+  {"id": 8, "label": "films-zoe"},
+  {"id": 9, "label": "films-animation-enfants"},
+  {"id": 10, "label": "nouveaux-films"}
+]

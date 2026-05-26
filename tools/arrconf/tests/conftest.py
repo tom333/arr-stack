@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -262,3 +262,76 @@ def jellyfin_plugins_fixture() -> list[dict[str, Any]]:
     NOT `/Plugins/{id}/Enable`).
     """
     return _load_fixture("jellyfin/plugins.json")
+
+
+# ---------------------------------------------------------------------------
+# Phase 20 — audit fixtures (read-only legacy state inventory)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def audit_radarr_movies_mixed() -> list[dict[str, Any]]:
+    """Radarr GET /api/v3/movie — 7 movies: 3 legacy, 2 Category-resident, 2 ambiguous."""
+    return cast(list[dict[str, Any]], _load_fixture("audit/radarr_movies_mixed.json"))
+
+
+@pytest.fixture
+def audit_radarr_tags_mixed() -> list[dict[str, Any]]:
+    """Radarr GET /api/v3/tag — 8 tags: 4 legacy + 4 Category tags."""
+    return cast(list[dict[str, Any]], _load_fixture("audit/radarr_tags_mixed.json"))
+
+
+@pytest.fixture
+def audit_radarr_downloadclient_with_catchall() -> list[dict[str, Any]]:
+    """Radarr GET /api/v3/downloadclient — 3 DCs: 1 catch-all (no tags) + 2 tagged."""
+    return cast(
+        list[dict[str, Any]], _load_fixture("audit/radarr_downloadclient_with_catchall.json")
+    )
+
+
+@pytest.fixture
+def audit_sonarr_series_mixed() -> list[dict[str, Any]]:
+    """Sonarr GET /api/v3/series — 7 series: 3 legacy, 2 Category-resident, 2 ambiguous."""
+    return cast(list[dict[str, Any]], _load_fixture("audit/sonarr_series_mixed.json"))
+
+
+@pytest.fixture
+def audit_sonarr_tags_mixed() -> list[dict[str, Any]]:
+    """Sonarr GET /api/v3/tag — 7 tags: 2 legacy (family, anime) + 1 preserve (tv) + 4 Category."""
+    return cast(list[dict[str, Any]], _load_fixture("audit/sonarr_tags_mixed.json"))
+
+
+@pytest.fixture
+def audit_sonarr_downloadclient_with_catchall() -> list[dict[str, Any]]:
+    """Sonarr GET /api/v3/downloadclient — 3 DCs: 1 catch-all + 2 Category-tagged."""
+    return cast(
+        list[dict[str, Any]], _load_fixture("audit/sonarr_downloadclient_with_catchall.json")
+    )
+
+
+@pytest.fixture
+def audit_qbit_torrents_mixed() -> list[dict[str, Any]]:
+    """qBit GET /api/v2/torrents/info — 5 torrents: 2 aligned + 3 on legacy save_paths."""
+    return cast(list[dict[str, Any]], _load_fixture("audit/qbit_torrents_mixed.json"))
+
+
+@pytest.fixture
+def audit_qbit_categories_aligned() -> dict[str, Any]:
+    """qBit GET /api/v2/torrents/categories — 4 aligned categories (dict-keyed)."""
+    return cast(dict[str, Any], _load_fixture("audit/qbit_categories_aligned.json"))
+
+
+@pytest.fixture
+def audit_seerr_settings_sonarr_legacy_anime() -> list[dict[str, Any]]:
+    """Seerr GET /api/v1/settings/sonarr — 1 service, animeTags=[3] (legacy 'anime' tag)."""
+    return cast(
+        list[dict[str, Any]], _load_fixture("audit/seerr_settings_sonarr_legacy_anime.json")
+    )
+
+
+@pytest.fixture
+def audit_jellyfin_virtualfolders_post_phase16() -> list[dict[str, Any]]:
+    """Jellyfin GET /Library/VirtualFolders — 10 libs aligned with 10 Categories."""
+    return cast(
+        list[dict[str, Any]], _load_fixture("audit/jellyfin_virtualfolders_post_phase16.json")
+    )
