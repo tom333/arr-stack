@@ -146,7 +146,10 @@ Plans:
 **Plans**: 2 plans (code + chart co-bump; live operator cleanup — ~1 day total)
 
 Plans:
+**Wave 1**
 - [ ] 22-01-PLAN.md — Prune reconciler (differ.force_prune + Sonarr/Radarr wiring) + pydantic legacy-path guard + respx/unit tests + chart co-bump 0.14.1 -> 0.15.0 (autonomous)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 22-02-PLAN.md — Live operator cleanup runbook (3 orphan torrents + 10 missing records) + SC#2 dry-run gate + plan-split/DC ADR (wave 2, human-action)
 
 ### Phase 23: UAT dispositive — end-to-end verification

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: executing
-last_updated: "2026-05-27T07:20:00.000Z"
-last_activity: 2026-05-27 -- Phase 22 context gathered (4 gray areas resolved)
+last_updated: "2026-05-26T22:17:04.812Z"
+last_activity: 2026-05-26 -- Phase 22 planning complete
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
+  total_plans: 4
   completed_plans: 2
   percent: 50
 ---
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 22 — CONTEXT GATHERED (ready for /gsd-plan-phase 22)
 Plan: 0 of 2 (not yet planned)
-Status: Phase 21 complete; Phase 22 context captured (22-CONTEXT.md), ready to plan
-Last activity: 2026-05-27 -- Phase 22 discuss complete (DC catch-all prune, allowlist, denylist guard, P21-leftovers folded in)
+Status: Ready to execute
+Last activity: 2026-05-26 -- Phase 22 planning complete
 
 ### Phase 21 close-out notes (carry into Phase 22)
 
@@ -73,6 +73,7 @@ v0.8.0 decisions to be captured during `/gsd-discuss-phase 20` → `22` (anticip
 ### Blockers/Concerns
 
 **Phase 21 complete** (live migration applied 2026-05-27, SC1-SC5 verified, PASS-WITH-CONCERNS). Carry-forward into Phase 22 (now folded into P22 scope per D-09/10/11 in 22-CONTEXT.md):
+
 - 10 missing-on-disk *arr records → re-monitor + search (D-10)
 - 3 PRUNE_PHASE_22 orphan torrents on `/data/complete` → delete torrent + data (D-11)
 
@@ -108,6 +109,7 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 1. **Phase 22 planning** — `/clear` then `/gsd-plan-phase 22` (consumes `22-CONTEXT.md`).
    Scope: arrconf prune steps (allowlist=categories[]) + pydantic legacy denylist guard
+
    + chart co-bump `0.14.1 → 0.15.0` + operator cleanup step (3 orphans + 10 missing).
 2. Phase 22 will bump `arrconf.image.tag` 0.14.1 → 0.15.0 per CLAUDE.md §"Release pin co-bump pattern".
 3. Then Phase 23 (UAT dispositive) — and fix the Phase 23 SC#1/#2 legacy-path error first.
