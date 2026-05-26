@@ -198,6 +198,90 @@ def _to_host_path(cluster_path: str, media_root: str) -> str:
     return cluster_path
 
 
+def _maybe_rename(
+    *,
+    app: str,
+    id_: int,
+    src: str,
+    dst: str,
+    host_src: str,
+    host_dst: str,
+    dry_run: bool,
+) -> None:
+    """Conditional os.rename keyed on src/dst existence on the host NFS mount.
+
+    Resolves the audit-vs-disk drift case: between Phase 20 audit capture and
+    --apply, an operator may have already mv'd some items into Category dirs
+    while Radarr/Sonarr DBs still point at legacy paths. The API PUT remains
+    the primary mutation; the filesystem step adapts to disk reality:
+
+    - src exists, dst missing  → normal rename (the planned mv)
+    - src missing, dst exists  → already moved; log fs_move_skip; continue
+    - both missing             → orphan/deleted; halt (raise FileNotFoundError)
+    - both exist               → collision; halt (raise FileExistsError)
+
+    Dry-run logs the state of all four cases without raising — operator sees
+    the full disk-vs-audit picture before --apply.
+    """
+    src_exists = os.path.exists(host_src)
+    dst_exists = os.path.exists(host_dst)
+    state = (
+        "src_only"
+        if src_exists and not dst_exists
+        else "dst_only"
+        if dst_exists and not src_exists
+        else "both_missing"
+        if not src_exists and not dst_exists
+        else "both_exist"
+    )
+
+    if dry_run:
+        log.info(
+            "dry_run_fs_move",
+            app=app,
+            id=id_,
+            src=src,
+            dst=dst,
+            host_src=host_src,
+            host_dst=host_dst,
+            disk_state=state,
+        )
+        return
+
+    if state == "src_only":
+        log.info(
+            "fs_move",
+            app=app,
+            id=id_,
+            src=src,
+            dst=dst,
+            host_src=host_src,
+            host_dst=host_dst,
+        )
+        os.rename(host_src, host_dst)
+    elif state == "dst_only":
+        log.warning(
+            "fs_move_skip_already_moved",
+            app=app,
+            id=id_,
+            src=src,
+            dst=dst,
+            host_src=host_src,
+            host_dst=host_dst,
+            hint="dst exists, src missing — proceeding to API PUT only",
+        )
+    elif state == "both_missing":
+        raise FileNotFoundError(
+            f"{app} id={id_}: neither host_src={host_src!r} nor host_dst={host_dst!r} exist; "
+            "orphan or deleted item — operator must decide (un-monitor in API or remove from audit)"
+        )
+    else:  # both_exist
+        raise FileExistsError(
+            f"{app} id={id_}: host_src={host_src!r} AND host_dst={host_dst!r} both exist; "
+            "collision — operator must resolve (manual de-dup) before re-running"
+        )
+
+
 def _build_tag_label_to_id(client: SonarrClient | RadarrClient) -> dict[str, int]:
     """GET /tag once, build {label: id} lookup. Mirrors __main__.py:74-82."""
     raw_tags: list[dict[str, Any]] = client.get("/tag")
@@ -250,27 +334,15 @@ def _migrate_radarr_items(
                 new_path = current_path.replace(current_rfp, target_rfp, 1)
                 host_src = _to_host_path(current_path, media_root)
                 host_dst = _to_host_path(new_path, media_root)
-                if dry_run:
-                    log.info(
-                        "dry_run_fs_move",
-                        app="radarr",
-                        id=mid,
-                        src=current_path,
-                        dst=new_path,
-                        host_src=host_src,
-                        host_dst=host_dst,
-                    )
-                else:
-                    log.info(
-                        "fs_move",
-                        app="radarr",
-                        id=mid,
-                        src=current_path,
-                        dst=new_path,
-                        host_src=host_src,
-                        host_dst=host_dst,
-                    )
-                    os.rename(host_src, host_dst)  # atomic on same filesystem
+                _maybe_rename(
+                    app="radarr",
+                    id_=mid,
+                    src=current_path,
+                    dst=new_path,
+                    host_src=host_src,
+                    host_dst=host_dst,
+                    dry_run=dry_run,
+                )
 
             # Step 2 — Radarr PUT (D-21-ORDER-01 — never delegate file move to Radarr)
             # Resolve tag labels → ids from the prebuilt map. Under dry_run the map may
@@ -365,27 +437,15 @@ def _migrate_sonarr_items(
                 new_path = current_path.replace(current_rfp, target_rfp, 1)
                 host_src = _to_host_path(current_path, media_root)
                 host_dst = _to_host_path(new_path, media_root)
-                if dry_run:
-                    log.info(
-                        "dry_run_fs_move",
-                        app="sonarr",
-                        id=sid,
-                        src=current_path,
-                        dst=new_path,
-                        host_src=host_src,
-                        host_dst=host_dst,
-                    )
-                else:
-                    log.info(
-                        "fs_move",
-                        app="sonarr",
-                        id=sid,
-                        src=current_path,
-                        dst=new_path,
-                        host_src=host_src,
-                        host_dst=host_dst,
-                    )
-                    os.rename(host_src, host_dst)
+                _maybe_rename(
+                    app="sonarr",
+                    id_=sid,
+                    src=current_path,
+                    dst=new_path,
+                    host_src=host_src,
+                    host_dst=host_dst,
+                    dry_run=dry_run,
+                )
 
             target_tag_ids = [
                 tag_label_to_id[label] for label in target_tag_labels if label in tag_label_to_id
