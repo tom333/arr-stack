@@ -115,6 +115,9 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
   4. `legacy_path → Category` and `legacy_tag → Category_tag` mapping tables are committed and validated against the CLAUDE.md "Filesystem migration v0.2.0 → v0.3.0" reference table.
 **Plans**: 1 plan (~half-day)
 
+Plans:
+- [ ] 20-01-PLAN.md — Audit module + Typer commands + tests + chart bump + operator-edit + verify gate (holistic single plan per CONTEXT.md)
+
 ### Phase 21: Filesystem + metadata migration
 **Goal**: Move every item identified in Phase 20 audit to its Category target — filesystem `mv` on the Jellyfin NFS volume + qBit `setLocation` for in-flight torrents + Radarr/Sonarr API mutations + post-migration re-scans — leaving the cluster functional throughout.
 **Depends on**: Phase 20 (consumes `20-AUDIT.md`)
