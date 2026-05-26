@@ -176,6 +176,118 @@ def _build_tag_label_to_id(client: SonarrClient | RadarrClient) -> dict[str, int
     return {t["label"]: int(t["id"]) for t in raw_tags if "label" in t and "id" in t}
 
 
+def _migrate_radarr_items(
+    radarr: RadarrClient,
+    items: list[dict[str, Any]],
+    tag_label_to_id: dict[str, int],
+    state: dict[str, Any],
+    state_path: Path,
+    *,
+    dry_run: bool,
+) -> list[int]:
+    """Per-item migrate loop with halt-on-first-error (D-21-FAIL-01).
+
+    For each movie in audit['radarr']['movies_to_migrate']:
+      1. Skip if id in state['completed']['radarr']
+      2. If to.action == 'move_and_retag': os.rename(current_path → new_path)
+         If to.action == 'retag_only':    skip os.rename (D-21-ORDER-04)
+      3. radarr.put('/movie', id=mid, json={...rootFolderPath, path, tags})
+         (force-save flag auto-injected by _ArrV3Client.put — ADR-8.
+          NEVER delegate the file move to Radarr — D-21-ORDER-01)
+      4. Append id to state['completed']['radarr']; _save_state immediately.
+
+    On exception: log migration_halt + sys.exit(1). Operator diagnoses, fixes,
+    re-runs the same command (state.json skips completed items per D-21-ORDER-02).
+    """
+    migrated_ids: list[int] = []
+    completed: list[int] = state["completed"]["radarr"]
+
+    for movie in items:
+        mid = movie["id"]
+        if mid in completed:
+            log.info("skip_already_completed", app="radarr", id=mid, title=movie.get("title", ""))
+            continue
+
+        to_block = movie.get("to") or {}
+        action = to_block.get("action")
+        target_rfp = to_block.get("rootFolderPath", "")
+        target_tag_labels: list[str] = to_block.get("tags", [])
+        current_path = movie.get("current_path", "")
+        current_rfp = movie.get("current_rootFolder", "")
+
+        try:
+            # Step 1 — filesystem mv (D-21-ORDER-04: only if move_and_retag)
+            if action == "move_and_retag":
+                new_path = current_path.replace(current_rfp, target_rfp, 1)
+                if dry_run:
+                    log.info(
+                        "dry_run_fs_move",
+                        app="radarr",
+                        id=mid,
+                        src=current_path,
+                        dst=new_path,
+                    )
+                else:
+                    log.info("fs_move", app="radarr", id=mid, src=current_path, dst=new_path)
+                    os.rename(current_path, new_path)  # atomic on same filesystem
+
+            # Step 2 — Radarr PUT (D-21-ORDER-01 — never delegate file move to Radarr)
+            # Resolve tag labels → ids from the prebuilt map. Under dry_run the map may
+            # be empty (Task 5 revision — _build_tag_label_to_id is gated on
+            # `not dry_run`), which is fine: dry_run only logs labels, never PUTs.
+            target_tag_ids = [
+                tag_label_to_id[label] for label in target_tag_labels if label in tag_label_to_id
+            ]
+            if dry_run:
+                log.info(
+                    "dry_run_radarr_put",
+                    id=mid,
+                    target_rfp=target_rfp,
+                    target_tag_labels=target_tag_labels,
+                )
+            else:
+                current_body = radarr.get(f"/movie/{mid}")
+                current_body["rootFolderPath"] = target_rfp
+                current_body["tags"] = target_tag_ids
+                if isinstance(current_body.get("path"), str) and current_rfp:
+                    current_body["path"] = current_body["path"].replace(current_rfp, target_rfp, 1)
+                radarr.put("/movie", id=mid, json=current_body)
+
+            # Step 3 — mark completed, persist state immediately
+            completed.append(mid)
+            state["completed"]["radarr"] = completed
+            if not dry_run:
+                _save_state(state, state_path)
+            migrated_ids.append(mid)
+
+        except (ApiClientError, AuthError, NotFoundError, ServerError, OSError) as exc:
+            log.error(
+                "migration_halt",
+                app="radarr",
+                id=mid,
+                title=movie.get("title", ""),
+                step=action,
+                error=str(exc),
+                hint="Snapshot forensic (tools/snapshot/snapshot.sh), diagnose, fix, re-run",
+            )
+            sys.exit(1)
+
+    return migrated_ids
+
+
+def _batch_refresh_radarr(radarr: RadarrClient, movie_ids: list[int], *, dry_run: bool) -> None:
+    """Single POST /api/v3/command to refresh all migrated movies (D-21-ORDER-03)."""
+    if not movie_ids:
+        log.info("refresh_skip", app="radarr", reason="no migrated movies")
+        return
+    body = {"name": "RefreshMovie", "movieIds": movie_ids}
+    if dry_run:
+        log.info("dry_run_radarr_refresh", body=body)
+        return
+    radarr.post("/command", json=body)
+    log.info("refresh_complete", app="radarr", count=len(movie_ids))
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point — orchestrate audit load + per-app loops + final summary."""
     args = _parse_args(argv)
@@ -206,26 +318,43 @@ def main(argv: list[str] | None = None) -> int:
         started_at=state.get("started_at"),
     )
 
-    # TODO Task 2: build radarr client + _migrate_radarr_items + _batch_refresh_radarr
+    # Radarr branch (Task 2)
+    radarr_migrated: list[int] = []
+    if "radarr" in targets:
+        radarr_base = os.environ.get("RADARR_URL", "http://localhost:7878")
+        radarr = RadarrClient(base_url=radarr_base, api_key=os.environ["RADARR_API_KEY"])
+        # HTTP — gated to keep --dry-run zero-network (Task 5 revision)
+        if not args.dry_run:
+            radarr_tag_map = _build_tag_label_to_id(radarr)
+            log.info("radarr_tag_map_loaded", count=len(radarr_tag_map))
+        else:
+            radarr_tag_map = {}
+            log.info("dry_run_radarr_tag_map_skip", reason="dry-run — no GET /tag")
+        radarr_migrated = _migrate_radarr_items(
+            radarr,
+            audit["radarr"]["movies_to_migrate"],
+            radarr_tag_map,
+            state,
+            args.state_file,
+            dry_run=args.dry_run,
+        )
+        _batch_refresh_radarr(radarr, radarr_migrated, dry_run=args.dry_run)
+
     # TODO Task 3: build sonarr client + _migrate_sonarr_items + _batch_refresh_sonarr
     # TODO Task 4: build qbit client + _migrate_qbit_torrents
     # TODO Task 5: build jellyfin client + _refresh_jellyfin
 
     # Silence unused-import warnings while skeleton is incomplete.
-    # These are wired up in Tasks 2-5.
+    # These are wired up in Tasks 3-5.
     _ = (
-        RadarrClient,
         SonarrClient,
         QbittorrentClient,
         JellyfinClient,
-        ApiClientError,
-        AuthError,
-        NotFoundError,
-        ServerError,
-        _build_tag_label_to_id,
     )
 
-    log.info("migration_skeleton_complete", dry_run=args.dry_run)
+    log.info(
+        "migration_skeleton_complete", dry_run=args.dry_run, radarr_migrated=len(radarr_migrated)
+    )
     return 0
 
 
