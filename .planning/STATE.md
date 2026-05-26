@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: completed
-last_updated: "2026-05-26T07:33:19.814Z"
+last_updated: "2026-05-26T08:17:57.043Z"
 last_activity: 2026-05-26 -- Phase 20 marked complete
 progress:
   total_phases: 4
