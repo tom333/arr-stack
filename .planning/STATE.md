@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: executing
-last_updated: "2026-05-27T07:10:00.000Z"
-last_activity: 2026-05-27 -- Phase 21 complete (live migration applied, SC1-SC5 verified)
+status: completed
+last_updated: "2026-05-26T21:48:00.911Z"
+last_activity: 2026-05-27 -- Phase 21 complete (SC1-SC5 verified on live cluster)
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
+  total_plans: 2
   completed_plans: 2
-  percent: 50
+  percent: 100
 ---
 
 # Project State
@@ -37,10 +37,13 @@ Last activity: 2026-05-27 -- Phase 21 complete (SC1-SC5 verified on live cluster
   synced to Category root folders anyway (operator decision) — they now show as MISSING
   on disk. Phase 22 / operator must decide per-item (re-download via monitored search, or
   remove from the *arr).
+
 - Script gained `--media-root` (host NFS translation), `_maybe_rename` (disk-state-keyed),
   and `both_missing` soft-skip during the live run. See 21-01-SUMMARY.md §Deviations.
+
 - Leftover `series-zoe/Winx Club` (bare, no year) dir remains beside moved `Winx Club (2004)`
   — harmless, operator may prune.
+
 - 3 PRUNE_PHASE_22 orphan torrents still on `/data/complete` — Phase 22 owns.
 
 ### Phase 20 success criteria (from ROADMAP.md)
