@@ -80,6 +80,16 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Resume state file (default: .migration-state.json at CWD; gitignored)",
     )
     parser.add_argument(
+        "--media-root",
+        type=str,
+        default="/mnt/nas/media-stack",
+        help=(
+            "Host-side NFS mount where /media/* paths from Radarr/Sonarr APIs "
+            "resolve (default: /mnt/nas/media-stack). Used only to translate "
+            "os.rename targets; API PUTs keep cluster paths."
+        ),
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="DEBUG log level",
@@ -170,6 +180,24 @@ def _save_state(state: dict[str, Any], state_path: Path) -> None:
         raise
 
 
+def _to_host_path(cluster_path: str, media_root: str) -> str:
+    """Translate a cluster /media/<x> path to its host NFS-mount equivalent.
+
+    The script runs from the operator host (D-21-TOOL-04). Radarr/Sonarr APIs
+    return paths like `/media/films/X` — that's the in-pod mount of the NFS
+    volume `media-nas-pvc`. The same NFS export is mounted on the host at
+    `media_root` (default `/mnt/nas/media-stack`), so `os.rename` targets must
+    be translated. API PUTs keep the cluster path (the pods see `/media`).
+
+    Non-/media paths are returned unchanged (defensive).
+    """
+    if cluster_path == "/media":
+        return media_root
+    if cluster_path.startswith("/media/"):
+        return media_root + cluster_path[len("/media") :]
+    return cluster_path
+
+
 def _build_tag_label_to_id(client: SonarrClient | RadarrClient) -> dict[str, int]:
     """GET /tag once, build {label: id} lookup. Mirrors __main__.py:74-82."""
     raw_tags: list[dict[str, Any]] = client.get("/tag")
@@ -184,6 +212,7 @@ def _migrate_radarr_items(
     state_path: Path,
     *,
     dry_run: bool,
+    media_root: str,
 ) -> list[int]:
     """Per-item migrate loop with halt-on-first-error (D-21-FAIL-01).
 
@@ -219,6 +248,8 @@ def _migrate_radarr_items(
             # Step 1 — filesystem mv (D-21-ORDER-04: only if move_and_retag)
             if action == "move_and_retag":
                 new_path = current_path.replace(current_rfp, target_rfp, 1)
+                host_src = _to_host_path(current_path, media_root)
+                host_dst = _to_host_path(new_path, media_root)
                 if dry_run:
                     log.info(
                         "dry_run_fs_move",
@@ -226,10 +257,20 @@ def _migrate_radarr_items(
                         id=mid,
                         src=current_path,
                         dst=new_path,
+                        host_src=host_src,
+                        host_dst=host_dst,
                     )
                 else:
-                    log.info("fs_move", app="radarr", id=mid, src=current_path, dst=new_path)
-                    os.rename(current_path, new_path)  # atomic on same filesystem
+                    log.info(
+                        "fs_move",
+                        app="radarr",
+                        id=mid,
+                        src=current_path,
+                        dst=new_path,
+                        host_src=host_src,
+                        host_dst=host_dst,
+                    )
+                    os.rename(host_src, host_dst)  # atomic on same filesystem
 
             # Step 2 — Radarr PUT (D-21-ORDER-01 — never delegate file move to Radarr)
             # Resolve tag labels → ids from the prebuilt map. Under dry_run the map may
@@ -296,6 +337,7 @@ def _migrate_sonarr_items(
     state_path: Path,
     *,
     dry_run: bool,
+    media_root: str,
 ) -> list[int]:
     """Per-item migrate loop with halt-on-first-error (D-21-FAIL-01).
 
@@ -321,6 +363,8 @@ def _migrate_sonarr_items(
         try:
             if action == "move_and_retag":
                 new_path = current_path.replace(current_rfp, target_rfp, 1)
+                host_src = _to_host_path(current_path, media_root)
+                host_dst = _to_host_path(new_path, media_root)
                 if dry_run:
                     log.info(
                         "dry_run_fs_move",
@@ -328,10 +372,20 @@ def _migrate_sonarr_items(
                         id=sid,
                         src=current_path,
                         dst=new_path,
+                        host_src=host_src,
+                        host_dst=host_dst,
                     )
                 else:
-                    log.info("fs_move", app="sonarr", id=sid, src=current_path, dst=new_path)
-                    os.rename(current_path, new_path)
+                    log.info(
+                        "fs_move",
+                        app="sonarr",
+                        id=sid,
+                        src=current_path,
+                        dst=new_path,
+                        host_src=host_src,
+                        host_dst=host_dst,
+                    )
+                    os.rename(host_src, host_dst)
 
             target_tag_ids = [
                 tag_label_to_id[label] for label in target_tag_labels if label in tag_label_to_id
@@ -551,6 +605,7 @@ def main(argv: list[str] | None = None) -> int:
             state,
             args.state_file,
             dry_run=args.dry_run,
+            media_root=args.media_root,
         )
         _batch_refresh_radarr(radarr, radarr_migrated, dry_run=args.dry_run)
 
@@ -573,6 +628,7 @@ def main(argv: list[str] | None = None) -> int:
             state,
             args.state_file,
             dry_run=args.dry_run,
+            media_root=args.media_root,
         )
         _batch_refresh_sonarr(sonarr, sonarr_migrated, dry_run=args.dry_run)
 
