@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
 status: executing
-last_updated: "2026-05-26T22:17:04.812Z"
-last_activity: 2026-05-26 -- Phase 22 planning complete
+last_updated: "2026-05-26T22:19:21.519Z"
+last_activity: 2026-05-26 -- Phase 22 execution started
 progress:
   total_phases: 4
   completed_phases: 2
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 22 — arrconf prune reconciler (next)
+**Current focus:** Phase 22 — arrconf-prune-reconciler-lock-the-cleanup-in
 
 ## Current Position
 
-Phase: 22 — CONTEXT GATHERED (ready for /gsd-plan-phase 22)
-Plan: 0 of 2 (not yet planned)
-Status: Ready to execute
-Last activity: 2026-05-26 -- Phase 22 planning complete
+Phase: 22 (arrconf-prune-reconciler-lock-the-cleanup-in) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 22
+Last activity: 2026-05-26 -- Phase 22 execution started
 
 ### Phase 21 close-out notes (carry into Phase 22)
 

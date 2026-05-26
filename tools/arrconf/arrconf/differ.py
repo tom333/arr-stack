@@ -254,6 +254,7 @@ def reconcile[T: BaseModel](
     match_key: str = "name",
     prune: bool = False,
     managed_tag_id: int | None = None,
+    force_prune: bool = False,  # NEW — D-04 untagged prune path (D-02 PRUNE_PROTECTED bypass)
 ) -> list[PlannedAction[T]]:
     """Run the generic reconcile algorithm.
 
@@ -261,8 +262,12 @@ def reconcile[T: BaseModel](
     2. Classify ADD / UPDATE / NO_OP for desired items.
     3. For unmatched current items:
        - prune=False → PRUNE_SKIP (warn) — REQ-prune-opt-in / D-04
-       - prune=True + managed_tag_id missing OR not in cur.tags → PRUNE_PROTECTED — D-02 / T-01-04
+       - prune=True + managed_tag_id missing OR not in cur.tags:
+         - force_prune=True → DELETE (D-04 allowlist-boundary path; caller constrains desired
+           set to the generator allowlist as the trust boundary — D-03)
+         - force_prune=False (default) → PRUNE_PROTECTED — D-02 / T-01-04
        - prune=True + managed_tag_id in cur.tags → DELETE
+    Note: force_prune has no effect when prune=False; the PRUNE_SKIP branch runs first.
     """
     by_name_current: dict[str, T] = {getattr(c, match_key): c for c in current}
     by_name_desired: dict[str, T] = {getattr(d, match_key): d for d in desired}
@@ -290,8 +295,21 @@ def reconcile[T: BaseModel](
             continue
         cur_tags = list(getattr(cur, "tags", None) or [])
         if managed_tag_id is None or managed_tag_id not in cur_tags:
-            plan.append(PlannedAction(Action.PRUNE_PROTECTED, name, cur, None, []))
-            log.warning("prune_protected", name=name, hint="missing arrconf-managed tag")
+            if force_prune:
+                # D-04: allowlist-boundary prune — no managed-tag check.
+                # Used for untaggable resources (root_folders, tags) and the
+                # legacy catch-all DC (id=1). Caller constrains the desired set
+                # to the allowlist (D-03: generator output) — that is the trust boundary.
+                plan.append(PlannedAction(Action.DELETE, name, cur, None, []))
+                log.info(
+                    "plan_action",
+                    action="delete",
+                    name=name,
+                    hint="force_prune=True, no managed-tag check",
+                )
+            else:
+                plan.append(PlannedAction(Action.PRUNE_PROTECTED, name, cur, None, []))
+                log.warning("prune_protected", name=name, hint="missing arrconf-managed tag")
         else:
             plan.append(PlannedAction(Action.DELETE, name, cur, None, []))
             log.info("plan_action", action="delete", name=name)
