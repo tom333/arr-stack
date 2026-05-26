@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: completed
-last_updated: "2026-05-26T21:48:00.911Z"
-last_activity: 2026-05-27 -- Phase 21 complete (SC1-SC5 verified on live cluster)
+status: executing
+last_updated: "2026-05-27T07:20:00.000Z"
+last_activity: 2026-05-27 -- Phase 22 context gathered (4 gray areas resolved)
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 2
+  total_plans: 5
   completed_plans: 2
-  percent: 100
+  percent: 50
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 21 — COMPLETE (live migration applied 2026-05-27, all 7 tasks done)
-Plan: 1 of 1 (all 7 tasks complete)
-Status: Phase 21 complete; ready for Phase 22
-Last activity: 2026-05-27 -- Phase 21 complete (SC1-SC5 verified on live cluster)
+Phase: 22 — CONTEXT GATHERED (ready for /gsd-plan-phase 22)
+Plan: 0 of 2 (not yet planned)
+Status: Phase 21 complete; Phase 22 context captured (22-CONTEXT.md), ready to plan
+Last activity: 2026-05-27 -- Phase 22 discuss complete (DC catch-all prune, allowlist, denylist guard, P21-leftovers folded in)
 
 ### Phase 21 close-out notes (carry into Phase 22)
 
@@ -72,17 +72,13 @@ v0.8.0 decisions to be captured during `/gsd-discuss-phase 20` → `22` (anticip
 
 ### Blockers/Concerns
 
-**Phase 21 Task 7 — BLOCKING human-action checkpoint.** Operator must execute the live cluster apply per `21-RUNBOOK.md`:
+**Phase 21 complete** (live migration applied 2026-05-27, SC1-SC5 verified, PASS-WITH-CONCERNS). Carry-forward into Phase 22 (now folded into P22 scope per D-09/10/11 in 22-CONTEXT.md):
+- 10 missing-on-disk *arr records → re-monitor + search (D-10)
+- 3 PRUNE_PHASE_22 orphan torrents on `/data/complete` → delete torrent + data (D-11)
 
-1. Étape 1 — `tools/snapshot/snapshot.sh --output snapshots/before-categories-cleanup-$(date +%F)/` + commit
-2. Étape 2 — `kubectl port-forward` (4 apps) + extract sealed-secret `arrconf-env`
-3. Étape 3 — Dry-run obligatoire
-4. Étape 4 — `--apply` (halt-on-error; re-run if halt)
-5. Étape 5 — Post-snapshot + diff + commit
+**ROADMAP Phase 23 SC error to fix** (flagged in 22-CONTEXT `<deferred>`): SC#1/SC#2 wrongly list `/media/films` + `/media/series` as legacy — they are valid default Categories. Only 4 paths are truly legacy: `/media/films-anime`, `/media/films-family` (Radarr), `/media/anime`, `/media/family` (Sonarr).
 
-Resume signal expected: "migration applied, SC1-SC5 verified" (or halt + recovery narrative).
-
-Risk register documented in `.planning/REQUIREMENTS.md` — primary destructive concerns (`mv` watch state, API mutation regressions, DC prune cutting in-flight torrents, over-prune at apply) are gated by ADR-6 snapshots + per-item operator-driven execution + Triade Python + `--dry-run` discipline.
+Risk register documented in `.planning/REQUIREMENTS.md` — Phase 22 destructive concerns (over-prune at apply, DC prune cutting in-flight torrents) gated by Triade Python + respx tests + `--dry-run` discipline + allowlist=categories[] safety boundary.
 
 ### Pending Todos
 
@@ -110,13 +106,8 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-1. **Phase 21 Task 7 (BLOCKING)** — execute live cluster migration per
-   `.planning/phases/21-filesystem-metadata-migration/21-RUNBOOK.md` :
-
-   - `tools/snapshot/snapshot.sh --output snapshots/before-categories-cleanup-$(date +%F)/` + commit
-   - `kubectl port-forward` (radarr/sonarr/qbittorrent/jellyfin) + extract `arrconf-env`
-   - `uv run --project tools/arrconf python tools/scripts/migrate-categories.py --audit … --dry-run`
-   - `uv run --project tools/arrconf python tools/scripts/migrate-categories.py --audit … --apply`
-   - Post-snapshot + diff + commit + audit-verify sanity check
-2. Once SC1-SC5 verified, run `/gsd-verify-work 21` to close Phase 21.
-3. Then `/gsd-spec-phase 22` → arrconf prune reconciler (CAT-CLEANUP-03 ; will bump `arrconf.image.tag` 0.14.x → 0.15.0 per CLAUDE.md §"Release pin co-bump pattern").
+1. **Phase 22 planning** — `/clear` then `/gsd-plan-phase 22` (consumes `22-CONTEXT.md`).
+   Scope: arrconf prune steps (allowlist=categories[]) + pydantic legacy denylist guard
+   + chart co-bump `0.14.1 → 0.15.0` + operator cleanup step (3 orphans + 10 missing).
+2. Phase 22 will bump `arrconf.image.tag` 0.14.1 → 0.15.0 per CLAUDE.md §"Release pin co-bump pattern".
+3. Then Phase 23 (UAT dispositive) — and fix the Phase 23 SC#1/#2 legacy-path error first.
