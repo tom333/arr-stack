@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: completed
-last_updated: "2026-05-26T08:17:57.043Z"
-last_activity: 2026-05-26 -- Phase 20 marked complete
+status: executing
+last_updated: "2026-05-26T09:13:21.062Z"
+last_activity: 2026-05-26 -- Phase 21 planning complete
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 1
+  total_plans: 2
   completed_plans: 1
-  percent: 100
+  percent: 50
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 20 — COMPLETE
 Plan: 1 of 1
-Status: Phase 20 complete
-Last activity: 2026-05-26 -- Phase 20 marked complete
+Status: Ready to execute
+Last activity: 2026-05-26 -- Phase 21 planning complete
 
 ### Phase 20 success criteria (from ROADMAP.md)
 

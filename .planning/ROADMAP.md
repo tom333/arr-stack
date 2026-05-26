@@ -130,6 +130,9 @@ Plans:
   5. Jellyfin `/Library/Refresh` completes, all 10 Category libs still report `ItemCount > 0`, no lib went empty post-migration.
 **Plans**: 1 plan (~1 day operator-time, step-by-step kubectl exec)
 
+Plans:
+- [ ] 21-01-PLAN.md — One-shot script tools/scripts/migrate-categories.py + 21-RUNBOOK.md + ADR-6 pre+post snapshots + operator live run (holistic single plan per D-21-PLAN-01)
+
 ### Phase 22: arrconf prune reconciler — lock the cleanup in
 **Goal**: Extend arrconf so the legacy v0.2.0 paths/tags cannot drift back: pydantic validation refuses non-Category `rootFolderPath`, reconcilers prune legacy root_folders + tags filtered to Categories, and the qBit DC catch-all decision (full prune OR low-priority `unsorted` fallback) is implemented + tested. Ship via chart-pin co-bump 0.14.x → 0.15.0.
 **Depends on**: Phase 21 (cluster already in Category-only state; pruning is safe)
