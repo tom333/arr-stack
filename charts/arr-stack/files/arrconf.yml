@@ -130,7 +130,15 @@ qbittorrent:
     categories:
       prune: false
     preferences:
-      enable: false
+      # D-05-QBT-02 opt-in reconcile. Enabled 2026-05-27 (quick 260527-jfk) to fix
+      # the Phase 23 SC#3 finding: qBit autoTMM was off, so new Radarr/Sonarr grabs
+      # landed in /data/complete instead of /data/torrents/<category>. With these on,
+      # new torrents default to Automatic TMM and relocate to the category save_path.
+      # Does NOT relocate existing manual torrents (only new ones).
+      enable: true
+      values:
+        auto_tmm_enabled: true
+        category_changed_tmm_enabled: true
 
 # Phase 6 (D-06-SCOPE-01): Seerr reconciler — single-instance per ADR-7.
 # 4 resources managed:
