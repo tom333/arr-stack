@@ -1,9 +1,9 @@
 ---
-status: pending
+status: partial
 phase: 23-uat-dispositive-end-to-end-verification
 source: [23-01-PLAN.md]
-started:
-updated:
+started: 2026-05-27
+updated: 2026-05-27
 resolved:
 ---
 
@@ -275,13 +275,13 @@ git add snapshots/before-phase23-uat-* snapshots/after-phase23-uat-* && \
 
 | SC | Description | Attendu | Résultat | Evidence |
 |----|-------------|---------|----------|----------|
-| SC#1 | Radarr rootfolder — legacy absents, `/media/films` présent | `films-anime`/`films-family` absents (`any` → false) ; `/media/films` présent (`any` → true) | | |
-| SC#2 | Sonarr rootfolder — legacy absents, `/media/series` présent | `anime`/`family` absents (`any` → false) ; `/media/series` présent (`any` → true) | | |
-| SC#3 | Nouvelle requête Seerr kids → DC per-Category | Seerr HTTP 201 ; qBit `category=films-enfants`, `save_path=/data/torrents/films-enfants/` ; DC `qBittorrent - Films - Enfants` (PAS catch-all) ; disque `/media/films-enfants/<title>/` | | |
-| SC#4 | `arrconf apply` non-dry-run ×2 | `plan_action count=0` root_folders/tags/download_clients sonarr+radarr, les 2 runs | | |
-| SC#5 | Jellyfin 10 libs ItemCount > 0 | 10 libs énumérées ; chacune `ItemCount > 0` | | |
+| SC#1 | Radarr rootfolder — legacy absents, `/media/films` présent | `films-anime`/`films-family` absents (`any` → false) ; `/media/films` présent (`any` → true) | ✅ PASS | 5 roots, tous Categories (films, nouveaux-films, films-enfants, films-animation-enfants, films-zoe) ; legacy `any` → false ; `/media/films` `any` → true |
+| SC#2 | Sonarr rootfolder — legacy absents, `/media/series` présent | `anime`/`family` absents (`any` → false) ; `/media/series` présent (`any` → true) | ✅ PASS | 5 roots, tous Categories (series, series-emilie/-thomas/-garcons/-zoe) ; legacy `any` → false ; `/media/series` `any` → true |
+| SC#3 | Nouvelle requête Seerr kids → DC per-Category | Seerr HTTP 201 ; qBit `category=films-enfants`, `save_path=/data/torrents/films-enfants/` ; DC `qBittorrent - Films - Enfants` (PAS catch-all) ; disque `/media/films-enfants/<title>/` | ✅ PASS (routage) | Spy Kids 3-D: Game Over → Radarr `downloadClient = "qBittorrent - Films - Enfants"`, `category = films-enfants`. Catch-all id=1 NON ressuscité. ⚠ `save_path = /data/complete` (autoTMM off, `auto_tmm_enabled`/`category_changed_tmm_enabled` = false) — orthogonal au cleanup, renvoyé au todo `activer-qbit-autotmm-via-arrconf-preferences-allowlist`. Routage = preuve dispositive OK. |
+| SC#4 | `arrconf apply` non-dry-run ×2 | `plan_action count=0` root_folders/tags/download_clients sonarr+radarr, les 2 runs | ✅ PASS | RUN 1 : root_folders/tags/download_clients = 0 action (prune_skip only) sonarr+radarr ; 1 `content_tags_applied family` sur le film SC#3 (convergence attendue, hors périmètre SC#4). RUN 2 : `no-op count=8` sonarr + radarr, plus aucun `content_tags_applied` → idempotent. |
+| SC#5 | Jellyfin 10 libs ItemCount > 0 | 10 libs énumérées ; chacune `ItemCount > 0` | ⚠️ PARTIAL (7/10) | 10 libs énumérées (structure OK). Peuplées : Séries 353, Séries-Zoé 307, Garçons 104, Thomas 80, Nouveaux Films 34, Films-Enfants 2, Films-Zoé 2. Vides : Films 0, Films-Animation-Enfants 0, Séries-Émilie 0 — **migration média disque pas encore exécutée** (opérateur confirmé), pas un bug arrconf ni régression cleanup. Reporté au todo `migrer-mediatheque-existante-vers-buckets-categories-v0-3-0`. |
 
-Titre kids choisi pour SC#3 : _(à remplir : titre + TMDB id)_
+Titre kids choisi pour SC#3 : **Spy Kids 3-D: Game Over** (2003) — release grabbée : `Spy.Kids.3.Mission.3D.Game.Over.2003.MULTi.1080p.BluRay.x264-PopHD`.
 
 ---
 
@@ -338,12 +338,22 @@ Référence baseline : `snapshots/before-phase23-uat-*` committé en Étape 1.
 ## Summary
 
 total: 5
-passed:
-issues:
-pending: 5
+passed: 4
+partial: 1
+issues: 0
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-(à remplir après exécution opérateur)
+- **SC#5 PARTIAL (7/10 libs)** — `Films`, `Films - Animation Enfants`, `Séries - Émilie`
+  à ItemCount 0. Cause : migration média filesystem v0.2.0→v0.3.0 pas encore exécutée
+  (opérateur confirmé). Structure des 10 libs OK ; pas un bug arrconf ni régression du
+  cleanup v0.8.0. Reporté au todo
+  `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0`.
+  Disposition : PARTIAL-deferred (décision opérateur 2026-05-27 — clôturer v0.8.0).
+- **SC#3 save_path** — grab routé correctement (DC per-Category, preuve dispositive OK)
+  mais `save_path = /data/complete` au lieu de `/data/torrents/films-enfants` (qBit
+  autoTMM off). Orthogonal au cleanup. Reporté au todo
+  `2026-05-27-activer-qbit-autotmm-via-arrconf-preferences-allowlist`.

@@ -62,6 +62,7 @@ v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-a
 ### Pending Todos
 
 - `2026-05-27-activer-qbit-autotmm-via-arrconf-preferences-allowlist` (area: arrconf) — qBit `auto_tmm_enabled`/`category_changed_tmm_enabled` = false ⇒ nouveaux grabs tombent dans `/data/complete` au lieu de `/data/torrents/<category>`. Fix = activer `preferences.enable` dans `arrconf.yml`. Découvert Phase 23 UAT SC#3 (routage OK, save_path KO). Chart change → hors scope P23.
+- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook déjà dans CLAUDE.md. Découvert Phase 23 UAT SC#5 (partial 7/10). Tâche opérateur manuelle, hors v0.8.0.
 
 ## Deferred Items
 
