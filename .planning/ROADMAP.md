@@ -100,7 +100,7 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 - [x] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (0/1 plans) (completed 2026-05-26)
 - [x] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (1/1 plans) (completed 2026-05-27)
 - [x] Phase 22: arrconf prune reconciler — prune legacy root_folders/tags + DC catch-all decision (0/2 plans planned) (completed 2026-05-27)
-- [ ] Phase 23: UAT dispositive — end-to-end Seerr-to-disk verification (legacy roots absent, Category DC routing, idempotent apply, Jellyfin lib counts) (0/1 plans)
+- [x] Phase 23: UAT dispositive — end-to-end Seerr-to-disk verification (legacy roots absent, Category DC routing, idempotent apply, Jellyfin lib counts) (0/1 plans) (completed 2026-05-27)
 
 ## Phase Details
 
@@ -165,7 +165,7 @@ Plans:
 **Plans**: 1 plan (~half-day, runbook execution + result tracking in `23-HUMAN-UAT.md`)
 
 Plans:
-- [ ] 23-01-PLAN.md — Author 23-HUMAN-UAT.md runbook + operator live UAT execution (5 SC: legacy roots absent, fresh Seerr kids-film routing, idempotent non-dry-run apply ×2, Jellyfin 10-lib ItemCount) — wave 1, human-action
+- [x] 23-01-PLAN.md — Author 23-HUMAN-UAT.md runbook + operator live UAT execution (5 SC: legacy roots absent, fresh Seerr kids-film routing, idempotent non-dry-run apply ×2, Jellyfin 10-lib ItemCount) — wave 1, human-action
 
 ## Progress
 
