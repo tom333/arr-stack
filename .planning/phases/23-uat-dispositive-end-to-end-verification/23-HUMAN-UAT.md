@@ -199,12 +199,12 @@ sed -E 's|http://[^.]+\.selfhost\.svc\.cluster\.local|http://localhost|g' \
 cd tools/arrconf
 
 # RUN 1 :
-uv run arrconf --config /tmp/arrconf-localhost.yml apply \
-  --apps sonarr,radarr --log-level INFO
+uv run arrconf --config /tmp/arrconf-localhost.yml --log-level INFO apply \
+  --apps sonarr,radarr
 
 # RUN 2 (back-to-back) :
-uv run arrconf --config /tmp/arrconf-localhost.yml apply \
-  --apps sonarr,radarr --log-level INFO
+uv run arrconf --config /tmp/arrconf-localhost.yml --log-level INFO apply \
+  --apps sonarr,radarr
 
 cd ../..
 ```
