@@ -1,0 +1,34 @@
+{
+  "apiKey": "<redacted>",
+  "applicationTitle": "Seerr",
+  "applicationUrl": "https://seerr.tgu.ovh",
+  "blocklistLanguage": "",
+  "blocklistRegion": "",
+  "blocklistedTags": "",
+  "blocklistedTagsLimit": 50,
+  "cacheImages": false,
+  "defaultPermissions": 32,
+  "defaultQuotas": {
+    "movie": {
+      "quotaDays": 7,
+      "quotaLimit": 5
+    },
+    "tv": {
+      "quotaDays": 7,
+      "quotaLimit": 5
+    }
+  },
+  "discoverRegion": "",
+  "enableSpecialEpisodes": false,
+  "hideAvailable": false,
+  "hideBlocklisted": false,
+  "localLogin": true,
+  "locale": "fr",
+  "mediaServerLogin": true,
+  "mediaServerType": 2,
+  "newPlexLogin": true,
+  "originalLanguage": "fr|en",
+  "partialRequestsEnabled": true,
+  "streamingRegion": "FR",
+  "youtubeUrl": ""
+}

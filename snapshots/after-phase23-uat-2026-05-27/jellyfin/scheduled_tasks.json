@@ -1,0 +1,439 @@
+[
+  {
+    "Category": "Médiathèque",
+    "Description": "Met à jour les métadonnées pour les acteurs et réalisateurs dans votre médiathèque.",
+    "Id": "866456ed0d44e15468124ce33d85961e",
+    "IsHidden": false,
+    "Key": "RefreshPeople",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-14T01:50:36.8231358Z",
+      "Id": "866456ed0d44e15468124ce33d85961e",
+      "Key": "RefreshPeople",
+      "Name": "Actualiser les acteurs",
+      "StartTimeUtc": "2026-04-14T01:50:36.5891884Z",
+      "Status": "Completed"
+    },
+    "Name": "Actualiser les acteurs",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 6048000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Extrait ou obtient des segments de média à partir des plugins compatibles avec MediaSegment.",
+    "Id": "f861734dd71b37f9482b52a820e39013",
+    "IsHidden": false,
+    "Key": "TaskExtractMediaSegments",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T17:00:05.402852Z",
+      "Id": "f861734dd71b37f9482b52a820e39013",
+      "Key": "TaskExtractMediaSegments",
+      "Name": "Analyse des segments de média",
+      "StartTimeUtc": "2026-05-26T16:59:56.1247566Z",
+      "Status": "Completed"
+    },
+    "Name": "Analyse des segments de média",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 432000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Analyse votre médiathèque pour trouver de nouveaux fichiers et actualise les métadonnées.",
+    "Id": "7738148ffcd07979c7ceb148e06b3aed",
+    "IsHidden": false,
+    "Key": "RefreshLibrary",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T20:11:04.2668988Z",
+      "Id": "7738148ffcd07979c7ceb148e06b3aed",
+      "Key": "RefreshLibrary",
+      "Name": "Analyser la médiathèque",
+      "StartTimeUtc": "2026-05-26T20:06:59.6296474Z",
+      "Status": "Completed"
+    },
+    "Name": "Analyser la médiathèque",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 432000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Déplace les fichiers trickplay existants en fonction des paramètres de la bibliothèque.",
+    "Id": "ebb6e58c4e9a8f5d1f77ab6ddefb3143",
+    "IsHidden": false,
+    "Key": "MoveTrickplayImages",
+    "Name": "Changer l'emplacement des images Trickplay",
+    "State": "Idle",
+    "Triggers": []
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Extrait les images clés des fichiers vidéo pour créer des listes de lecture HLS plus précises. Cette tâche peut durer très longtemps.",
+    "Id": "f302d80f31bcacf76f979d277d448581",
+    "IsHidden": false,
+    "Key": "KeyframeExtraction",
+    "Name": "Extracteur d'images clés",
+    "State": "Idle",
+    "Triggers": []
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Crée des vignettes pour les vidéos ayant des chapitres.",
+    "Id": "4e6637c832ed644d1af3370a2506e80a",
+    "IsHidden": false,
+    "Key": "RefreshChapterImages",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-27T00:00:00.3655607Z",
+      "Id": "4e6637c832ed644d1af3370a2506e80a",
+      "Key": "RefreshChapterImages",
+      "Name": "Extraire les images de chapitre",
+      "StartTimeUtc": "2026-05-27T00:00:00.0001044Z",
+      "Status": "Completed"
+    },
+    "Name": "Extraire les images de chapitre",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "MaxRuntimeTicks": 144000000000,
+        "TimeOfDayTicks": 72000000000,
+        "Type": "DailyTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Crée des aperçus Trickplay pour les vidéos dans les médiathèques activées.",
+    "Id": "64f5f44cd30dc273cb9890205473bbcc",
+    "IsHidden": false,
+    "Key": "RefreshTrickplayImages",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-27T01:00:01.0887432Z",
+      "Id": "64f5f44cd30dc273cb9890205473bbcc",
+      "Key": "RefreshTrickplayImages",
+      "Name": "Générer des images Trickplay",
+      "StartTimeUtc": "2026-05-27T00:59:59.999494Z",
+      "Status": "Completed"
+    },
+    "Name": "Générer des images Trickplay",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "TimeOfDayTicks": 108000000000,
+        "Type": "DailyTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Application",
+    "Description": "Télécharge et installe les mises à jours des extensions configurées pour être mises à jour automatiquement.",
+    "Id": "f9b057c054e9e6daee4a88ffd146a403",
+    "IsHidden": false,
+    "Key": "PluginUpdates",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T04:59:01.7763511Z",
+      "Id": "f9b057c054e9e6daee4a88ffd146a403",
+      "Key": "PluginUpdates",
+      "Name": "Mettre à jour les extensions",
+      "StartTimeUtc": "2026-05-26T04:58:59.127769Z",
+      "Status": "Completed"
+    },
+    "Name": "Mettre à jour les extensions",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "Type": "StartupTrigger"
+      },
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Supprime les fichiers transcodés de plus d'un jour.",
+    "Id": "7d8088c10902f1bf4072ded42437bcfb",
+    "IsHidden": false,
+    "Key": "DeleteTranscodeFiles",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T04:58:59.1305407Z",
+      "Id": "7d8088c10902f1bf4072ded42437bcfb",
+      "Key": "DeleteTranscodeFiles",
+      "Name": "Nettoyer le dossier des transcodages",
+      "StartTimeUtc": "2026-05-26T04:58:59.1277277Z",
+      "Status": "Completed"
+    },
+    "Name": "Nettoyer le dossier des transcodages",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "Type": "StartupTrigger"
+      },
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Supprime les entrées du journal d'activité antérieures à l'âge configuré.",
+    "Id": "b461ef918ab28520928183e794350e3c",
+    "IsHidden": false,
+    "Key": "CleanActivityLog",
+    "Name": "Nettoyer le journal d'activité",
+    "State": "Idle",
+    "Triggers": []
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Supprime les journaux de plus de 3 jours.",
+    "Id": "1c8ede62c521bea0bf851344f5b8ca40",
+    "IsHidden": false,
+    "Key": "CleanLogFiles",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:40.2402239Z",
+      "Id": "1c8ede62c521bea0bf851344f5b8ca40",
+      "Key": "CleanLogFiles",
+      "Name": "Nettoyer le répertoire des journaux",
+      "StartTimeUtc": "2026-04-22T15:34:40.2399928Z",
+      "Status": "Completed"
+    },
+    "Name": "Nettoyer le répertoire des journaux",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Supprime les éléments des collections et des listes de lecture qui n'existent plus.",
+    "Id": "3a025083141d3c17dd96d5f9b951287b",
+    "IsHidden": false,
+    "Key": "CleanCollectionsAndPlaylists",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T04:58:59.1520721Z",
+      "Id": "3a025083141d3c17dd96d5f9b951287b",
+      "Key": "CleanCollectionsAndPlaylists",
+      "Name": "Nettoyer les collections et les listes de lecture",
+      "StartTimeUtc": "2026-05-26T04:58:59.126881Z",
+      "Status": "Completed"
+    },
+    "Name": "Nettoyer les collections et les listes de lecture",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "Type": "StartupTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Analyse les fichiers à la recherche de données de normalisation audio.",
+    "Id": "ec2f221fd8e7706b3d3afd2c4591b4d7",
+    "IsHidden": false,
+    "Key": "AudioNormalization",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:39.7278615Z",
+      "Id": "ec2f221fd8e7706b3d3afd2c4591b4d7",
+      "Key": "AudioNormalization",
+      "Name": "Normalisation audio",
+      "StartTimeUtc": "2026-04-22T15:34:39.7243412Z",
+      "Status": "Completed"
+    },
+    "Name": "Normalisation audio",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Réduit les espaces vides ou inutiles et compacte la base de données. Utiliser cette fonction après une mise à jour de la médiathèque ou toute autre modification de la base de données peut améliorer les performances du serveur.",
+    "Id": "31de9ce83b9223d338c77b1a635e144b",
+    "IsHidden": false,
+    "Key": "OptimizeDatabaseTask",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T23:01:58.2764538Z",
+      "Id": "31de9ce83b9223d338c77b1a635e144b",
+      "Key": "OptimizeDatabaseTask",
+      "Name": "Optimiser la base de données",
+      "StartTimeUtc": "2026-05-26T23:01:58.1277776Z",
+      "Status": "Completed"
+    },
+    "Name": "Optimiser la base de données",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 216000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Live TV",
+    "Description": "Downloads channel information from live tv services.",
+    "Id": "bea9b218c97bbf98c5dc1303bdb9a0ca",
+    "IsHidden": true,
+    "Key": "RefreshGuide",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:43.8680819Z",
+      "Id": "bea9b218c97bbf98c5dc1303bdb9a0ca",
+      "Key": "RefreshGuide",
+      "Name": "Refresh Guide",
+      "StartTimeUtc": "2026-04-22T15:34:40.8624266Z",
+      "Status": "Completed"
+    },
+    "Name": "Refresh Guide",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Kodi Sync Queue",
+    "Description": "If retention days > 0 then this will remove the old data to keep information flowing quickly",
+    "Id": "d0ebd95a9037582e5baa53965a91f436",
+    "IsHidden": false,
+    "Key": "KodiSyncFireRetentionTask",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-05-26T22:01:00.0081629Z",
+      "Id": "d0ebd95a9037582e5baa53965a91f436",
+      "Key": "KodiSyncFireRetentionTask",
+      "Name": "Remove Old Sync Data",
+      "StartTimeUtc": "2026-05-26T22:01:00.0040825Z",
+      "Status": "Completed"
+    },
+    "Name": "Remove Old Sync Data",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "TimeOfDayTicks": 600000000,
+        "Type": "DailyTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Nettoie toutes les données utilisateur (état de la montre, statut favori, etc.) des supports qui ne sont plus présents depuis au moins 90 jours.",
+    "Id": "8240e309407dbbf43c99d30a6cbd239e",
+    "IsHidden": false,
+    "Key": "CleanupUserDataTask",
+    "Name": "Tâche de nettoyage des données utilisateur",
+    "State": "Idle",
+    "Triggers": []
+  },
+  {
+    "Category": "Chaînes en ligne",
+    "Description": "TasksRefreshChannelsDescription",
+    "Id": "0c9ee3a88fc15547c6852205480da1fd",
+    "IsHidden": true,
+    "Key": "RefreshInternetChannels",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:40.9174447Z",
+      "Id": "0c9ee3a88fc15547c6852205480da1fd",
+      "Key": "RefreshInternetChannels",
+      "Name": "TasksRefreshChannels",
+      "StartTimeUtc": "2026-04-22T15:34:40.9143064Z",
+      "Status": "Completed"
+    },
+    "Name": "TasksRefreshChannels",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Téléchargement des paroles des chansons",
+    "Id": "26649fe0aad57557245351f220da916c",
+    "IsHidden": false,
+    "Key": "DownloadLyrics",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:39.5657825Z",
+      "Id": "26649fe0aad57557245351f220da916c",
+      "Key": "DownloadLyrics",
+      "Name": "Télécharger les paroles des chansons manquantes",
+      "StartTimeUtc": "2026-04-22T15:34:39.5631232Z",
+      "Status": "Completed"
+    },
+    "Name": "Télécharger les paroles des chansons manquantes",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Médiathèque",
+    "Description": "Recherche les sous-titres manquants sur Internet en se basant sur la configuration des métadonnées.",
+    "Id": "2c66a88bca43e565d7f8099f825478f1",
+    "IsHidden": false,
+    "Key": "DownloadSubtitles",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:39.5093627Z",
+      "Id": "2c66a88bca43e565d7f8099f825478f1",
+      "Key": "DownloadSubtitles",
+      "Name": "Télécharger les sous-titres manquants",
+      "StartTimeUtc": "2026-04-22T15:34:39.5092464Z",
+      "Status": "Completed"
+    },
+    "Name": "Télécharger les sous-titres manquants",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  },
+  {
+    "Category": "Maintenance",
+    "Description": "Supprime les fichiers de cache dont le système n'a plus besoin.",
+    "Id": "241d4fcb19a1d557ee62428e411da609",
+    "IsHidden": false,
+    "Key": "DeleteCacheFiles",
+    "LastExecutionResult": {
+      "EndTimeUtc": "2026-04-22T15:34:40.1290451Z",
+      "Id": "241d4fcb19a1d557ee62428e411da609",
+      "Key": "DeleteCacheFiles",
+      "Name": "Vider le répertoire cache",
+      "StartTimeUtc": "2026-04-22T15:34:40.1221114Z",
+      "Status": "Completed"
+    },
+    "Name": "Vider le répertoire cache",
+    "State": "Idle",
+    "Triggers": [
+      {
+        "IntervalTicks": 864000000000,
+        "Type": "IntervalTrigger"
+      }
+    ]
+  }
+]
