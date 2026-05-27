@@ -1,7 +1,7 @@
 [
   {
     "accessible": true,
-    "freeSpace": 437214248960,
+    "freeSpace": 436920385536,
     "id": 1,
     "path": "/media/series",
     "unmappedFolders": [
@@ -164,20 +164,52 @@
   },
   {
     "accessible": true,
-    "freeSpace": 437210316800,
+    "freeSpace": 436911472640,
     "id": 4,
     "path": "/media/series-emilie",
     "unmappedFolders": []
   },
   {
     "accessible": true,
-    "freeSpace": 437196423168,
+    "freeSpace": 436902821888,
     "id": 5,
-    "path": "/media/series-thomas"
+    "path": "/media/series-thomas",
+    "unmappedFolders": [
+      {
+        "name": "Bleach",
+        "path": "/media/series-thomas/Bleach",
+        "relativePath": "Bleach"
+      },
+      {
+        "name": "Claymore",
+        "path": "/media/series-thomas/Claymore",
+        "relativePath": "Claymore"
+      },
+      {
+        "name": "One Piece Kaï",
+        "path": "/media/series-thomas/One Piece Kaï",
+        "relativePath": "One Piece Kaï"
+      },
+      {
+        "name": "The big bang theory",
+        "path": "/media/series-thomas/The big bang theory",
+        "relativePath": "The big bang theory"
+      },
+      {
+        "name": "The boys",
+        "path": "/media/series-thomas/The boys",
+        "relativePath": "The boys"
+      },
+      {
+        "name": "The office",
+        "path": "/media/series-thomas/The office",
+        "relativePath": "The office"
+      }
+    ]
   },
   {
     "accessible": true,
-    "freeSpace": 437188034560,
+    "freeSpace": 436885520384,
     "id": 6,
     "path": "/media/series-garcons"
   },
