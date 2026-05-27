@@ -1,0 +1,305 @@
+[
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 1,
+    "path": "/media/series",
+    "unmappedFolders": [
+      {
+        "name": "3 Body problem",
+        "path": "/media/series/3 Body problem",
+        "relativePath": "3 Body problem"
+      },
+      {
+        "name": "A Discovery of Witches",
+        "path": "/media/series/A Discovery of Witches",
+        "relativePath": "A Discovery of Witches"
+      },
+      {
+        "name": "Bones",
+        "path": "/media/series/Bones",
+        "relativePath": "Bones"
+      },
+      {
+        "name": "Citadel Diana",
+        "path": "/media/series/Citadel Diana",
+        "relativePath": "Citadel Diana"
+      },
+      {
+        "name": "Constellation",
+        "path": "/media/series/Constellation",
+        "relativePath": "Constellation"
+      },
+      {
+        "name": "Countdown",
+        "path": "/media/series/Countdown",
+        "relativePath": "Countdown"
+      },
+      {
+        "name": "Cross",
+        "path": "/media/series/Cross",
+        "relativePath": "Cross"
+      },
+      {
+        "name": "Devil may cry",
+        "path": "/media/series/Devil may cry",
+        "relativePath": "Devil may cry"
+      },
+      {
+        "name": "Dune prophecy",
+        "path": "/media/series/Dune prophecy",
+        "relativePath": "Dune prophecy"
+      },
+      {
+        "name": "Fallout",
+        "path": "/media/series/Fallout",
+        "relativePath": "Fallout"
+      },
+      {
+        "name": "Fool me once",
+        "path": "/media/series/Fool me once",
+        "relativePath": "Fool me once"
+      },
+      {
+        "name": "Foundation",
+        "path": "/media/series/Foundation",
+        "relativePath": "Foundation"
+      },
+      {
+        "name": "Friends",
+        "path": "/media/series/Friends",
+        "relativePath": "Friends"
+      },
+      {
+        "name": "Gyeongseong Creature",
+        "path": "/media/series/Gyeongseong Creature",
+        "relativePath": "Gyeongseong Creature"
+      },
+      {
+        "name": "Invasion",
+        "path": "/media/series/Invasion",
+        "relativePath": "Invasion"
+      },
+      {
+        "name": "Malcolm in the middle",
+        "path": "/media/series/Malcolm in the middle",
+        "relativePath": "Malcolm in the middle"
+      },
+      {
+        "name": "Sherlock",
+        "path": "/media/series/Sherlock",
+        "relativePath": "Sherlock"
+      },
+      {
+        "name": "Silo",
+        "path": "/media/series/Silo",
+        "relativePath": "Silo"
+      },
+      {
+        "name": "Squid game",
+        "path": "/media/series/Squid game",
+        "relativePath": "Squid game"
+      },
+      {
+        "name": "Stargate SG-1",
+        "path": "/media/series/Stargate SG-1",
+        "relativePath": "Stargate SG-1"
+      },
+      {
+        "name": "Stranger things",
+        "path": "/media/series/Stranger things",
+        "relativePath": "Stranger things"
+      },
+      {
+        "name": "Talamasca The secret order",
+        "path": "/media/series/Talamasca The secret order",
+        "relativePath": "Talamasca The secret order"
+      },
+      {
+        "name": "The equalizer",
+        "path": "/media/series/The equalizer",
+        "relativePath": "The equalizer"
+      },
+      {
+        "name": "The last of us",
+        "path": "/media/series/The last of us",
+        "relativePath": "The last of us"
+      },
+      {
+        "name": "The lazarus project",
+        "path": "/media/series/The lazarus project",
+        "relativePath": "The lazarus project"
+      },
+      {
+        "name": "The legend of Vox Machina",
+        "path": "/media/series/The legend of Vox Machina",
+        "relativePath": "The legend of Vox Machina"
+      },
+      {
+        "name": "The madness",
+        "path": "/media/series/The madness",
+        "relativePath": "The madness"
+      },
+      {
+        "name": "The simpsons",
+        "path": "/media/series/The simpsons",
+        "relativePath": "The simpsons"
+      },
+      {
+        "name": "Vortex",
+        "path": "/media/series/Vortex",
+        "relativePath": "Vortex"
+      },
+      {
+        "name": "Wild cards",
+        "path": "/media/series/Wild cards",
+        "relativePath": "Wild cards"
+      },
+      {
+        "name": "Young Sheldon",
+        "path": "/media/series/Young Sheldon",
+        "relativePath": "Young Sheldon"
+      }
+    ]
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 2,
+    "path": "/media/anime",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 3,
+    "path": "/media/family",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 4,
+    "path": "/media/series-emilie",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 5,
+    "path": "/media/series-thomas",
+    "unmappedFolders": [
+      {
+        "name": "Bleach",
+        "path": "/media/series-thomas/Bleach",
+        "relativePath": "Bleach"
+      },
+      {
+        "name": "Claymore",
+        "path": "/media/series-thomas/Claymore",
+        "relativePath": "Claymore"
+      },
+      {
+        "name": "One Piece Kaï",
+        "path": "/media/series-thomas/One Piece Kaï",
+        "relativePath": "One Piece Kaï"
+      },
+      {
+        "name": "The big bang theory",
+        "path": "/media/series-thomas/The big bang theory",
+        "relativePath": "The big bang theory"
+      },
+      {
+        "name": "The boys",
+        "path": "/media/series-thomas/The boys",
+        "relativePath": "The boys"
+      },
+      {
+        "name": "The office",
+        "path": "/media/series-thomas/The office",
+        "relativePath": "The office"
+      }
+    ]
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 6,
+    "path": "/media/series-garcons",
+    "unmappedFolders": [
+      {
+        "name": "Dragon ball",
+        "path": "/media/series-garcons/Dragon ball",
+        "relativePath": "Dragon ball"
+      },
+      {
+        "name": "Hunter X Hunter",
+        "path": "/media/series-garcons/Hunter X Hunter",
+        "relativePath": "Hunter X Hunter"
+      },
+      {
+        "name": "La quete d'Ewilan",
+        "path": "/media/series-garcons/La quete d'Ewilan",
+        "relativePath": "La quete d'Ewilan"
+      },
+      {
+        "name": "Naruto",
+        "path": "/media/series-garcons/Naruto",
+        "relativePath": "Naruto"
+      },
+      {
+        "name": "Tintin",
+        "path": "/media/series-garcons/Tintin",
+        "relativePath": "Tintin"
+      },
+      {
+        "name": "Wondla",
+        "path": "/media/series-garcons/Wondla",
+        "relativePath": "Wondla"
+      }
+    ]
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457780736,
+    "id": 7,
+    "path": "/media/series-zoe",
+    "unmappedFolders": [
+      {
+        "name": "Frozen Northern Lights",
+        "path": "/media/series-zoe/Frozen Northern Lights",
+        "relativePath": "Frozen Northern Lights"
+      },
+      {
+        "name": "Les P'tites poules",
+        "path": "/media/series-zoe/Les P'tites poules",
+        "relativePath": "Les P'tites poules"
+      },
+      {
+        "name": "Lolirock",
+        "path": "/media/series-zoe/Lolirock",
+        "relativePath": "Lolirock"
+      },
+      {
+        "name": "Mickey Mouse Clubhouse",
+        "path": "/media/series-zoe/Mickey Mouse Clubhouse",
+        "relativePath": "Mickey Mouse Clubhouse"
+      },
+      {
+        "name": "Unicorn academy",
+        "path": "/media/series-zoe/Unicorn academy",
+        "relativePath": "Unicorn academy"
+      },
+      {
+        "name": "Unicorn Academy Secrets Revealed",
+        "path": "/media/series-zoe/Unicorn Academy Secrets Revealed",
+        "relativePath": "Unicorn Academy Secrets Revealed"
+      },
+      {
+        "name": "Winx Club",
+        "path": "/media/series-zoe/Winx Club",
+        "relativePath": "Winx Club"
+      }
+    ]
+  }
+]

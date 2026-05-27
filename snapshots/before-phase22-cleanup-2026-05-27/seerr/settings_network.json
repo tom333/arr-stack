@@ -1,0 +1,21 @@
+{
+  "apiRequestTimeout": 10000,
+  "csrfProtection": false,
+  "dnsCache": {
+    "enabled": false,
+    "forceMaxTtl": -1,
+    "forceMinTtl": 0
+  },
+  "forceIpv4First": false,
+  "proxy": {
+    "bypassFilter": "",
+    "bypassLocalAddresses": true,
+    "enabled": false,
+    "hostname": "",
+    "password": "",
+    "port": 8080,
+    "useSsl": false,
+    "user": ""
+  },
+  "trustProxy": false
+}
