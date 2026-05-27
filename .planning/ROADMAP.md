@@ -99,7 +99,7 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 
 - [x] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (0/1 plans) (completed 2026-05-26)
 - [x] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (1/1 plans) (completed 2026-05-27)
-- [ ] Phase 22: arrconf prune reconciler — prune legacy root_folders/tags + DC catch-all decision (0/2 plans planned)
+- [x] Phase 22: arrconf prune reconciler — prune legacy root_folders/tags + DC catch-all decision (0/2 plans planned) (completed 2026-05-27)
 - [ ] Phase 23: UAT dispositive — end-to-end Seerr-to-disk verification + chart bump 0.14.x → 0.15.0 (0/1 plans)
 
 ## Phase Details
@@ -150,7 +150,7 @@ Plans:
 - [x] 22-01-PLAN.md — Prune reconciler (differ.force_prune + Sonarr/Radarr wiring) + pydantic legacy-path guard + respx/unit tests + chart co-bump 0.14.1 -> 0.15.0 (autonomous)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 22-02-PLAN.md — Live operator cleanup runbook (3 orphan torrents + 10 missing records) + SC#2 dry-run gate + plan-split/DC ADR (wave 2, human-action)
+- [x] 22-02-PLAN.md — Live operator cleanup runbook (3 orphan torrents + 10 missing records) + SC#2 dry-run gate + plan-split/DC ADR (wave 2, human-action)
 
 ### Phase 23: UAT dispositive — end-to-end verification
 **Goal**: Prove the cleanup holds end-to-end in the live cluster: legacy paths absent from API responses, a fresh Seerr request routes through the Category DC (not the catch-all), and a second `arrconf apply` is fully idempotent.

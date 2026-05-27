@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: executing
+status: ready_to_plan
 last_updated: "2026-05-26T22:19:21.519Z"
 last_activity: 2026-05-26 -- Phase 22 execution started
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 4
   completed_plans: 2
-  percent: 50
+  percent: 75
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 22 (arrconf-prune-reconciler-lock-the-cleanup-in) — EXECUTING (paused at human-action checkpoint)
-Plan: 22-01 ✅ complete | 22-02 ⏸ Task 1 done, Task 2 (live cleanup) BLOCKED on operator
-Status: Awaiting operator live cleanup — Phase 22 NOT verified/complete yet
-Last activity: 2026-05-26 -- Phase 22 wave 1 shipped, image :0.15.0 published, wave 2 docs written, live checkpoint deferred
+Phase: 23
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-27
 
 ### Phase 22 resume point (RUN AFTER arrconf :0.15.0 IS DEPLOYED)
 
