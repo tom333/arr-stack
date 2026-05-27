@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.8.0
-milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: Awaiting next milestone
-last_updated: "2026-05-27T03:15:47.950Z"
-last_activity: 2026-05-27 — Milestone v0.8.0 completed and archived
+milestone: v0.9.0
+milestone_name: configarr-in-UI + Jellyfin skip-intro
+status: planning
+last_updated: "2026-05-27T04:48:28.356Z"
+last_activity: 2026-05-27
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,20 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** v0.8.0 archived (2026-05-27) — planning next milestone (v0.9.0) via `/gsd-new-milestone`
+**Current focus:** v0.9.0 en cadrage — définition des requirements (configarr-in-UI + Jellyfin skip-intro)
 
 ## Current Position
 
-Phase: Milestone v0.8.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-27 — Milestone v0.8.0 completed and archived
-
-### Phase 22 DONE (2026-05-27) — closed live
-
-- Code: `force_prune` path + legacy-name guard + Sonarr/Radarr wiring + tests (455 pass) shipped → `arrconf:0.15.0` on GHCR + deployed in cluster (CronJob on `:0.15.0`).
-- Live cleanup executed: 3 orphan torrents deleted (`deleteFiles=true`); catch-all DC `qBittorrent` id=1 + 4 legacy roots (`/media/{anime,family,films-anime,films-family}`) deleted (surgical id DELETE, NOT force_prune); 5 Radarr missing re-searched / 2 deferred (2026); SC#2 dry-run `0 plan_action` before+after (idempotent). ADR-6 snapshots committed.
-- Carry-forward residue (future milestone): legacy per-type DCs (TV/Anime/Family/Movies) + legacy tags (`tv`/`family`/`anime`/`1-moi`) left in-cluster — need full Category tag migration first. Mario Galaxy + Jumpers (2026) monitored, unreleased.
+Status: Defining requirements
+Last activity: 2026-05-27 — Milestone v0.9.0 started
 
 ## Accumulated Context
 
@@ -73,9 +67,7 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 | verification_gap | phase-09 VERIFICATION status human_needed (UAT-driven) | human_needed | v0.3.0 close (2026-05-22) |
 | verification_gap | phase-10 VERIFICATION status human_needed (SC#1 cluster materialization + SC#3 TVDB-anime live routing) | human_needed | v0.3.0 close (2026-05-22) |
 | infra_gap | SuggestArr ingress + auto-submit (currently port-forward + manual approval) | deferred | v0.4.0 close (2026-05-23) |
-| infra_gap | arrconf-ui distribution (currently runs from source via `uv run`) | deferred | v0.4.0 close (2026-05-23) |
 | upgrade_check | D-07-PLAYLIST-MGMT-NULL re-verify on Jellyfin 11.x upgrade | watch-only | v0.3.0 close (2026-05-22) |
-| process | HUMAN-UAT frontmatter standardization (audit-open parser compat) | deferred | v0.5.0 close (2026-05-24) |
 
 ### Acknowledged at v0.8.0 close (2026-05-27)
 
@@ -101,4 +93,4 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- v0.9.0 en cadrage : research → requirements → roadmap (en cours via `/gsd-new-milestone`)
