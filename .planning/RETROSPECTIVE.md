@@ -177,21 +177,62 @@ Total change footprint: ~30 lines edited across 5 files. No code, no tests, no c
 
 ---
 
+## Milestone: v0.8.0 — Categories cleanup — v0.2.0 legacy migration close-out
+
+**Shipped:** 2026-05-27
+**Phases:** 4 (20-23) | **Plans:** 5/5 | **Commits:** 60 | **Duration:** ~3 days (operator-paced, destructive)
+
+### What Was Built
+
+Closed the half-applied v0.2.0→v0.3.0 Categories migration at the config level: read-only audit CLI (`arrconf audit`/`audit-verify`, P20) → one-shot live migration script `migrate-categories.py` (21 *arr PUTs + 37 torrents relocated, P21) → `differ.force_prune` + pydantic legacy-path guard shipped as `arrconf:0.15.0` with live cleanup of 4 legacy roots + catch-all DC id=1 + 3 orphan torrents (P22) → live operator UAT proving durability, SC#1-4 PASS (P23).
+
+### What Worked
+
+- **Audit-then-migrate separation.** Splitting the read-only inventory (P20, GET-only, zero mutation invariant grep-enforced) from the destructive apply (P21) meant the dangerous step ran against a reviewed, operator-edited plan with no ambiguous runtime decisions. The `audit-verify` gate (rejects unresolved `?`/`TBD` cells) forced every per-item decision to be made before any mutation.
+- **Cross-phase verification as a real safety net.** Phase 22 shipped without its own VERIFICATION.md, but Phase 23's live UAT (legacy roots absent + idempotent apply ×2) transitively proved the prune deliverable. A live end-to-end UAT is stronger evidence than a retroactive per-phase verification doc.
+- **ADR-6 pre/post snapshots on every destructive phase.** Bounded diffs (P21: exactly 4 files changed; P23: zero root_folder drift) gave independent, committed proof of what actually changed — invaluable when the cluster is later unreachable for live re-verification.
+
+### What Was Inefficient
+
+- **Audit-to-apply drift window.** The Phase 20 audit ran 2026-05-25; Phase 21 applied 2026-05-27. Disk drifted in between → 10 of 11 filesystem moves were `both_missing`, soft-skipped, leaving 10 DB records pointing at Category paths with no file on disk. **Lesson: re-audit immediately before a destructive apply, not days earlier.**
+- **A prune feature too risky to run live is half-delivered.** Phase 22 built + tested (455 respx) `force_prune=true`, then did NOT use it for the live cleanup — the mixed legacy+Category tag state would have over-deleted, so the operator used surgical id-targeted API DELETEs instead. The reconciler DELETE branch has zero production proof. **Lesson: a feature whose live path you don't dare exercise should be flagged as unexercised debt (it was — re-verify before `prune:true`), and ideally its activation precondition (full Category-tag migration) should be in the same milestone or explicitly sequenced.**
+- **Phase 22 skipped its VERIFICATION.md.** A process gap — the milestone audit had to manually override the 3-source matrix using a code audit + integration checker. Cheap to avoid: write the VERIFICATION even for human-action phases.
+
+### Patterns Established
+
+- **"Cleanup milestone" pattern.** A milestone whose entire scope is "finish what a prior milestone applied only halfway" — no new features, only audit + migrate + lock-in (prune) + UAT. Scope discipline (explicit "no new Category, no new reconciler step") kept it from creeping into a feature milestone.
+- **Operator-live destructive phases** (P21/P23 `human-action`) bracketed by committed ADR-6 snapshots + a French runbook (`21-RUNBOOK.md`).
+
+### Key Lessons
+
+- Re-audit right before destructive apply — drift windows are real and silent.
+- Built-but-unexercised live paths are debt; record the activation precondition.
+- Cross-phase live UAT can substitute for a missing per-phase VERIFICATION, but don't skip the VERIFICATION on purpose.
+- **Milestone tag vs chart tag collision:** this repo auto-tags chart releases (`v0.1.0`…`v0.15.0`) on every push; milestone versions reuse the same `vX.Y.Z` space and so cannot get dedicated git tags. Milestone versioning is planning-only here — `/gsd-complete-milestone`'s git-tag step is inapplicable.
+
+### Cost Observations
+
+- Mostly operator wall-clock (live cluster, port-forwards, per-item decisions), not model time. Planning on opus; milestone integration check delegated to a sonnet `gsd-integration-checker` subagent (~65k tokens, isolated).
+- One quick task absorbed inline (260527-jfk autoTMM `preferences.enable`) rather than a phase — micro-fix discipline held.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 | v0.7.0 |
-|--------|--------|--------|--------|--------|--------|--------|
-| Phases shipped | 11 | 3 | 4 | 3 | 1 | 0 |
-| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) | 0/0 (doc-only) |
-| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) | 0/0 (no new req, removed REQ-bazarr-addition) |
-| Out-of-scope decisions recorded | 8 | — | — | — | — | 3 (D-19-CLOSURE/RATIONALE/VIDEO-ONLY) |
-| Deferred items at close | 16 | — | — | 6 | 6 | 5 (REQ-bazarr-addition retired, 1 less carry-forward) |
-| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 | 0 |
-| Production cutover successes | 1 (Phase 7 chain ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue ~5 min) | 1 (Phase 19 v0.14.0 rescue ~5 min) | — (no chart change) |
-| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories) | 0 | 0 |
-| Milestone duration | weeks | — | — | 1 day intensive | 1 day micro | <30 min (same-session w/ v0.6.0) |
-| Auto-tag train rescue needed | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) | 0 (no code change) |
-| Code change footprint | 7044 ins (v0.5.0 net) | — | — | 7044 ins | 91 ins (4xx logging + 5 tests + co-bump) | 30 ins (5 doc files) |
+| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 | v0.7.0 | v0.8.0 |
+|--------|--------|--------|--------|--------|--------|--------|--------|
+| Phases shipped | 11 | 3 | 4 | 3 | 1 | 0 | 4 |
+| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) | 0/0 (doc-only) | 5/5 |
+| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) | 0/0 (no new req, removed REQ-bazarr-addition) | 4/4 (CAT-CLEANUP 1-4; 2 w/ caveats) |
+| Out-of-scope decisions recorded | 8 | — | — | — | — | 3 (D-19-CLOSURE/RATIONALE/VIDEO-ONLY) | — (cleanup scope, explicit no-new-Category) |
+| Deferred items at close | 16 | — | — | 6 | 6 | 5 (REQ-bazarr-addition retired, 1 less carry-forward) | 8 (incl. no-22-VERIFICATION + unexercised force_prune) |
+| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 | 0 | 1 (P21 both_missing soft-skip; P22 surgical-vs-force_prune) |
+| Production cutover successes | 1 (Phase 7 chain ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue ~5 min) | 1 (Phase 19 v0.14.0 rescue ~5 min) | — (no chart change) | 1 (:0.15.0 deployed + P23 live UAT) |
+| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories) | 0 | 0 | 0 (1 quick task 260527-jfk) |
+| Milestone duration | weeks | — | — | 1 day intensive | 1 day micro | <30 min (same-session w/ v0.6.0) | ~3 days (operator-paced, destructive) |
+| Auto-tag train rescue needed | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) | 0 (no code change) | 0 (clean co-bump 0.14.1→0.15.0) |
+| Code change footprint | 7044 ins (v0.5.0 net) | — | — | 7044 ins | 91 ins (4xx logging + 5 tests + co-bump) | 30 ins (5 doc files) | ~2.5k LOC (audit.py 997 + migrate 749 + prune/guard + tests; excl. snapshots) |
+| Milestone audit verdict | — | passed_with_caveats | — | — | — | — | tech_debt (no blockers) |
 
 **Recurring themes to watch in v0.3.0:**
 

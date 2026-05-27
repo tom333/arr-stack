@@ -7,7 +7,7 @@
 - ✅ **v0.4.0 Categories cleanup + content discovery + local config UI** — Phases 12-15 (shipped 2026-05-23)
 - ✅ **v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** — Phases 16-18 (shipped 2026-05-24)
 - ✅ **v0.6.0 arrconf observability — 4xx body logging** — Phase 19 (shipped 2026-05-25 via /gsd-quick 260525-bj5)
-- 🚧 **v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** — Phases 20-23 (in progress, started 2026-05-25)
+- ✅ **v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** — Phases 20-23 (shipped 2026-05-27)
 
 ## Phases
 
@@ -95,77 +95,22 @@ Quick task artifact: [`.planning/quick/260525-bj5-client-base-py-add-4xx-respons
 
 </details>
 
-### 🚧 v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (in progress)
+<details>
+<summary>✅ v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (Phases 20-23) — SHIPPED 2026-05-27</summary>
 
-- [x] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (0/1 plans) (completed 2026-05-26)
-- [x] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (1/1 plans) (completed 2026-05-27)
-- [x] Phase 22: arrconf prune reconciler — prune legacy root_folders/tags + DC catch-all decision (0/2 plans planned) (completed 2026-05-27)
-- [x] Phase 23: UAT dispositive — end-to-end Seerr-to-disk verification (legacy roots absent, Category DC routing, idempotent apply, Jellyfin lib counts) (0/1 plans) (completed 2026-05-27)
+- [x] Phase 20: Categories cleanup audit — legacy items/tags/paths inventory (1/1 plans) — 2026-05-26
+- [x] Phase 21: Filesystem + metadata migration — `mv` + Radarr/Sonarr API mutation + Jellyfin re-scan (1/1 plans) — 2026-05-27
+- [x] Phase 22: arrconf prune reconciler — force_prune + legacy-path guard + `:0.15.0` (2/2 plans) — 2026-05-27
+- [x] Phase 23: UAT dispositive — end-to-end live verification (1/1 plans) — 2026-05-27
 
-## Phase Details
+Total: **4 phases, 5/5 plans complete, 60 commits, 3 days**.
 
-### Phase 20: Categories cleanup audit
-**Goal**: Produce an exhaustive inventory of v0.2.0 legacy state across Radarr / Sonarr / qBittorrent so Phase 21 has a deterministic migration plan with no ambiguous per-item decisions left to runtime.
-**Depends on**: Nothing (read-only baseline)
-**Requirements**: CAT-CLEANUP-01
-**Success Criteria** (what must be TRUE):
-  1. `.planning/phases/20-categories-cleanup-audit/20-AUDIT.md` exists and lists every Radarr movie + Sonarr series whose `rootFolderPath` is a legacy v0.2.0 path, with target Category path resolved per item (auto-mapped or operator-decided).
-  2. Audit captures every qBit torrent whose `save_path` starts with a legacy `/data/torrents/<legacy>/` segment, with target Category save_path resolved.
-  3. Audit enumerates every Radarr/Sonarr tag that is legacy (`movies`, `family`, `films`, `anime`) vs Category (`films-enfants`, `series-zoe`, etc.) with the proposed prune/rename action per tag.
-  4. `legacy_path → Category` and `legacy_tag → Category_tag` mapping tables are committed and validated against the CLAUDE.md "Filesystem migration v0.2.0 → v0.3.0" reference table.
-**Plans**: 1 plan (~half-day)
+Highlights: closed the half-applied v0.2.0→v0.3.0 Categories migration at the config level. `arrconf audit`/`audit-verify` read-only inventory (P20) → one-shot `migrate-categories.py` live migration, 21 *arr PUTs + 37 torrents relocated (P21) → `differ.force_prune` + pydantic legacy-path guard shipped `:0.15.0`, live cleanup of 4 legacy roots + catch-all DC id=1 + 3 orphan torrents (P22) → live operator UAT SC#1-4 PASS, SC#5 partial-deferred (P23). Audit: `tech_debt` (no blockers).
 
-Plans:
-- [x] 20-01-PLAN.md — Audit module + Typer commands + tests + chart bump + operator-edit + verify gate (holistic single plan per CONTEXT.md)
+Full archived details: [`milestones/v0.8.0-ROADMAP.md`](milestones/v0.8.0-ROADMAP.md)
+Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDIT.md) — `tech_debt`
 
-### Phase 21: Filesystem + metadata migration
-**Goal**: Move every item identified in Phase 20 audit to its Category target — filesystem `mv` on the Jellyfin NFS volume + qBit `setLocation` for in-flight torrents + Radarr/Sonarr API mutations + post-migration re-scans — leaving the cluster functional throughout.
-**Depends on**: Phase 20 (consumes `20-AUDIT.md`)
-**Requirements**: CAT-CLEANUP-02
-**Success Criteria** (what must be TRUE):
-  1. ADR-6 snapshots exist for both pre-migration AND post-migration states under `snapshots/before-categories-cleanup-*` and `snapshots/after-categories-cleanup-*`, both committed; `diff` confirms only the expected `rootFolderPath` / `path` / `tags` / `save_path` mutations.
-  2. Radarr `/api/v3/movie` returns every previously-legacy movie with its new Category `rootFolderPath` + `path` + Category tag, file present on disk at the new path, no `monitored: false` regression vs pre-migration.
-  3. Sonarr `/api/v3/series` idem: every legacy series now anchored on its Category root folder, series tag updated, episode files re-detected after `RefreshSeries`.
-  4. qBit `/api/v2/torrents/info` shows every previously-legacy in-flight torrent with the Category `save_path` + Category as its `category` field, and the torrent remains in its prior state (downloading/seeding) without re-hashing failure.
-  5. Jellyfin `/Library/Refresh` completes, all 10 Category libs still report `ItemCount > 0`, no lib went empty post-migration.
-**Plans**: 1 plan (~1 day operator-time, step-by-step kubectl exec)
-
-Plans:
-- [x] 21-01-PLAN.md — One-shot script tools/scripts/migrate-categories.py + 21-RUNBOOK.md + ADR-6 pre+post snapshots + operator live run (holistic single plan per D-21-PLAN-01)
-
-### Phase 22: arrconf prune reconciler — lock the cleanup in
-**Goal**: Extend arrconf so the legacy v0.2.0 paths/tags cannot drift back: pydantic validation refuses non-Category `rootFolderPath`, reconcilers prune legacy root_folders + tags filtered to Categories, and the qBit DC catch-all decision (full prune OR low-priority `unsorted` fallback) is implemented + tested. Ship via chart-pin co-bump 0.14.x → 0.15.0.
-**Depends on**: Phase 21 (cluster already in Category-only state; pruning is safe)
-**Requirements**: CAT-CLEANUP-03
-**Success Criteria** (what must be TRUE):
-  1. Triade Python green on `tools/arrconf/`: `uv run ruff format --check . && uv run ruff check . && uv run mypy . && uv run pytest -q` exits 0; new respx tests cover every new prune step + the pydantic legacy-path refusal.
-  2. `arrconf apply --dry-run` on the post-Phase-21 cluster shows 0 plan_action on root_folders/tags/download_clients for Sonarr+Radarr — i.e. cluster is already aligned with the new generators (no regression from the prune step).
-  3. `arrconf apply --dry-run` on a synthetic config containing a legacy `rootFolderPath` (e.g. `/media/films-family`) exits code 2 with a `ConfigError` / pydantic `ValidationError` naming the offending path — fail-fast gate works.
-  4. DC catch-all `qBittorrent` (id=1) decision is implemented end-to-end: either pruned from generators output (with respx test asserting absence) OR re-tagged as `unsorted` with priority demoted (with respx test asserting tag+priority), per `/gsd-discuss-phase 22` choice; decision documented in phase ADR.
-  5. Same commit that lands the Python code bumps `charts/arr-stack/values.yaml#arrconf.image.tag` from `0.14.x` to `0.15.0` per CLAUDE.md "Release pin co-bump pattern"; Renovate annotation preserved verbatim.
-**Plans**: 2 plans (code + chart co-bump; live operator cleanup — ~1 day total)
-
-Plans:
-**Wave 1**
-- [x] 22-01-PLAN.md — Prune reconciler (differ.force_prune + Sonarr/Radarr wiring) + pydantic legacy-path guard + respx/unit tests + chart co-bump 0.14.1 -> 0.15.0 (autonomous)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 22-02-PLAN.md — Live operator cleanup runbook (3 orphan torrents + 10 missing records) + SC#2 dry-run gate + plan-split/DC ADR (wave 2, human-action)
-
-### Phase 23: UAT dispositive — end-to-end verification
-**Goal**: Prove the cleanup holds end-to-end in the live cluster: legacy paths absent from API responses, a fresh Seerr request routes through the Category DC (not the catch-all), and a second `arrconf apply` is fully idempotent.
-**Depends on**: Phase 22 (cluster running arrconf `:0.15.0` with prune steps active)
-**Requirements**: CAT-CLEANUP-04
-**Success Criteria** (what must be TRUE):
-  1. SC#1 — `curl http://radarr.selfhost.svc.cluster.local:7878/api/v3/rootfolder` returns Category paths only (including the valid default `/media/films`); the 2 legacy paths `/media/films-anime`, `/media/films-family` are absent from the response body. (`/media/films` is a valid default Category, NOT legacy.)
-  2. SC#2 — Sonarr `/api/v3/rootfolder` idem: Category paths only (including the valid default `/media/series`); the 2 legacy paths `/media/anime`, `/media/family` are absent. (`/media/series` is a valid default Category, NOT legacy.)
-  3. SC#3 — A new Seerr request for a kids' film lands on disk at `/media/films-enfants/<title>/`, qBit shows `category=films-enfants` + `save_path=/data/torrents/films-enfants/`, and the qBit "Added by" / download-client trace identifies `qBittorrent - Films - Enfants` as the accepting DC (NOT the catch-all `qBittorrent` id=1).
-  4. SC#4 — `arrconf apply` (not dry-run) on the post-cleanup cluster emits 0 plan_action across root_folders / tags / download_clients for sonarr + radarr; second back-to-back run idem (idempotence preserved).
-  5. SC#5 — Jellyfin web UI shows all 10 Category libs each with `ItemCount > 0`; no empty lib introduced by the migration.
-**Plans**: 1 plan (~half-day, runbook execution + result tracking in `23-HUMAN-UAT.md`)
-
-Plans:
-- [x] 23-01-PLAN.md — Author 23-HUMAN-UAT.md runbook + operator live UAT execution (5 SC: legacy roots absent, fresh Seerr kids-film routing, idempotent non-dry-run apply ×2, Jellyfin 10-lib ItemCount) — wave 1, human-action
+</details>
 
 ## Progress
 
@@ -176,7 +121,7 @@ Plans:
 | v0.4.0 Categories cleanup + content discovery + local config UI | 4 | 11/11 | ✅ Shipped | 2026-05-23 |
 | v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening | 3 | 3/3 | ✅ Shipped | 2026-05-24 |
 | v0.6.0 arrconf observability — 4xx body logging | 1 | 1/1 | ✅ Shipped | 2026-05-25 |
-| v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out | 4 | 0/5 | 🚧 In progress | — |
+| v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out | 4 | 5/5 | ✅ Shipped | 2026-05-27 |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)

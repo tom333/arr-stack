@@ -8,7 +8,7 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Milestone complete: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** (2026-05-27, 4/4 phases). La migration v0.2.0→v0.3.0 Categories à moitié appliquée est fermée côté config : audit (P20), filesystem+metadata migration (P21), arrconf prune reconciler `:0.15.0` + live cleanup (P22), et UAT dispositive (P23). **CAT-CLEANUP-04 fermé** par une UAT opérateur live (arrconf `:0.15.0`) : SC#1-4 PASS (roots legacy absents Radarr+Sonarr, routage Seerr→qBit via DC per-Category `qBittorrent - Films - Enfants` et non le catch-all supprimé, apply non-dry-run idempotent ×2), SC#5 PARTIAL-deferred (10 libs Jellyfin câblées mais 3 vides car migration média disque pas encore exécutée — tâche opérateur séparée, hors scope). 2 todos de suivi capturés (qBit autoTMM `preferences.enable`, migration média filesystem). Production cluster `:0.15.0`. **Next: `/gsd-complete-milestone` pour archiver v0.8.0.**
+**Milestone complete: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** (2026-05-27, 4/4 phases). La migration v0.2.0→v0.3.0 Categories à moitié appliquée est fermée côté config : audit (P20), filesystem+metadata migration (P21), arrconf prune reconciler `:0.15.0` + live cleanup (P22), et UAT dispositive (P23). **CAT-CLEANUP-04 fermé** par une UAT opérateur live (arrconf `:0.15.0`) : SC#1-4 PASS (roots legacy absents Radarr+Sonarr, routage Seerr→qBit via DC per-Category `qBittorrent - Films - Enfants` et non le catch-all supprimé, apply non-dry-run idempotent ×2), SC#5 PARTIAL-deferred (10 libs Jellyfin câblées mais 3 vides car migration média disque pas encore exécutée — tâche opérateur séparée, hors scope). 2 todos de suivi capturés (qBit autoTMM `preferences.enable`, migration média filesystem). Production cluster `:0.15.0`. **v0.8.0 archivé 2026-05-27** (audit `tech_debt`, aucun blocker — voir `milestones/v0.8.0-MILESTONE-AUDIT.md`). **Next: `/gsd-new-milestone` pour cadrer v0.9.0.**
 
 <details>
 <summary>Previous state — v0.7.0 Media stack scope closure (2026-05-25)</summary>
@@ -38,7 +38,9 @@ v0.2.0 transition layer fully ripped out (generators are the only source); Sugge
 
 </details>
 
-## Current Milestone: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out
+## Last Shipped Milestone: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (archived 2026-05-27)
+
+> Archivé. Détails complets : [`milestones/v0.8.0-ROADMAP.md`](milestones/v0.8.0-ROADMAP.md) + [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDIT.md). Le prochain milestone (v0.9.0) sera cadré via `/gsd-new-milestone` et remplacera cette section.
 
 **Goal:** Fermer la migration v0.2.0 → v0.3.0 Categories qui n'a été appliquée qu'à moitié. Phase 16 v0.5.0 a refait Jellyfin (10 libs Category-driven). Le filesystem migration runbook côté Jellyfin a été suivi. **Mais** les root_folders legacy de Radarr/Sonarr (`/media/films`, `/media/films-anime`, `/media/films-family`, `/media/series`, `/media/anime`, `/media/family`), les tags legacy (`movies`, `family`, `films`, `anime`), et le DC catch-all `qBittorrent` (no tags) coexistent toujours avec les v0.3.0 Categories — surfacé via "La Planète des Alphas" stuck sur `/media/films-family` (2026-05-25). Symétrique au fix Sonarr RPM 400 d'hier mais côté metadata + filesystem cette fois.
 
@@ -126,6 +128,15 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 <!-- Shipped 2026-05-25 in v0.6.0. -->
 
 - [x] **REQ-client-base-4xx-logging** — v0.6.0 (Phase 19 via /gsd-quick 260525-bj5): `_request` in `arrconf/client_base.py` emits `client_4xx` structlog warning with `response.text[:500]` body excerpt before `raise_for_status()` raises `httpx.HTTPStatusError`. 5 respx tests (411 → 416). Closes v0.5.0 observability tech debt.
+
+### Validated (v0.8.0)
+
+<!-- Shipped 2026-05-27 in v0.8.0. Milestone audit: tech_debt (no blockers). -->
+
+- [x] **CAT-CLEANUP-01** — v0.8.0 (Phase 20): `arrconf audit` + `audit-verify` read-only legacy-state inventory CLI (`audit.py`, 26 respx tests, `AUTO_PATH_MAPPING` verbatim from CLAUDE.md filesystem table, verify-gate rejects `?`/`TBD` cells). Operator live audit resolved 2026-05-26.
+- [x] **CAT-CLEANUP-02** — v0.8.0 (Phase 21): one-shot `tools/scripts/migrate-categories.py` (filesystem `mv` + qBit `setLocation` + Radarr/Sonarr API PUT + Jellyfin refresh); 21 *arr PUTs + 37 torrents relocated live, ADR-6 pre/post snapshots. **Caveat:** file-on-disk sub-clause partial — pre-existing disk drift left 10 records missing-on-disk (DB Category-anchored; operator follow-up tracked).
+- [x] **CAT-CLEANUP-03** — v0.8.0 (Phase 22): `differ.force_prune` path + pydantic legacy-path guard on Sonarr/Radarr root_folders/tags/download_clients; shipped `arrconf:0.15.0` (chart co-bump 0.14.1→0.15.0, 455 tests). Live cleanup of 4 legacy roots + catch-all DC id=1 + 3 orphan torrents. **Tech debt:** no 22-VERIFICATION.md (cross-verified by P23); `force_prune=true` DELETE path unexercised live (surgical deletes used) — re-verify before `prune:true` in `arrconf.yml`.
+- [x] **CAT-CLEANUP-04** — v0.8.0 (Phase 23): live operator UAT on `:0.15.0` — SC#1-4 PASS (legacy roots absent, Seerr→per-Category DC routing not catch-all, idempotent apply ×2). SC#5 PARTIAL-deferred (3 Jellyfin libs empty pending media FS migration — operator-accepted, out of scope).
 
 ### Active
 
@@ -294,4 +305,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v0.8.0 milestone complete (4/4 phases, Phase 23 UAT dispositive). CAT-CLEANUP-04 closed (SC#1-4 pass, SC#5 partial-deferred). Run `/gsd-complete-milestone` to archive.*
+*Last updated: 2026-05-27 — v0.8.0 milestone ARCHIVED (4 phases, 5 plans; audit `tech_debt`, no blockers). All 4 CAT-CLEANUP reqs → Validated. Next: `/gsd-new-milestone` for v0.9.0.*

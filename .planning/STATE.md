@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: milestone_complete
-last_updated: "2026-05-27T01:36:50.569Z"
-last_activity: 2026-05-27 -- Phase 23 execution started
+status: Awaiting next milestone
+last_updated: "2026-05-27T03:15:47.950Z"
+last_activity: 2026-05-27 — Milestone v0.8.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 23 — uat-dispositive-end-to-end-verification
+**Current focus:** v0.8.0 archived (2026-05-27) — planning next milestone (v0.9.0) via `/gsd-new-milestone`
 
 ## Current Position
 
-Phase: 23
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-27
+Phase: Milestone v0.8.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-27 — Milestone v0.8.0 completed and archived
 
 ### Phase 22 DONE (2026-05-27) — closed live
 
@@ -55,9 +55,9 @@ v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-a
 
 ### Blockers/Concerns
 
-**⚠ ROADMAP Phase 23 SC error to fix FIRST** (flagged in 22-CONTEXT `<deferred>`): SC#1/SC#2 wrongly list `/media/films` + `/media/series` as legacy — they are valid default Categories. Only 4 paths are truly legacy: `/media/films-anime`, `/media/films-family` (Radarr), `/media/anime`, `/media/family` (Sonarr). Fix before `/gsd-plan-phase 23`.
+None blocking. v0.8.0 closed as `tech_debt` (no blockers). Carry-forward debt tracked in "Deferred Items" below. Two items to re-surface in v0.9.0 planning: (1) Phase 22 had no VERIFICATION.md (cross-verified by P23 — accept or backfill); (2) `force_prune=true` live DELETE path never exercised — re-verify before ever setting `prune:true` in `arrconf.yml` (mixed legacy+Category tag state risks over-deletion until full Category-tag migration lands).
 
-**Phase 22 carry-forward RESOLVED** (2026-05-27 live): 3 orphan torrents deleted (D-11); missing records reconciled — Radarr 5 searched / 2 deferred, Sonarr left to scheduler (D-10).
+_Historical (resolved during v0.8.0):_ ROADMAP Phase 23 SC#1/SC#2 legacy-path wording error fixed pre-plan; Phase 22 live carry-forward resolved (3 orphan torrents deleted D-11; Radarr 5 searched / 2 deferred, Sonarr left to scheduler D-10).
 
 ### Pending Todos
 
@@ -77,6 +77,21 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 | upgrade_check | D-07-PLAYLIST-MGMT-NULL re-verify on Jellyfin 11.x upgrade | watch-only | v0.3.0 close (2026-05-22) |
 | process | HUMAN-UAT frontmatter standardization (audit-open parser compat) | deferred | v0.5.0 close (2026-05-24) |
 
+### Acknowledged at v0.8.0 close (2026-05-27)
+
+8 open artifact-audit items acknowledged and deferred at milestone close (audit = `tech_debt`, no blockers — see `v0.8.0-MILESTONE-AUDIT.md`):
+
+| Category | Item | Status |
+|----------|------|--------|
+| verification_gap | phase-21 VERIFICATION human_needed (live file-present + qBit re-hash + Jellyfin ItemCount; cluster torn down) | human_needed — mechanism PASS-WITH-CONCERNS |
+| verification_gap | phase-22 NO VERIFICATION.md (deliverable cross-verified by P23 + integration checker) | accepted — process gap |
+| coverage_gap | phase-22 force_prune=true DELETE path never exercised live (surgical direct-API deletes used) | re-verify before prune:true in arrconf.yml |
+| migration_gap | phase-21 10 records missing-on-disk (disk drift); DB Category-anchored, files absent | operator follow-up (re-download/remove) |
+| uat_gap | phase-23 SC#5 — 3 Jellyfin libs empty pending media filesystem migration | partial-deferred, operator-accepted |
+| todo | 2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0 (ops) | pending — manual operator task |
+| quick_task | 260527-jfk autoTMM reconcile (artifact status `missing`) | DONE (commit df280f8) — artifact frontmatter only |
+| uat_gap+verification_gap | phase-09 + phase-10 carry-forward (NFS write test, TVDB-anime routing) | non-blocking — see table above |
+
 ## Quick Tasks Completed
 
 | Quick ID | Description | Date | Commit | Tests |
@@ -86,6 +101,4 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-1. **Fix Phase 23 SC#1/#2 legacy-path error** in ROADMAP (`/media/films` + `/media/series` are NOT legacy — only the 4 `films-anime`/`films-family`/`anime`/`family` paths are).
-2. `/gsd-discuss-phase 23` → `/gsd-plan-phase 23` — UAT dispositive (end-to-end verification), last phase of v0.8.0.
-3. Optional future: full Category tag migration to retire residual legacy per-type DCs + tags (see Phase 22 DONE note).
+- Start the next milestone with /gsd-new-milestone

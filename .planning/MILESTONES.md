@@ -1,5 +1,25 @@
 # Milestones
 
+## v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases (20-23), 5 plans · 60 commits · 2026-05-25 → 2026-05-27 (~3 days)
+**Delivered:** Closed the half-applied v0.2.0 → v0.3.0 Categories migration at the config level — legacy roots/tags/catch-all-DC removed from the live cluster and locked out by code, proven durable via live operator UAT.
+
+**Key accomplishments:**
+
+- **Phase 20** — `arrconf audit` + `audit-verify` read-only legacy-state inventory CLI (`audit.py`, 26 respx tests, `AUTO_PATH_MAPPING` verbatim from CLAUDE.md filesystem table, verify-gate rejects unresolved `?`/`TBD` cells). Closes CAT-CLEANUP-01.
+- **Phase 21** — one-shot `tools/scripts/migrate-categories.py` (filesystem `mv` + qBit `setLocation` + Radarr/Sonarr API PUT + Jellyfin refresh); 21 *arr PUTs + 37 torrents relocated live, no halt; ADR-6 pre/post snapshots committed. `both_missing` disk-drift soft-skip deviation. Closes CAT-CLEANUP-02 (file-on-disk sub-clause partial — disk drift).
+- **Phase 22** — arrconf `differ.force_prune` path + pydantic legacy-path guard wired on Sonarr/Radarr root_folders/tags/download_clients; shipped `arrconf:0.15.0` (chart co-bump 0.14.1→0.15.0, 455 tests). Live cleanup: 4 legacy roots + catch-all DC id=1 + 3 orphan torrents removed (surgical id-DELETE). Closes CAT-CLEANUP-03.
+- **Phase 23** — live operator UAT on `:0.15.0`: SC#1-4 PASS (legacy roots absent Radarr+Sonarr, Seerr→`qBittorrent - Films - Enfants` per-Category DC routing not the deleted catch-all, non-dry-run apply idempotent ×2); SC#5 PARTIAL-deferred (10 libs structured, 3 empty pending media FS migration). Closes CAT-CLEANUP-04.
+
+**Milestone audit:** `tech_debt` (no critical blockers; cleanup goal achieved + proven durable). Integration chain intact 4/4 flows. See [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDIT.md).
+
+**Known deferred items at close:** 8 (see STATE.md "Deferred Items" → "Acknowledged at v0.8.0 close"). Notable: no 22-VERIFICATION.md (cross-verified by P23); `force_prune` live-path unexercised (surgical deletes used) — re-verify before `prune:true`; 10 records missing-on-disk; SC#5 media FS migration pending.
+
+**⚠ Tag note:** No git tag created for this milestone. The repo's git tags (`v0.1.0`…`v0.15.0`) are auto-generated **chart release** tags (mathieudutour on push) — a separate scheme from the planning milestone numbering. `v0.8.0` already exists as an old chart tag. Milestone versioning is planning-only here (prior milestones v0.2.0-v0.7.0 likewise un-tagged as milestones).
+
+---
+
 ## v0.7.0 Media stack scope closure (Shipped: 2026-05-25)
 
 **Phases:** 0 (doc-only, no phases) | **Plans:** 0 | **Commits:** 1 | **Cluster:** unchanged (arrconf image `:0.14.0`, no code or chart change)
