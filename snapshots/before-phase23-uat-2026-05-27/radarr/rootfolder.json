@@ -1,0 +1,37 @@
+[
+  {
+    "accessible": true,
+    "freeSpace": 437457518592,
+    "id": 1,
+    "path": "/media/films",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457518592,
+    "id": 4,
+    "path": "/media/nouveaux-films",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457518592,
+    "id": 5,
+    "path": "/media/films-enfants",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457518592,
+    "id": 6,
+    "path": "/media/films-animation-enfants",
+    "unmappedFolders": []
+  },
+  {
+    "accessible": true,
+    "freeSpace": 437457518592,
+    "id": 7,
+    "path": "/media/films-zoe",
+    "unmappedFolders": []
+  }
+]
