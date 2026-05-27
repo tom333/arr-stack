@@ -8,10 +8,17 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Shipped: v0.7.0 Media stack scope closure** (2026-05-25). Stack média déclarée **complète et fermée** à 9 apps + arrconf + configarr. Bazarr / Lidarr / Whisparr / Readarr explicitement hors scope avec rationale documentée (cf "Out of Scope" section + MILESTONES.md v0.7.0). Doc-only zero-phase milestone — la décision EST le livrable. Production cluster running arr-stack tag `v0.14.0` / arrconf image `:0.14.0`. Archive: [`milestones/v0.7.0-ROADMAP.md`](milestones/v0.7.0-ROADMAP.md).
+**Milestone complete: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** (2026-05-27, 4/4 phases). La migration v0.2.0→v0.3.0 Categories à moitié appliquée est fermée côté config : audit (P20), filesystem+metadata migration (P21), arrconf prune reconciler `:0.15.0` + live cleanup (P22), et UAT dispositive (P23). **CAT-CLEANUP-04 fermé** par une UAT opérateur live (arrconf `:0.15.0`) : SC#1-4 PASS (roots legacy absents Radarr+Sonarr, routage Seerr→qBit via DC per-Category `qBittorrent - Films - Enfants` et non le catch-all supprimé, apply non-dry-run idempotent ×2), SC#5 PARTIAL-deferred (10 libs Jellyfin câblées mais 3 vides car migration média disque pas encore exécutée — tâche opérateur séparée, hors scope). 2 todos de suivi capturés (qBit autoTMM `preferences.enable`, migration média filesystem). Production cluster `:0.15.0`. **Next: `/gsd-complete-milestone` pour archiver v0.8.0.**
 
 <details>
-<summary>Previous state — v0.6.0 arrconf observability 4xx body logging (2026-05-25)</summary>
+<summary>Previous state — v0.7.0 Media stack scope closure (2026-05-25)</summary>
+
+Stack média déclarée **complète et fermée** à 9 apps + arrconf + configarr. Bazarr / Lidarr / Whisparr / Readarr explicitement hors scope. Doc-only zero-phase milestone. Archive: [`milestones/v0.7.0-ROADMAP.md`](milestones/v0.7.0-ROADMAP.md).
+
+</details>
+
+<details>
+<summary>Earlier state — v0.6.0 arrconf observability 4xx body logging (2026-05-25)</summary>
 
 `arrconf/client_base.py` `_request` emits `client_4xx` structlog warning with `response.text[:500]` body excerpt before raising `httpx.HTTPStatusError`. 5 respx tests (416 total). Closes v0.5.0 observability tech debt. Single-phase micro shipped via `/gsd-quick` (commit `9726d81`). Archive: [`milestones/v0.6.0-ROADMAP.md`](milestones/v0.6.0-ROADMAP.md).
 
@@ -287,4 +294,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — v0.8.0 milestone scoped (Categories cleanup — v0.2.0 legacy migration close-out). Phase 20 audit next.*
+*Last updated: 2026-05-27 — v0.8.0 milestone complete (4/4 phases, Phase 23 UAT dispositive). CAT-CLEANUP-04 closed (SC#1-4 pass, SC#5 partial-deferred). Run `/gsd-complete-milestone` to archive.*
