@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
-status: planning
-last_updated: "2026-05-27T04:48:28.356Z"
+status: ready
+last_updated: "2026-05-27"
 last_activity: 2026-05-27
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,19 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** v0.9.0 en cadrage — définition des requirements (configarr-in-UI + Jellyfin skip-intro)
+**Current focus:** v0.9.0 Phase 24 ready — Jellyfin Intro Skipper (arrconf reconciler extension)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-27 — Milestone v0.9.0 started
+Phase: 24 — Jellyfin Intro Skipper
+Plan: — (not started)
+Status: Ready to plan
+Last activity: 2026-05-27 — Roadmap created for v0.9.0 (4 phases: 24-27)
+
+```
+v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
+Phase 24 [ ] Phase 25 [ ] Phase 26 [ ] Phase 27 [ ]
+```
 
 ## Accumulated Context
 
@@ -40,22 +45,32 @@ Quick reference to 8 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 - **ADR-2** Helm dependencies sur app-template (Option A)
 - **ADR-3** Image arrconf sur GHCR public
 - **ADR-4** Repo séparé (vs extension my-kluster)
-- **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming)
-- **ADR-6** Snapshot baseline avant toute écriture
+- **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming) — CRITIQUE pour Phases 25-27: `ConfigarrRootConfig` vit dans `tools/arrconf-ui/` UNIQUEMENT, jamais dans `tools/arrconf/`; aucune URL API *arr dans arrconf-ui
+- **ADR-6** Snapshot baseline avant toute écriture — applicable Phase 24 (live Jellyfin writes)
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
 - **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3, NOT qBit/Jellyfin)
 
 v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-all full-prune vs `unsorted` fallback → **full prune chosen** (P22 ADR-PLAN-SPLIT D-01).
 
+### v0.9.0 Roadmap Decisions (2026-05-27)
+
+- **Phase ordering:** Phase 24 (Jellyfin) first — smaller scope, validates live Jellyfin plugin API before UI work; Phases 25-27 are a strict dependency chain (backend → frontend → pickers)
+- **Phase 24 and Phase 25 are independently parallelizable** — no code dependency between the arrconf Python reconciler and the arrconf-ui pydantic model; documented for planning
+- **Kodi non-gating:** Phase 24 success criteria gate on web/app/Swiftfin; Kodi spike result documented but does NOT block phase completion
+- **CFGUI-06 scope boundary:** Recyclarr template picker is READ-ONLY reference (no `include:` insertion) — enforced in Phase 27 UI; deferring insert to v1.x due to merge-hazard with 6 hand-rolled French CFs
+- **co-bump constraint:** Phase 24 touches `tools/arrconf/**` → MUST co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` in the same commit. Phases 25-27 touch only `tools/arrconf-ui/**` → NO arrconf image co-bump, no chart auto-tag trigger
+
 ### Blockers/Concerns
 
-None blocking. v0.8.0 closed as `tech_debt` (no blockers). Carry-forward debt tracked in "Deferred Items" below. Two items to re-surface in v0.9.0 planning: (1) Phase 22 had no VERIFICATION.md (cross-verified by P23 — accept or backfill); (2) `force_prune=true` live DELETE path never exercised — re-verify before ever setting `prune:true` in `arrconf.yml` (mixed legacy+Category tag state risks over-deletion until full Category-tag migration lands).
+None blocking. Carry-forward from v0.8.0:
 
-_Historical (resolved during v0.8.0):_ ROADMAP Phase 23 SC#1/SC#2 legacy-path wording error fixed pre-plan; Phase 22 live carry-forward resolved (3 orphan torrents deleted D-11; Radarr 5 searched / 2 deferred, Sonarr left to scheduler D-10).
+- Phase 22 `force_prune=true` live DELETE path never exercised (surgical deletes used) — re-verify before `prune:true` in `arrconf.yml`. Not relevant to v0.9.0 scope.
+- `POST /Packages/Installed` exact parameter format against live Jellyfin 10.11.8 is MEDIUM confidence — must be confirmed during Phase 24 planning/early implementation.
+- configarr `--dry-run` flag availability in v1.28.0 must be confirmed before adding to CI gate in Phase 25.
 
 ### Pending Todos
 
-- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook déjà dans CLAUDE.md. Découvert Phase 23 UAT SC#5 (partial 7/10). Tâche opérateur manuelle, hors v0.8.0.
+- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook déjà dans CLAUDE.md. Découvert Phase 23 UAT SC#5 (partial 7/10). Tâche opérateur manuelle, hors v0.9.0.
 
 ## Deferred Items
 
@@ -93,4 +108,6 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-- v0.9.0 en cadrage : research → requirements → roadmap (en cours via `/gsd-new-milestone`)
+- Next: `/gsd-plan-phase 24` — Jellyfin Intro Skipper
+- Note: confirm `POST /Packages/Installed` exact parameter format and `configarr --dry-run` flag availability during planning before coding begins
+- ADR-6: snapshot `snapshots/before-phase-24-$(date +%F)/` before any live Jellyfin write

@@ -8,6 +8,7 @@
 - ✅ **v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** — Phases 16-18 (shipped 2026-05-24)
 - ✅ **v0.6.0 arrconf observability — 4xx body logging** — Phase 19 (shipped 2026-05-25 via /gsd-quick 260525-bj5)
 - ✅ **v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** — Phases 20-23 (shipped 2026-05-27)
+- 🚧 **v0.9.0 configarr-in-UI + Jellyfin skip-intro** — Phases 24-27 (in progress)
 
 ## Phases
 
@@ -76,7 +77,7 @@ Phase artifacts: [`milestones/v0.4.0-phases/`](milestones/v0.4.0-phases/)
 
 Total: **3 phases, 3/3 plans complete, 31 commits, 1-day intensive close-out**.
 
-Highlights: Jellyfin emits 10 `VirtualFolder` libs (1 per Category) — reverses D-07-LIB-01, makes Categories visible in JellyCon/Kodi on LibreELEC salon ; `tools/arrconf-ui/**` covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) without triggering chart-lint auto-tag (architectural isolation SC#3 dispositive) ; qBit POST credentials env-injected for Sonarr+Radarr with pre-flight gate in `__main__.py` and fail-fast ConfigError ; UAT dispositive 9/9 + 9/9 qBit DCs HTTP 200 + 0 plan_actions on 2nd run ; side-quest unblock of pre-existing Sonarr RPM 400 (PathExistsValidator, pre-dated Phase 18 by ≥3 image versions) via `/gsd-debug` session.
+Highlights: Jellyfin emits 10 `VirtualFolder` libs (1 per Category) — reverses D-07-LIB-01, makes Categories visible in JellyCon/Kodi on LibreELEC salon ; `tools/arrconf-ui/**` covered by CI (`arrconf-ui-backend` triad + `arrconf-ui-frontend` quad) without triggering chart-lint auto-tag (architectural isolation SC#3 dispositive per D-17-WORKFLOW-01) ; qBit POST credentials env-injected for Sonarr+Radarr with pre-flight gate in `__main__.py` and fail-fast ConfigError ; UAT dispositive 9/9 + 9/9 qBit DCs HTTP 200 + 0 plan_actions on 2nd run ; side-quest unblock of pre-existing Sonarr RPM 400 (PathExistsValidator, pre-dated Phase 18 by ≥3 image versions) via `/gsd-debug` session.
 
 Full archived details: [`milestones/v0.5.0-ROADMAP.md`](milestones/v0.5.0-ROADMAP.md)
 
@@ -112,7 +113,78 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 
 </details>
 
+### v0.9.0 — configarr-in-UI + Jellyfin skip-intro (Phases 24-27)
+
+- [ ] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike
+- [ ] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate
+- [ ] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher
+- [ ] **Phase 27: TRaSH CF picker + Recyclarr reference** — build-time-baked TRaSH catalog + `TrashPicker.svelte` + Recyclarr read-only informational dropdown
+
+## Phase Details
+
+### Phase 24: Jellyfin Intro Skipper
+**Goal**: The Jellyfin server can detect and skip intros, credits, and outros for web/app/Swiftfin users, with chapter markers benefiting all clients including Kodi; the entire setup is declared in `arrconf.yml` and reconciled idempotently by arrconf
+**Depends on**: Nothing (pure arrconf extension, independent of Phases 25-27)
+**Requirements**: JFSKIP-01, JFSKIP-02, JFSKIP-03, JFSKIP-04, JFSKIP-05
+**Success Criteria** (what must be TRUE):
+  1. `arrconf apply` (dry-run) logs that the Intro Skipper plugin repository (`https://intro-skipper.org/manifest.json`) is registered and the plugin entry (GUID `c83d86bb-a1e0-4c35-a113-e2101cf4ee6b`) queued-for-install — both idempotent on second run (zero actions)
+  2. After operator runs `kubectl rollout restart deployment/jellyfin -n selfhost` and a second `arrconf apply`, the plugin appears active in `GET /Plugins` and no duplicate repository entries exist
+  3. Jellyfin web UI shows a skip-intro/skip-credits button during playback on at least one series episode (web client SC is dispositive; Swiftfin treated as equivalent)
+  4. `EnableChapterImageExtraction: true` is confirmed set on all 10 libraries via `GET /Library/VirtualFolders` (seek-bar thumbnails visible in at least one client)
+  5. Kodi/JellyCon spike result documented with binary accept (service.jellyskip works on LibreELEC 10.11.8) or reject (unsupported, runbook notes it as operator-manual only) — spike is non-gating but result is required before phase is declared complete
+**Plans**: TBD
+**UI hint**: no
+
+### Phase 25: configarr-in-UI backend
+**Goal**: The arrconf-ui backend can read, validate, diff, and write `configarr.yml` with the same safety guarantees as `arrconf.yml`, including zero risk of secret leakage via `!env`/`!secret` tag drop
+**Depends on**: Nothing (independent of Phase 24; can run in parallel)
+**Requirements**: CFGUI-01, CFGUI-02, CFGUI-03, CFGUI-07
+**Success Criteria** (what must be TRUE):
+  1. A round-trip test loads the real `charts/arr-stack/files/configarr.yml`, writes it to a temp file, and asserts that every `!env` and `!secret` tag is present verbatim in the output bytes — this test ships as task-zero before any other configarr write-path code
+  2. `GET /api/configarr/config` returns the parsed configarr.yml; `PUT /api/configarr/config` writes back without corrupting `!env`/`!secret` tags (verified by the round-trip test)
+  3. `GET /api/configarr/schema` returns a JSON Schema with `api_key` fields marked `readOnly: true`; no `*arr` API URL appears anywhere in the arrconf-ui source (ADR-5 boundary assertion)
+  4. `POST /api/configarr/diff` returns the diff between current and proposed YAML without resolving env vars — the literal string `!env SONARR_API_KEY` (or equivalent) appears in the diff output, never a resolved secret value
+  5. A CI gate (`configarr --dry-run` or equivalent validation) passes against the YAML written by `PUT /api/configarr/config`, confirming configarr itself accepts the output (configarr is the authoritative validator)
+**Plans**: TBD
+**UI hint**: no
+
+### Phase 26: configarr-in-UI frontend
+**Goal**: Operators can select, view, and edit `configarr.yml` from the arrconf-ui web interface alongside `arrconf.yml`, using the same schema-driven form pattern
+**Depends on**: Phase 25
+**Requirements**: CFGUI-04
+**Success Criteria** (what must be TRUE):
+  1. The arrconf-ui web UI displays a config selector (e.g., tab or dropdown) allowing the operator to switch between `arrconf.yml` and `configarr.yml` without a page reload
+  2. After selecting `configarr.yml`, the form renders quality profiles, custom formats, and scores per profile via the existing `FieldInput.svelte` dispatcher; `quality_definition` and `media_naming` fields appear read-only
+  3. The operator can make a change to a quality profile score and save it; the diff preview shows only the changed field; the saved file round-trips correctly through the Phase 25 backend (no tag corruption)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 27: TRaSH CF picker + Recyclarr reference
+**Goal**: Operators can add or remove TRaSH custom formats by human-readable name (no manual hex `trash_id` copying), and can reference Recyclarr template names as an informational guide without risk of inadvertent `include:` insertion
+**Depends on**: Phase 26
+**Requirements**: CFGUI-05, CFGUI-06
+**Success Criteria** (what must be TRUE):
+  1. The configarr form includes a searchable picker where the operator can type a CF name (e.g., "French MULTi") and select it; the corresponding `trash_id` hex value is inserted into `custom_formats[].trash_ids` in the saved YAML — no manual hex entry required
+  2. The TRaSH catalog is served from a build-time-baked snapshot (committed static asset at a pinned commit SHA); no runtime HTTP call to GitHub is made from the FastAPI backend or the frontend
+  3. A Recyclarr template reference dropdown is present and shows template names; clicking a template name shows its description only — no `include:` block is inserted into `configarr.yml` (CFGUI-06 scope boundary enforced in UI)
+  4. An unknown `trash_id` already present in the live `configarr.yml` (e.g., a hand-rolled French CF) is displayed with a warning indicator rather than silently dropped or rejected
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 24. Jellyfin Intro Skipper | 0/? | Not started | - |
+| 25. configarr-in-UI backend | 0/? | Not started | - |
+| 26. configarr-in-UI frontend | 0/? | Not started | - |
+| 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
+
+**Milestone progress:** 0/4 phases complete
+
+---
+
+## Historical Progress
 
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
@@ -127,16 +199,3 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)
 - Phase 10 SC#1 cluster apply Categories-derived path (empty arrconf.yml flat sections to exercise) — REQ-categories-deprecation will exercise this naturally
 - Phase 10 SC#3 TVDB-anime live routing test in Seerr UI
-
-**v0.9.0+ carry-forward backlog** (REQ-bazarr-addition removed in v0.7.0 — declared out of scope, see PROJECT.md):
-- REQ-arrconf-ui-distribution — package `arrconf-ui` for non-dev install
-- REQ-config-ui-git-integration — auto-commit/push from UI (after v0.5.0 ships and operator decides)
-- REQ-config-ui-multi-config — configarr.yml editing in same UI (ADR-5 frontière check)
-- REQ-suggestarr-ingress — SuggestArr ingress + auto-submit (currently port-forward + manual approval)
-- REQ-arrconf-dry-run-pr-gate — GHA job running `arrconf apply --dry-run` on PRs
-- REQ-jellyfin-native-subtitles — activate Open Subtitles plugin Jellyfin
-- REQ-jellyfin-skip-intro — chapter markers + skip intro
-- REQ-radarr-sonarr-lists — TMDb/Trakt list auto-import
-- REQ-radarr-sonarr-release-profiles — preferred/required/ignored keywords per tag
-- D-07-PLAYLIST-MGMT-NULL: re-verify `EnablePlaylistManagement` on Jellyfin 11.x upgrade
-- Phase 9 / Phase 10 HUMAN-UAT carry-forward from v0.3.0

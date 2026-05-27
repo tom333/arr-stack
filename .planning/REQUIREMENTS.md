@@ -55,27 +55,26 @@ Exclusions explicites avec raison (anti-scope-creep).
 
 ## Traceability
 
-Rempli par le roadmapper (`/gsd-new-milestone` Step 10). Phase numbering continue à partir de Phase 24.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFGUI-01 | TBD | Pending |
-| CFGUI-02 | TBD | Pending |
-| CFGUI-03 | TBD | Pending |
-| CFGUI-04 | TBD | Pending |
-| CFGUI-05 | TBD | Pending |
-| CFGUI-06 | TBD | Pending |
-| CFGUI-07 | TBD | Pending |
-| JFSKIP-01 | TBD | Pending |
-| JFSKIP-02 | TBD | Pending |
-| JFSKIP-03 | TBD | Pending |
-| JFSKIP-04 | TBD | Pending |
-| JFSKIP-05 | TBD | Pending |
+| CFGUI-01 | Phase 25 | Pending |
+| CFGUI-02 | Phase 25 | Pending |
+| CFGUI-03 | Phase 25 | Pending |
+| CFGUI-04 | Phase 26 | Pending |
+| CFGUI-05 | Phase 27 | Pending |
+| CFGUI-06 | Phase 27 | Pending |
+| CFGUI-07 | Phase 25 | Pending |
+| JFSKIP-01 | Phase 24 | Pending |
+| JFSKIP-02 | Phase 24 | Pending |
+| JFSKIP-03 | Phase 24 | Pending |
+| JFSKIP-04 | Phase 24 | Pending |
+| JFSKIP-05 | Phase 24 | Pending |
 
 **Coverage:**
 - v0.9.0 requirements: 12 total (7 CFGUI + 5 JFSKIP)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 12 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 12/12 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-27 — milestone v0.9.0 scoping (research-backed, TRaSH picker in / Recyclarr include deferred / Kodi best-effort).*
+*Traceability filled: 2026-05-27 — roadmap created (Phases 24-27).*
