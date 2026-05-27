@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: Categories cleanup — v0.2.0 legacy migration close-out
-status: ready_to_plan
-last_updated: "2026-05-26T22:19:21.519Z"
-last_activity: 2026-05-26 -- Phase 22 execution started
+status: executing
+last_updated: "2026-05-27T01:36:50.569Z"
+last_activity: 2026-05-27 -- Phase 23 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 2
-  percent: 75
+  total_plans: 5
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 23 — UAT dispositive (end-to-end verification)
+**Current focus:** Phase 23 — uat-dispositive-end-to-end-verification
 
 ## Current Position
 
-Phase: 23
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-27
+Phase: 23 (uat-dispositive-end-to-end-verification) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 23
+Last activity: 2026-05-27 -- Phase 23 execution started
 
 ### Phase 22 DONE (2026-05-27) — closed live
 
@@ -61,7 +61,7 @@ v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-a
 
 ### Pending Todos
 
-None. Populate during `/gsd-discuss-phase 23` / `/gsd-plan-phase 23`.
+- `2026-05-27-activer-qbit-autotmm-via-arrconf-preferences-allowlist` (area: arrconf) — qBit `auto_tmm_enabled`/`category_changed_tmm_enabled` = false ⇒ nouveaux grabs tombent dans `/data/complete` au lieu de `/data/torrents/<category>`. Fix = activer `preferences.enable` dans `arrconf.yml`. Découvert Phase 23 UAT SC#3 (routage OK, save_path KO). Chart change → hors scope P23.
 
 ## Deferred Items
 
