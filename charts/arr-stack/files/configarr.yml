@@ -192,6 +192,7 @@ sonarr:
 
     quality_profiles:
       - name: MULTi.VF
+        language: Any
         reset_unmatched_scores:
           enabled: true
         upgrade:
@@ -215,6 +216,7 @@ sonarr:
               - WEBRip-720p
           - name: HDTV-720p
       - name: Anime
+        language: Any
         # D-05-CONFIGARR-02: Anime profile — HD scope same as MULTi.VF.
         # VOSTFR is allowed (+50) for anime (fansubs are common + quality).
         reset_unmatched_scores:
@@ -240,6 +242,7 @@ sonarr:
               - WEBRip-720p
           - name: HDTV-720p
       - name: Family
+        language: Any
         # D-05-FAM-01: byte-equivalent clone of MULTi.VF.
         # Differentiation is path/tag-only, not quality semantics.
         reset_unmatched_scores:
@@ -349,6 +352,7 @@ radarr:
 
     quality_profiles:
       - name: MULTi.VF
+        language: Any
         reset_unmatched_scores:
           enabled: true
         upgrade:
@@ -372,6 +376,7 @@ radarr:
               - WEBRip-720p
           - name: HDTV-720p
       - name: Anime
+        language: Any
         # D-05-CONFIGARR-02: Anime profile for Radarr — hand-rolled (no Radarr French
         # Anime TRaSH template available per Q9/A6). Same HD scope as MULTi.VF.
         # VOSTFR allowed (+50) for anime films.
@@ -398,6 +403,7 @@ radarr:
               - WEBRip-720p
           - name: HDTV-720p
       - name: Family
+        language: Any
         # D-05-FAM-01: byte-equivalent clone of MULTi.VF.
         # Differentiation is path/tag-only, not quality semantics.
         reset_unmatched_scores:
