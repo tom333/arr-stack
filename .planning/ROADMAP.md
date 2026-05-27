@@ -157,8 +157,8 @@ Plans:
 **Depends on**: Phase 22 (cluster running arrconf `:0.15.0` with prune steps active)
 **Requirements**: CAT-CLEANUP-04
 **Success Criteria** (what must be TRUE):
-  1. SC#1 — `curl http://radarr.selfhost.svc.cluster.local:7878/api/v3/rootfolder` returns ONLY Category paths; legacy `/media/films`, `/media/films-anime`, `/media/films-family` absent from the response body.
-  2. SC#2 — Sonarr `/api/v3/rootfolder` idem: only Category paths returned; legacy `/media/series`, `/media/anime`, `/media/family` absent.
+  1. SC#1 — `curl http://radarr.selfhost.svc.cluster.local:7878/api/v3/rootfolder` returns Category paths only (including the valid default `/media/films`); the 2 legacy paths `/media/films-anime`, `/media/films-family` are absent from the response body. (`/media/films` is a valid default Category, NOT legacy.)
+  2. SC#2 — Sonarr `/api/v3/rootfolder` idem: Category paths only (including the valid default `/media/series`); the 2 legacy paths `/media/anime`, `/media/family` are absent. (`/media/series` is a valid default Category, NOT legacy.)
   3. SC#3 — A new Seerr request for a kids' film lands on disk at `/media/films-enfants/<title>/`, qBit shows `category=films-enfants` + `save_path=/data/torrents/films-enfants/`, and the qBit "Added by" / download-client trace identifies `qBittorrent - Films - Enfants` as the accepting DC (NOT the catch-all `qBittorrent` id=1).
   4. SC#4 — `arrconf apply` (not dry-run) on the post-cleanup cluster emits 0 plan_action across root_folders / tags / download_clients for sonarr + radarr; second back-to-back run idem (idempotence preserved).
   5. SC#5 — Jellyfin web UI shows all 10 Category libs each with `ItemCount > 0`; no empty lib introduced by the migration.
