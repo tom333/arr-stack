@@ -167,8 +167,8 @@
     },
     {
       "host": "10-1-28-126",
-      "numberOfGrabs": 1,
-      "numberOfQueries": 194
+      "numberOfGrabs": 2,
+      "numberOfQueries": 208
     },
     {
       "host": "10-1-28-167",
@@ -323,7 +323,7 @@
     {
       "host": "10-1-28-149",
       "numberOfGrabs": 0,
-      "numberOfQueries": 322
+      "numberOfQueries": 330
     }
   ],
   "indexers": [
@@ -357,7 +357,7 @@
     },
     {
       "averageGrabResponseTime": 0,
-      "averageResponseTime": 563,
+      "averageResponseTime": 564,
       "indexerId": 6,
       "indexerName": "World-torrent",
       "numberOfAuthQueries": 0,
@@ -366,11 +366,11 @@
       "numberOfFailedQueries": 0,
       "numberOfFailedRssQueries": 13,
       "numberOfGrabs": 1,
-      "numberOfQueries": 114,
-      "numberOfRssQueries": 2805
+      "numberOfQueries": 116,
+      "numberOfRssQueries": 2808
     },
     {
-      "averageGrabResponseTime": 425,
+      "averageGrabResponseTime": 416,
       "averageResponseTime": 786,
       "indexerId": 2,
       "indexerName": "C411",
@@ -379,13 +379,13 @@
       "numberOfFailedGrabs": 0,
       "numberOfFailedQueries": 0,
       "numberOfFailedRssQueries": 7,
-      "numberOfGrabs": 10,
-      "numberOfQueries": 93,
-      "numberOfRssQueries": 3464
+      "numberOfGrabs": 11,
+      "numberOfQueries": 95,
+      "numberOfRssQueries": 3467
     },
     {
       "averageGrabResponseTime": 0,
-      "averageResponseTime": 1414,
+      "averageResponseTime": 1413,
       "indexerId": 5,
       "indexerName": "Torrent9",
       "numberOfAuthQueries": 0,
@@ -394,8 +394,8 @@
       "numberOfFailedQueries": 0,
       "numberOfFailedRssQueries": 27,
       "numberOfGrabs": 1,
-      "numberOfQueries": 111,
-      "numberOfRssQueries": 2531
+      "numberOfQueries": 113,
+      "numberOfRssQueries": 2534
     },
     {
       "averageGrabResponseTime": 992,
@@ -408,19 +408,19 @@
       "numberOfFailedQueries": 0,
       "numberOfFailedRssQueries": 1,
       "numberOfGrabs": 4,
-      "numberOfQueries": 53,
-      "numberOfRssQueries": 2734
+      "numberOfQueries": 57,
+      "numberOfRssQueries": 2737
     }
   ],
   "userAgents": [
     {
-      "numberOfGrabs": 6,
-      "numberOfQueries": 4539,
+      "numberOfGrabs": 7,
+      "numberOfQueries": 4553,
       "userAgent": "Radarr"
     },
     {
       "numberOfGrabs": 12,
-      "numberOfQueries": 9020,
+      "numberOfQueries": 9028,
       "userAgent": "Sonarr"
     }
   ]

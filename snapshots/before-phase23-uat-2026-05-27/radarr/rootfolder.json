@@ -1,37 +1,27 @@
 [
   {
-    "accessible": true,
-    "freeSpace": 437457518592,
+    "accessible": false,
     "id": 1,
-    "path": "/media/films",
-    "unmappedFolders": []
+    "path": "/media/films"
   },
   {
-    "accessible": true,
-    "freeSpace": 437457518592,
+    "accessible": false,
     "id": 4,
-    "path": "/media/nouveaux-films",
-    "unmappedFolders": []
+    "path": "/media/nouveaux-films"
   },
   {
-    "accessible": true,
-    "freeSpace": 437457518592,
+    "accessible": false,
     "id": 5,
-    "path": "/media/films-enfants",
-    "unmappedFolders": []
+    "path": "/media/films-enfants"
   },
   {
-    "accessible": true,
-    "freeSpace": 437457518592,
+    "accessible": false,
     "id": 6,
-    "path": "/media/films-animation-enfants",
-    "unmappedFolders": []
+    "path": "/media/films-animation-enfants"
   },
   {
-    "accessible": true,
-    "freeSpace": 437457518592,
+    "accessible": false,
     "id": 7,
-    "path": "/media/films-zoe",
-    "unmappedFolders": []
+    "path": "/media/films-zoe"
   }
 ]
