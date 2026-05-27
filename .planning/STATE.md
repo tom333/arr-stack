@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 22 — arrconf-prune-reconciler-lock-the-cleanup-in
+**Current focus:** Phase 23 — UAT dispositive (end-to-end verification)
 
 ## Current Position
 
@@ -30,41 +30,11 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-05-27
 
-### Phase 22 resume point (RUN AFTER arrconf :0.15.0 IS DEPLOYED)
+### Phase 22 DONE (2026-05-27) — closed live
 
-- **22-01 DONE**: `force_prune` differ path + legacy-name denylist guard + Sonarr/Radarr wiring + tests
-  (455 pytest pass, `mypy arrconf` clean) + chart co-bump `0.14.1 → 0.15.0`. Merged to main.
-- **Release shipped**: `main` pushed; auto-tag created `v0.15.0`; `ghcr.io/tom333/arr-stack-arrconf:0.15.0`
-  published to GHCR (verified). Awaiting Renovate PR on my-kluster → ArgoCD sync to deploy `:0.15.0`.
-- **22-02 Task 1 DONE**: `22-RUNBOOK.md` (321 lines) + `22-ADR-PLAN-SPLIT.md` (104 lines) committed (`3964c90`).
-- **22-02 Task 2 PENDING (blocking human-action)**: execute `22-RUNBOOK.md` live once `:0.15.0` is deployed —
-  SC#2 dry-run gate (`0 plan_action`) → delete 3 orphan torrents (`deleteFiles=true`) → re-monitor 10 missing
-  records → ADR-6 pre/post snapshots. **To resume**: run the runbook, then `/gsd-execute-phase 22` and reply
-  with `applied: SC#2 0 plan_action confirmed, 3 orphans deleted, N re-monitored / M deferred`. That completes
-  22-02 (writes SUMMARY) and triggers phase verification + completion.
-
-### Phase 21 close-out notes (carry into Phase 22)
-
-- Audit-vs-disk drift: 10 of 11 FS-move items were `both_missing` at apply (files removed
-  between Phase 20 audit and the 2026-05-27 run). Their Radarr/Sonarr DB records were
-  synced to Category root folders anyway (operator decision) — they now show as MISSING
-  on disk. Phase 22 / operator must decide per-item (re-download via monitored search, or
-  remove from the *arr).
-
-- Script gained `--media-root` (host NFS translation), `_maybe_rename` (disk-state-keyed),
-  and `both_missing` soft-skip during the live run. See 21-01-SUMMARY.md §Deviations.
-
-- Leftover `series-zoe/Winx Club` (bare, no year) dir remains beside moved `Winx Club (2004)`
-  — harmless, operator may prune.
-
-- 3 PRUNE_PHASE_22 orphan torrents still on `/data/complete` — Phase 22 owns.
-
-### Phase 20 success criteria (from ROADMAP.md)
-
-1. `.planning/phases/20-categories-cleanup-audit/20-AUDIT.md` exists and lists every Radarr movie + Sonarr series whose `rootFolderPath` is a legacy v0.2.0 path, with target Category path resolved per item.
-2. Audit captures every qBit torrent whose `save_path` starts with a legacy `/data/torrents/<legacy>/` segment, with target Category save_path resolved.
-3. Audit enumerates every Radarr/Sonarr tag that is legacy (`movies`, `family`, `films`, `anime`) vs Category, with proposed prune/rename action per tag.
-4. `legacy_path → Category` and `legacy_tag → Category_tag` mapping tables are committed and validated against CLAUDE.md "Filesystem migration v0.2.0 → v0.3.0" reference table.
+- Code: `force_prune` path + legacy-name guard + Sonarr/Radarr wiring + tests (455 pass) shipped → `arrconf:0.15.0` on GHCR + deployed in cluster (CronJob on `:0.15.0`).
+- Live cleanup executed: 3 orphan torrents deleted (`deleteFiles=true`); catch-all DC `qBittorrent` id=1 + 4 legacy roots (`/media/{anime,family,films-anime,films-family}`) deleted (surgical id DELETE, NOT force_prune); 5 Radarr missing re-searched / 2 deferred (2026); SC#2 dry-run `0 plan_action` before+after (idempotent). ADR-6 snapshots committed.
+- Carry-forward residue (future milestone): legacy per-type DCs (TV/Anime/Family/Movies) + legacy tags (`tv`/`family`/`anime`/`1-moi`) left in-cluster — need full Category tag migration first. Mario Galaxy + Jumpers (2026) monitored, unreleased.
 
 ## Accumulated Context
 
@@ -81,22 +51,17 @@ Quick reference to 8 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
 - **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3, NOT qBit/Jellyfin)
 
-v0.8.0 decisions to be captured during `/gsd-discuss-phase 20` → `22` (anticipated: ambiguous-item mapping rules in Phase 20; DC catch-all `qBittorrent` disposition in Phase 22 — prune vs `unsorted` low-priority fallback).
+v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-all full-prune vs `unsorted` fallback → **full prune chosen** (P22 ADR-PLAN-SPLIT D-01).
 
 ### Blockers/Concerns
 
-**Phase 21 complete** (live migration applied 2026-05-27, SC1-SC5 verified, PASS-WITH-CONCERNS). Carry-forward into Phase 22 (now folded into P22 scope per D-09/10/11 in 22-CONTEXT.md):
+**⚠ ROADMAP Phase 23 SC error to fix FIRST** (flagged in 22-CONTEXT `<deferred>`): SC#1/SC#2 wrongly list `/media/films` + `/media/series` as legacy — they are valid default Categories. Only 4 paths are truly legacy: `/media/films-anime`, `/media/films-family` (Radarr), `/media/anime`, `/media/family` (Sonarr). Fix before `/gsd-plan-phase 23`.
 
-- 10 missing-on-disk *arr records → re-monitor + search (D-10)
-- 3 PRUNE_PHASE_22 orphan torrents on `/data/complete` → delete torrent + data (D-11)
-
-**ROADMAP Phase 23 SC error to fix** (flagged in 22-CONTEXT `<deferred>`): SC#1/SC#2 wrongly list `/media/films` + `/media/series` as legacy — they are valid default Categories. Only 4 paths are truly legacy: `/media/films-anime`, `/media/films-family` (Radarr), `/media/anime`, `/media/family` (Sonarr).
-
-Risk register documented in `.planning/REQUIREMENTS.md` — Phase 22 destructive concerns (over-prune at apply, DC prune cutting in-flight torrents) gated by Triade Python + respx tests + `--dry-run` discipline + allowlist=categories[] safety boundary.
+**Phase 22 carry-forward RESOLVED** (2026-05-27 live): 3 orphan torrents deleted (D-11); missing records reconciled — Radarr 5 searched / 2 deferred, Sonarr left to scheduler (D-10).
 
 ### Pending Todos
 
-None at roadmap-ready. To be populated during `/gsd-discuss-phase 20` → `/gsd-plan-phase 20`.
+None. Populate during `/gsd-discuss-phase 23` / `/gsd-plan-phase 23`.
 
 ## Deferred Items
 
@@ -120,9 +85,6 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-1. **Phase 22 planning** — `/clear` then `/gsd-plan-phase 22` (consumes `22-CONTEXT.md`).
-   Scope: arrconf prune steps (allowlist=categories[]) + pydantic legacy denylist guard
-
-   + chart co-bump `0.14.1 → 0.15.0` + operator cleanup step (3 orphans + 10 missing).
-2. Phase 22 will bump `arrconf.image.tag` 0.14.1 → 0.15.0 per CLAUDE.md §"Release pin co-bump pattern".
-3. Then Phase 23 (UAT dispositive) — and fix the Phase 23 SC#1/#2 legacy-path error first.
+1. **Fix Phase 23 SC#1/#2 legacy-path error** in ROADMAP (`/media/films` + `/media/series` are NOT legacy — only the 4 `films-anime`/`films-family`/`anime`/`family` paths are).
+2. `/gsd-discuss-phase 23` → `/gsd-plan-phase 23` — UAT dispositive (end-to-end verification), last phase of v0.8.0.
+3. Optional future: full Category tag migration to retire residual legacy per-type DCs + tags (see Phase 22 DONE note).
