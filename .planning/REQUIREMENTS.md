@@ -1,0 +1,81 @@
+# Requirements: arr-stack — Milestone v0.9.0
+
+**Defined:** 2026-05-27
+**Milestone:** v0.9.0 — configarr-in-UI + Jellyfin skip-intro
+**Core Value:** Aucune intervention UI nécessaire pour configurer la stack après bootstrap — tout changement passe par une PR et se matérialise en cluster en < 1 h via ArgoCD + CronJob arrconf.
+
+> Research basis: `.planning/research/SUMMARY.md` (+ STACK/FEATURES/ARCHITECTURE/PITFALLS). Confidence HIGH.
+
+## v0.9.0 Requirements
+
+### configarr-in-UI (CFGUI) — umbrella `REQ-config-ui-multi-config`
+
+Étendre `arrconf-ui` (FastAPI + Svelte 5, schema-driven, édite aujourd'hui `arrconf.yml`) pour éditer aussi `configarr.yml`, avec un picker TRaSH par nom. ADR-5 intact : l'UI édite le **fichier** ; configarr reste seul à apply.
+
+- [ ] **CFGUI-01**: L'opérateur charge, édite et sauvegarde `configarr.yml` depuis `arrconf-ui`, avec round-trip ruyaml préservant commentaires, ordre des clés et tags `!env`/`!secret` (test anti-leak des tags livré en task-zéro, avant tout chemin d'écriture).
+- [ ] **CFGUI-02**: Un modèle pydantic `ConfigarrRootConfig` (écrit à la main, vit dans `tools/arrconf-ui/`, jamais dans `tools/arrconf/`) + JSON Schema généré pilotent le formulaire pour le subset édité (quality_profiles, custom_formats, customFormatDefinitions, language) ; `api_key` traité comme chaîne opaque ; quality_definition + media_naming affichés en lecture seule.
+- [ ] **CFGUI-03**: Le backend expose des endpoints configarr (GET/PUT config, GET schema, POST diff) symétriques aux endpoints arrconf existants.
+- [ ] **CFGUI-04**: Le frontend offre un sélecteur de config (`arrconf.yml` ↔ `configarr.yml`) ; le formulaire configarr s'affiche via le dispatcher `FieldInput.svelte` existant.
+- [ ] **CFGUI-05**: L'opérateur ajoute/retire des custom formats TRaSH **par nom** via un picker adossé à un catalogue TRaSH baké au build (`name → trash_id`, sonarr + radarr) — aucun trash_id tapé à la main.
+- [ ] **CFGUI-06**: Les templates Recyclarr sont surfacés en **référence lecture-seule** (dropdown informatif). PAS d'insertion `include:` (différée v1.x pour protéger les 6 CF français custom).
+- [ ] **CFGUI-07**: Un gate CI valide le `configarr.yml` sauvegardé via le dry-run/validation natif de configarr (validateur faisant autorité, pas la couche pydantic de l'UI).
+
+### Jellyfin skip-intro (JFSKIP) — umbrella `REQ-jellyfin-skip-intro`
+
+Installer/configurer le plugin Intro Skipper (intro + crédits) via le reconciler Jellyfin arrconf (best-effort) + extraction chapter markers. Clients web/app/Swiftfin natifs ; Kodi salon best-effort.
+
+- [ ] **JFSKIP-01**: arrconf enregistre déclarativement le repo plugin Intro Skipper dans la config serveur Jellyfin (`plugin_repositories`), idempotent.
+- [ ] **JFSKIP-02**: arrconf installe le plugin Intro Skipper quand absent (`POST /Packages/Installed`) ; le reconciler distingue état queued-install vs active ; un runbook opérateur documente le restart Jellyfin unique (`kubectl rollout restart deployment/jellyfin -n selfhost`).
+- [ ] **JFSKIP-03**: Détection intro **+** crédits/outro activée (config plugin) ; tâche de fingerprint planifiée off-peak avec `MaxConcurrentTasks` capé (coût CPU 1er run sur MicroK8s single-node).
+- [ ] **JFSKIP-04**: Extraction chapter markers/images activée par bibliothèque (`EnableChapterImageExtraction` via LibraryOptions) — bénéficie à tous les clients, y compris Kodi.
+- [ ] **JFSKIP-05**: Skip-intro fonctionne sur web/app/Swiftfin (committed). Kodi/JellyCon salon = best-effort via runbook documenté `service.jellyskip` (non-gating) ; un spike Kodi tranche par critère accept/reject binaire avant de déclarer la feature complète.
+
+## v1.x / Future Requirements
+
+Reconnu, différé — pas dans la roadmap v0.9.0.
+
+### configarr-in-UI
+
+- **CFGUI-F1**: Insertion Recyclarr `include:` complète (gestion de l'ordre de merge vs les CF français custom ; baseline Recyclarr v7.4.0).
+- **CFGUI-F2**: Refresh live du catalogue TRaSH (vs snapshot baké) + détection de drift trash_id.
+- **CFGUI-F3**: Édition profonde de quality_definition / media_naming (aujourd'hui lecture seule).
+
+## Out of Scope
+
+Exclusions explicites avec raison (anti-scope-creep).
+
+| Feature | Raison |
+|---------|--------|
+| Recyclarr `include:` insertion (v0.9.0) | Merge-hazard contre les 6 CF français custom ; configarr figé sur templates Recyclarr v7.4.0. Référence lecture-seule seulement → insertion en v1.x. |
+| arrconf-ui git-integration (auto-commit/push) | Décision opérateur v0.7.0 confirmée v0.9.0 : l'UI reste locale, commit/push manuel (workflow PR). |
+| arrconf-ui distribution / packaging non-dev | Idem — outil local lancé via `uv run`. |
+| Support Kodi natif Media Segments | Upstream JellyCon issue #953 ouverte ; pas du ressort d'arrconf. Workaround = `service.jellyskip` (addon Kodi opérateur). |
+| Auto-skip forcé server-side Jellyfin | Override TOUS les clients ("extreme cases only" doc) — casse l'UX des clients qui gèrent déjà le skip. |
+| arrconf écrit quality_profiles/custom_formats via API *arr | ADR-5 frontière dure. L'UI édite le fichier configarr.yml ; configarr applique. arrconf ne touche jamais ces endpoints. |
+
+## Traceability
+
+Rempli par le roadmapper (`/gsd-new-milestone` Step 10). Phase numbering continue à partir de Phase 24.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CFGUI-01 | TBD | Pending |
+| CFGUI-02 | TBD | Pending |
+| CFGUI-03 | TBD | Pending |
+| CFGUI-04 | TBD | Pending |
+| CFGUI-05 | TBD | Pending |
+| CFGUI-06 | TBD | Pending |
+| CFGUI-07 | TBD | Pending |
+| JFSKIP-01 | TBD | Pending |
+| JFSKIP-02 | TBD | Pending |
+| JFSKIP-03 | TBD | Pending |
+| JFSKIP-04 | TBD | Pending |
+| JFSKIP-05 | TBD | Pending |
+
+**Coverage:**
+- v0.9.0 requirements: 12 total (7 CFGUI + 5 JFSKIP)
+- Mapped to phases: 0 (roadmap pending)
+- Unmapped: 12 ⚠️ (resolved by roadmapper)
+
+---
+*Requirements defined: 2026-05-27 — milestone v0.9.0 scoping (research-backed, TRaSH picker in / Recyclarr include deferred / Kodi best-effort).*
