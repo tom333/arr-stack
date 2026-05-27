@@ -61,7 +61,6 @@ v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-a
 
 ### Pending Todos
 
-- `2026-05-27-activer-qbit-autotmm-via-arrconf-preferences-allowlist` (area: arrconf) — qBit `auto_tmm_enabled`/`category_changed_tmm_enabled` = false ⇒ nouveaux grabs tombent dans `/data/complete` au lieu de `/data/torrents/<category>`. Fix = activer `preferences.enable` dans `arrconf.yml`. Découvert Phase 23 UAT SC#3 (routage OK, save_path KO). Chart change → hors scope P23.
 - `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook déjà dans CLAUDE.md. Découvert Phase 23 UAT SC#5 (partial 7/10). Tâche opérateur manuelle, hors v0.8.0.
 
 ## Deferred Items
@@ -83,6 +82,7 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 | Quick ID | Description | Date | Commit | Tests |
 |----------|-------------|------|--------|-------|
 | 260525-bj5 | client_base.py 4xx response.text[:500] logging (OBS-01) + respx test + chart co-bump 0.12.1 → 0.14.0 | 2026-05-25 | 9726d81 | 416 pass (+5 new) |
+| 260527-jfk | enable qBit autoTMM reconcile (preferences.enable+auto_tmm+category_changed) in arrconf.yml — Phase 23 SC#3 save_path fix ; no image co-bump (ConfigMap-only) | 2026-05-27 | df280f8 | config parse OK (no Python change) |
 
 ## Operator Next Steps
 
