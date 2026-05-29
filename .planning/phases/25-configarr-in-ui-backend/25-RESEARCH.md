@@ -54,7 +54,7 @@ Two findings change the plan materially. **First (read-path bug, not in CONTEXT)
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |------------|-------------|----------------|-----------|
 | Read/parse configarr.yml | API / Backend (FastAPI) | — | Backend owns file IO; ruyaml round-trip in `io.py` |
-| Validate configarr.yml shape | API / Backend (pydantic) | CI (configarr native) | pydantic gives editor-time + 422 feedback; configarr is authoritative gate (D-07) |
+| Validate configarr.yml shape | API / Backend (pydantic) | CI (pydantic gate) | pydantic gives editor-time + 422 feedback AND is the authoritative CI gate (D-08 Option C — configarr has no offline validate mode; D-07 downgraded) |
 | Atomic write + anti-leak guard | API / Backend | — | `write_yaml_atomic` + D-09 re-read/rollback; never client-side |
 | Structured diff | API / Backend | Browser (Phase 26 renders) | Backend computes; frontend (Phase 26) only displays |
 | JSON Schema (readOnly markers) | API / Backend | Browser (Phase 26 FieldInput.svelte consumes) | Backend emits markers; frontend honors them later |
@@ -434,17 +434,15 @@ if after_text.count("!env") < expected_env or after_text.count("!secret") < expe
 | A2 | configarr is the authority and the pydantic model need not perfectly match configarr's conditional-required rules (e.g. `upgrade` union) | Pitfall 3 | If user wants pydantic to be a strong gate (esp. if D-08 lands on Option C), the model must replicate configarr's required-ness more faithfully. MEDIUM |
 | A3 | The backend edits the in-repo `configarr.yml`; no chart/ConfigMap change needed for the endpoints | Runtime State Inventory | If arrconf-ui runs from a path where `configarr.yml` isn't co-located (locator resolves repo root), path resolution must be verified. LOW — locator already finds repo root |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Model scope: real-file subset vs. configarr's full schema?**
    - What we know: real file uses 5 top-level + 6 per-instance keys; configarr has ~20 + ~18. `extra="forbid"` rejects unmodeled keys.
-   - What's unclear: does the user want a minimal model (rejects out-of-scope *arrs — aligned with PROJECT.md "out of scope") or a forward-compat model?
-   - Recommendation: minimal real-file model + documented extension point. **Confirm in planning.** Hard-linked to D-08 Option B (which needs `sonarrEnabled`/`radarrEnabled`).
+   - **RESOLVED (planner Assumption A1):** minimal real-file model (5 top-level / 6 per-instance) + documented extension point. `extra="forbid"` rejects out-of-scope *arrs, aligned with PROJECT.md. No `sonarrEnabled`/`radarrEnabled` keys added (D-08 Option B rejected).
 
 2. **D-08 CI gate choice (BLOCKER) — see escalation block.**
    - What we know: no offline configarr validate mode exists.
-   - What's unclear: will the user pay for ephemeral-*arr-in-CI (Option A), or downgrade D-07 to pydantic-gate (Option C/D)?
-   - Recommendation: orchestrator escalates the A/B/C/D table to the user before the planner writes the CI task.
+   - **RESOLVED (user escalation 2026-05-29 → Option C):** pydantic-only CI gate. `ConfigarrRootConfig.model_validate` against the written file in the existing `arrconf-ui-backend` job. No ephemeral *arr containers, no configarr invocation. D-07 downgraded (pydantic = authoritative gate), user-acknowledged. See `25-CONTEXT.md` D-07/D-08.
 
 ## Environment Availability
 

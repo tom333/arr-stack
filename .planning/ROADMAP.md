@@ -150,9 +150,14 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
   5. A CI gate validates the YAML written by `PUT /api/configarr/config` via `ConfigarrRootConfig.model_validate` (pydantic-only, D-08 RESOLVED → Option C: configarr v1.28.0 has no offline validate mode, so the `extra="forbid"` pydantic model is the authoritative structural gate; no *arr containers, no configarr invocation in CI)
 **Plans**: 4 plans
 Plans:
+**Wave 1**
 - [ ] 25-01-PLAN.md — Task-zero anti-leak round-trip test + tag-literal read helper + configarr path resolvers (CFGUI-01)
 - [ ] 25-02-PLAN.md — ConfigarrRootConfig pydantic model (fully typed, extra="forbid", readOnly markers) + local JSON Schema generator (CFGUI-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 25-03-PLAN.md — 4 /api/configarr/* endpoints + configarr-shape structured diff + D-09 anti-leak runtime guard (CFGUI-01, CFGUI-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 25-04-PLAN.md — CI gate: pydantic validation of the committed configarr.yml + schema-reproducibility check (CFGUI-07)
 **UI hint**: no
 
