@@ -19,11 +19,9 @@ from pydantic import ValidationError
 from ruyaml.comments import TaggedScalar
 
 from arrconf_ui.configarr_config import (
-    ArrInstance,
     ConfigarrRootConfig,
     CustomFormatDefinition,
     MediaNaming,
-    QualityProfile,
 )
 
 # ---------------------------------------------------------------------------
