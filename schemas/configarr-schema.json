@@ -1,0 +1,737 @@
+{
+  "$defs": {
+    "ArrInstance": {
+      "additionalProperties": false,
+      "description": "Per-arr-instance configuration block.\n\n``base_url`` is a plain stored string \u2014 NEVER dialed (SC#3/ADR-5).\n``api_key`` holds a ``!env NAME`` tag-literal reference (safe to surface;\nthe tag reference is a variable name, not a secret \u2014 D-04).\n``media_naming`` and ``quality_definition`` are readOnly (D-02): managed by\nconfigarr/TRaSH and must not be edited via the UI (hence ``readOnly: true``\nin the generated JSON Schema).",
+      "properties": {
+        "api_key": {
+          "readOnly": true,
+          "title": "Api Key",
+          "type": "string"
+        },
+        "base_url": {
+          "title": "Base Url",
+          "type": "string"
+        },
+        "custom_formats": {
+          "items": {
+            "$ref": "#/$defs/CustomFormat"
+          },
+          "title": "Custom Formats",
+          "type": "array"
+        },
+        "media_naming": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MediaNaming"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "readOnly": true
+        },
+        "quality_definition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualityDefinition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "readOnly": true
+        },
+        "quality_profiles": {
+          "items": {
+            "$ref": "#/$defs/QualityProfile"
+          },
+          "title": "Quality Profiles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_url",
+        "api_key"
+      ],
+      "title": "ArrInstance",
+      "type": "object"
+    },
+    "AssignScoresTo": {
+      "additionalProperties": false,
+      "description": "Score assignment for a custom format entry.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "use_default_score": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Use Default Score"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "AssignScoresTo",
+      "type": "object"
+    },
+    "CustomFormat": {
+      "additionalProperties": false,
+      "description": "A custom format entry in the arr instance's custom_formats list.\n\nNote: the deprecated ``quality_profiles`` key is intentionally NOT modeled;\n``extra=\"forbid\"`` will reject it, which is desirable (configarr deprecated it).\nUse ``assign_scores_to`` instead (current API).",
+      "properties": {
+        "assign_scores_to": {
+          "items": {
+            "$ref": "#/$defs/AssignScoresTo"
+          },
+          "title": "Assign Scores To",
+          "type": "array"
+        },
+        "trash_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trash Ids",
+          "type": "array"
+        }
+      },
+      "title": "CustomFormat",
+      "type": "object"
+    },
+    "CustomFormatDefinition": {
+      "additionalProperties": false,
+      "description": "A custom format definition (TRaSH-meta variant used in the real file).",
+      "properties": {
+        "includeCustomFormatWhenRenaming": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Includecustomformatwhenrenaming"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "specifications": {
+          "items": {
+            "$ref": "#/$defs/Specification"
+          },
+          "title": "Specifications",
+          "type": "array"
+        },
+        "trash_description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trash Description"
+        },
+        "trash_id": {
+          "title": "Trash Id",
+          "type": "string"
+        },
+        "trash_regex": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trash Regex"
+        },
+        "trash_scores": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trash Scores"
+        }
+      },
+      "required": [
+        "trash_id",
+        "name"
+      ],
+      "title": "CustomFormatDefinition",
+      "type": "object"
+    },
+    "EpisodesNaming": {
+      "additionalProperties": false,
+      "description": "Episode naming patterns (sonarr).",
+      "properties": {
+        "anime": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anime"
+        },
+        "daily": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Daily"
+        },
+        "rename": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rename"
+        },
+        "standard": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Standard"
+        }
+      },
+      "title": "EpisodesNaming",
+      "type": "object"
+    },
+    "MediaNaming": {
+      "additionalProperties": false,
+      "description": "Media naming configuration \u2014 one type covering both sonarr and radarr keys.\n\nBoth sets of keys are Optional so a sonarr instance (series/season/episodes)\nand a radarr instance (folder/movie) both validate against this single model.\nPitfall 5: do NOT split into SonarrMediaNaming/RadarrMediaNaming.",
+      "properties": {
+        "episodes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EpisodesNaming"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        },
+        "movie": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MovieNaming"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "season": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Season"
+        },
+        "series": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Series"
+        }
+      },
+      "title": "MediaNaming",
+      "type": "object"
+    },
+    "MovieNaming": {
+      "additionalProperties": false,
+      "description": "Movie naming patterns (radarr).",
+      "properties": {
+        "rename": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rename"
+        },
+        "standard": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Standard"
+        }
+      },
+      "title": "MovieNaming",
+      "type": "object"
+    },
+    "QualityDefQuality": {
+      "additionalProperties": false,
+      "description": "A single quality tier inside a quality definition.",
+      "properties": {
+        "max": {
+          "title": "Max",
+          "type": "number"
+        },
+        "min": {
+          "title": "Min",
+          "type": "number"
+        },
+        "preferred": {
+          "title": "Preferred",
+          "type": "number"
+        },
+        "quality": {
+          "title": "Quality",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "quality",
+        "min",
+        "preferred",
+        "max"
+      ],
+      "title": "QualityDefQuality",
+      "type": "object"
+    },
+    "QualityDefinition": {
+      "additionalProperties": false,
+      "description": "Quality definition \u2014 readOnly, typed for validation and schema generation.",
+      "properties": {
+        "preferred_ratio": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Preferred Ratio"
+        },
+        "qualities": {
+          "items": {
+            "$ref": "#/$defs/QualityDefQuality"
+          },
+          "title": "Qualities",
+          "type": "array"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        }
+      },
+      "title": "QualityDefinition",
+      "type": "object"
+    },
+    "QualityGroup": {
+      "additionalProperties": false,
+      "description": "A quality group (may bundle multiple codec/resolution qualities).",
+      "properties": {
+        "enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enabled"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "qualities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Qualities",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "QualityGroup",
+      "type": "object"
+    },
+    "QualityProfile": {
+      "additionalProperties": false,
+      "description": "A quality profile entry inside an arr instance.",
+      "properties": {
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "min_format_score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Format Score"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "qualities": {
+          "items": {
+            "$ref": "#/$defs/QualityGroup"
+          },
+          "title": "Qualities",
+          "type": "array"
+        },
+        "quality_sort": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quality Sort"
+        },
+        "reset_unmatched_scores": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResetUnmatchedScores"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "score_set": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score Set"
+        },
+        "upgrade": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Upgrade"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "QualityProfile",
+      "type": "object"
+    },
+    "ResetUnmatchedScores": {
+      "additionalProperties": false,
+      "description": "Reset unmatched scores configuration inside a quality profile.",
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "except": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Except",
+          "type": "array"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "title": "ResetUnmatchedScores",
+      "type": "object"
+    },
+    "Specification": {
+      "additionalProperties": false,
+      "description": "A specification inside a custom format definition.\n\n``fields`` is typed as ``dict[str, Any]`` (Pitfall 4): ``value`` is ``str``\nfor ReleaseTitleSpecification (regex) but ``int`` for ResolutionSpecification\n(e.g. 2160). Do NOT constrain the value type further.",
+      "properties": {
+        "fields": {
+          "additionalProperties": true,
+          "title": "Fields",
+          "type": "object"
+        },
+        "implementation": {
+          "title": "Implementation",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "negate": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Negate"
+        },
+        "required": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required"
+        }
+      },
+      "required": [
+        "name",
+        "implementation"
+      ],
+      "title": "Specification",
+      "type": "object"
+    },
+    "Upgrade": {
+      "additionalProperties": false,
+      "description": "Upgrade configuration inside a quality profile.\n\nConditional-required (Pitfall 3): when ``allowed=True``, both\n``until_quality`` and ``until_score`` are required. When ``allowed=False``\nthey are optional. Validated via ``@model_validator(mode='after')``.",
+      "properties": {
+        "allowed": {
+          "title": "Allowed",
+          "type": "boolean"
+        },
+        "min_format_score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Format Score"
+        },
+        "until_quality": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Until Quality"
+        },
+        "until_score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Until Score"
+        }
+      },
+      "required": [
+        "allowed"
+      ],
+      "title": "Upgrade",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Root configuration model for configarr.yml.\n\nModels EXACTLY the 5 real-file top-level keys per Assumption A1.\n``extra=\"forbid\"`` correctly rejects out-of-scope *arrs (whisparr, readarr,\nlidarr) \u2014 they are explicitly out-of-scope per PROJECT.md/CLAUDE.md.\n\nADR-5: Lives here in ``tools/arrconf-ui/arrconf_ui/`` ONLY.\nNever import ``RootConfig`` from ``arrconf.config`` here.",
+  "properties": {
+    "customFormatDefinitions": {
+      "items": {
+        "$ref": "#/$defs/CustomFormatDefinition"
+      },
+      "title": "Customformatdefinitions",
+      "type": "array"
+    },
+    "radarr": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ArrInstance"
+      },
+      "title": "Radarr",
+      "type": "object"
+    },
+    "recyclarrConfigUrl": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Recyclarrconfigurl"
+    },
+    "sonarr": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ArrInstance"
+      },
+      "title": "Sonarr",
+      "type": "object"
+    },
+    "trashGuideUrl": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trashguideurl"
+    }
+  },
+  "title": "ConfigarrRootConfig",
+  "type": "object"
+}
