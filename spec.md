@@ -939,6 +939,20 @@ Stratégie retenue : **Option A (omit-by-privacy-metadata)** parmi les trois env
 
 ---
 
+### ADR-9 — Jellyfin plugin reconciler: install-capable (reversal of D-07-PLUGINS-01)
+
+**Phase 24 / JFSKIP-02 — 2026-05-29**
+
+arrconf's Jellyfin plugin reconciler moves from activation-only (D-07-PLUGINS-01) to install-capable. Full ADR in `.planning/PROJECT.md` decisions table (ADR-9). Summary:
+
+- **Mechanism:** `POST /Packages/Installed/{name}?assemblyGuid&version&repositoryUrl` when plugin absent + install fields set on `PluginEntry`; logs `plugin_install_queued` with kubectl restart hint.
+- **Two-run model (D-02):** install and enable/config never happen in the same run (Jellyfin loads plugins at boot only). Operator must restart the pod between Run N and Run N+1.
+- **Backward-compatible:** absent install fields = old activation-only behavior unchanged.
+- **No uninstall / no prune:** operator removes plugins via Jellyfin UI.
+- **First use:** Intro Skipper v1.10.11.19, GUID `c83d86bb-a1e0-4c35-a113-e2101cf4ee6b`.
+
+---
+
 ## 12. Références
 
 - **GSD** : https://github.com/gsd-build/get-shit-done
