@@ -16,14 +16,11 @@ import json
 import shutil
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from arrconf_ui.app import create_app
-from arrconf_ui.locator import configarr_schema_json_path
-
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CANONICAL_SCHEMA = REPO_ROOT / "schemas" / "configarr-schema.json"
@@ -39,7 +36,9 @@ def sandboxed_configarr_schema(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
         return target
 
     monkeypatch.setattr("arrconf_ui.locator.configarr_schema_json_path", fake_schema_path)
-    monkeypatch.setattr("arrconf_ui.app.configarr_schema_json_path", fake_schema_path, raising=False)
+    monkeypatch.setattr(
+        "arrconf_ui.app.configarr_schema_json_path", fake_schema_path, raising=False
+    )
     return target
 
 
@@ -97,7 +96,7 @@ def test_put_configarr_config_roundtrip_preserves_env_tags(
     client: TestClient,
     sandboxed_configarr_yml: Path,
 ) -> None:
-    """PUT /api/configarr/config writes an editable field; !env tags remain on disk; diff returned."""
+    """PUT /api/configarr/config writes an editable field; !env tags remain; diff returned."""
     # GET current config
     current = client.get("/api/configarr/config").json()
     payload = json.loads(json.dumps(current))  # deep copy via JSON
@@ -171,11 +170,7 @@ def test_put_configarr_config_d09_rollback_on_tag_loss(
     assert "!env RADARR_API_KEY" in original_text
 
     # Monkeypatch write_yaml_atomic in the app module to write content with !env stripped
-    from arrconf_ui import io as io_mod
-
-    original_write = io_mod.write_yaml_atomic
-
-    def write_drops_tags(path: Path, data: Any) -> None:  # type: ignore[type-arg]
+    def write_drops_tags(path: Path, data: Any) -> None:
         # Write a version of the file with !env tags removed
         content = original_text.replace("!env SONARR_API_KEY", "SONARR_API_KEY_LEAKED")
         path.write_text(content, encoding="utf-8")
@@ -267,7 +262,9 @@ def test_get_configarr_schema_404_when_missing(
         return missing_path
 
     monkeypatch.setattr("arrconf_ui.locator.configarr_schema_json_path", fake_schema_path)
-    monkeypatch.setattr("arrconf_ui.app.configarr_schema_json_path", fake_schema_path, raising=False)
+    monkeypatch.setattr(
+        "arrconf_ui.app.configarr_schema_json_path", fake_schema_path, raising=False
+    )
 
     client = TestClient(create_app())
     resp = client.get("/api/configarr/schema")
