@@ -267,11 +267,17 @@ def test_arrconf_yml_validates_jellyfin() -> None:
     # Phase 24 JFSKIP-04: chapter extraction enabled
     assert j.libraries.enable_chapter_image_extraction is True
 
-    # Plugins (D-07-PLUGINS-01: 6 plugins, activation-only)
-    assert len(j.plugins.required) == 6
+    # Plugins (Phase 24 JFSKIP-02: 7 plugins — 6 activation-only + Intro Skipper install fields)
+    assert len(j.plugins.required) == 7
     plugin_names = [p.name for p in j.plugins.required]
     assert "TMDb" in plugin_names
     assert "Kodi Sync Queue" in plugin_names
+    assert "Intro Skipper" in plugin_names
+    intro = next(p for p in j.plugins.required if p.name == "Intro Skipper")
+    assert intro.install_guid == "c83d86bb-a1e0-4c35-a113-e2101cf4ee6b"
+    assert intro.config is not None
+    assert intro.config.MaxParallelism == 1
+    assert intro.config.AutoSkip is False
 
 
 # -- Phase 9 assertions (D-01, D-02, D-03, D-04 — categories block) ----------

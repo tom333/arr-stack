@@ -305,3 +305,12 @@ jellyfin:
         - name: "AudioDB"
         - name: "Studio Images"
         - name: "Kodi Sync Queue"
+        # D-01/D-02/D-04/D-05 (JFSKIP-02/03): Intro Skipper install (two-run) + intro+credits config
+        - name: "Intro Skipper"
+          install_guid: "c83d86bb-a1e0-4c35-a113-e2101cf4ee6b"
+          install_version: "1.10.11.19"
+          install_repo_url: "https://intro-skipper.org/manifest.json"
+          config:
+            AutoSkip: false          # show skip button only; auto-skip is Out of Scope (PROJECT.md)
+            AutoSkipCredits: false
+            MaxParallelism: 1        # D-05: off-peak concurrency cap for single-node MicroK8s
