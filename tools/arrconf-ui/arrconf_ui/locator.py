@@ -32,3 +32,13 @@ def arrconf_yml_path() -> Path:
 def schema_json_path() -> Path:
     """Return the canonical path to schemas/arrconf-schema.json."""
     return repo_root() / "schemas" / "arrconf-schema.json"
+
+
+def configarr_yml_path() -> Path:
+    """Return the canonical path to charts/arr-stack/files/configarr.yml."""
+    return repo_root() / "charts" / "arr-stack" / "files" / "configarr.yml"
+
+
+def configarr_schema_json_path() -> Path:
+    """Return the canonical path to schemas/configarr-schema.json."""
+    return repo_root() / "schemas" / "configarr-schema.json"
