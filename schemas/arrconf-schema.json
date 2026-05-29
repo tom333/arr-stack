@@ -559,6 +559,29 @@
       "title": "IndexersSection",
       "type": "object"
     },
+    "IntroSkipperConfig": {
+      "additionalProperties": true,
+      "description": "Intro Skipper plugin configuration (POST /Plugins/{id}/Configuration body).\n\nFields mirror intro-skipper's config JSON keys (PascalCase per Jellyfin convention).\nAutoSkip defaults to False per PROJECT.md Out of Scope: show skip button only,\nnever auto-skip (user preference preservation).",
+      "properties": {
+        "AutoSkip": {
+          "default": false,
+          "title": "Autoskip",
+          "type": "boolean"
+        },
+        "AutoSkipCredits": {
+          "default": false,
+          "title": "Autoskipcredits",
+          "type": "boolean"
+        },
+        "MaxParallelism": {
+          "default": 1,
+          "title": "Maxparallelism",
+          "type": "integer"
+        }
+      },
+      "title": "IntroSkipperConfig",
+      "type": "object"
+    },
     "JellyfinInstance": {
       "additionalProperties": false,
       "description": "A single Jellyfin instance (Phase 7, D-07-INSTANCE-01 \u2014 ADR-7 single-instance).\n\nResources reconciled (D-07-ORDER-01 ordering:\nlibraries \u2192 users \u2192 server_config \u2192 plugins):\n- libraries: POST /Library/VirtualFolders/Paths (Pitfall 2 set-membership shim)\n- users.admin: POST /Users/{id}/Policy (Pitfall 4 POST not PUT,\n  Pitfall 6 re-inject providerids)\n- server_config: POST /System/Configuration (Pitfall 1 full REPLACE,\n  allowlist-merge cluster-side)\n- plugins: POST /Plugins/{id}/{version}/Enable (Pitfall 5 version in path)",
@@ -589,12 +612,18 @@
     },
     "JellyfinLibrariesSection": {
       "additionalProperties": false,
-      "description": "Jellyfin libraries section \u2014 enable + prune (D-16-PRUNE-01); items derived from categories.\n\nScope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions\nsub-fields stay operator-managed.\n\nprune: opt-in per section (D-16-PRUNE-01 \u2014 reverses D-07-LIB-01 hardcoded false).\nWhen True, the reconciler DELETEs PathInfos present in cluster but not in desired\n(D-16-PATH-DELETE-01) AND DELETEs entire libs not in desired set. Operator-driven\nflag \u2014 flip to True for the cutover PR, back to False after UAT to avoid drift on\nuser-added libs. NotFoundError on DELETE Lib is tolerated (Pitfall 16-2).",
+      "description": "Jellyfin libraries section \u2014 enable + prune (D-16-PRUNE-01); items derived from categories.\n\nScope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions\nsub-fields stay operator-managed (except enable_chapter_image_extraction per D-06).\n\nprune: opt-in per section (D-16-PRUNE-01 \u2014 reverses D-07-LIB-01 hardcoded false).\nWhen True, the reconciler DELETEs PathInfos present in cluster but not in desired\n(D-16-PATH-DELETE-01) AND DELETEs entire libs not in desired set. Operator-driven\nflag \u2014 flip to True for the cutover PR, back to False after UAT to avoid drift on\nuser-added libs. NotFoundError on DELETE Lib is tolerated (Pitfall 16-2).",
       "properties": {
         "enable": {
           "default": true,
           "description": "Opt-in default-ON for the Categories-derived libraries.",
           "title": "Enable",
+          "type": "boolean"
+        },
+        "enable_chapter_image_extraction": {
+          "default": false,
+          "description": "D-06 (JFSKIP-04, Phase 24): when True, EnableChapterImageExtraction=true on all 10 Category libs (uniform). Flows from generator \u2192 JellyfinLibrary \u2192 _create_library() POST body / _update_library_options() for existing libs.",
+          "title": "Enable Chapter Image Extraction",
           "type": "boolean"
         },
         "prune": {
@@ -1087,8 +1116,20 @@
     },
     "PluginEntry": {
       "additionalProperties": true,
-      "description": "A required-activate plugin reference (read-mostly resolver target).",
+      "description": "A required-activate plugin reference \u2014 extended with optional install fields (D-01).\n\ninstall_guid/install_version/install_repo_url are all optional (None = activation-only,\nbackward-compatible with Phase 7 D-07-PLUGINS-01 behavior).\nconfig is optional (None = no config management for this plugin).",
       "properties": {
+        "config": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IntroSkipperConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Plugin-specific config to POST to /Plugins/{id}/Configuration"
+        },
         "id": {
           "anyOf": [
             {
@@ -1100,6 +1141,45 @@
           ],
           "default": null,
           "title": "Id"
+        },
+        "install_guid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Plugin GUID for POST /Packages/Installed (e.g. c83d86bb-...)",
+          "title": "Install Guid"
+        },
+        "install_repo_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Repository manifest URL (e.g. 'https://intro-skipper.org/manifest.json')",
+          "title": "Install Repo Url"
+        },
+        "install_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pinned plugin version (e.g. '1.10.11.19')",
+          "title": "Install Version"
         },
         "name": {
           "title": "Name",

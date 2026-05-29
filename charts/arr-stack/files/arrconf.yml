@@ -248,6 +248,7 @@ jellyfin:
     libraries:
       enable: true
       prune: false  # Phase 16 SC#3 — post-cutover lock. SC#2 prune cleanup already executed live (12 paths removed from legacy Séries+Films). D-16-PRUNE-01 opt-in (reverses D-07-LIB-01) — re-enable manually if operator-added libs drift.
+      enable_chapter_image_extraction: true  # D-06 (JFSKIP-04): uniform on all 10 Category libs
     users:
       enable: true
       prune: false  # D-07-USERS-01 hardcoded — emilie operator-managed, never touched
@@ -290,6 +291,10 @@ jellyfin:
       plugin_repositories:
         - Name: "Jellyfin Stable"
           Url: "https://repo.jellyfin.org/files/plugin/manifest.json"
+          Enabled: true
+        # D-03 (JFSKIP-01): Intro Skipper manifest — idempotent set-by-URL via _server_config_equivalent()
+        - Name: "Intro Skipper"
+          Url: "https://intro-skipper.org/manifest.json"
           Enabled: true
     plugins:
       enable: true

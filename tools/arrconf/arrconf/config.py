@@ -520,7 +520,7 @@ class JellyfinLibrariesSection(BaseModel):
     """Jellyfin libraries section — enable + prune (D-16-PRUNE-01); items derived from categories.
 
     Scope per D-07-LIB-02: name + collection_type + paths only. LibraryOptions
-    sub-fields stay operator-managed.
+    sub-fields stay operator-managed (except enable_chapter_image_extraction per D-06).
 
     prune: opt-in per section (D-16-PRUNE-01 — reverses D-07-LIB-01 hardcoded false).
     When True, the reconciler DELETEs PathInfos present in cluster but not in desired
@@ -539,6 +539,14 @@ class JellyfinLibrariesSection(BaseModel):
             "Opt-in deletion (D-16-PRUNE-01 — Phase 16 reverses D-07-LIB-01). "
             "When True, reconciler DELETEs excess PathInfos and orphaned libs. "
             "Flip True only during cutover PR; reset to False post-UAT."
+        ),
+    )
+    enable_chapter_image_extraction: bool = Field(
+        default=False,
+        description=(
+            "D-06 (JFSKIP-04, Phase 24): when True, EnableChapterImageExtraction=true "
+            "on all 10 Category libs (uniform). Flows from generator → JellyfinLibrary → "
+            "_create_library() POST body / _update_library_options() for existing libs."
         ),
     )
 

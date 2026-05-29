@@ -136,6 +136,12 @@ def _create_library(
         )
         return f"library_create:dry_run:{desired_lib.name}"
 
+    # D-06 (JFSKIP-04): pass LibraryOptions when chapter extraction is requested.
+    library_options_body: dict[str, Any] = (
+        {"LibraryOptions": {"EnableChapterImageExtraction": True}}
+        if desired_lib.enable_chapter_image_extraction
+        else {}
+    )
     client._request(
         "POST",
         LIBRARY_VIRTUALFOLDERS_PATH,
@@ -145,7 +151,7 @@ def _create_library(
             "paths": desired_lib.paths,  # httpx repeats key for list values (A2)
             "refreshLibrary": "false",
         },
-        json={},  # AddVirtualFolderDto with LibraryOptions=null
+        json=library_options_body,
     )
     log.info(
         "library_created",
@@ -242,6 +248,38 @@ def _prune_library_paths(
     return actions
 
 
+def _update_library_options(
+    client: JellyfinClient,
+    desired_lib: JellyfinLibrary,
+    cluster_lib: dict[str, Any],
+    dry_run: bool,
+) -> list[str]:
+    """POST /Library/VirtualFolders/LibraryOptions when EnableChapterImageExtraction drifts.
+
+    Phase 24 D-06: idempotent diff — only POSTs when cluster value differs from desired.
+    Pattern mirrors _add_missing_paths() (same helper shape).
+    """
+    library_options = cluster_lib.get("LibraryOptions") or {}
+    cluster_value = library_options.get("EnableChapterImageExtraction", False)
+    if cluster_value == desired_lib.enable_chapter_image_extraction:
+        return []
+    if dry_run:
+        log.info("dry_run_skip", resource="library_options", name=desired_lib.name)
+        return [f"library_options:dry_run:{desired_lib.name}"]
+    client._request(
+        "POST",
+        "/Library/VirtualFolders/LibraryOptions",
+        json={
+            "Id": cluster_lib.get("ItemId"),
+            "LibraryOptions": {
+                "EnableChapterImageExtraction": desired_lib.enable_chapter_image_extraction,
+            },
+        },
+    )
+    log.info("library_options_updated", name=desired_lib.name)
+    return [f"library_options_updated:{desired_lib.name}"]
+
+
 def _prune_libraries(
     client: JellyfinClient,
     current_libraries: list[dict[str, Any]],
@@ -332,6 +370,9 @@ def _reconcile_libraries(
 
         # Prune excess paths (Phase 16 new behavior, prune-gated).
         actions += _prune_library_paths(client, desired_lib, cluster_lib, section, dry_run)
+
+        # Phase 24 D-06: sync EnableChapterImageExtraction via LibraryOptions endpoint.
+        actions += _update_library_options(client, desired_lib, cluster_lib, dry_run)
 
     # Phase 16: prune entire libs not in desired set (D-16-PRUNE-01).
     actions += _prune_libraries(client, current_libraries, desired_libraries, section, dry_run)

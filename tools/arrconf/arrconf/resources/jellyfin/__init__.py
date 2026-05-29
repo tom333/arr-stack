@@ -16,7 +16,7 @@ OpenAPI-required carry-forward (Pitfall 6 / D-06-OPENAPI-01 lesson):
 """
 
 from arrconf.resources.jellyfin.library import JellyfinLibrary, PathInfo
-from arrconf.resources.jellyfin.plugin import PluginEntry
+from arrconf.resources.jellyfin.plugin import IntroSkipperConfig, PluginEntry
 from arrconf.resources.jellyfin.server_config import (
     JellyfinServerConfiguration,
     PluginRepository,
@@ -24,6 +24,7 @@ from arrconf.resources.jellyfin.server_config import (
 from arrconf.resources.jellyfin.user_policy import JellyfinUserPolicy
 
 __all__ = [
+    "IntroSkipperConfig",
     "JellyfinLibrary",
     "JellyfinServerConfiguration",
     "JellyfinUserPolicy",
