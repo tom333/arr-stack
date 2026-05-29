@@ -116,7 +116,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 ### v0.9.0 — configarr-in-UI + Jellyfin skip-intro (Phases 24-27)
 
 - [ ] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike
-- [ ] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate
+- [x] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate (completed 2026-05-29)
 - [ ] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher
 - [ ] **Phase 27: TRaSH CF picker + Recyclarr reference** — build-time-baked TRaSH catalog + `TrashPicker.svelte` + Recyclarr read-only informational dropdown
 
@@ -158,7 +158,7 @@ Plans:
 - [x] 25-03-PLAN.md — 4 /api/configarr/* endpoints + configarr-shape structured diff + D-09 anti-leak runtime guard (CFGUI-01, CFGUI-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 25-04-PLAN.md — CI gate: pydantic validation of the committed configarr.yml + schema-reproducibility check (CFGUI-07)
+- [x] 25-04-PLAN.md — CI gate: pydantic validation of the committed configarr.yml + schema-reproducibility check (CFGUI-07)
 **UI hint**: no
 
 ### Phase 26: configarr-in-UI frontend
@@ -189,7 +189,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
-| 25. configarr-in-UI backend | 3/4 | In Progress|  |
+| 25. configarr-in-UI backend | 4/4 | Complete   | 2026-05-29 |
 | 26. configarr-in-UI frontend | 0/? | Not started | - |
 | 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
 
