@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
 status: executing
-last_updated: "2026-05-29T09:08:24.209Z"
-last_activity: 2026-05-29 -- Phase 25 planning complete
+last_updated: "2026-05-29T09:14:41.744Z"
+last_activity: 2026-05-29 -- Phase 25 execution started
 progress:
   total_phases: 4
   completed_phases: 0
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 24 — jellyfin-intro-skipper
+**Current focus:** Phase 25 — configarr-in-ui-backend
 
 ## Current Position
 
-Phase: 24 (jellyfin-intro-skipper) — EXECUTING
-Plan: 1 of 3
-Status: Ready to execute
-Last activity: 2026-05-29 -- Phase 25 planning complete
+Phase: 25 (configarr-in-ui-backend) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 25
+Last activity: 2026-05-29 -- Phase 25 execution started
 
 ```
 v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
