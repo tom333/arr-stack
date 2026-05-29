@@ -142,8 +142,10 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = {
   'SeerrSonarrServiceSection.animeTags': "IDs numériques des tags Sonarr à appliquer aux requêtes anime routées via Seerr (mécanisme natif Seerr).",
   'SeerrSonarrServiceSection.tags': "IDs numériques des tags Sonarr à appliquer aux requêtes non-anime via Seerr.",
   'SeerrSonarrServiceSection.tagRequests': "Active le tagging Seerr-side des requêtes (true en prod).",
+  'SeerrSonarrServiceSection.externalUrl': "URL publique Sonarr utilisée par le lien « Voir dans Sonarr » de Seerr (ex: https://sonarr.tgu.ovh). Vide = Seerr retombe sur hostname:port interne k8s. N'affecte PAS les appels API (toujours via hostname interne).",
   'SeerrRadarrServiceSection.activeProfileId': "ID numérique du quality profile Radarr par défaut. 🔗 Couplé SuggestArr default_movie.profileId.",
   'SeerrRadarrServiceSection.activeDirectory': "Root folder Radarr pour les requêtes films (/media/films). 🔗 Couplé SuggestArr default_movie.rootFolder.",
+  'SeerrRadarrServiceSection.externalUrl': "URL publique Radarr utilisée par le lien « Voir dans Radarr » de Seerr (ex: https://radarr.tgu.ovh). Vide = Seerr retombe sur hostname:port interne k8s. N'affecte PAS les appels API (toujours via hostname interne).",
 
   // SeerrUsersSection / Main
   'SeerrUsersSection.enable': "Active la reconciliation des users Seerr. default-ON pour l'admin uniquement.",

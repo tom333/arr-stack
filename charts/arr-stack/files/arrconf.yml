@@ -169,7 +169,7 @@ seerr:
       is4k: false
       isDefault: true
       enableSeasonFolders: false
-      externalUrl: ""
+      externalUrl: https://sonarr.tgu.ovh
       syncEnabled: true
       preventSearch: false
       tagRequests: true
@@ -183,7 +183,7 @@ seerr:
       minimumAvailability: released
       tags: [2]
       isDefault: true
-      externalUrl: ""
+      externalUrl: https://radarr.tgu.ovh
       syncEnabled: true
       preventSearch: false
       tagRequests: true
