@@ -44,12 +44,10 @@ def sandboxed_configarr_yml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     def fake_path() -> Path:
         return target
 
-    # Patch the locator module's symbol.
+    # Patch the locator module's symbol and the re-exported name in app.py.
+    # Plan 03 added configarr_yml_path to app.py imports, so raising=True (strict).
     monkeypatch.setattr("arrconf_ui.locator.configarr_yml_path", fake_path)
-    # arrconf_ui.app may not yet re-export configarr_yml_path (added in Plan 03).
-    # Use raising=False so this fixture works in both wave-1 (pre-Plan-03) and
-    # wave-2 (post-Plan-03) contexts without modification.
-    monkeypatch.setattr("arrconf_ui.app.configarr_yml_path", fake_path, raising=False)
+    monkeypatch.setattr("arrconf_ui.app.configarr_yml_path", fake_path)
     yield target
 
 
