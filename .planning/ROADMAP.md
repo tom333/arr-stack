@@ -133,7 +133,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
   4. `EnableChapterImageExtraction: true` is confirmed set on all 10 libraries via `GET /Library/VirtualFolders` (seek-bar thumbnails visible in at least one client)
   5. Kodi/JellyCon spike result documented with binary accept (service.jellyskip works on LibreELEC 10.11.8) or reject (unsupported, runbook notes it as operator-manual only) — spike is non-gating but result is required before phase is declared complete
 **Plans**: 3 plans
-  - [ ] 24-01-PLAN.md — Schema/model + chapter-extraction reconciler + Intro Skipper repo registration (JFSKIP-01, JFSKIP-04)
+  - [x] 24-01-PLAN.md — Schema/model + chapter-extraction reconciler + Intro Skipper repo registration (JFSKIP-01, JFSKIP-04)
   - [ ] 24-02-PLAN.md — Two-run install + enable + plugin-config logic + co-bump 0.16.0 + ADR reversal (JFSKIP-02, JFSKIP-03)
   - [ ] 24-03-PLAN.md — Operator runbook + live two-run verification + Kodi spike (JFSKIP-05)
 **UI hint**: no
@@ -178,7 +178,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 24. Jellyfin Intro Skipper | 0/3 | Planned | - |
+| 24. Jellyfin Intro Skipper | 1/3 | In Progress|  |
 | 25. configarr-in-UI backend | 0/? | Not started | - |
 | 26. configarr-in-UI frontend | 0/? | Not started | - |
 | 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
