@@ -61,6 +61,7 @@ LIBRARY_PATHS_PATH = "/Library/VirtualFolders/Paths"
 USERS_PATH = "/Users"
 SYSTEM_CONFIGURATION_PATH = "/System/Configuration"
 PLUGINS_PATH = "/Plugins"
+PACKAGES_INSTALLED_PATH = "/Packages/Installed"
 
 # The 7 PascalCase keys in /System/Configuration that arrconf manages (D-07-CONFIG-01).
 SERVER_CONFIG_ALLOWLIST: tuple[str, ...] = (
@@ -504,11 +505,16 @@ def _reconcile_plugins(
     section: JellyfinPluginsSection,
     dry_run: bool,
 ) -> list[str]:
-    """Reconcile plugin activation (D-07-PLUGINS-01: activation-only, best effort).
+    """Reconcile plugin install + activation + config (D-01/D-02/D-04/D-05).
+
+    Two-run model (D-02):
+      Run N  (plugin absent): POST /Packages/Installed → plugin_install_queued warning.
+             Jellyfin loads plugins at boot only — NO enable/config same run.
+      Run N+1 (plugin present, after operator restart): enable if not Active; apply config.
 
     Pitfall 5: POST /Plugins/{Id}/{Version}/Enable — version REQUIRED in path
     (POST /Plugins/{Id}/Enable returns HTTP 405 Method Not Allowed).
-    No install, no uninstall, no prune.
+    No uninstall, no prune.
     """
     if not section.enable:
         log.info("plugins_reconcile_skipped")
@@ -526,15 +532,43 @@ def _reconcile_plugins(
         # Match by Id if explicitly set (CONTEXT.md §65 ambiguity fallback), else by Name.
         cluster = by_id.get(entry.id) if entry.id else by_name.get(entry.name)
         if cluster is None:
-            log.warning(
-                "plugin_missing_skip",
-                name=entry.name,
-                id=entry.id,
-                hint=(
-                    "Plugin not installed in Jellyfin. D-07-PLUGINS-01 is activation-only; "
-                    "operator installs via UI."
-                ),
-            )
+            # D-01: install step when install fields are present (reverses D-07-PLUGINS-01)
+            if entry.install_guid and entry.install_version and entry.install_repo_url:
+                if dry_run:
+                    log.info("dry_run_skip", resource="plugin_install", name=entry.name)
+                    actions.append(f"plugin_install:dry_run:{entry.name}")
+                    continue
+                client._request(
+                    "POST",
+                    f"{PACKAGES_INSTALLED_PATH}/{entry.name}",
+                    params={
+                        "assemblyGuid": entry.install_guid,
+                        "version": entry.install_version,
+                        "repositoryUrl": entry.install_repo_url,
+                    },
+                )
+                log.warning(
+                    "plugin_install_queued",
+                    name=entry.name,
+                    guid=entry.install_guid,
+                    version=entry.install_version,
+                    hint=(
+                        "Jellyfin restart required: "
+                        "kubectl rollout restart deployment/jellyfin -n selfhost"
+                    ),
+                )
+                actions.append(f"plugin_install_queued:{entry.name}")
+            else:
+                # Existing warning path — no install fields set (D-07-PLUGINS-01 legacy behavior)
+                log.warning(
+                    "plugin_missing_skip",
+                    name=entry.name,
+                    id=entry.id,
+                    hint=(
+                        "Plugin not installed in Jellyfin. Set install_guid/install_version/"
+                        "install_repo_url to enable automatic install (D-01), or install via UI."
+                    ),
+                )
             continue
 
         plugin_id: str = cluster["Id"]
@@ -566,6 +600,27 @@ def _reconcile_plugins(
             prior_status=status,
         )
         actions.append(f"plugin_enabled:{entry.name}")
+
+    # Plugin-config step (D-04/D-05): after enable loop, for installed+active plugins only.
+    # Two-run model (D-02): config only when Active — skip if just installed (pre-restart).
+    for entry in section.required:
+        if entry.config is None:
+            continue
+        cluster = by_id.get(entry.id) if entry.id else by_name.get(entry.name)
+        if cluster is None or cluster.get("Status") not in _ACTIVE_PLUGIN_STATUSES:
+            continue  # not yet active — skip config (run N+1 after restart applies it)
+        plugin_id = cluster["Id"]
+        cluster_config: dict[str, Any] = client.get(f"{PLUGINS_PATH}/{plugin_id}/Configuration")
+        desired_config = entry.config.model_dump(exclude_none=True)
+        if all(cluster_config.get(k) == v for k, v in desired_config.items()):
+            log.info("plugin_config_no_op", name=entry.name)
+            continue
+        if dry_run:
+            actions.append(f"plugin_config:dry_run:{entry.name}")
+            continue
+        client._request("POST", f"{PLUGINS_PATH}/{plugin_id}/Configuration", json=desired_config)
+        log.info("plugin_config_applied", name=entry.name)
+        actions.append(f"plugin_config_applied:{entry.name}")
 
     return actions
 
