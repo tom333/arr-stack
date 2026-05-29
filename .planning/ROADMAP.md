@@ -147,8 +147,13 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
   2. `GET /api/configarr/config` returns the parsed configarr.yml; `PUT /api/configarr/config` writes back without corrupting `!env`/`!secret` tags (verified by the round-trip test)
   3. `GET /api/configarr/schema` returns a JSON Schema with `api_key` fields marked `readOnly: true`; no `*arr` API URL appears anywhere in the arrconf-ui source (ADR-5 boundary assertion)
   4. `POST /api/configarr/diff` returns the diff between current and proposed YAML without resolving env vars — the literal string `!env SONARR_API_KEY` (or equivalent) appears in the diff output, never a resolved secret value
-  5. A CI gate (`configarr --dry-run` or equivalent validation) passes against the YAML written by `PUT /api/configarr/config`, confirming configarr itself accepts the output (configarr is the authoritative validator)
-**Plans**: TBD
+  5. A CI gate validates the YAML written by `PUT /api/configarr/config` via `ConfigarrRootConfig.model_validate` (pydantic-only, D-08 RESOLVED → Option C: configarr v1.28.0 has no offline validate mode, so the `extra="forbid"` pydantic model is the authoritative structural gate; no *arr containers, no configarr invocation in CI)
+**Plans**: 4 plans
+Plans:
+- [ ] 25-01-PLAN.md — Task-zero anti-leak round-trip test + tag-literal read helper + configarr path resolvers (CFGUI-01)
+- [ ] 25-02-PLAN.md — ConfigarrRootConfig pydantic model (fully typed, extra="forbid", readOnly markers) + local JSON Schema generator (CFGUI-02)
+- [ ] 25-03-PLAN.md — 4 /api/configarr/* endpoints + configarr-shape structured diff + D-09 anti-leak runtime guard (CFGUI-01, CFGUI-03)
+- [ ] 25-04-PLAN.md — CI gate: pydantic validation of the committed configarr.yml + schema-reproducibility check (CFGUI-07)
 **UI hint**: no
 
 ### Phase 26: configarr-in-UI frontend
