@@ -37,7 +37,11 @@ from pydantic import ValidationError
 from arrconf_ui.configarr_config import ConfigarrRootConfig
 from arrconf_ui.configarr_diff import configarr_diff
 from arrconf_ui.configarr_diff import has_changes as configarr_has_changes
-from arrconf_ui.configarr_io import _tagged_to_literal
+from arrconf_ui.configarr_io import (
+    _tagged_to_literal,
+    count_secret_tags,
+    merge_preserving_tags,
+)
 from arrconf_ui.diff import diff_configs, has_changes
 from arrconf_ui.io import read_yaml, write_yaml_atomic
 from arrconf_ui.locator import (
@@ -221,32 +225,26 @@ def create_app() -> FastAPI:
         path = configarr_yml_path()
         # Capture pre-write state for diff and D-09 guard
         before_bytes = path.read_bytes()
-        before_text = before_bytes.decode("utf-8")
-        expected_env = before_text.count("!env")
-        expected_secret = before_text.count("!secret")
+        before_tree = read_yaml(path)
+        expected_tags = count_secret_tags(before_tree)
 
         # Compute diff on tag-literal snapshot BEFORE write (SC#4)
-        before_literal = _tagged_to_literal(read_yaml(path))
+        before_literal = _tagged_to_literal(before_tree)
         diff = configarr_diff(before_literal, payload)
 
-        # Shallow-merge editable keys into on-disk ruyaml tree.
-        # This leaves TaggedScalar nodes (api_key, etc.) physically untouched —
-        # the safest anti-leak design (RESEARCH Pattern 2).
+        # Deep-merge editable leaves into the on-disk ruyaml tree, PRESERVING
+        # tagged secret nodes (api_key !env/!secret). Wholesale block replacement
+        # demotes TaggedScalars to quoted plain strings whose text still holds
+        # "!env" — the leak SC#4 exists to prevent (CR-01).
         target = read_yaml(path)
-        for top_key in (
-            "trashGuideUrl",
-            "recyclarrConfigUrl",
-            "customFormatDefinitions",
-            "sonarr",
-            "radarr",
-        ):
-            if top_key in payload:
-                target[top_key] = payload[top_key]
+        merge_preserving_tags(target, payload)
         write_yaml_atomic(path, target)
 
-        # D-09 runtime guard: re-read and assert tag counts survived
-        after_text = path.read_text("utf-8")
-        if after_text.count("!env") < expected_env or after_text.count("!secret") < expected_secret:
+        # D-09 runtime guard: re-read and assert secret tag NODES survived.
+        # Counts actual TaggedScalar nodes, not substrings — a demoted tag keeps
+        # its text but is no longer a node, so node-counting catches the loss.
+        after_tags = count_secret_tags(read_yaml(path))
+        if after_tags < expected_tags:
             path.write_bytes(before_bytes)  # rollback
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
