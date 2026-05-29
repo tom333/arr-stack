@@ -151,8 +151,8 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 **Plans**: 4 plans
 Plans:
 **Wave 1**
-- [ ] 25-01-PLAN.md — Task-zero anti-leak round-trip test + tag-literal read helper + configarr path resolvers (CFGUI-01)
-- [ ] 25-02-PLAN.md — ConfigarrRootConfig pydantic model (fully typed, extra="forbid", readOnly markers) + local JSON Schema generator (CFGUI-02)
+- [x] 25-01-PLAN.md — Task-zero anti-leak round-trip test + tag-literal read helper + configarr path resolvers (CFGUI-01)
+- [x] 25-02-PLAN.md — ConfigarrRootConfig pydantic model (fully typed, extra="forbid", readOnly markers) + local JSON Schema generator (CFGUI-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 25-03-PLAN.md — 4 /api/configarr/* endpoints + configarr-shape structured diff + D-09 anti-leak runtime guard (CFGUI-01, CFGUI-03)
@@ -189,7 +189,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
-| 25. configarr-in-UI backend | 0/? | Not started | - |
+| 25. configarr-in-UI backend | 2/4 | In Progress|  |
 | 26. configarr-in-UI frontend | 0/? | Not started | - |
 | 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
 
