@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
-status: planning
-last_updated: "2026-05-29T02:44:57.305Z"
-last_activity: "2026-05-27 — Roadmap created for v0.9.0 (4 phases: 24-27)"
+status: executing
+last_updated: "2026-05-29T03:31:43.516Z"
+last_activity: 2026-05-29 -- Phase 24 planning complete
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -26,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 24 — Jellyfin Intro Skipper
 Plan: — (not started)
-Status: Ready to plan
-Last activity: 2026-05-27 — Roadmap created for v0.9.0 (4 phases: 24-27)
+Status: Ready to execute
+Last activity: 2026-05-29 -- Phase 24 planning complete
 
 ```
 v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
