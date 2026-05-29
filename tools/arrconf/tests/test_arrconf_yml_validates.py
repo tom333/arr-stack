@@ -258,10 +258,14 @@ def test_arrconf_yml_validates_jellyfin() -> None:
     assert j.server_config.ui_culture == "fr"
     assert j.server_config.metadata_country_code == "FR"
     assert j.server_config.activity_log_retention_days == 30
-    assert len(j.server_config.plugin_repositories) == 1
-    assert j.server_config.plugin_repositories[0].Url == (
-        "https://repo.jellyfin.org/files/plugin/manifest.json"
-    )
+    # Phase 24 JFSKIP-01: 2 plugin repositories (Jellyfin Stable + Intro Skipper)
+    assert len(j.server_config.plugin_repositories) == 2
+    repo_urls = {r.Url for r in j.server_config.plugin_repositories}
+    assert "https://repo.jellyfin.org/files/plugin/manifest.json" in repo_urls
+    assert "https://intro-skipper.org/manifest.json" in repo_urls
+
+    # Phase 24 JFSKIP-04: chapter extraction enabled
+    assert j.libraries.enable_chapter_image_extraction is True
 
     # Plugins (D-07-PLUGINS-01: 6 plugins, activation-only)
     assert len(j.plugins.required) == 6

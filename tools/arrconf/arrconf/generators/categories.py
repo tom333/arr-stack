@@ -205,6 +205,10 @@ def generate_jellyfin_libraries(cfg: RootConfig) -> list[JellyfinLibrary]:
       - collection_type = kind→type map  (D-16-COLLECTIONTYPE-01 — unchanged)
       - paths          = [c.base_path]   (single PathInfo per lib)
 
+    Phase 24 D-06: uniform EnableChapterImageExtraction=True on all 10 libs.
+    Flows generator → JellyfinLibrary.enable_chapter_image_extraction →
+    _create_library() POST body / _update_library_options() for existing libs.
+
     Order of output follows ``cfg.categories`` order — deterministic for tests
     and operator readability of the resulting JSON.
 
@@ -215,6 +219,7 @@ def generate_jellyfin_libraries(cfg: RootConfig) -> list[JellyfinLibrary]:
             name=c.display,
             collection_type=_KIND_TO_COLLECTION_TYPE[c.kind],
             paths=[c.base_path],
+            enable_chapter_image_extraction=True,  # D-06: uniform, all 10 libs (Phase 24)
         )
         for c in cfg.categories
     ]
