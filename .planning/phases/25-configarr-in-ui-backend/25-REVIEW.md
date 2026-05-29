@@ -22,10 +22,19 @@ findings:
   warning: 5
   info: 3
   total: 10
-status: issues_found
+status: blockers_resolved
 ---
 
 # Phase 25: Code Review Report
+
+> **RESOLUTION (2026-05-29, commit `d041b8a`):** Both BLOCKERs fixed.
+> **CR-01** — PUT now deep-merges editable leaves via `merge_preserving_tags`,
+> never overwriting existing `!env`/`!secret` `TaggedScalar` nodes; the D-09
+> guard counts actual tag nodes (`count_secret_tags`) instead of the `!env`
+> substring. **CR-02** — Test 3 rewritten as a real full GET→edit→PUT round-trip
+> asserting api_key stays a YAML tag (not a quoted string); Test 5 exercises the
+> guard via the real merge path. 65/65 arrconf-ui tests pass, triade clean.
+> The 5 WARNING + 3 INFO findings below remain as advisory (non-blocking) debt.
 
 **Reviewed:** 2026-05-29T21:00:00Z
 **Depth:** standard
