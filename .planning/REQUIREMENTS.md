@@ -12,13 +12,13 @@
 
 Étendre `arrconf-ui` (FastAPI + Svelte 5, schema-driven, édite aujourd'hui `arrconf.yml`) pour éditer aussi `configarr.yml`, avec un picker TRaSH par nom. ADR-5 intact : l'UI édite le **fichier** ; configarr reste seul à apply.
 
-- [ ] **CFGUI-01**: L'opérateur charge, édite et sauvegarde `configarr.yml` depuis `arrconf-ui`, avec round-trip ruyaml préservant commentaires, ordre des clés et tags `!env`/`!secret` (test anti-leak des tags livré en task-zéro, avant tout chemin d'écriture).
-- [ ] **CFGUI-02**: Un modèle pydantic `ConfigarrRootConfig` (écrit à la main, vit dans `tools/arrconf-ui/`, jamais dans `tools/arrconf/`) + JSON Schema généré pilotent le formulaire pour le subset édité (quality_profiles, custom_formats, customFormatDefinitions, language) ; `api_key` traité comme chaîne opaque ; quality_definition + media_naming affichés en lecture seule.
-- [ ] **CFGUI-03**: Le backend expose des endpoints configarr (GET/PUT config, GET schema, POST diff) symétriques aux endpoints arrconf existants.
+- [x] **CFGUI-01**: L'opérateur charge, édite et sauvegarde `configarr.yml` depuis `arrconf-ui`, avec round-trip ruyaml préservant commentaires, ordre des clés et tags `!env`/`!secret` (test anti-leak des tags livré en task-zéro, avant tout chemin d'écriture).
+- [x] **CFGUI-02**: Un modèle pydantic `ConfigarrRootConfig` (écrit à la main, vit dans `tools/arrconf-ui/`, jamais dans `tools/arrconf/`) + JSON Schema généré pilotent le formulaire pour le subset édité (quality_profiles, custom_formats, customFormatDefinitions, language) ; `api_key` traité comme chaîne opaque ; quality_definition + media_naming affichés en lecture seule.
+- [x] **CFGUI-03**: Le backend expose des endpoints configarr (GET/PUT config, GET schema, POST diff) symétriques aux endpoints arrconf existants.
 - [ ] **CFGUI-04**: Le frontend offre un sélecteur de config (`arrconf.yml` ↔ `configarr.yml`) ; le formulaire configarr s'affiche via le dispatcher `FieldInput.svelte` existant.
 - [ ] **CFGUI-05**: L'opérateur ajoute/retire des custom formats TRaSH **par nom** via un picker adossé à un catalogue TRaSH baké au build (`name → trash_id`, sonarr + radarr) — aucun trash_id tapé à la main.
 - [ ] **CFGUI-06**: Les templates Recyclarr sont surfacés en **référence lecture-seule** (dropdown informatif). PAS d'insertion `include:` (différée v1.x pour protéger les 6 CF français custom).
-- [ ] **CFGUI-07**: Un gate CI valide le `configarr.yml` sauvegardé via le dry-run/validation natif de configarr (validateur faisant autorité, pas la couche pydantic de l'UI).
+- [x] **CFGUI-07**: Un gate CI valide le `configarr.yml` sauvegardé via `ConfigarrRootConfig.model_validate` (gate pydantic faisant autorité — D-08 résolu Option C : configarr v1.28.0 n'a aucun mode de validation offline ; D-07 rétrogradé, voir 25-CONTEXT.md).
 
 ### Jellyfin skip-intro (JFSKIP) — umbrella `REQ-jellyfin-skip-intro`
 
@@ -57,13 +57,13 @@ Exclusions explicites avec raison (anti-scope-creep).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFGUI-01 | Phase 25 | Pending |
-| CFGUI-02 | Phase 25 | Pending |
-| CFGUI-03 | Phase 25 | Pending |
+| CFGUI-01 | Phase 25 | Complete |
+| CFGUI-02 | Phase 25 | Complete |
+| CFGUI-03 | Phase 25 | Complete |
 | CFGUI-04 | Phase 26 | Pending |
 | CFGUI-05 | Phase 27 | Pending |
 | CFGUI-06 | Phase 27 | Pending |
-| CFGUI-07 | Phase 25 | Pending |
+| CFGUI-07 | Phase 25 | Complete |
 | JFSKIP-01 | Phase 24 | Pending |
 | JFSKIP-02 | Phase 24 | Pending |
 | JFSKIP-03 | Phase 24 | Pending |

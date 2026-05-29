@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
-status: executing
+status: ready_to_plan
 last_updated: "2026-05-29T09:14:41.744Z"
 last_activity: 2026-05-29 -- Phase 25 execution started
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
   completed_plans: 2
-  percent: 29
+  percent: 25
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 25 (configarr-in-ui-backend) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 25
-Last activity: 2026-05-29 -- Phase 25 execution started
+Phase: 26
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-29
 
 ```
 v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
