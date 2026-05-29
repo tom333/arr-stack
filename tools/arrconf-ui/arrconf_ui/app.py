@@ -1,18 +1,24 @@
-"""FastAPI application — 4 endpoints + StaticFiles mount placeholder (D-02).
+"""FastAPI application — 8 endpoints + StaticFiles mount placeholder (D-02).
 
-Endpoints:
+arrconf endpoints:
 - GET  /api/config  — read arrconf.yml → RootConfig.model_dump(mode='json')
 - PUT  /api/config  — validate body via RootConfig.model_validate → atomic write → diff summary
 - GET  /api/schema  — return schemas/arrconf-schema.json content (drives D-13 schema-driven UI)
 - POST /api/diff    — stateless preview: accept pending RootConfig, return diff vs on-disk
 
+configarr endpoints (CFGUI-01 / CFGUI-03 / SC#2 / SC#3 / D-09):
+- GET  /api/configarr/config  — read configarr.yml → tag-literal dict (SC#2: !env preserved)
+- PUT  /api/configarr/config  — validate → atomic write + D-09 anti-leak guard → diff summary
+- POST /api/configarr/diff    — stateless preview (SC#4: tag-literal preserving)
+- GET  /api/configarr/schema  — return schemas/configarr-schema.json
+
 StaticFiles mount at `/` is enabled if `tools/arrconf-ui/web/dist/` exists.
 Plan 15-B builds this directory; until then the mount is skipped (404 on /).
 
-Error contract (D-06 validation on Save only):
-- 404: arrconf.yml missing
+Error contract:
+- 404: yml/schema file missing
 - 422: pydantic ValidationError → returned with `detail` array (loc/msg/type)
-- 500: anything else
+- 500: internal error or D-09 anti-leak guard trip (tag lost after write)
 """
 
 from __future__ import annotations
@@ -28,9 +34,19 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
+from arrconf_ui.configarr_config import ConfigarrRootConfig
+from arrconf_ui.configarr_diff import configarr_diff
+from arrconf_ui.configarr_diff import has_changes as configarr_has_changes
+from arrconf_ui.configarr_io import _tagged_to_literal
 from arrconf_ui.diff import diff_configs, has_changes
 from arrconf_ui.io import read_yaml, write_yaml_atomic
-from arrconf_ui.locator import arrconf_yml_path, repo_root, schema_json_path
+from arrconf_ui.locator import (
+    arrconf_yml_path,
+    configarr_schema_json_path,
+    configarr_yml_path,
+    repo_root,
+    schema_json_path,
+)
 
 log = structlog.get_logger()
 
@@ -144,6 +160,120 @@ def create_app() -> FastAPI:
     def get_schema() -> Any:
         """Return the committed JSON Schema (drives D-13 schema-driven UI)."""
         path = schema_json_path()
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schema file not found at {path}",
+            )
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    # -----------------------------------------------------------------------
+    # configarr endpoints — symmetric to the arrconf ones above.
+    # SC#3 boundary: NONE of these handlers construct or dial a *arr URL.
+    # base_url is stored/echoed verbatim from the file; nothing calls it.
+    # -----------------------------------------------------------------------
+
+    @app.get("/api/configarr/config")
+    def get_configarr_config() -> Any:
+        """Return configarr.yml as tag-literal JSON (SC#2: !env preserved).
+
+        Uses ``_tagged_to_literal`` — NOT ``_read_current`` which JSON-coerces
+        and drops ``!env``/``!secret`` tags (Pitfall 1 / RESEARCH line 308).
+        """
+        path = configarr_yml_path()
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"configarr.yml not found at {path}",
+            )
+        raw = read_yaml(path)
+        literal = _tagged_to_literal(raw)
+        try:
+            ConfigarrRootConfig.model_validate(literal)
+        except ValidationError as e:
+            # On-disk file is invalid — surface errors but don't 500
+            # (operator may have hand-edited the file).
+            detail = json.loads(json.dumps(e.errors(), default=str))
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": detail, "raw": literal},
+            )
+        # Return the tag-literal dict (NOT model_dump which could coerce types).
+        # literal is already a plain Python dict with !env strings preserved.
+        return literal
+
+    @app.put("/api/configarr/config")
+    def put_configarr_config(payload: dict[str, Any]) -> Any:
+        """Validate payload → atomic write → D-09 anti-leak guard → diff (SC#2/D-09).
+
+        D-09: after atomic write, re-reads the file and asserts every
+        ``!env``/``!secret`` tag is byte-present. Rolls back + returns 500
+        on any tag loss.
+        """
+        try:
+            ConfigarrRootConfig.model_validate(payload)
+        except ValidationError as e:
+            detail = json.loads(json.dumps(e.errors(), default=str))
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": detail},
+            )
+        path = configarr_yml_path()
+        # Capture pre-write state for diff and D-09 guard
+        before_bytes = path.read_bytes()
+        before_text = before_bytes.decode("utf-8")
+        expected_env = before_text.count("!env")
+        expected_secret = before_text.count("!secret")
+
+        # Compute diff on tag-literal snapshot BEFORE write (SC#4)
+        before_literal = _tagged_to_literal(read_yaml(path))
+        diff = configarr_diff(before_literal, payload)
+
+        # Shallow-merge editable keys into on-disk ruyaml tree.
+        # This leaves TaggedScalar nodes (api_key, etc.) physically untouched —
+        # the safest anti-leak design (RESEARCH Pattern 2).
+        target = read_yaml(path)
+        for top_key in (
+            "trashGuideUrl",
+            "recyclarrConfigUrl",
+            "customFormatDefinitions",
+            "sonarr",
+            "radarr",
+        ):
+            if top_key in payload:
+                target[top_key] = payload[top_key]
+        write_yaml_atomic(path, target)
+
+        # D-09 runtime guard: re-read and assert tag counts survived
+        after_text = path.read_text("utf-8")
+        if after_text.count("!env") < expected_env or after_text.count("!secret") < expected_secret:
+            path.write_bytes(before_bytes)  # rollback
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="anti-leak guard: !env/!secret tag lost on write",
+            )
+
+        log.info(
+            "configarr_config_saved",
+            has_changes=configarr_has_changes(diff),
+        )
+        return {"diff": diff, "has_changes": configarr_has_changes(diff)}
+
+    @app.post("/api/configarr/diff")
+    def post_configarr_diff(payload: dict[str, Any]) -> Any:
+        """Stateless preview: return diff between payload and on-disk configarr.yml.
+
+        MUST NOT write. SC#4: diff runs on tag-literal data.
+        """
+        path = configarr_yml_path()
+        before = _tagged_to_literal(read_yaml(path))
+        diff = configarr_diff(before, payload)
+        return {"diff": diff, "has_changes": configarr_has_changes(diff)}
+
+    @app.get("/api/configarr/schema")
+    def get_configarr_schema() -> Any:
+        """Return the committed configarr JSON Schema (readOnly markers for the UI)."""
+        path = configarr_schema_json_path()
         if not path.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
