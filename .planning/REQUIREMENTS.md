@@ -19,6 +19,7 @@
 - [ ] **CFGUI-05**: L'opérateur ajoute/retire des custom formats TRaSH **par nom** via un picker adossé à un catalogue TRaSH baké au build (`name → trash_id`, sonarr + radarr) — aucun trash_id tapé à la main.
 - [ ] **CFGUI-06**: Les templates Recyclarr sont surfacés en **référence lecture-seule** (dropdown informatif). PAS d'insertion `include:` (différée v1.x pour protéger les 6 CF français custom).
 - [x] **CFGUI-07**: Un gate CI valide le `configarr.yml` sauvegardé via `ConfigarrRootConfig.model_validate` (gate pydantic faisant autorité — D-08 résolu Option C : configarr v1.28.0 n'a aucun mode de validation offline ; D-07 rétrogradé, voir 25-CONTEXT.md).
+- [ ] **CFGUI-08**: L'opérateur applique un **quality profile TRaSH par nom** via un picker adossé au catalogue QP baké (sonarr + radarr). Le picker **ajoute uniquement** une nouvelle entrée `quality_profiles[]` (add-as-new) ; il ne modifie/réordonne jamais les 3 profils hand-rolled (MULTi.VF / Anime / Family) ; collision de nom → warn + rename requis. Scope expansion 2026-05-30 (voir `27-CONTEXT.md` D-09..D-11) : configarr possède `quality_profiles`, l'UI édite le **fichier** — ADR-5 intact.
 
 ### Jellyfin skip-intro (JFSKIP) — umbrella `REQ-jellyfin-skip-intro`
 
@@ -64,6 +65,7 @@ Exclusions explicites avec raison (anti-scope-creep).
 | CFGUI-05 | Phase 27 | Pending |
 | CFGUI-06 | Phase 27 | Pending |
 | CFGUI-07 | Phase 25 | Complete |
+| CFGUI-08 | Phase 27 | Pending |
 | JFSKIP-01 | Phase 24 | Pending |
 | JFSKIP-02 | Phase 24 | Pending |
 | JFSKIP-03 | Phase 24 | Pending |
@@ -71,10 +73,11 @@ Exclusions explicites avec raison (anti-scope-creep).
 | JFSKIP-05 | Phase 24 | Pending |
 
 **Coverage:**
-- v0.9.0 requirements: 12 total (7 CFGUI + 5 JFSKIP)
-- Mapped to phases: 12/12 ✓
+- v0.9.0 requirements: 13 total (8 CFGUI + 5 JFSKIP)
+- Mapped to phases: 13/13 ✓
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-27 — milestone v0.9.0 scoping (research-backed, TRaSH picker in / Recyclarr include deferred / Kodi best-effort).*
-*Traceability filled: 2026-05-27 — roadmap created (Phases 24-27).*
+*Traceability filled: 2026-05-27 — roadmap created (Phases 24-27).**
+*CFGUI-08 added: 2026-05-30 — Phase 27 discuss-phase scope expansion (TRaSH quality-profile picker, add-as-new only). See `27-CONTEXT.md`.*

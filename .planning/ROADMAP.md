@@ -118,7 +118,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 - [ ] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike
 - [x] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate (completed 2026-05-29)
 - [x] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher (completed 2026-05-30)
-- [ ] **Phase 27: TRaSH CF picker + Recyclarr reference** — build-time-baked TRaSH catalog + `TrashPicker.svelte` + Recyclarr read-only informational dropdown
+- [ ] **Phase 27: TRaSH CF picker + Recyclarr reference + QP picker** — build-time-baked TRaSH catalog (CFs + quality profiles) + `TrashPicker.svelte` + TRaSH QP picker (add-as-new) + Recyclarr read-only informational dropdown
 
 ## Phase Details
 
@@ -174,15 +174,16 @@ Plans:
   - [x] 26-02-PLAN.md — Wiring: HeaderBar tab bar + App.svelte two-config orchestration + unsaved-switch confirm + human-verify checkpoint (CFGUI-04)
 **UI hint**: yes
 
-### Phase 27: TRaSH CF picker + Recyclarr reference
-**Goal**: Operators can add or remove TRaSH custom formats by human-readable name (no manual hex `trash_id` copying), and can reference Recyclarr template names as an informational guide without risk of inadvertent `include:` insertion
+### Phase 27: TRaSH CF picker + Recyclarr reference + QP picker
+**Goal**: Operators can add or remove TRaSH custom formats by human-readable name (no manual hex `trash_id` copying), apply TRaSH quality profiles by name (add-as-new, never touching the hand-rolled profiles), and reference Recyclarr template names as an informational guide without risk of inadvertent `include:` insertion
 **Depends on**: Phase 26
-**Requirements**: CFGUI-05, CFGUI-06
+**Requirements**: CFGUI-05, CFGUI-06, CFGUI-08
 **Success Criteria** (what must be TRUE):
   1. The configarr form includes a searchable picker where the operator can type a CF name (e.g., "French MULTi") and select it; the corresponding `trash_id` hex value is inserted into `custom_formats[].trash_ids` in the saved YAML — no manual hex entry required
-  2. The TRaSH catalog is served from a build-time-baked snapshot (committed static asset at a pinned commit SHA); no runtime HTTP call to GitHub is made from the FastAPI backend or the frontend
-  3. A Recyclarr template reference dropdown is present and shows template names; clicking a template name shows its description only — no `include:` block is inserted into `configarr.yml` (CFGUI-06 scope boundary enforced in UI)
-  4. An unknown `trash_id` already present in the live `configarr.yml` (e.g., a hand-rolled French CF) is displayed with a warning indicator rather than silently dropped or rejected
+  2. The TRaSH catalog (custom formats AND quality profiles) is served from a build-time-baked snapshot (committed static asset at a pinned commit SHA); no runtime HTTP call to GitHub is made from the FastAPI backend or the frontend
+  3. A Recyclarr template reference dropdown is present (per-app section) and shows template names + descriptions; selecting a template name shows its description only — no `include:` block is inserted into `configarr.yml` (CFGUI-06 scope boundary enforced in UI)
+  4. A `trash_id` present in the live `configarr.yml` that resolves against the file's own `customFormatDefinitions` (e.g., a hand-rolled French CF) is shown with a "custom" badge (not a warning); a `trash_id` in neither the baked catalog nor local definitions is shown with a warning indicator and preserved verbatim — never silently dropped or rejected
+  5. The operator selects a TRaSH quality profile by name and it is **appended** as a new `quality_profiles[]` entry in the saved YAML; the 3 existing hand-rolled profiles (MULTi.VF / Anime / Family) are never modified or reordered; a name collision is blocked with a warning prompting a rename (CFGUI-08)
 **Plans**: TBD
 **UI hint**: yes
 
@@ -193,7 +194,7 @@ Plans:
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
 | 26. configarr-in-UI frontend | 2/2 | Complete    | 2026-05-30 |
-| 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
+| 27. TRaSH CF picker + Recyclarr reference + QP picker | 0/? | Not started | - |
 
 **Milestone progress:** 0/4 phases complete
 
