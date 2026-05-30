@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
 status: planning
-last_updated: "2026-05-30T07:03:34.267Z"
+last_updated: "2026-05-30T07:59:36.070Z"
 last_activity: 2026-05-30
 progress:
   total_phases: 4
