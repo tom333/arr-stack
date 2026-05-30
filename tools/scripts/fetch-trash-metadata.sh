@@ -51,6 +51,8 @@ RECYCLARR_JSON=$(curl --fail --silent \
 
 echo "Transforming and writing catalog files..."
 
+export TRASH_SHA RECYCLARR_SHA OUT_DIR
+
 python3 - <<'PY'
 import json
 import os
@@ -58,12 +60,9 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 
-TRASH_SHA      = os.environ.get("TRASH_SHA",     "1ef7baa523a5f6585a987a4dab6e06bc96994a74")
-RECYCLARR_SHA  = os.environ.get("RECYCLARR_SHA", "505c1e565c08d994520c0ca46fc23dee7bf99fd9")
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-repo_root  = os.path.normpath(os.path.join(script_dir, "..", ".."))
-out_dir    = os.path.join(repo_root, "tools", "arrconf-ui", "web", "src", "assets", "trash-metadata")
+TRASH_SHA     = os.environ["TRASH_SHA"]
+RECYCLARR_SHA = os.environ["RECYCLARR_SHA"]
+out_dir       = os.environ["OUT_DIR"]
 os.makedirs(out_dir, exist_ok=True)
 
 # ── Read the shell-fetched data via stdin is not possible here; re-fetch via urllib ──
