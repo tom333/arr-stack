@@ -39,6 +39,8 @@ export type JsonSchemaNode = {
   $ref?: string;
   anyOf?: JsonSchemaNode[];
   additionalProperties?: boolean | JsonSchemaNode;
+  // Phase 26 D-02; present on configarr ArrInstance fields
+  readOnly?: boolean;
 };
 
 export type RootSchema = {

@@ -70,6 +70,12 @@ Le download client lui-même est wired côté Sonarr/Radarr (download_clients d�
 
 \`users.prune: false\` est hardcodé pour protéger les comptes opérateur-créés (e.g., emilie) — D-07-USERS-01. La policy d'admin est définie ici ; les playlists et autres données utilisateur restent intactes.`,
   },
+  configarr: {
+    title: 'configarr — quality profiles et custom formats',
+    body: `configarr applique les quality profiles TRaSH et les custom formats à Sonarr et Radarr depuis ce fichier. La configuration est pilotée par TRaSH-Guides et les templates Recyclarr.
+
+Les champs \`quality_definition\`, \`media_naming\` et \`api_key\` sont en **lecture seule** dans cette UI — ils sont gérés par configarr/TRaSH directement et ne doivent pas être modifiés manuellement. Éditez le fichier source si un changement est nécessaire sur ces champs.`,
+  },
 };
 
 /* ============================================================================
@@ -288,6 +294,18 @@ export const FIELD_LABELS: Record<string, string> = {
   EnabledFolders: 'Dossiers activés',
   collection_type: 'Type de collection',
   paths: 'Chemins',
+
+  // configarr — Phase 26 CFGUI-04
+  trashGuideUrl: 'URL TRaSH Guide',
+  recyclarrConfigUrl: 'URL config Recyclarr',
+  customFormatDefinitions: 'Définitions custom formats',
+  quality_profiles: 'Quality profiles',
+  custom_formats: 'Custom formats',
+  quality_definition: 'Quality definition',
+  media_naming: 'Nommage média',
+  api_key: 'API key',
+  assign_scores_to: 'Assigner scores à',
+  score: 'Score',
 };
 
 /* ============================================================================
@@ -319,3 +337,9 @@ export function resolveFieldDescription(
 export function resolveFieldLabel(leafKey: string): string | null {
   return FIELD_LABELS[leafKey] ?? null;
 }
+
+// Phase 26 CFGUI-04 — configarr UI affordances
+export const READONLY_TOOLTIP_TEXT =
+  "Géré par configarr/TRaSH — ce champ est en lecture seule. Éditez le fichier directement.";
+export const UNSAVED_SWITCH_MESSAGE =
+  "Des modifications non enregistrées seront perdues. Changer de fichier ?";

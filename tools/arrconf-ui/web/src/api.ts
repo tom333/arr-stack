@@ -54,3 +54,25 @@ export async function postDiff(payload: ConfigPayload): Promise<DiffResponse> {
     body: JSON.stringify(payload),
   });
 }
+
+// configarr endpoints — Phase 26 (D-03)
+export async function getConfigarrConfig(): Promise<Record<string, unknown>> {
+  return _fetchJson<Record<string, unknown>>(`${API_BASE}/configarr/config`);
+}
+export async function getConfigarrSchema(): Promise<RootSchema> {
+  return _fetchJson<RootSchema>(`${API_BASE}/configarr/schema`);
+}
+export async function putConfigarrConfig(payload: Record<string, unknown>): Promise<DiffResponse> {
+  return _fetchJson<DiffResponse>(`${API_BASE}/configarr/config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+export async function postConfigarrDiff(payload: Record<string, unknown>): Promise<DiffResponse> {
+  return _fetchJson<DiffResponse>(`${API_BASE}/configarr/diff`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
