@@ -1,4 +1,4 @@
-"""FastAPI application — 8 endpoints + StaticFiles mount placeholder (D-02).
+"""FastAPI application — 11 endpoints + StaticFiles mount placeholder (D-02).
 
 arrconf endpoints:
 - GET  /api/config  — read arrconf.yml → RootConfig.model_dump(mode='json')
@@ -50,6 +50,7 @@ from arrconf_ui.locator import (
     configarr_yml_path,
     repo_root,
     schema_json_path,
+    trash_metadata_dir,
 )
 
 log = structlog.get_logger()
@@ -276,6 +277,74 @@ def create_app() -> FastAPI:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Schema file not found at {path}",
+            )
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    # -----------------------------------------------------------------------
+    # TRaSH / Recyclarr metadata endpoints (Phase 27 — CFGUI-05, CFGUI-06, CFGUI-08)
+    # Serve baked static assets ONLY — NEVER call GitHub or any *arr URL.
+    # ADR-5 boundary: no Sonarr/Radarr/Prowlarr URL constructed here.
+    # -----------------------------------------------------------------------
+
+    @app.get("/api/trash/custom-formats")
+    def get_trash_custom_formats(app: str) -> Any:
+        """Return baked TRaSH CF catalog for sonarr or radarr.
+
+        SC#3 boundary: NO *arr URL constructed here. Serves from committed
+        static assets only.
+        """
+        if app not in ("sonarr", "radarr"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="app must be 'sonarr' or 'radarr'",
+            )
+        path = trash_metadata_dir() / f"{app}-cf.json"
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Catalog not found at {path} — run tools/scripts/fetch-trash-metadata.sh",
+            )
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @app.get("/api/trash/quality-profiles")
+    def get_trash_quality_profiles(app: str) -> Any:
+        """Return baked TRaSH QP catalog for sonarr or radarr.
+
+        SC#3 boundary: NO *arr URL constructed here. Serves from committed
+        static assets only.
+        """
+        if app not in ("sonarr", "radarr"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="app must be 'sonarr' or 'radarr'",
+            )
+        path = trash_metadata_dir() / f"{app}-qp.json"
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Catalog not found at {path} — run tools/scripts/fetch-trash-metadata.sh",
+            )
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @app.get("/api/trash/recyclarr-templates")
+    def get_trash_recyclarr_templates(app: str) -> Any:
+        """Return baked Recyclarr template list for sonarr or radarr.
+
+        Entries have id + template fields only — no description field.
+
+        SC#3 boundary: NO *arr URL constructed here. Serves from committed
+        static assets only.
+        """
+        if app not in ("sonarr", "radarr"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="app must be 'sonarr' or 'radarr'",
+            )
+        path = trash_metadata_dir() / f"recyclarr-{app}.json"
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Catalog not found at {path} — run tools/scripts/fetch-trash-metadata.sh",
             )
         return json.loads(path.read_text(encoding="utf-8"))
 
