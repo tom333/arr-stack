@@ -16,10 +16,10 @@
 - [x] **CFGUI-02**: Un modèle pydantic `ConfigarrRootConfig` (écrit à la main, vit dans `tools/arrconf-ui/`, jamais dans `tools/arrconf/`) + JSON Schema généré pilotent le formulaire pour le subset édité (quality_profiles, custom_formats, customFormatDefinitions, language) ; `api_key` traité comme chaîne opaque ; quality_definition + media_naming affichés en lecture seule.
 - [x] **CFGUI-03**: Le backend expose des endpoints configarr (GET/PUT config, GET schema, POST diff) symétriques aux endpoints arrconf existants.
 - [x] **CFGUI-04**: Le frontend offre un sélecteur de config (`arrconf.yml` ↔ `configarr.yml`) ; le formulaire configarr s'affiche via le dispatcher `FieldInput.svelte` existant.
-- [ ] **CFGUI-05**: L'opérateur ajoute/retire des custom formats TRaSH **par nom** via un picker adossé à un catalogue TRaSH baké au build (`name → trash_id`, sonarr + radarr) — aucun trash_id tapé à la main.
-- [ ] **CFGUI-06**: Les templates Recyclarr sont surfacés en **référence lecture-seule** (dropdown informatif). PAS d'insertion `include:` (différée v1.x pour protéger les 6 CF français custom).
+- [x] **CFGUI-05**: L'opérateur ajoute/retire des custom formats TRaSH **par nom** via un picker adossé à un catalogue TRaSH baké au build (`name → trash_id`, sonarr + radarr) — aucun trash_id tapé à la main.
+- [x] **CFGUI-06**: Les templates Recyclarr sont surfacés en **référence lecture-seule** (dropdown informatif). PAS d'insertion `include:` (différée v1.x pour protéger les 6 CF français custom).
 - [x] **CFGUI-07**: Un gate CI valide le `configarr.yml` sauvegardé via `ConfigarrRootConfig.model_validate` (gate pydantic faisant autorité — D-08 résolu Option C : configarr v1.28.0 n'a aucun mode de validation offline ; D-07 rétrogradé, voir 25-CONTEXT.md).
-- [ ] **CFGUI-08**: L'opérateur applique un **quality profile TRaSH par nom** via un picker adossé au catalogue QP baké (sonarr + radarr). Le picker **ajoute uniquement** une nouvelle entrée `quality_profiles[]` (add-as-new) ; il ne modifie/réordonne jamais les 3 profils hand-rolled (MULTi.VF / Anime / Family) ; collision de nom → warn + rename requis. Scope expansion 2026-05-30 (voir `27-CONTEXT.md` D-09..D-11) : configarr possède `quality_profiles`, l'UI édite le **fichier** — ADR-5 intact.
+- [x] **CFGUI-08**: L'opérateur applique un **quality profile TRaSH par nom** via un picker adossé au catalogue QP baké (sonarr + radarr). Le picker **ajoute uniquement** une nouvelle entrée `quality_profiles[]` (add-as-new) ; il ne modifie/réordonne jamais les 3 profils hand-rolled (MULTi.VF / Anime / Family) ; collision de nom → warn + rename requis. Scope expansion 2026-05-30 (voir `27-CONTEXT.md` D-09..D-11) : configarr possède `quality_profiles`, l'UI édite le **fichier** — ADR-5 intact.
 
 ### Jellyfin skip-intro (JFSKIP) — umbrella `REQ-jellyfin-skip-intro`
 
@@ -62,10 +62,10 @@ Exclusions explicites avec raison (anti-scope-creep).
 | CFGUI-02 | Phase 25 | Complete |
 | CFGUI-03 | Phase 25 | Complete |
 | CFGUI-04 | Phase 26 | Complete |
-| CFGUI-05 | Phase 27 | Pending |
-| CFGUI-06 | Phase 27 | Pending |
+| CFGUI-05 | Phase 27 | Complete |
+| CFGUI-06 | Phase 27 | Complete |
 | CFGUI-07 | Phase 25 | Complete |
-| CFGUI-08 | Phase 27 | Pending |
+| CFGUI-08 | Phase 27 | Complete |
 | JFSKIP-01 | Phase 24 | Pending |
 | JFSKIP-02 | Phase 24 | Pending |
 | JFSKIP-03 | Phase 24 | Pending |

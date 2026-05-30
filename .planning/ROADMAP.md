@@ -118,7 +118,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 - [ ] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike
 - [x] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate (completed 2026-05-29)
 - [x] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher (completed 2026-05-30)
-- [ ] **Phase 27: TRaSH CF picker + Recyclarr reference + QP picker** — build-time-baked TRaSH catalog (CFs + quality profiles) + `TrashPicker.svelte` + TRaSH QP picker (add-as-new) + Recyclarr read-only informational dropdown
+- [x] **Phase 27: TRaSH CF picker + Recyclarr reference + QP picker** — build-time-baked TRaSH catalog (CFs + quality profiles) + `TrashPicker.svelte` + TRaSH QP picker (add-as-new) + Recyclarr read-only informational dropdown (completed 2026-05-30)
 
 ## Phase Details
 
@@ -196,7 +196,7 @@ Plans:
 - [x] 27-03-PLAN.md — frontend types/api/i18n + TrashCFPicker (add/remove/classify) + TrashQPPicker (append-only + collision) (CFGUI-05, CFGUI-08)
 
 **Wave 4** *(blocked on Wave 3)*
-- [ ] 27-04-PLAN.md — RecyclarrReferencePicker (read-only) + AppSection/App.svelte wiring + human-verify checkpoint (CFGUI-05, CFGUI-06, CFGUI-08)
+- [x] 27-04-PLAN.md — RecyclarrReferencePicker (read-only) + AppSection/App.svelte wiring + human-verify checkpoint (CFGUI-05, CFGUI-06, CFGUI-08)
 **UI hint**: yes
 
 ## Progress
@@ -206,7 +206,7 @@ Plans:
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
 | 26. configarr-in-UI frontend | 2/2 | Complete    | 2026-05-30 |
-| 27. TRaSH CF picker + Recyclarr reference + QP picker | 3/4 | In Progress|  |
+| 27. TRaSH CF picker + Recyclarr reference + QP picker | 4/4 | Complete   | 2026-05-30 |
 
 **Milestone progress:** 0/4 phases complete
 

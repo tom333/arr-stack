@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
-status: executing
-last_updated: "2026-05-30T09:18:23.549Z"
-last_activity: 2026-05-30
+status: verifying
+last_updated: "2026-05-31T00:00:00.000Z"
+last_activity: 2026-05-31
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -25,14 +25,14 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 27 (trash-cf-picker-recyclarr-reference) — EXECUTING
-Plan: 4 of 4
-Status: Executing Phase 27 (27-03 complete — TrashCFPicker + TrashQPPicker Svelte 5 components)
-Last activity: 2026-05-30 -- 27-03 complete: TrashCFPicker (CFGUI-05) + TrashQPPicker (CFGUI-08) — 5 types, 3 api functions, 6 i18n consts, 2 new components; quad gates pass
+Phase: 27 (trash-cf-picker-recyclarr-reference) — COMPLETE (all 4 plans done)
+Plan: 4 of 4 — DONE
+Status: Phase 27 complete — CFGUI-05/06/08 satisfied; all 3 pickers operator-verified
+Last activity: 2026-05-31 -- 27-04 complete: RecyclarrReferencePicker + full picker integration; 8-step operator verification passed including MEDIUM-confidence QP field mapping
 
 ```
-v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
-Phase 24 [ ] Phase 25 [ ] Phase 26 [ ] Phase 27 [ ]
+v0.9.0 [████████████████████] 100% (13/13 plans)
+Phase 24 [X] Phase 25 [X] Phase 26 [X] Phase 27 [X]
 ```
 
 ## Accumulated Context
@@ -51,6 +51,11 @@ Quick reference to 8 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 - **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3, NOT qBit/Jellyfin)
 
 v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-all full-prune vs `unsorted` fallback → **full prune chosen** (P22 ADR-PLAN-SPLIT D-01).
+
+### v0.9.0 Phase 27 Decisions (2026-05-31)
+
+- **QP field mapping confirmed (27-04):** `upgrade.until_quality == TRaSH cutoff`, `qualities[]` reflects `items[allowed!=false]` in baked Feb-2026 order — MEDIUM confidence per research; operator-verified correct in human checkpoint (no discrepancy found)
+- **Recyclarr picker write-freeze locked:** RecyclarrReferencePicker has zero `onChange`/`include:` — clipboard copy of template id is the only action; `include:` insertion deferred to v1.x (merge-hazard with 6 hand-rolled French CFs)
 
 ### v0.9.0 Roadmap Decisions (2026-05-27)
 
