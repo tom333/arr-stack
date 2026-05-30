@@ -206,7 +206,7 @@ Plans:
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
 | 26. configarr-in-UI frontend | 2/2 | Complete    | 2026-05-30 |
-| 27. TRaSH CF picker + Recyclarr reference + QP picker | 4/4 | Complete   | 2026-05-30 |
+| 27. TRaSH CF picker + Recyclarr reference + QP picker | 4/4 | Complete    | 2026-05-30 |
 
 **Milestone progress:** 0/4 phases complete
 

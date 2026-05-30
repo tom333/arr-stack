@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
-status: verifying
+status: milestone_complete
 last_updated: "2026-05-31T00:00:00.000Z"
 last_activity: 2026-05-31
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
   completed_plans: 13
   percent: 100
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 27 (trash-cf-picker-recyclarr-reference) — COMPLETE (all 4 plans done)
-Plan: 4 of 4 — DONE
-Status: Phase 27 complete — CFGUI-05/06/08 satisfied; all 3 pickers operator-verified
-Last activity: 2026-05-31 -- 27-04 complete: RecyclarrReferencePicker + full picker integration; 8-step operator verification passed including MEDIUM-confidence QP field mapping
+Phase: 27
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-05-30
 
 ```
 v0.9.0 [████████████████████] 100% (13/13 plans)
