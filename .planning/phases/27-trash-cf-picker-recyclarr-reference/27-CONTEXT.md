@@ -216,6 +216,30 @@ adds an add-as-new template helper. ROADMAP Phase 27 + REQUIREMENTS updated
 <deferred>
 ## Deferred Ideas
 
+### Phase 28 candidate — IaC / tooling architecture revisit (NEW, 2026-05-30)
+Operator wants to re-question **ADR-1** (custom Python arrconf vs
+Terraform/Pulumi/Buildarr) and **ADR-5** (arrconf/configarr frontier) — the ADRs
+are old, the ecosystem moved. Detailed evaluation parked for **Phase 28**. Full
+analysis in memory `project_arrconf_iac_revisit.md`. Key points:
+- arrconf's **Sonarr/Radarr/Prowlarr CRUD half is genuinely reinventable**
+  (devopsarr providers / Pulumi matured) — weak custom case there.
+- **Durable blocker** vs TF/Pulumi: state-file-in-private-cluster + partial
+  ownership (`prune: false`) vs IaC "manage the world" model. arrconf is
+  stateless (re-diffs live state each run).
+- **qBit / Seerr / Jellyfin / Categories** = no provider → custom dynamic
+  providers = the same REST clients already written. No wheel to reuse.
+- **configarr's TRaSH engine = the one piece worth NOT reinventing** (actively
+  maintained vs TRaSH schema changes — e.g. the Feb-2026 break hit in THIS phase).
+- Verdict bias: frontier is placed *correctly* (configarr = hard TRaSH part,
+  arrconf = simple CRUD part). If migrating: port the easy *arr half to Pulumi,
+  keep custom for qbit/seerr/jellyfin, NEVER fork configarr's TRaSH engine.
+  Hybrid not big-bang. Don't rewrite working v0.15.0 prod without recurring pain.
+- Self-aware caveat: Phase 27's CF/QP pickers re-bake the TRaSH catalog UI-side
+  → partial duplication of configarr's catalog knowledge (ADR-5 still holds — UI
+  edits the file). Frontier already softening; worth naming in Phase 28.
+→ When Phase 28 is created (`/gsd-phase`), seed it from this block + the memory.
+
+### Already-roadmapped v1.x
 - **Recyclarr `include:` insertion** (CFGUI-F1 / v1.x) — merge-order hazard vs
   the 6 hand-rolled French CFs; configarr pinned to Recyclarr v7.4.0 templates.
   Reference-only in Phase 27.
