@@ -83,8 +83,15 @@
   const effectiveItem = $derived(itemSchema ? effectiveNode(itemSchema, root) : null);
   const isArrayOfObjects = $derived(effectiveItem?.type === 'object');
 
-  // Phase 26 D-02: local prop OR schema-node readOnly marker.
-  const isReadOnly = $derived(readOnly || (effective as { readOnly?: boolean }).readOnly === true);
+  // Phase 26 D-02: local prop OR readOnly marker. Check the RAW schema node too:
+  // pydantic emits `media_naming`/`quality_definition` as `anyOf:[{$ref},{null}], readOnly:true`,
+  // and effectiveNode() runs pickAnyOf() first — which discards the wrapper carrying readOnly
+  // (CR-01). The inner $ref branch has no readOnly, so the marker must be read off `schema`.
+  const isReadOnly = $derived(
+    readOnly ||
+      schema.readOnly === true ||
+      (effective as { readOnly?: boolean }).readOnly === true,
+  );
 
   function handleStringInput(e: Event) {
     onChange((e.target as HTMLInputElement).value);
