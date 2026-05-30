@@ -117,7 +117,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 
 - [ ] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike
 - [x] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate (completed 2026-05-29)
-- [ ] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher
+- [x] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher (completed 2026-05-30)
 - [ ] **Phase 27: TRaSH CF picker + Recyclarr reference** — build-time-baked TRaSH catalog + `TrashPicker.svelte` + Recyclarr read-only informational dropdown
 
 ## Phase Details
@@ -171,7 +171,7 @@ Plans:
   3. The operator can make a change to a quality profile score and save it; the diff preview shows only the changed field; the saved file round-trips correctly through the Phase 25 backend (no tag corruption)
 **Plans**: 2 plans
   - [x] 26-01-PLAN.md — Foundation: configarr API funcs + readOnly type/constants/i18n + FieldInput readOnly rendering (CFGUI-04)
-  - [ ] 26-02-PLAN.md — Wiring: HeaderBar tab bar + App.svelte two-config orchestration + unsaved-switch confirm + human-verify checkpoint (CFGUI-04)
+  - [x] 26-02-PLAN.md — Wiring: HeaderBar tab bar + App.svelte two-config orchestration + unsaved-switch confirm + human-verify checkpoint (CFGUI-04)
 **UI hint**: yes
 
 ### Phase 27: TRaSH CF picker + Recyclarr reference
@@ -192,7 +192,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
-| 26. configarr-in-UI frontend | 1/2 | In Progress|  |
+| 26. configarr-in-UI frontend | 2/2 | Complete   | 2026-05-30 |
 | 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
 
 **Milestone progress:** 0/4 phases complete
