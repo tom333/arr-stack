@@ -288,4 +288,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v0.9.0 milestone started (configarr-in-UI + Jellyfin skip-intro). Phase numbering continues at Phase 24. Next: research decision → requirements → roadmap.*
+*Last updated: 2026-05-30 — v0.9.0 in progress. Phase 26 (configarr-in-UI frontend) complete: config selector tab + configarr.yml editing via the schema-driven FieldInput dispatcher, quality_definition/media_naming/api_key read-only (CFGUI-04 validated). Next: Phase 27 (TRaSH CF picker + Recyclarr reference).*
