@@ -192,6 +192,8 @@
             value={(configState as Record<string, unknown>)[sectionName] as Record<string, unknown>}
             onChange={(next) => updateAppSection(sectionName, next)}
             errors={validationErrors}
+            configarrMode={true}
+            localDefinitions={(configState as Record<string, unknown>).customFormatDefinitions as { trash_id: string; name: string }[] ?? []}
           />
         {/if}
       {/each}
