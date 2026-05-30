@@ -288,4 +288,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-30 — v0.9.0 in progress. Phase 26 (configarr-in-UI frontend) complete: config selector tab + configarr.yml editing via the schema-driven FieldInput dispatcher, quality_definition/media_naming/api_key read-only (CFGUI-04 validated). Next: Phase 27 (TRaSH CF picker + Recyclarr reference).*
+*Last updated: 2026-05-31 — v0.9.0 in progress. Phase 27 (TRaSH CF picker + Recyclarr reference + QP picker) complete: build-time-baked TRaSH/Recyclarr catalog (pinned SHAs, no runtime GitHub HTTP), 3 read-only `/api/trash/*` endpoints, TRaSH CF picker (multi-id-safe, custom/unknown classification, verbatim-preserve), append-only QP picker (collision-blocked), read-only Recyclarr reference. CFGUI-05/06/08 validated; 2 code-review blockers (multi-id CF handling, QP min_format_score) fixed pre-completion. 2 HUMAN-UAT items pending (QP collision normalization, QP live-save mapping). v0.9.0 milestone phases all complete pending Phase 24 (Jellyfin Intro Skipper, 2/3).*
