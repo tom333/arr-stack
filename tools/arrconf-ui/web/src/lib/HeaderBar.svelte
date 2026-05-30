@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SaveStatus } from '../types';
+  import type { ActiveConfig } from '../constants';
   import ThemeToggle from './ThemeToggle.svelte';
 
   type Props = {
@@ -7,8 +8,10 @@
     diffCount: number;
     saveStatus: SaveStatus;
     onSaveClick: () => void;
+    activeConfig?: ActiveConfig;
+    onTabChange?: (next: ActiveConfig) => void;
   };
-  let { filePath, diffCount, saveStatus, onSaveClick }: Props = $props();
+  let { filePath, diffCount, saveStatus, onSaveClick, activeConfig = 'arrconf', onTabChange }: Props = $props();
 
   const isDisabled = $derived(diffCount === 0 || saveStatus === 'saving');
   const buttonLabel = $derived(saveStatus === 'saving' ? 'Enregistrement…' : 'Enregistrer');
@@ -20,6 +23,14 @@
       arrconf<span class="title-divider">/</span><span class="title-accent">editor</span>
     </h1>
     <code class="filepath">{filePath}</code>
+    {#if onTabChange}
+      <nav class="tab-bar" aria-label="Sélection du fichier de configuration">
+        <button type="button" class="tab" class:tab-active={activeConfig === 'arrconf'}
+          onclick={() => onTabChange('arrconf')}>arrconf.yml</button>
+        <button type="button" class="tab" class:tab-active={activeConfig === 'configarr'}
+          onclick={() => onTabChange('configarr')}>configarr.yml</button>
+      </nav>
+    {/if}
   </div>
   <div class="actions">
     {#if diffCount > 0}
@@ -110,4 +121,14 @@
     border-color: var(--accent);
   }
   /* .save-btn:disabled inherits opacity from the generic button:disabled in app.css. */
+  .tab-bar { display: flex; gap: 2px; margin-top: var(--space-xs); }
+  .tab {
+    font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 10px; border-radius: 3px; border: 1px solid var(--border);
+    background: transparent; color: var(--ink-muted); cursor: pointer;
+  }
+  .tab-active {
+    background: var(--accent-soft); color: var(--accent);
+    border-color: var(--accent); font-weight: 500;
+  }
 </style>
