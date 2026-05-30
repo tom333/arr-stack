@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
 status: executing
-last_updated: "2026-05-30T09:06:28.209Z"
+last_updated: "2026-05-30T09:11:02.727Z"
 last_activity: 2026-05-30
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 13
-  completed_plans: 9
-  percent: 69
+  completed_plans: 10
+  percent: 77
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Phase: 27 (trash-cf-picker-recyclarr-reference) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase 27 (27-01 complete — baked catalog assets committed)
-Last activity: 2026-05-30 -- 27-01 complete: TRaSH/Recyclarr catalog baked (235+240 CFs, 19+36 QPs, 34+64 Recyclarr)
+Plan: 3 of 4
+Status: Executing Phase 27 (27-02 complete — 3 disk-serve TRaSH endpoints + 8 tests)
+Last activity: 2026-05-30 -- 27-02 complete: GET /api/trash/{custom-formats,quality-profiles,recyclarr-templates} + enum 400 gate + 8 endpoint tests
 
 ```
 v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
