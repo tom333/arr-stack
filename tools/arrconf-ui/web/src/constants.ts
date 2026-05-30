@@ -35,3 +35,10 @@ export const APP_SECTIONS = [
 ] as const;
 
 export type AppSectionName = typeof APP_SECTIONS[number];
+
+// Config file paths shown in HeaderBar (Phase 26 D-01)
+export const CONFIG_FILE_PATHS = {
+  arrconf: 'charts/arr-stack/files/arrconf.yml',
+  configarr: 'charts/arr-stack/files/configarr.yml',
+} as const;
+export type ActiveConfig = keyof typeof CONFIG_FILE_PATHS;
