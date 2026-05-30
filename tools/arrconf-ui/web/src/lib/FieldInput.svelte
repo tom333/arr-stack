@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { JsonSchemaNode, RootSchema } from '../types';
   import { effectiveNode } from '../schema';
-  import { resolveFieldDescription, resolveFieldLabel } from '../i18n/fr';
+  import { resolveFieldDescription, resolveFieldLabel, READONLY_TOOLTIP_TEXT } from '../i18n/fr';
   import HelpTooltip from './HelpTooltip.svelte';
   import SuggestArrBadge from './SuggestArrBadge.svelte';
   import FieldInput from './FieldInput.svelte';
@@ -37,9 +37,11 @@
     errorMsg?: string;
     /** Show label + help inline? Set false when the parent already rendered the label. */
     showLabel?: boolean;
+    /** Force read-only rendering regardless of schema node. Threaded through recursion. */
+    readOnly?: boolean;
   };
 
-  let { schema, root, value, onChange, path, label, errorMsg, showLabel = true }: Props = $props();
+  let { schema, root, value, onChange, path, label, errorMsg, showLabel = true, readOnly = false }: Props = $props();
 
   const effective = $derived(effectiveNode(schema, root));
   const leafKey = $derived(path.split('.').pop() ?? path);
@@ -80,6 +82,9 @@
   );
   const effectiveItem = $derived(itemSchema ? effectiveNode(itemSchema, root) : null);
   const isArrayOfObjects = $derived(effectiveItem?.type === 'object');
+
+  // Phase 26 D-02: local prop OR schema-node readOnly marker.
+  const isReadOnly = $derived(readOnly || (effective as { readOnly?: boolean }).readOnly === true);
 
   function handleStringInput(e: Event) {
     onChange((e.target as HTMLInputElement).value);
@@ -165,11 +170,14 @@
       <HelpTooltip text={description} />
     {/if}
     <SuggestArrBadge {path} />
+    {#if isReadOnly}
+      <span class="lock-badge" title={READONLY_TOOLTIP_TEXT}>🔒</span>
+    {/if}
   </label>
 {/if}
 
 {#if effective.enum}
-  <select id={path} class:has-error={hasError} value={value as string} onchange={handleSelect}>
+  <select id={path} class:has-error={hasError} value={value as string} onchange={handleSelect} disabled={isReadOnly}>
     {#each effective.enum as opt}
       <option value={opt}>{opt}</option>
     {/each}
@@ -184,6 +192,7 @@
     class:has-error={hasError}
     value={value === null || value === undefined ? '' : (value as number)}
     oninput={handleNumberInput}
+    disabled={isReadOnly}
   />
 {:else if effective.type === 'boolean'}
   <input
@@ -192,6 +201,7 @@
     class:has-error={hasError}
     checked={!!value}
     onchange={handleBoolInput}
+    disabled={isReadOnly}
   />
 {:else if isArrayOfObjects && effectiveItem}
   <!-- Array of objects: repeatable nested form. Fixes the
@@ -245,6 +255,7 @@
                       updateArrayItem(idx, { ...current, [subKey]: next });
                     }}
                     path={subPath}
+                    readOnly={isReadOnly}
                   />
                 </div>
               {/each}
@@ -267,6 +278,7 @@
     placeholder="valeurs séparées par des virgules (ex: 2, 3)"
     value={Array.isArray(value) ? (value as unknown[]).join(', ') : ''}
     oninput={handlePrimitiveArrayInput}
+    disabled={isReadOnly}
   />
 {:else if effective.type === 'string'}
   <input
@@ -277,6 +289,7 @@
     class:mono={leafKey === 'base_path' || leafKey === 'base_url' || leafKey === 'prowlarr_url' || leafKey === 'urlBase' || leafKey.endsWith('_path') || leafKey.endsWith('Directory')}
     value={(value ?? '') as string}
     oninput={handleStringInput}
+    disabled={isReadOnly}
   />
 {:else if effective.type === 'object' && effective.properties}
   <fieldset class="nested-object">
@@ -299,6 +312,7 @@
             onChange({ ...current, [childKey]: next });
           }}
           path={childPath}
+          readOnly={isReadOnly}
         />
       </div>
     {/each}
@@ -349,6 +363,12 @@
     font-size: 11px;
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 500;
+  }
+  .lock-badge {
+    font-size: 11px;
+    opacity: 0.7;
+    cursor: help;
+    user-select: none;
   }
   .array-item {
     border: 1px solid var(--border);
