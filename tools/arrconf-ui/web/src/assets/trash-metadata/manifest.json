@@ -1,0 +1,13 @@
+{
+  "trash_sha": "1ef7baa523a5f6585a987a4dab6e06bc96994a74",
+  "recyclarr_sha": "505c1e565c08d994520c0ca46fc23dee7bf99fd9",
+  "fetched_at": "2026-05-30T09:03:45Z",
+  "counts": {
+    "sonarr_cf": 235,
+    "radarr_cf": 240,
+    "sonarr_qp": 19,
+    "radarr_qp": 36,
+    "sonarr_recyclarr": 34,
+    "radarr_recyclarr": 64
+  }
+}

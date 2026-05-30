@@ -1,0 +1,1800 @@
+[
+  {
+    "trash_id": "20e0fc959f1f1704bed501f23bdae76f",
+    "name": "[Anime] Remux-1080p",
+    "trash_description": "Anime Quality Profile that covers:<br>- SDTV, DVD<br>- HDTV 720p, 1080p<br>- WEBDL: 480p, 720, 1080p<br>- Bluray 480p, 576p, 720p, 1080p<br>- Remux 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray 1080p",
+    "minFormatScore": 100,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p Remux",
+          "Bluray-1080p"
+        ]
+      },
+      {
+        "name": "WEB 1080p",
+        "allowed": true,
+        "items": [
+          "HDTV-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": true
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": true,
+        "items": [
+          "HDTV-720p",
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": true
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": true,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "DVD",
+        "allowed": true
+      },
+      {
+        "name": "SDTV",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "anime-sonarr"
+  },
+  {
+    "trash_id": "58e8dc75731040612dd6f4ac0676bfd7",
+    "name": "[French MULTi.VF] HD Bluray + WEB (1080p)",
+    "trash_description": "French Quality Profile that covers:<br>- WEBDL: 720p, 1080p<br>- Bluray 720p, 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray|WEB 1080p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray|WEB 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray|WEB 720p",
+        "allowed": true,
+        "items": [
+          "Bluray-720p",
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "french-multi-vf"
+  },
+  {
+    "trash_id": "68c8b82ad2b7ea1941fce71eb56421c3",
+    "name": "[French MULTi.VF] UHD Bluray + WEB (2160p)",
+    "trash_description": "French Quality Profile that covers:<br>- WEBDL: 1080p, 2160p<br>- Bluray 1080p, 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray|WEB 2160p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray|WEB 2160p",
+        "allowed": true,
+        "items": [
+          "Bluray-2160p",
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "Bluray|WEB 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "french-multi-vf"
+  },
+  {
+    "trash_id": "4c48f506c1116a3a57ae33f12346bd15",
+    "name": "[French MULTi.VO] HD Bluray + WEB (1080p)",
+    "trash_description": "French Quality Profile that covers:<br>- WEBDL: 720p, 1080p<br>- Bluray 720p, 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray|WEB 1080p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray|WEB 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray|WEB 720p",
+        "allowed": true,
+        "items": [
+          "Bluray-720p",
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "french-multi-vo"
+  },
+  {
+    "trash_id": "6fa7364373e8f06206871d9c20a4fb3e",
+    "name": "[French MULTi.VO] UHD Bluray + WEB (2160p)",
+    "trash_description": "French Quality Profile that covers:<br>- WEBDL: 1080p, 2160p<br>- Bluray 1080p, 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray|WEB 2160p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray|WEB 2160p",
+        "allowed": true,
+        "items": [
+          "Bluray-2160p",
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "Bluray|WEB 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "french-multi-vo"
+  },
+  {
+    "trash_id": "b34c968f58433a38e0e690d42a1dc37e",
+    "name": "[French VOSTFR] HD Bluray + WEB (1080p)",
+    "trash_description": "French Quality Profile that covers:<br>- WEBDL: 720p, 1080p<br>- Bluray 720p, 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray|WEB 1080p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray|WEB 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray|WEB 720p",
+        "allowed": true,
+        "items": [
+          "Bluray-720p",
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "french-vostfr"
+  },
+  {
+    "trash_id": "d6252dce6af535107ed4b03e68052ae8",
+    "name": "[French VOSTFR] UHD Bluray + WEB (2160p)",
+    "trash_description": "French Quality Profile that covers:<br>- WEBDL: 1080p, 2160p<br>- Bluray 1080p, 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray|WEB 2160p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray|WEB 2160p",
+        "allowed": true,
+        "items": [
+          "Bluray-2160p",
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "Bluray|WEB 1080p",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "french-vostfr"
+  },
+  {
+    "trash_id": "6fe5937e1dcc2269e23b49eb46dfe6d6",
+    "name": "[German] Anime HD Bluray + WEB",
+    "trash_description": "German Anime Quality Profile that covers:<br>- WEBDL: 720p, 1080p<br>- Bluray: 720p, 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Merged QPs",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 35000,
+    "items": [
+      {
+        "name": "Merged QPs",
+        "allowed": true,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p",
+          "Bluray-720p",
+          "WEBDL-1080p",
+          "WEBRip-1080p",
+          "Bluray-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBDL-2160p",
+          "WEBRip-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBDL-480p",
+          "WEBRip-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "german-anime"
+  },
+  {
+    "trash_id": "dca7e5e9e99c703bcbdaaa471dd40e98",
+    "name": "[German] HD Bluray + WEB",
+    "trash_description": "German Quality Profile that covers:<br>- WEBDL: 720p, 1080p<br>- Bluray: 720p, 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Merged QPs",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 35000,
+    "items": [
+      {
+        "name": "Merged QPs",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p",
+          "Bluray-720p",
+          "WEBDL-720p",
+          "WEBRip-720p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "german"
+  },
+  {
+    "trash_id": "0dd5f085ed61a1e01f6d347779dfa1bc",
+    "name": "[German] HD Remux + WEB",
+    "trash_description": "German Quality Profile that covers:<br>- WEBDL: 1080p<br>- Remux: 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "Merged QPs",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 35000,
+    "items": [
+      {
+        "name": "Merged QPs",
+        "allowed": true,
+        "items": [
+          "Bluray-1080p Remux",
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "german"
+  },
+  {
+    "trash_id": "3b0fa37fddaaefc931b75f2889d4b4f5",
+    "name": "[German] UHD Bluray + WEB",
+    "trash_description": "German Quality Profile that covers:<br>- WEBDL: 2160p<br>- Bluray: 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "Merged QPs",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 35000,
+    "items": [
+      {
+        "name": "Merged QPs",
+        "allowed": true,
+        "items": [
+          "Bluray-2160p",
+          "WEBDL-2160p",
+          "WEBRip-2160p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 1080p",
+        "allowed": false,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "german"
+  },
+  {
+    "trash_id": "7324309a7d1e10dc0dc2cea6c70ed852",
+    "name": "[German] UHD Bluray + WEB (Alternative)",
+    "trash_description": "German Quality Profile that covers:<br>- WEBDL: 720p, 1080p, 2160p<br>- Bluray: 720p, 1080p, 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "Merged QPs",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 35000,
+    "items": [
+      {
+        "name": "Merged QPs",
+        "allowed": true,
+        "items": [
+          "Bluray-2160p",
+          "WEBDL-2160p",
+          "WEBRip-2160p",
+          "Bluray-1080p",
+          "WEBRip-1080p",
+          "WEBDL-1080p",
+          "Bluray-720p",
+          "WEBDL-720p",
+          "WEBRip-720p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "german"
+  },
+  {
+    "trash_id": "08cececf1840290f6fd490b7d79e8642",
+    "name": "[German] UHD Remux + WEB",
+    "trash_description": "German Quality Profile that covers:<br>- WEBDL: 2160p<br>- Remux: 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "Merged QPs",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 35000,
+    "items": [
+      {
+        "name": "Merged QPs",
+        "allowed": true,
+        "items": [
+          "Bluray-2160p Remux",
+          "WEBDL-2160p",
+          "WEBRip-2160p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 1080p",
+        "allowed": false,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ],
+    "trash_score_set": "german"
+  },
+  {
+    "trash_id": "e58cf4e090184db3b3d7c79c1a9e9b4a",
+    "name": "Base Profile",
+    "trash_description": "This is a base profile that we use for testing",
+    "upgradeAllowed": true,
+    "cutoff": "Bluray-2160p Remux",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": true
+      },
+      {
+        "name": "WEBDL-2160p | WEBRip-2160p",
+        "allowed": true,
+        "items": [
+          "WEBDL-2160p",
+          "WEBRip-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": true
+      },
+      {
+        "name": "WEBDL-1080p | WEBRip-1080p",
+        "allowed": true,
+        "items": [
+          "WEBDL-1080p",
+          "WEBRip-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": true
+      },
+      {
+        "name": "WEBDL-720p | WEBRip-720p",
+        "allowed": true,
+        "items": [
+          "WEBDL-720p",
+          "WEBRip-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": true
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": true
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEBDL-480p | WEBRip-480p",
+        "allowed": true,
+        "items": [
+          "WEBDL-480p",
+          "WEBRip-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": true
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ]
+  },
+  {
+    "trash_id": "72dae194fc92bf828f32cde7744e51a1",
+    "name": "WEB-1080p",
+    "trash_description": "Quality Profile that covers:<br>- WEBDL: 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "WEB 1080p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "WEB 1080p",
+        "allowed": true,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ]
+  },
+  {
+    "trash_id": "9d142234e45d6143785ac55f5a9e8dc9",
+    "name": "WEB-1080p (Alternative)",
+    "trash_description": "Quality Profile that covers:<br>- SDTV, DVD<br>- HDTV 720p, 1080p<br>- WEBDL: 480p, 720, 1080p<br>- Bluray 480p, 576p, 720p, 1080p",
+    "upgradeAllowed": true,
+    "cutoff": "WEB 1080p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "WEB 1080p",
+        "allowed": true,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": true
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": true
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": true,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": true
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 2160p",
+        "allowed": false,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ]
+  },
+  {
+    "trash_id": "d1498e7d189fbe6c7110ceaabb7473e6",
+    "name": "WEB-2160p",
+    "trash_description": "Quality Profile that covers:<br>- WEBDL: 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "WEB 2160p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "WEB 2160p",
+        "allowed": true,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 1080p",
+        "allowed": false,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ]
+  },
+  {
+    "trash_id": "dfa5eaae7894077ad6449169b6eb03e0",
+    "name": "WEB-2160p (Alternative)",
+    "trash_description": "Quality Profile that covers:<br>- SDTV, DVD<br>- HDTV 720p, 1080p<br>- WEBDL: 480p, 720, 1080p, 2160p<br>- Bluray 480p, 576p, 720p, 1080p, 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "WEB 2160p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "WEB 2160p",
+        "allowed": true,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "WEB 1080p",
+        "allowed": true,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": true
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": true
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": true,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": true
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": true
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ]
+  },
+  {
+    "trash_id": "c4cadd6b35b95f62c3d47a408e53e2f7",
+    "name": "WEB-2160p (Combined)",
+    "trash_description": "Quality Profile that covers:<br>- WEBDL: 1080p, 2160p",
+    "upgradeAllowed": true,
+    "cutoff": "WEB 2160p",
+    "minFormatScore": 0,
+    "cutoffFormatScore": 10000,
+    "items": [
+      {
+        "name": "WEB 2160p",
+        "allowed": true,
+        "items": [
+          "WEBRip-2160p",
+          "WEBDL-2160p"
+        ]
+      },
+      {
+        "name": "WEB 1080p",
+        "allowed": true,
+        "items": [
+          "WEBRip-1080p",
+          "WEBDL-1080p"
+        ]
+      },
+      {
+        "name": "Bluray-2160p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-2160p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-2160p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p Remux",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-1080p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-720p",
+        "allowed": false
+      },
+      {
+        "name": "WEB 720p",
+        "allowed": false,
+        "items": [
+          "WEBRip-720p",
+          "WEBDL-720p"
+        ]
+      },
+      {
+        "name": "Raw-HD",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-1080p",
+        "allowed": false
+      },
+      {
+        "name": "HDTV-720p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-576p",
+        "allowed": false
+      },
+      {
+        "name": "Bluray-480p",
+        "allowed": false
+      },
+      {
+        "name": "DVD",
+        "allowed": false
+      },
+      {
+        "name": "WEB 480p",
+        "allowed": false,
+        "items": [
+          "WEBRip-480p",
+          "WEBDL-480p"
+        ]
+      },
+      {
+        "name": "SDTV",
+        "allowed": false
+      },
+      {
+        "name": "Unknown",
+        "allowed": false
+      }
+    ]
+  }
+]
