@@ -72,9 +72,25 @@ Le download client lui-même est wired côté Sonarr/Radarr (download_clients d�
   },
   configarr: {
     title: 'configarr — quality profiles et custom formats',
-    body: `configarr applique les quality profiles TRaSH et les custom formats à Sonarr et Radarr depuis ce fichier. La configuration est pilotée par TRaSH-Guides et les templates Recyclarr.
+    body: `Ce fichier (\`configarr.yml\`) pilote **configarr**, l'outil qui applique les quality profiles et custom formats **TRaSH-Guides** à Sonarr et Radarr. C'est la frontière ADR-5 : tout ce qui touche à la *qualité* (profils, formats, scoring, nommage des fichiers) vit ici ; tout le reste (indexers, download clients, tags, root folders) est géré par arrconf dans l'autre onglet.
 
-Les champs \`quality_definition\`, \`media_naming\` et \`api_key\` sont en **lecture seule** dans cette UI — ils sont gérés par configarr/TRaSH directement et ne doivent pas être modifiés manuellement. Éditez le fichier source si un changement est nécessaire sur ces champs.`,
+Concrètement, configarr télécharge les définitions TRaSH, les fusionne avec les réglages ci-dessous, et POST le résultat dans Sonarr/Radarr. Les **quality profiles** décident quelles qualités accepter et dans quel ordre upgrader ; les **custom formats** scorent les releases (favoriser le MULTi, pénaliser le VOSTFR, etc.).
+
+Les champs \`quality_definition\`, \`media_naming\` et \`api_key\` sont en **lecture seule** ici — gérés par TRaSH/configarr ou injectés via secret. Pour les changer, éditez le fichier source directement.`,
+  },
+  'configarr.sonarr': {
+    title: 'Sonarr — quality profiles & custom formats (configarr)',
+    body: `Bloc configarr de l'instance Sonarr. La clé sous \`sonarr\` (ex: \`main\`) est le nom de l'instance configarr — il pointe vers le Sonarr ciblé via son \`api_key\`.
+
+Les **quality profiles** (MULTi.VF, Anime, Family…) listent leurs \`qualities\` ordonnées (du plus souhaité en haut au moins souhaité) et leurs règles d'\`upgrade\`. Les **custom formats** référencent des \`trash_ids\` TRaSH et assignent un \`score\` par profil via \`assign_scores_to\` — c'est le levier principal éditable depuis cette UI.
+
+\`quality_definition\`, \`media_naming\` et \`api_key\` restent en lecture seule (🔒).`,
+  },
+  'configarr.radarr': {
+    title: 'Radarr — quality profiles & custom formats (configarr)',
+    body: `Miroir du bloc Sonarr, pour les films. Mêmes notions : quality profiles ordonnés, custom formats scorés par \`trash_ids\` + \`assign_scores_to\`, et les trois mêmes champs en lecture seule.
+
+Différence pratique : les profils Radarr ciblent des résolutions/sources de films (Remux-1080p, WEB-2160p…) plutôt que des saisons de séries. Le scoring TRaSH par custom format reste le mécanisme central pour arbitrer entre releases.`,
   },
 };
 
@@ -170,6 +186,35 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = {
   'JellyfinServerConfigSection.activity_log_retention_days': "Nombre de jours de rétention des logs d'activité (default 30).",
   'JellyfinServerConfigSection.plugin_repositories': "Liste des repos de plugins Jellyfin. Diff comparé par URL (Pitfall 7).",
   'JellyfinPluginsSection.enable': "Active la reconciliation des 6 plugins allowlistés (TMDb, OMDb, MusicBrainz, AudioDb, Studio Images, Kodi Sync Queue).",
+
+  // configarr — Phase 26 CFGUI-04 (ArrInstance + sous-modèles quality)
+  'ArrInstance.api_key': "Clé API de l'instance *arr ciblée par configarr. 🔒 Lecture seule — injectée via secret, jamais éditée dans l'UI.",
+  'ArrInstance.media_naming': "Schéma de nommage des fichiers et dossiers (séries, films, épisodes). 🔒 Lecture seule — standardisé par TRaSH-Guides.",
+  'ArrInstance.quality_definition': "Tailles min/preferred/max par qualité (MB/min ou MB selon le type). 🔒 Lecture seule — piloté par TRaSH-Guides.",
+  'ArrInstance.quality_profiles': "Liste des quality profiles appliqués à cette instance (MULTi.VF, Anime, Family…). Éditable : ajustez l'ordre des qualités, les seuils d'upgrade et les scores.",
+  'ArrInstance.custom_formats': "Custom formats TRaSH appliqués à l'instance, avec leur score par profil. Éditable via assign_scores_to.",
+
+  // QualityProfile
+  'QualityProfile.name': "Nom du quality profile. Doit correspondre à un profil existant (ou créé) dans Sonarr/Radarr.",
+  'QualityProfile.min_format_score': "Score minimum de custom format requis pour qu'une release soit acceptée. En-dessous, la release est rejetée.",
+  'QualityProfile.score_set': "Jeu de scores TRaSH à utiliser pour ce profil (ex: 'default', 'anime-sonarr'). Détermine la table de scores des custom formats.",
+  'QualityProfile.quality_sort': "Ordre de tri des qualités dans le profil (la qualité en haut est la plus souhaitée).",
+  'QualityProfile.language': "Langue cible du profil (ex: 'french', 'original', 'any').",
+  'QualityProfile.qualities': "Groupes de qualité ordonnés du plus souhaité (haut) au moins souhaité (bas). Une qualité absente de la liste est rejetée.",
+  'QualityProfile.upgrade': "Règles d'upgrade : jusqu'à quelle qualité et quel score *arr remplace un fichier déjà présent.",
+  'QualityProfile.reset_unmatched_scores': "Remet à zéro le score des custom formats non gérés par configarr — évite les dérives de scoring faites à la main dans l'UI *arr.",
+
+  // QualityGroup
+  'QualityGroup.name': "Nom du groupe de qualité affiché dans *arr (ex: 'WEB 1080p').",
+  'QualityGroup.qualities': "Qualités *arr regroupées sous ce nom (ex: WEBDL-1080p + WEBRip-1080p traitées comme équivalentes).",
+  'QualityGroup.enabled': "Si false, ce groupe de qualité est désactivé (non accepté) dans le profil.",
+
+  // CustomFormat / AssignScoresTo
+  'CustomFormat.trash_ids': "IDs TRaSH-Guides des custom formats à appliquer. Référence la base TRaSH — un ID = une règle de détection (codec, source, langue…).",
+  'CustomFormat.assign_scores_to': "Profils auxquels ce custom format attribue un score. Un même format peut scorer différemment selon le profil ciblé.",
+  'AssignScoresTo.name': "Nom du quality profile auquel appliquer le score ci-dessous.",
+  'AssignScoresTo.score': "Score attribué au custom format pour ce profil. Positif = favorise la release, négatif = la pénalise (ex: VOSTFR à -10000 sur MULTi.VF, +50 sur Anime).",
+  'AssignScoresTo.use_default_score': "Si true, applique le score par défaut TRaSH du format au lieu d'une valeur explicite.",
 };
 
 /* ============================================================================
@@ -306,6 +351,23 @@ export const FIELD_LABELS: Record<string, string> = {
   api_key: 'API key',
   assign_scores_to: 'Assigner scores à',
   score: 'Score',
+  min_format_score: 'Score minimum de format',
+  score_set: 'Jeu de scores',
+  quality_sort: 'Tri des qualités',
+  language: 'Langue',
+  qualities: 'Qualités',
+  upgrade: 'Upgrade automatique',
+  reset_unmatched_scores: 'Réinitialiser les scores non gérés',
+  trash_ids: 'IDs TRaSH',
+  trash_id: 'ID TRaSH',
+  trash_scores: 'Scores TRaSH',
+  trash_regex: 'Regex TRaSH',
+  trash_description: 'Description TRaSH',
+  use_default_score: 'Utiliser le score par défaut',
+  enabled: 'Activé',
+  negate: 'Négation',
+  specifications: 'Spécifications',
+  includeCustomFormatWhenRenaming: 'Inclure le CF au renommage',
 };
 
 /* ============================================================================

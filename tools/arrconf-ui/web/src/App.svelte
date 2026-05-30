@@ -178,12 +178,13 @@
         {/if}
       {/each}
     {:else}
+      <SectionDoc section="configarr" defaultOpen={true} />
       {#each Object.keys(schema!.properties).filter(
         (k) => (schema!.properties[k] as { additionalProperties?: unknown }).additionalProperties != null
       ) as sectionName}
         {@const sectionSchema = schema!.properties[sectionName]}
         {#if sectionSchema}
-          <SectionDoc section={sectionName} />
+          <SectionDoc section={`configarr.${sectionName}`} />
           <AppSection
             {sectionName}
             {sectionSchema}
