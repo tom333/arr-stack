@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
 status: executing
-last_updated: "2026-05-30T08:52:33.424Z"
-last_activity: 2026-05-30 -- Phase 27 planning complete
+last_updated: "2026-05-30T09:06:28.209Z"
+last_activity: 2026-05-30
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
-  percent: 62
+  completed_plans: 9
+  percent: 69
 ---
 
 # Project State
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 26 — configarr-in-ui-frontend
+**Current focus:** Phase 27 — trash-cf-picker-recyclarr-reference
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-30 -- Phase 27 planning complete
+Phase: 27 (trash-cf-picker-recyclarr-reference) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 27 (27-01 complete — baked catalog assets committed)
+Last activity: 2026-05-30 -- 27-01 complete: TRaSH/Recyclarr catalog baked (235+240 CFs, 19+36 QPs, 34+64 Recyclarr)
 
 ```
 v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%

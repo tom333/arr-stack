@@ -187,7 +187,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 **Wave 1**
-- [ ] 27-01-PLAN.md — fetch-trash-metadata.sh + baked TRaSH CF/QP + Recyclarr catalog assets + SHA manifest (CFGUI-05, CFGUI-06, CFGUI-08)
+- [x] 27-01-PLAN.md — fetch-trash-metadata.sh + baked TRaSH CF/QP + Recyclarr catalog assets + SHA manifest (CFGUI-05, CFGUI-06, CFGUI-08)
 
 **Wave 2** *(blocked on Wave 1)*
 - [ ] 27-02-PLAN.md — locator + 3 read-only /api/trash/* endpoints (disk-serve, ADR-5/SC#2) + endpoint tests (CFGUI-05, CFGUI-06, CFGUI-08)
@@ -206,7 +206,7 @@ Plans:
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
 | 26. configarr-in-UI frontend | 2/2 | Complete    | 2026-05-30 |
-| 27. TRaSH CF picker + Recyclarr reference + QP picker | 0/? | Not started | - |
+| 27. TRaSH CF picker + Recyclarr reference + QP picker | 1/4 | In Progress|  |
 
 **Milestone progress:** 0/4 phases complete
 
