@@ -420,5 +420,7 @@ export const TRASH_COLLISION_WARNING_TEXT =
   "Un quality profile avec ce nom existe déjà. Renommez-le avant d'insérer.";
 export const RECYCLARR_REFERENCE_LABEL =
   "Référence uniquement — aucun `include:` inséré.";
+export const RECYCLARR_COPY_FAILED_TEXT =
+  "Copie impossible — copiez le nom manuellement.";
 export const TRASH_CF_SEARCH_PLACEHOLDER = "Rechercher un format par nom…";
 export const TRASH_QP_ADD_LABEL = "Insérer le quality profile";

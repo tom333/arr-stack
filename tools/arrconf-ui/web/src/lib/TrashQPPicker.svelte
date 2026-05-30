@@ -54,7 +54,6 @@
         allowed: qp.upgradeAllowed,
         until_quality: qp.cutoff,
         until_score: qp.cutoffFormatScore ?? 10000,
-        min_format_score: 1,
       },
       min_format_score: qp.minFormatScore ?? 0,
       quality_sort: 'top',

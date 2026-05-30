@@ -39,6 +39,13 @@
     catalog.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()))
   );
 
+  // Entries can bundle multiple trash_ids (e.g. fr-vff/fr-vfi/fr-vfq/fr-multi).
+  // Classification, dedup and the already-added check must consider every id,
+  // not just trash_ids[0].
+  const existingIds = $derived(
+    new Set(existingCustomFormats.flatMap((e) => e.trash_ids))
+  );
+
   function toggle(id: string) {
     const next = new Set(selected);
     if (next.has(id)) { next.delete(id); } else { next.add(id); }
@@ -60,7 +67,6 @@
   }
 
   function confirmAdd() {
-    const existingIds = new Set(existingCustomFormats.map((e) => e.trash_ids[0]));
     const newEntries: CustomFormatEntry[] = [];
     for (const id of selected) {
       if (!existingIds.has(id)) {
@@ -77,8 +83,14 @@
     query = '';
   }
 
-  function removeEntry(idx: number) {
-    onChange(existingCustomFormats.filter((_, i) => i !== idx));
+  // Remove a single trash_id from an entry; drop the whole entry only when its
+  // last id is removed. Preserves the other ids of a multi-id bundle verbatim.
+  function removeId(entryIdx: number, idIdx: number) {
+    const next = existingCustomFormats.map((e, i) => {
+      if (i !== entryIdx) return e;
+      return { ...e, trash_ids: e.trash_ids.filter((_, j) => j !== idIdx) };
+    });
+    onChange(next.filter((e) => e.trash_ids.length > 0));
   }
 </script>
 
@@ -94,17 +106,18 @@
   {:else}
     <div class="existing-entries">
       {#each existingCustomFormats as entry, idx}
-        {@const id = entry.trash_ids[0]}
-        {@const cls = classify(id)}
-        <div class="cf-chip">
-          <span class="cf-label">{labelFor(id)}</span>
-          {#if cls === 'custom'}
-            <span class="badge badge-custom" title={TRASH_CUSTOM_BADGE_TEXT}>custom</span>
-          {:else if cls === 'unknown'}
-            <span class="badge badge-warn" title={TRASH_UNKNOWN_BADGE_TEXT}>⚠ inconnu</span>
-          {/if}
-          <button type="button" class="array-delete" onclick={() => removeEntry(idx)} aria-label="Supprimer">✕</button>
-        </div>
+        {#each entry.trash_ids as id, idIdx}
+          {@const cls = classify(id)}
+          <div class="cf-chip">
+            <span class="cf-label">{labelFor(id)}</span>
+            {#if cls === 'custom'}
+              <span class="badge badge-custom" title={TRASH_CUSTOM_BADGE_TEXT}>custom</span>
+            {:else if cls === 'unknown'}
+              <span class="badge badge-warn" title={TRASH_UNKNOWN_BADGE_TEXT}>⚠ inconnu</span>
+            {/if}
+            <button type="button" class="array-delete" onclick={() => removeId(idx, idIdx)} aria-label="Supprimer">✕</button>
+          </div>
+        {/each}
       {/each}
     </div>
 
@@ -120,7 +133,7 @@
     {#if query}
       <div class="catalog-list">
         {#each filtered as cf}
-          {@const alreadyAdded = existingCustomFormats.some((e) => e.trash_ids[0] === cf.trash_id)}
+          {@const alreadyAdded = existingIds.has(cf.trash_id)}
           <label class="catalog-row" class:added={alreadyAdded}>
             <input
               type="checkbox"

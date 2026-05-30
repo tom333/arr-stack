@@ -83,6 +83,10 @@ def test_get_recyclarr_templates_have_id_no_description() -> None:
     assert len(body) > 0
     for entry in body:
         assert "id" in entry, f"missing id in entry: {entry}"
+        # includes.json entries are {id, template} only — assert the real
+        # contract (template present) rather than the absence of a key that
+        # is never produced (IN-01: that absence assertion can never fail).
+        assert "template" in entry, f"missing template in entry: {entry}"
         assert "description" not in entry, f"unexpected description in entry: {entry}"
 
 

@@ -6,7 +6,7 @@
   // NEVER writes any config key — clipboard copy only (D-13).
   import type { RecyclarrTemplateEntry } from '../types';
   import { getRecyclarrTemplates } from '../api';
-  import { RECYCLARR_REFERENCE_LABEL } from '../i18n/fr';
+  import { RECYCLARR_REFERENCE_LABEL, RECYCLARR_COPY_FAILED_TEXT } from '../i18n/fr';
   import Spinner from './Spinner.svelte';
 
   type Props = {
@@ -30,9 +30,17 @@
   });
 
   async function copyId(id: string) {
-    await navigator.clipboard.writeText(id);
-    copied = true;
-    setTimeout(() => { copied = false; }, 1500);
+    // navigator.clipboard is undefined outside secure contexts (plain http:// on
+    // a non-localhost LAN host — the documented deployment model). Guard + fall
+    // back to a manual-copy message instead of throwing an unhandled rejection.
+    try {
+      if (!navigator.clipboard) throw new Error('clipboard unavailable');
+      await navigator.clipboard.writeText(id);
+      copied = true;
+      setTimeout(() => { copied = false; }, 1500);
+    } catch {
+      error = RECYCLARR_COPY_FAILED_TEXT;
+    }
   }
 </script>
 
