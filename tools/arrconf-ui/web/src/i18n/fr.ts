@@ -368,6 +368,11 @@ export const FIELD_LABELS: Record<string, string> = {
   negate: 'Négation',
   specifications: 'Spécifications',
   includeCustomFormatWhenRenaming: 'Inclure le CF au renommage',
+
+  // Phase 27 — TRaSH/Recyclarr picker labels
+  trash_cf_picker: 'Formats personnalisés TRaSH',
+  trash_qp_picker: 'Quality profiles TRaSH',
+  recyclarr_reference: 'Référence Recyclarr',
 };
 
 /* ============================================================================
@@ -405,3 +410,15 @@ export const READONLY_TOOLTIP_TEXT =
   "Géré par configarr/TRaSH — ce champ est en lecture seule. Éditez le fichier directement.";
 export const UNSAVED_SWITCH_MESSAGE =
   "Des modifications non enregistrées seront perdues. Changer de fichier ?";
+
+// Phase 27 — TRaSH picker badge/warning text
+export const TRASH_CUSTOM_BADGE_TEXT =
+  "Format personnalisé local — défini dans customFormatDefinitions.";
+export const TRASH_UNKNOWN_BADGE_TEXT =
+  "trash_id inconnu — absent du catalogue TRaSH et des définitions locales. Préservé tel quel.";
+export const TRASH_COLLISION_WARNING_TEXT =
+  "Un quality profile avec ce nom existe déjà. Renommez-le avant d'insérer.";
+export const RECYCLARR_REFERENCE_LABEL =
+  "Référence uniquement — aucun `include:` inséré.";
+export const TRASH_CF_SEARCH_PLACEHOLDER = "Rechercher un format par nom…";
+export const TRASH_QP_ADD_LABEL = "Insérer le quality profile";

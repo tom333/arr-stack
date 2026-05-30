@@ -2,7 +2,11 @@ import type {
   ConfigPayload,
   DiffResponse,
   PydanticErrorEntry,
+  RecyclarrTemplateEntry,
   RootSchema,
+  TrashApp,
+  TrashCFEntry,
+  TrashQPEntry,
 } from './types';
 
 const API_BASE = '/api';
@@ -75,4 +79,17 @@ export async function postConfigarrDiff(payload: Record<string, unknown>): Promi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+}
+
+// Phase 27 — TRaSH/Recyclarr metadata (CFGUI-05, CFGUI-06, CFGUI-08)
+export async function getTrashCustomFormats(app: TrashApp): Promise<TrashCFEntry[]> {
+  return _fetchJson<TrashCFEntry[]>(`${API_BASE}/trash/custom-formats?app=${app}`);
+}
+
+export async function getTrashQualityProfiles(app: TrashApp): Promise<TrashQPEntry[]> {
+  return _fetchJson<TrashQPEntry[]>(`${API_BASE}/trash/quality-profiles?app=${app}`);
+}
+
+export async function getRecyclarrTemplates(app: TrashApp): Promise<RecyclarrTemplateEntry[]> {
+  return _fetchJson<RecyclarrTemplateEntry[]>(`${API_BASE}/trash/recyclarr-templates?app=${app}`);
 }

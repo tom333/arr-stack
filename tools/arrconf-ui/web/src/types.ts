@@ -70,3 +70,37 @@ export type DiffResponse = {
 };
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+// Phase 27 — TRaSH/Recyclarr baked catalog types (CFGUI-05, CFGUI-06, CFGUI-08)
+
+export type TrashApp = "sonarr" | "radarr";
+
+export type TrashCFEntry = {
+  trash_id: string;
+  name: string;
+  default_score: number;  // from trash_scores.default; 0 if absent
+};
+
+export type TrashQPEntry = {
+  trash_id: string;
+  name: string;
+  trash_description: string;  // may contain <br> HTML for display
+  trash_score_set?: string;   // e.g. "french-multi-vf" — informational
+  upgradeAllowed: boolean;
+  cutoff: string;
+  minFormatScore: number;
+  cutoffFormatScore: number;
+  language?: string;
+  items: TrashQPItem[];       // quality groups, needed for YAML generation
+};
+
+export type TrashQPItem = {
+  name: string;
+  allowed?: boolean;
+  items?: string[];           // sub-quality names within a group
+};
+
+export type RecyclarrTemplateEntry = {
+  id: string;        // e.g. "sonarr-v4-quality-profile-web-1080p"
+  template: string;  // relative path, shown as subtitle; e.g. "sonarr/includes/..."
+};
