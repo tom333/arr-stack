@@ -184,7 +184,19 @@ Plans:
   3. A Recyclarr template reference dropdown is present (per-app section) and shows template names + descriptions; selecting a template name shows its description only — no `include:` block is inserted into `configarr.yml` (CFGUI-06 scope boundary enforced in UI)
   4. A `trash_id` present in the live `configarr.yml` that resolves against the file's own `customFormatDefinitions` (e.g., a hand-rolled French CF) is shown with a "custom" badge (not a warning); a `trash_id` in neither the baked catalog nor local definitions is shown with a warning indicator and preserved verbatim — never silently dropped or rejected
   5. The operator selects a TRaSH quality profile by name and it is **appended** as a new `quality_profiles[]` entry in the saved YAML; the 3 existing hand-rolled profiles (MULTi.VF / Anime / Family) are never modified or reordered; a name collision is blocked with a warning prompting a rename (CFGUI-08)
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+- [ ] 27-01-PLAN.md — fetch-trash-metadata.sh + baked TRaSH CF/QP + Recyclarr catalog assets + SHA manifest (CFGUI-05, CFGUI-06, CFGUI-08)
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 27-02-PLAN.md — locator + 3 read-only /api/trash/* endpoints (disk-serve, ADR-5/SC#2) + endpoint tests (CFGUI-05, CFGUI-06, CFGUI-08)
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 27-03-PLAN.md — frontend types/api/i18n + TrashCFPicker (add/remove/classify) + TrashQPPicker (append-only + collision) (CFGUI-05, CFGUI-08)
+
+**Wave 4** *(blocked on Wave 3)*
+- [ ] 27-04-PLAN.md — RecyclarrReferencePicker (read-only) + AppSection/App.svelte wiring + human-verify checkpoint (CFGUI-05, CFGUI-06, CFGUI-08)
 **UI hint**: yes
 
 ## Progress
