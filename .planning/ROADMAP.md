@@ -193,7 +193,7 @@ Plans:
 - [x] 27-02-PLAN.md — locator + 3 read-only /api/trash/* endpoints (disk-serve, ADR-5/SC#2) + endpoint tests (CFGUI-05, CFGUI-06, CFGUI-08)
 
 **Wave 3** *(blocked on Wave 2)*
-- [ ] 27-03-PLAN.md — frontend types/api/i18n + TrashCFPicker (add/remove/classify) + TrashQPPicker (append-only + collision) (CFGUI-05, CFGUI-08)
+- [x] 27-03-PLAN.md — frontend types/api/i18n + TrashCFPicker (add/remove/classify) + TrashQPPicker (append-only + collision) (CFGUI-05, CFGUI-08)
 
 **Wave 4** *(blocked on Wave 3)*
 - [ ] 27-04-PLAN.md — RecyclarrReferencePicker (read-only) + AppSection/App.svelte wiring + human-verify checkpoint (CFGUI-05, CFGUI-06, CFGUI-08)
@@ -206,7 +206,7 @@ Plans:
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
 | 26. configarr-in-UI frontend | 2/2 | Complete    | 2026-05-30 |
-| 27. TRaSH CF picker + Recyclarr reference + QP picker | 2/4 | In Progress|  |
+| 27. TRaSH CF picker + Recyclarr reference + QP picker | 3/4 | In Progress|  |
 
 **Milestone progress:** 0/4 phases complete
 

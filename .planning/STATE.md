@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
 status: executing
-last_updated: "2026-05-30T09:11:02.727Z"
+last_updated: "2026-05-30T09:18:23.549Z"
 last_activity: 2026-05-30
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 13
-  completed_plans: 10
-  percent: 77
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Phase: 27 (trash-cf-picker-recyclarr-reference) — EXECUTING
-Plan: 3 of 4
-Status: Executing Phase 27 (27-02 complete — 3 disk-serve TRaSH endpoints + 8 tests)
-Last activity: 2026-05-30 -- 27-02 complete: GET /api/trash/{custom-formats,quality-profiles,recyclarr-templates} + enum 400 gate + 8 endpoint tests
+Plan: 4 of 4
+Status: Executing Phase 27 (27-03 complete — TrashCFPicker + TrashQPPicker Svelte 5 components)
+Last activity: 2026-05-30 -- 27-03 complete: TrashCFPicker (CFGUI-05) + TrashQPPicker (CFGUI-08) — 5 types, 3 api functions, 6 i18n consts, 2 new components; quad gates pass
 
 ```
 v0.9.0 [░░░░░░░░░░░░░░░░░░░░] 0%
