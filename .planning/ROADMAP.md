@@ -170,7 +170,7 @@ Plans:
   2. After selecting `configarr.yml`, the form renders quality profiles, custom formats, and scores per profile via the existing `FieldInput.svelte` dispatcher; `quality_definition` and `media_naming` fields appear read-only
   3. The operator can make a change to a quality profile score and save it; the diff preview shows only the changed field; the saved file round-trips correctly through the Phase 25 backend (no tag corruption)
 **Plans**: 2 plans
-  - [ ] 26-01-PLAN.md — Foundation: configarr API funcs + readOnly type/constants/i18n + FieldInput readOnly rendering (CFGUI-04)
+  - [x] 26-01-PLAN.md — Foundation: configarr API funcs + readOnly type/constants/i18n + FieldInput readOnly rendering (CFGUI-04)
   - [ ] 26-02-PLAN.md — Wiring: HeaderBar tab bar + App.svelte two-config orchestration + unsaved-switch confirm + human-verify checkpoint (CFGUI-04)
 **UI hint**: yes
 
@@ -192,7 +192,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
 | 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
-| 26. configarr-in-UI frontend | 0/? | Not started | - |
+| 26. configarr-in-UI frontend | 1/2 | In Progress|  |
 | 27. TRaSH CF picker + Recyclarr reference | 0/? | Not started | - |
 
 **Milestone progress:** 0/4 phases complete
