@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
-status: planning
-last_updated: "2026-05-31T06:33:37.967Z"
-last_activity: 2026-05-31 -- Phase 30 cross-seed complete
+status: executing
+last_updated: "2026-05-31T07:08:00.203Z"
+last_activity: 2026-05-31 -- Phase 31 planning complete
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 13
+  total_plans: 15
   completed_plans: 13
-  percent: 100
+  percent: 87
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 31 (qbit_manage) — Ready to plan
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-31 -- Phase 30 cross-seed complete
+Status: Ready to execute
+Last activity: 2026-05-31 -- Phase 31 planning complete
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]

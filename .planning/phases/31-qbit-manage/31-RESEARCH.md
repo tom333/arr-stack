@@ -540,7 +540,7 @@ if total_matches < 14:   # was 12, then 13 — now 14 (qbit_manage = 1 new annot
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Default catch-all share_limits group filter syntax**
    - What we know: `include_all_tags: [<tag>]` filters by tag; groups are priority-ordered.
@@ -555,7 +555,7 @@ if total_matches < 14:   # was 12, then 13 — now 14 (qbit_manage = 1 new annot
 3. **Co-bump arrconf.image.tag scope for this phase**
    - What we know: Phase 30 did NOT need a co-bump because the cross-seed generator code was already in `tools/arrconf/**` from Phase 28. Phase 31 adds new Python code in `tools/arrconf/arrconf/intent_config.py` + `tools/arrconf/arrconf/generators/intent.py` — both under `tools/arrconf/**`.
    - What's confirmed: D-10 says co-bump required. CLAUDE.md confirms: any commit touching `tools/arrconf/**` MUST co-bump `arrconf.image.tag`.
-   - **Action:** The generator plan (Plan 31-01) must co-bump `arrconf.image.tag` from `0.19.1` to the next patch (e.g. `0.19.2`). The Helm plan (Plan 31-02) does NOT need a co-bump if no Python changes.
+   - **RESOLVED:** Minor co-bump `0.19.1 → 0.20.0` (new generator/schema/CLI = new feature per CLAUDE.md bump-magnitude convention, NOT a patch). The Helm plan (Plan 31-02) does NOT need a co-bump (no Python changes).
 
 ---
 
