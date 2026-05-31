@@ -115,7 +115,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 
 ### v0.9.0 — configarr-in-UI + Jellyfin skip-intro (Phases 24-27)
 
-- [ ] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike
+- [x] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike (completed 2026-05-31)
 - [x] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate (completed 2026-05-29)
 - [x] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher (completed 2026-05-30)
 - [x] **Phase 27: TRaSH CF picker + Recyclarr reference + QP picker** — build-time-baked TRaSH catalog (CFs + quality profiles) + `TrashPicker.svelte` + TRaSH QP picker (add-as-new) + Recyclarr read-only informational dropdown (completed 2026-05-30)
@@ -135,7 +135,7 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 **Plans**: 3 plans
   - [x] 24-01-PLAN.md — Schema/model + chapter-extraction reconciler + Intro Skipper repo registration (JFSKIP-01, JFSKIP-04)
   - [x] 24-02-PLAN.md — Two-run install + enable + plugin-config logic + co-bump 0.16.0 + ADR reversal (JFSKIP-02, JFSKIP-03)
-  - [ ] 24-03-PLAN.md — Operator runbook + live two-run verification + Kodi spike (JFSKIP-05)
+  - [x] 24-03-PLAN.md — Operator runbook + live two-run verification + Kodi spike (JFSKIP-05)
 **UI hint**: no
 
 ### Phase 25: configarr-in-UI backend

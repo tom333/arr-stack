@@ -25,11 +25,11 @@
 
 Installer/configurer le plugin Intro Skipper (intro + crédits) via le reconciler Jellyfin arrconf (best-effort) + extraction chapter markers. Clients web/app/Swiftfin natifs ; Kodi salon best-effort.
 
-- [ ] **JFSKIP-01**: arrconf enregistre déclarativement le repo plugin Intro Skipper dans la config serveur Jellyfin (`plugin_repositories`), idempotent.
-- [ ] **JFSKIP-02**: arrconf installe le plugin Intro Skipper quand absent (`POST /Packages/Installed`) ; le reconciler distingue état queued-install vs active ; un runbook opérateur documente le restart Jellyfin unique (`kubectl rollout restart deployment/jellyfin -n selfhost`).
-- [ ] **JFSKIP-03**: Détection intro **+** crédits/outro activée (config plugin) ; tâche de fingerprint planifiée off-peak avec `MaxConcurrentTasks` capé (coût CPU 1er run sur MicroK8s single-node).
-- [ ] **JFSKIP-04**: Extraction chapter markers/images activée par bibliothèque (`EnableChapterImageExtraction` via LibraryOptions) — bénéficie à tous les clients, y compris Kodi.
-- [ ] **JFSKIP-05**: Skip-intro fonctionne sur web/app/Swiftfin (committed). Kodi/JellyCon salon = best-effort via runbook documenté `service.jellyskip` (non-gating) ; un spike Kodi tranche par critère accept/reject binaire avant de déclarer la feature complète.
+- [x] **JFSKIP-01**: arrconf enregistre déclarativement le repo plugin Intro Skipper dans la config serveur Jellyfin (`plugin_repositories`), idempotent.
+- [x] **JFSKIP-02**: arrconf installe le plugin Intro Skipper quand absent (`POST /Packages/Installed`) ; le reconciler distingue état queued-install vs active ; un runbook opérateur documente le restart Jellyfin unique (`kubectl rollout restart deployment/jellyfin -n selfhost`).
+- [x] **JFSKIP-03**: Détection intro **+** crédits/outro activée (config plugin) ; tâche de fingerprint planifiée off-peak avec `MaxConcurrentTasks` capé (coût CPU 1er run sur MicroK8s single-node).
+- [x] **JFSKIP-04**: Extraction chapter markers/images activée par bibliothèque (`EnableChapterImageExtraction` via LibraryOptions) — bénéficie à tous les clients, y compris Kodi.
+- [x] **JFSKIP-05**: Skip-intro fonctionne sur web/app/Swiftfin (committed). Kodi/JellyCon salon = best-effort via runbook documenté `service.jellyskip` (non-gating) ; un spike Kodi tranche par critère accept/reject binaire avant de déclarer la feature complète.
 
 ## v1.x / Future Requirements
 
@@ -66,11 +66,11 @@ Exclusions explicites avec raison (anti-scope-creep).
 | CFGUI-06 | Phase 27 | Complete |
 | CFGUI-07 | Phase 25 | Complete |
 | CFGUI-08 | Phase 27 | Complete |
-| JFSKIP-01 | Phase 24 | Pending |
-| JFSKIP-02 | Phase 24 | Pending |
-| JFSKIP-03 | Phase 24 | Pending |
-| JFSKIP-04 | Phase 24 | Pending |
-| JFSKIP-05 | Phase 24 | Pending |
+| JFSKIP-01 | Phase 24 | Complete |
+| JFSKIP-02 | Phase 24 | Complete |
+| JFSKIP-03 | Phase 24 | Complete |
+| JFSKIP-04 | Phase 24 | Complete |
+| JFSKIP-05 | Phase 24 | Complete |
 
 **Coverage:**
 - v0.9.0 requirements: 13 total (8 CFGUI + 5 JFSKIP)
