@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
 status: executing
-last_updated: "2026-05-31T07:08:00.203Z"
-last_activity: 2026-05-31 -- Phase 31 planning complete
+last_updated: "2026-05-31T07:08:45.398Z"
+last_activity: 2026-05-31 -- Phase 31 execution started
 progress:
   total_phases: 4
   completed_phases: 3
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 31 — qbit_manage
+**Current focus:** Phase 31 — qbit-manage
 
 ## Current Position
 
-Phase: 31 (qbit_manage) — Ready to plan
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-31 -- Phase 31 planning complete
+Phase: 31 (qbit-manage) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 31
+Last activity: 2026-05-31 -- Phase 31 execution started
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]

@@ -33,7 +33,7 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
-from arrconf.generators.intent import generate_cross_seed
+from arrconf.generators.intent import generate_cross_seed, generate_qbit_manage
 from arrconf.intent_config import IntentConfig, load_intent
 from arrconf.logging import configure_logging
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -1032,6 +1032,20 @@ def generate(
     if intent_cfg.tools.cross_seed is not None:
         rendered = generate_cross_seed(intent_cfg.tools.cross_seed)
         target = output_dir / "cross-seed" / "config.js"
+        if check:
+            if not target.exists() or target.read_text(encoding="utf-8") != rendered:
+                log.error("generate_drift", file=str(target))
+                drift = True
+            else:
+                log.info("generate_ok", file=str(target))
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(rendered, encoding="utf-8")
+            log.info("generate_written", file=str(target))
+
+    if intent_cfg.tools.qbit_manage is not None:
+        rendered = generate_qbit_manage(intent_cfg.tools.qbit_manage)
+        target = output_dir / "qbit_manage" / "config.yml"
         if check:
             if not target.exists() or target.read_text(encoding="utf-8") != rendered:
                 log.error("generate_drift", file=str(target))

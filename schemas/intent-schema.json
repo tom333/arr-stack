@@ -44,6 +44,54 @@
       "title": "CrossSeedConfig",
       "type": "object"
     },
+    "QbitManageConfig": {
+      "additionalProperties": false,
+      "description": "tools.qbit_manage block in intent.yml (QBM-01).",
+      "properties": {
+        "qbt_host": {
+          "default": "http://qbittorrent.selfhost.svc.cluster.local:8080",
+          "description": "qBittorrent WebUI URL (in-cluster).",
+          "title": "Qbt Host",
+          "type": "string"
+        },
+        "recyclebin_days": {
+          "default": 30,
+          "description": "Days before recyclebin is purged (D-05).",
+          "title": "Recyclebin Days",
+          "type": "integer"
+        },
+        "rem_orphaned": {
+          "default": false,
+          "description": "Remove orphaned files (D-04 opt-in).",
+          "title": "Rem Orphaned",
+          "type": "boolean"
+        },
+        "rem_unregistered": {
+          "default": false,
+          "description": "Remove unregistered torrents (D-04 opt-in).",
+          "title": "Rem Unregistered",
+          "type": "boolean"
+        },
+        "share_limits": {
+          "description": "Per-tracker share limit groups (D-01/D-02).",
+          "items": {
+            "$ref": "#/$defs/ShareLimitGroup"
+          },
+          "title": "Share Limits",
+          "type": "array"
+        },
+        "tracker_tags": {
+          "description": "Per-tracker tag rules.",
+          "items": {
+            "$ref": "#/$defs/TrackerTagEntry"
+          },
+          "title": "Tracker Tags",
+          "type": "array"
+        }
+      },
+      "title": "QbitManageConfig",
+      "type": "object"
+    },
     "SagaEntry": {
       "additionalProperties": false,
       "description": "A single saga declaration (Phase 29 locked schema \u2014 D-02).\n\nkind=movies: tmdb_collection REQUIRED; profile + root REQUIRED; items ignored.\nkind=series: items OPTIONAL (titles of member series); profile/root/tmdb_collection not used.",
@@ -111,6 +159,58 @@
       "title": "SagaEntry",
       "type": "object"
     },
+    "ShareLimitGroup": {
+      "additionalProperties": false,
+      "description": "One share_limits group (D-02).",
+      "properties": {
+        "cleanup": {
+          "default": false,
+          "description": "Delete on limit reached (to recyclebin).",
+          "title": "Cleanup",
+          "type": "boolean"
+        },
+        "max_ratio": {
+          "default": -1.0,
+          "description": "-1 = disabled.",
+          "title": "Max Ratio",
+          "type": "number"
+        },
+        "max_seeding_time": {
+          "default": -1,
+          "description": "Minutes. -1 = disabled.",
+          "title": "Max Seeding Time",
+          "type": "integer"
+        },
+        "min_seeding_time": {
+          "default": 0,
+          "description": "Minutes.",
+          "title": "Min Seeding Time",
+          "type": "integer"
+        },
+        "name": {
+          "description": "Group name (also used as qbit_manage group key).",
+          "title": "Name",
+          "type": "string"
+        },
+        "priority": {
+          "description": "Lower = higher priority.",
+          "title": "Priority",
+          "type": "integer"
+        },
+        "tracker_tag": {
+          "description": "Tracker tag to match (include_all_tags filter).",
+          "title": "Tracker Tag",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "tracker_tag",
+        "priority"
+      ],
+      "title": "ShareLimitGroup",
+      "type": "object"
+    },
     "ToolsConfig": {
       "additionalProperties": false,
       "description": "Absorbed external tools (cross_seed, qbit_manage).",
@@ -126,9 +226,43 @@
           ],
           "default": null,
           "description": "cross-seed block (XSEED). None when unconfigured."
+        },
+        "qbit_manage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QbitManageConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "qbit_manage block (QBM-01). None when unconfigured."
         }
       },
       "title": "ToolsConfig",
+      "type": "object"
+    },
+    "TrackerTagEntry": {
+      "additionalProperties": false,
+      "description": "One tracker_tags entry.",
+      "properties": {
+        "keyword": {
+          "description": "Tracker URL keyword (partial match).",
+          "title": "Keyword",
+          "type": "string"
+        },
+        "tag": {
+          "description": "Tag to apply to matching torrents.",
+          "title": "Tag",
+          "type": "string"
+        }
+      },
+      "required": [
+        "keyword",
+        "tag"
+      ],
+      "title": "TrackerTagEntry",
       "type": "object"
     }
   },

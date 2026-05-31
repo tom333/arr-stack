@@ -11,5 +11,21 @@ tools:
       - "/data/torrents/cross-seed"
     link_type: hardlink
     action: inject
+  qbit_manage:
+    qbt_host: "http://qbittorrent.selfhost.svc.cluster.local:8080"
+    tracker_tags:
+      - keyword: "beyond-hd"
+        tag: "beyond-hd"
+    share_limits:
+      - name: "group-beyond-hd"
+        tracker_tag: "beyond-hd"
+        max_ratio: 3.0
+        max_seeding_time: -1
+        min_seeding_time: 4320
+        cleanup: false
+        priority: 1
+    recyclebin_days: 30
+    rem_orphaned: false
+    rem_unregistered: false
 
 sagas: []
