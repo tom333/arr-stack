@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../../schemas/intent-schema.json
+# HAND-EDITED — source of truth for 'arrconf generate'
+
+tools:
+  cross_seed:
+    torznab:
+      - "http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=PLACEHOLDER"
+    torrent_clients:
+      - "qbittorrent:http://admin:PLACEHOLDER@qbittorrent.selfhost.svc.cluster.local:8080"
+    link_dirs:
+      - "/data/torrents/cross-seed"
+    link_type: hardlink
+    action: inject
+
+sagas: []
