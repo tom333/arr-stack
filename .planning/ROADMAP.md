@@ -131,7 +131,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 ### v0.10.0 — Couche d'intention (tranche 1)
 
 - [x] **Phase 28: Generate foundation** — `intent.yml` schema + `arrconf generate` CLI + CI idempotence guard + intent-boundary ADR (completed 2026-05-31)
-- [ ] **Phase 29: Sagas** — Radarr Collections reconciler (tmdbId-matched) + Jellyfin tmdbboxsets plugin depuis `sagas` dans `intent.yml`
+- [x] **Phase 29: Sagas** — Radarr Collections reconciler (tmdbId-matched) + Jellyfin tmdbboxsets plugin depuis `sagas` dans `intent.yml` (completed 2026-05-31)
 - [ ] **Phase 30: cross-seed** — `cross-seed/config.js` généré + alias Helm app-template (consolidation hors-stack)
 - [ ] **Phase 31: qbit_manage** — `qbit_manage/config.yml` généré (`cat_update: False`) + alias Helm CronJob
 
@@ -173,7 +173,7 @@ Plans:
 - [x] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 29-03-PLAN.md — Jellyfin series BoxSets (GET-before-POST) + Sonarr arrconf-managed tag + apply branch (SAGAS-04) [wave 3, co-bump]
+- [x] 29-03-PLAN.md — Jellyfin series BoxSets (GET-before-POST) + Sonarr arrconf-managed tag + apply branch (SAGAS-04) [wave 3, co-bump]
 **UI hint**: yes
 
 ### Phase 30: cross-seed
@@ -201,7 +201,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
-| 29. Sagas | 3/4 | In Progress|  |
+| 29. Sagas | 4/4 | Complete   | 2026-05-31 |
 | 30. cross-seed | 0/TBD | Not started | - |
 | 31. qbit_manage | 0/TBD | Not started | - |
 
