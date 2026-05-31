@@ -8,7 +8,14 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
+**Milestone shipped & archived: v0.10.0 Couche d'intention (tranche 1)** (2026-05-31, 4/4 phases 28-31, 15/15 plans, 14/14 requirements, audit `tech_debt` no-blockers). Généralise le pattern `categories[]` en couche d'intention explicite : `intent.yml` (seul fichier hand-edited) → `arrconf generate` (pure fn, `--check` CI guard) → configs verbeuses committées → `apply`/configarr (inchangés). ADR-10 (couche d'intention + frontière absorber/déployer, extension ADR-5). 3 blocs absorbés : **sagas** (reconciler Radarr Collections tmdbId-matched + plugin Jellyfin tmdbboxsets two-run + BoxSets séries), **cross-seed** (12e alias Helm, initContainer secret-injection), **qbit_manage** (13e alias Helm CronJob, `cat_update:false`+`cat:{}` forcés — arrconf seul propriétaire catégories qBit). arrconf `:0.18.0`→`:0.20.0`. Archive : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.10.0-ROADMAP.md`](milestones/v0.10.0-ROADMAP.md) + [`milestones/v0.10.0-MILESTONE-AUDIT.md`](milestones/v0.10.0-MILESTONE-AUDIT.md). **Pas de git tag GSD** (`v0.10.0` collisionne avec un tag chart-release ; archive planning-only). 7 items deferred (Phases 30/31 runtime UAT pending + 3 warnings 1-line + carry-forwards — voir STATE.md). Next : `/gsd-new-milestone` (tranche 2 : INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01).
+
+<details>
+<summary>Previous state — v0.9.0 configarr-in-UI + Jellyfin skip-intro (2026-05-31)</summary>
+
 **Milestone complete: v0.9.0 configarr-in-UI + Jellyfin skip-intro** (2026-05-31, 4/4 phases, 13/13 plans). Deux features hétérogènes livrées : (1) **Jellyfin Intro Skipper** (Phase 24, arrconf `:0.17.0`) — reconciler étendu pour enregistrer le repo plugin, l'installer via le two-run model (Run N queue + restart opérateur unique, Run N+1 enable+config `MaxParallelism=1`) et activer `EnableChapterImageExtraction` sur les 10 libs ; ADR-9 inverse D-07-PLUGINS-01 en install-capable ; vérification opérateur live SC#1-4 PASS + spike Kodi `service.jellyskip` = ACCEPT. (2) **configarr-in-UI** (Phases 25-27) — `arrconf-ui` édite désormais `configarr.yml` via formulaire schema-driven (`ConfigarrRootConfig` pydantic, 4 endpoints, anti-leak `!env`/`!secret`), avec pickers TRaSH (CF par nom + QP append-only) et référence Recyclarr read-only, catalogue TRaSH baké au build (SHAs pinnés, zéro HTTP runtime). ADR-5 intact des deux côtés. Production cluster arrconf `:0.17.0`. **v0.9.0 archivé 2026-05-31** (pas de git tag GSD — `v0.9.0` collisionne avec un tag chart-release ; archive planning-only). 5 items deferred (Phase 27 UAT/verification operator-pending, etc. — voir STATE.md). **v0.10.0 en cours** (Couche d'intention tranche 1). **Phase 28 Generate foundation livré** (2026-05-31, 6/6 plans) : `intent.yml` (seule source hand-edited, schema `tools{}`+`sagas[]`) → `arrconf generate` (pure fn, `--check` CI mode) → configs committées ; proving slice cross-seed `config.js` (émission JS-literal) ; garde CI `generate-idempotence` dans `tests.yml` (hors chart-lint, D-09) ; ADR-10 (couche d'intention + frontière absorber/déployer). arrconf `:0.18.0`. INTENT-01..04 validés. **Phase 29 Sagas livré** (2026-05-31, 4/4 plans, 13/13 must-haves) : `SagaEntry` lockée (kind movies|series) ; `apply --intent` ; nouveau reconciler **Radarr Collections** (GET/match-tmdbId/PUT-on-drift, log-skip absent, idempotent) ; **tmdbboxsets** plugin (two-run ADR-9, GUID bc4aad2e) ; séries → **Jellyfin BoxSet** via /Collections (GET-before-POST idempotent) + tag Sonarr `arrconf-managed` (PUT /series/editor applyTags=add). arrconf `:0.19.0`. SAGAS-01..04 validés. **Phase 30 cross-seed livré** (12e alias Helm daemon, arrconf `:0.19.1`, XSEED validé, UAT 4/4). **Phase 31 qbit_manage livré** (2026-05-31, 2/2 plans, 3/3 must-haves) : `QbitManageConfig` (extra=forbid, share_limits per-tracker named groups, recyclebin 30j + tag_nohardlinks default, rem_orphaned/rem_unregistered opt-in default-false) → `generate_qbit_manage()` émet `qbit_manage/config.yml` avec **`cat_update: false` + `cat: {}` forcés inconditionnellement** (QBM-02, arrconf reste seul propriétaire catégories) + creds `!ENV QBT_USER/QBT_PASS` (zéro secret en git) ; 13e alias Helm CronJob (`0 */4 * * *`, `QBT_RUN=true`+`QBT_SCHEDULE=0` run-once, envFrom arrconf-env). arrconf co-bump `:0.20.0`. QBM-01..03 validés (2 items cluster-UAT pending). **v0.10.0 Couche d'intention tranche 1 complète : 4/4 phases.**
+
+</details>
 
 <details>
 <summary>Previous state — v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (2026-05-27)</summary>
@@ -150,15 +157,21 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 - [x] **CAT-CLEANUP-03** — v0.8.0 (Phase 22): `differ.force_prune` path + pydantic legacy-path guard on Sonarr/Radarr root_folders/tags/download_clients; shipped `arrconf:0.15.0` (chart co-bump 0.14.1→0.15.0, 455 tests). Live cleanup of 4 legacy roots + catch-all DC id=1 + 3 orphan torrents. **Tech debt:** no 22-VERIFICATION.md (cross-verified by P23); `force_prune=true` DELETE path unexercised live (surgical deletes used) — re-verify before `prune:true` in `arrconf.yml`.
 - [x] **CAT-CLEANUP-04** — v0.8.0 (Phase 23): live operator UAT on `:0.15.0` — SC#1-4 PASS (legacy roots absent, Seerr→per-Category DC routing not catch-all, idempotent apply ×2). SC#5 PARTIAL-deferred (3 Jellyfin libs empty pending media FS migration — operator-accepted, out of scope).
 
+### Validated (v0.10.0)
+
+<!-- Shipped 2026-05-31 in v0.10.0 (Phases 28-31). Milestone audit: tech_debt (no blockers). -->
+
+- [x] **REQ-intent-layer** — v0.10.0 (Phase 28, arrconf `:0.18.0`): `intent.yml` (sole hand-edited source) + `arrconf generate` pure fn (`--check` drift mode, reuses `generators/`) → committed verbose configs ; CI `generate-idempotence` guard (`generate --check` + `charts/arr-stack/files/**` path filter, isolated from chart-lint D-09). INTENT-01..03 validated.
+- [x] **REQ-sagas** — v0.10.0 (Phase 29, arrconf `:0.19.0`): `SagaEntry` (kind movies|series) + `apply --intent` ; new Radarr Collections reconciler (GET/match-tmdbId/PUT-on-drift, idempotent) ; Jellyfin `tmdbboxsets` two-run plugin (ADR-9, GUID bc4aad2e) ; series → Jellyfin BoxSet (GET-before-POST) + Sonarr `arrconf-managed` tag. SAGAS-01..04 validated.
+- [x] **REQ-cross-seed** — v0.10.0 (Phase 30, arrconf `:0.19.1`): `config.js` généré (tokens env distincts `${PROWLARR_API_KEY}`/`${QBT_USER}:${QBT_PASS}`) + 12e alias Helm `cross-seed` (initContainer Node.js secret-injection → emptyDir `/config/config.js` via subPath, advancedMounts) ; CI alias loop + renovate threshold 12 ; runbook opérateur (PVC + host dir + teardown + rollback). UAT 4/4 PASS.
+- [x] **REQ-qbit-manage** — v0.10.0 (Phase 31, arrconf `:0.20.0`): `QbitManageConfig` (share_limits per-tracker, recyclebin 30j + tag_nohardlinks default, destructive ops opt-in) → `generate_qbit_manage()` émet `qbit_manage/config.yml` (`cat_update: false` + `cat: {}` forcés — QBM-02) + creds `!ENV` ; 13e alias Helm CronJob run-once. QBM-01..03 validés (2 cluster-UAT pending).
+- [x] **REQ-intent-boundary-adr** — v0.10.0 (Phase 28): **ADR-10** couche d'intention + frontière *absorber (générer la config) vs déployer-seulement (DB/UI-only)*, extension d'ADR-5. INTENT-04 validated.
+
 ### Active
 
-<!-- Scoped for v0.10.0 — tranche 1 of the intention layer. Full set + REQ-IDs in REQUIREMENTS.md. -->
+<!-- v0.10.0 shipped. No active milestone — next via /gsd-new-milestone. Tranche-2 candidates carried in v2 requirements below + INTENT-* in archived milestones/v0.10.0-REQUIREMENTS.md. -->
 
-- [ ] **REQ-intent-layer** — `intent.yml` + `arrconf generate` (fonction pure → configs verbeuses committées, CI idempotence guard).
-- [ ] **REQ-sagas** — Radarr Collections reconciler (PUT par `tmdbId`) + Jellyfin `tmdbboxsets` depuis `sagas` dans `intent.yml`.
-- [x] **REQ-cross-seed** — v0.10.0 (Phase 30): `config.js` généré (tokens env distincts `${PROWLARR_API_KEY}`/`${QBT_USER}:${QBT_PASS}`) + 12e alias Helm `cross-seed` (initContainer Node.js secret-injection → emptyDir `/config/config.js` via subPath, advancedMounts) ; CI alias loop + renovate threshold 12 ; runbook opérateur (PVC + host dir + teardown + rollback). arrconf `:0.19.1`. UAT 4/4 PASS.
-- [x] **REQ-qbit-manage** — v0.10.0 (Phase 31): `QbitManageConfig` (share_limits per-tracker, recyclebin 30j + tag_nohardlinks default, destructive ops opt-in) → `generate_qbit_manage()` émet `qbit_manage/config.yml` (`cat_update: false` + `cat: {}` forcés — QBM-02) + creds `!ENV` ; 13e alias Helm CronJob run-once. arrconf `:0.20.0`. QBM-01..03 validés (2 cluster-UAT pending).
-- [ ] **REQ-intent-boundary-adr** — ADR couche d'intention + frontière absorber vs déployer.
+- _(none — awaiting `/gsd-new-milestone`)_ Tranche-2 candidates: **INTENT-UI-01** (UI over `intent.yml`), **INTENT-CFGARR-01** (`configarr.yml` CF/QP generated from intent), **INTENT-CATMIG-01** (`categories[]` migration into `intent.yml`), **AUTOBRR-01** (autobrr deploy-only if adopted).
 
 <details>
 <summary>Carry-forward (pre-v0.10.0)</summary>
@@ -322,7 +335,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-31 after Phase 31 — qbit_manage déployé (13e alias Helm CronJob run-once, arrconf `:0.20.0`, REQ-qbit-manage validé, QBM-02 `cat_update:false`+`cat:{}` forcés, 2 cluster-UAT pending). **v0.10.0 Couche d'intention tranche 1 COMPLÈTE : 4/4 phases (28 generate, 29 sagas, 30 cross-seed, 31 qbit_manage).** Prêt pour /gsd-complete-milestone.*
+*Last updated: 2026-05-31 after v0.10.0 milestone — Couche d'intention (tranche 1) **SHIPPED & ARCHIVED** (4/4 phases 28-31, 15/15 plans, 14/14 requirements, audit `tech_debt` no-blockers, 7 items deferred). Full PROJECT.md evolution: v0.10.0 requirements moved to Validated, Active emptied (awaiting `/gsd-new-milestone`), ADR-10 logged. No git tag (planning-only, `v0.10.0` collides with chart-release tag). Next: `/gsd-new-milestone` for tranche 2 (INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01).*
 
 <details>
 <summary>Previous footer — v0.9.0</summary>

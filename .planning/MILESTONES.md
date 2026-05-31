@@ -1,5 +1,32 @@
 # Milestones
 
+## v0.10.0 Couche d'intention (tranche 1) (Shipped: 2026-05-31)
+
+**Phases completed:** 4 phases (28-31), 15 plans
+**Milestone audit:** `tech_debt` (no blockers) — [`milestones/v0.10.0-MILESTONE-AUDIT.md`](milestones/v0.10.0-MILESTONE-AUDIT.md)
+**Stats:** 115 commits, 145 files, +15703/-126, ~6.5h same-day. arrconf `:0.18.0` → `:0.20.0`.
+
+**Delivered:** Generalised the `categories[]` pattern into an explicit intention layer — `intent.yml` (sole hand-edited source) → `arrconf generate` (pure function) → committed verbose configs → `apply`/configarr (unchanged). Tranche 1 ships the `generate` mechanism + 3 absorbed blocks: sagas, cross-seed, qbit_manage. 14/14 v1 requirements validated.
+
+**Key accomplishments:**
+
+- **Generate foundation (Phase 28, arrconf `:0.18.0`)** — `IntentConfig`/`ToolsConfig`/`CrossSeedConfig`/`SagaEntry` pydantic models (`extra="forbid"`) + `load_intent` + `intent-schema-gen`; `arrconf generate` CLI subcommand with `--check` drift mode reusing the `generators/` pure-function pattern (0 I/O, `sort_keys=True` determinism). CI `generate-idempotence` guard in `tests.yml` (`generate --check` + `charts/arr-stack/files/**` path filter, isolated from chart-lint per D-09). **ADR-10** formalises the intention layer + the *absorb-vs-deploy* boundary as an extension of ADR-5 (configarr stays the sole TRaSH applier). INTENT-01..04 validated.
+- **Sagas (Phase 29, arrconf `:0.19.0`)** — `SagaEntry` locked (kind movies|series); `apply --intent` optional-load wiring; new **Radarr Collections reconciler** (GET / match-by-`tmdbId` / PUT-on-drift, log-skip absent, idempotent); **tmdbboxsets** Jellyfin plugin via two-run ADR-9 model (GUID bc4aad2e); series sagas → curated **Jellyfin BoxSet** (GET-before-POST idempotent) + Sonarr `arrconf-managed` tag (PUT /series/editor applyTags=add) — presentation-only, no Radarr-style reconciler. SAGAS-01..04 validated.
+- **cross-seed (Phase 30, arrconf `:0.19.1`)** — `tools.cross_seed` (token-distinct `${PROWLARR_API_KEY}` + `${QBT_USER}:${QBT_PASS}`, no shared PLACEHOLDER) → generated `config.js` (`module.exports = {...}`); 12th Helm `app-template` alias with Node.js initContainer secret-injection → emptyDir `/config/config.js` via subPath (advancedMounts to avoid PVC shadowing); tcpSocket probes 2468; CI alias-unpack loop + renovate threshold 10→12; operator runbook (PVC + host dir + out-of-stack teardown + rollback). XSEED-01..03 validated (UAT 4/4 PASS).
+- **qbit_manage (Phase 31, arrconf `:0.20.0`)** — `QbitManageConfig` (`extra="forbid"`, per-tracker named share_limits groups, recyclebin 30j + tag_nohardlinks default, rem_orphaned/rem_unregistered opt-in default-false) → `generate_qbit_manage()` emits `qbit_manage/config.yml` with **`cat_update: false` + `cat: {}` forced unconditionally** (QBM-02 — arrconf stays sole owner of qBit categories, no second writer) + `!ENV QBT_USER/QBT_PASS` creds (zero secret in git); 13th Helm `app-template` CronJob alias (`0 */4 * * *`, `QBT_RUN=true`+`QBT_SCHEDULE=0` run-once, envFrom arrconf-env); chart-lint annotation-guard 12→14. QBM-01..03 validated.
+
+**Integration:** NO BLOCKERS. 14/14 requirements WIRED end-to-end (intent.yml → generate → commit → Helm deploy → apply); 5/5 E2E flows complete. 3 non-blocking diagnostic warnings recorded as tech debt (see below).
+
+**Known deferred items at close:** 7 (acknowledged, see STATE.md "Deferred Items"). Phases 30/31 VERIFICATION=`human_needed` (runtime cluster observation pending; code 3/3 SC verified — artifact-only debt matching v0.8.0/v0.9.0 pattern); 31-HUMAN-UAT 2 pending scenarios; 3 integration warnings (1-line fixes: `generate_qbit_manage` not in `__all__`, `__main__.py:617` failure label, `cross-seed-config` ConfigMap/PVC name overlap); 2 carry-forward operator tasks (260527-jfk done-frontmatter, media FS migration).
+
+**Patterns established:**
+
+- **Intention layer (ADR-10 / G1 model):** hand-edited `intent.yml` → `arrconf generate` (pure, local, committed) → CI idempotence-gated configs. G2 (in-cluster, loses Git diff/ADR-6) and G3 (auto-commit, auto-tagger noise) rejected.
+- **Absorb-vs-deploy boundary:** a tool is *absorbed* (its config generated from intent: cross-seed, qbit_manage) vs *deploy-only* (DB/UI-only state: autobrr deferred). The intention layer never touches configarr's TRaSH endpoints (ADR-5 held).
+- **`cat_update:false` forced literal** — when two tools could write the same resource (qBit categories), the generator emits the disabling knob as an unconditional string literal with unit-test assertions, so no code path can produce a conflicting second writer.
+
+---
+
 ## v0.9.0 configarr-in-UI + Jellyfin skip-intro (Shipped: 2026-05-31)
 
 **Phases completed:** 4 phases (24-27), 13 plans
