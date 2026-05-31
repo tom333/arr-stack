@@ -26,9 +26,9 @@ Requirements de la tranche 1. Chacun mappe vers une phase du roadmap.
 
 ### cross-seed (consolidation hors-stack)
 
-- [ ] **XSEED-01**: L'opérateur déclare `tools.cross_seed` (torznab, link policy) dans `intent.yml`.
-- [ ] **XSEED-02**: `arrconf generate` émet un `cross-seed/config.js` valide (littéral `module.exports = {...}`).
-- [ ] **XSEED-03**: cross-seed est déployé via un alias Helm `app-template` (config.js monté), consolidant l'instance qui tourne aujourd'hui hors-stack.
+- [x] **XSEED-01**: L'opérateur déclare `tools.cross_seed` (torznab, link policy) dans `intent.yml`.
+- [x] **XSEED-02**: `arrconf generate` émet un `cross-seed/config.js` valide (littéral `module.exports = {...}`).
+- [x] **XSEED-03**: cross-seed est déployé via un alias Helm `app-template` (config.js monté), consolidant l'instance qui tourne aujourd'hui hors-stack.
 
 ### qbit_manage (share limits / recyclebin / tags / orphaned)
 
@@ -79,9 +79,9 @@ Exclusions explicites, avec raison, pour éviter le scope creep.
 | SAGAS-02 | Phase 29 | Complete |
 | SAGAS-03 | Phase 29 | Complete |
 | SAGAS-04 | Phase 29 | Complete |
-| XSEED-01 | Phase 30 | Pending |
-| XSEED-02 | Phase 30 | Pending |
-| XSEED-03 | Phase 30 | Pending |
+| XSEED-01 | Phase 30 | Complete |
+| XSEED-02 | Phase 30 | Complete |
+| XSEED-03 | Phase 30 | Complete |
 | QBM-01 | Phase 31 | Pending |
 | QBM-02 | Phase 31 | Pending |
 | QBM-03 | Phase 31 | Pending |

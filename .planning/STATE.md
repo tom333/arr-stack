@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
-status: executing
-last_updated: "2026-05-31T05:34:10.864Z"
-last_activity: 2026-05-31 -- Phase 30 execution started
+status: ready_to_plan
+last_updated: "2026-05-31T06:18:00.000Z"
+last_activity: 2026-05-31 -- Phase 30 cross-seed complete (UAT 4/4 PASS)
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 10
-  percent: 77
+  completed_plans: 13
+  percent: 75
 ---
 
 # Project State
@@ -21,18 +21,18 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 30 — cross-seed
+**Current focus:** Phase 31 — qbit_manage
 
 ## Current Position
 
-Phase: 30 (cross-seed) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 30
-Last activity: 2026-05-31 -- Phase 30 execution started
+Phase: 31 (qbit_manage) — Ready to plan
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-31 -- Phase 30 cross-seed complete
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]
-  ░░░░░░░    ░░░░░░░    ░░░░░░░    ░░░░░░░    0 % complete
+  ███████    ███████    ███████    ░░░░░░░    75 % complete (3/4 phases, 13/13 plans)
 ```
 
 ## Accumulated Context
@@ -61,6 +61,7 @@ Quick reference to 9 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 - **No co-bump Phases 30-31:** cross-seed et qbit_manage = Helm aliases + ConfigMaps uniquement (générateurs purs dans arrconf, mais pas de nouveau reconciler) — si les générateurs sont dans `tools/arrconf/**`, co-bump REQUIS. À clarifier en discuss-phase : si `arrconf generate` code est dans Phase 28 et les générateurs cross-seed/qbit_manage sont ajoutés dans Phase 28, Phases 30-31 n'ajoutent que le Helm. Sinon co-bump si nouvel arrconf code.
 - **ADR-6 Phase 29:** snapshot raw obligatoire AVANT le premier test live cluster sagas (nouveau reconciler Radarr Collections + plugin Jellyfin).
 - **5 questions ouvertes design §6** à résoudre en discuss-phase avant Phase 28 : schéma `intent.yml`, sagas séries validation, cross-seed migration + linkDirs, ratio policy qbit_manage, `arrconf generate` CLI guard.
+- **Phase 30 cross-seed (livré 2026-05-31, 3/3 plans):** tokens env distincts dans `intent.yml`/`config.js` (pas de `PLACEHOLDER` partagé) ; `${QBT_USER}` (pas `admin` hard-codé) ; 12e alias `app-template` avec initContainer Node.js (pas busybox+envsubst) faisant la substitution secret → emptyDir, advancedMounts pour éviter PVC shadowing (Pitfall 1) ; probes `tcpSocket` 2468 (pas d'endpoint health no-auth) ; `values.schema.json` étendu (`cross-seed` additionalProperties:true) ; CI renovate threshold 10→12. Patch bump arrconf `:0.19.1` (token-emission fix). Pas de nouveau reconciler arrconf → Helm-only au-delà du générateur.
 
 ### v0.9.0 Phase 27 Decisions (carry-forward)
 
@@ -73,7 +74,7 @@ None blocking. Notes for Phase 28 planning:
 
 - **5 open design questions** (design §6) must be resolved in discuss-phase before Phase 28 coding — especially `intent.yml` schema cohabitation with `categories[]` (same file or separate?) and the `arrconf generate` CLI guard mechanism.
 - **Phase 29 medium-confidence items**: exact Radarr `/api/v3/collection` PUT parameter format (GET-match tmdbId confirmed in design sources) ; `tmdbboxsets` plugin GUID/version to pin for ADR-9 install model.
-- **Phase 30 cross-seed migration**: instance already running out-of-stack — consolidation must not lose the existing `linkDirs` volume config. Clarify in discuss-phase.
+- **Phase 30 cross-seed migration** — RESOLVED: consolidated as 12th Helm alias; teardown of out-of-stack instance + optional `config.db` history migration documented in `30-OPERATOR-RUNBOOK.md`. dedicated PVC = no data loss on rollback.
 
 ### Pending Todos
 
@@ -123,5 +124,6 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.10.0 scope:
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 28` to start planning Phase 28 (Generate foundation)
-- Before Phase 28 discuss: resolve the 5 open design questions (design §6) — especially `intent.yml` schema and `arrconf generate` CLI guard
+- Run `/gsd-plan-phase 31` to plan Phase 31 (qbit_manage) — last phase of v0.10.0 tranche 1
+- Phase 30 cross-seed runtime pre-reqs (before next ArgoCD sync): create `cross-seed-config` PVC + `mkdir -p /media/data/torrents/cross-seed` on node + confirm `arrconf-env` carries `PROWLARR_API_KEY`/`QBT_USER`/`QBT_PASS` (see `30-OPERATOR-RUNBOOK.md`)
+- `30-VERIFICATION.md` flagged human_needed — functionally closed by UAT 4/4 PASS (artifact-only debt)

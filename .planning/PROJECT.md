@@ -156,7 +156,7 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 
 - [ ] **REQ-intent-layer** — `intent.yml` + `arrconf generate` (fonction pure → configs verbeuses committées, CI idempotence guard).
 - [ ] **REQ-sagas** — Radarr Collections reconciler (PUT par `tmdbId`) + Jellyfin `tmdbboxsets` depuis `sagas` dans `intent.yml`.
-- [ ] **REQ-cross-seed** — `config.js` généré + alias Helm (consolidation hors-stack).
+- [x] **REQ-cross-seed** — v0.10.0 (Phase 30): `config.js` généré (tokens env distincts `${PROWLARR_API_KEY}`/`${QBT_USER}:${QBT_PASS}`) + 12e alias Helm `cross-seed` (initContainer Node.js secret-injection → emptyDir `/config/config.js` via subPath, advancedMounts) ; CI alias loop + renovate threshold 12 ; runbook opérateur (PVC + host dir + teardown + rollback). arrconf `:0.19.1`. UAT 4/4 PASS.
 - [ ] **REQ-qbit-manage** — `config.yml` généré + alias Helm (`cat_update: False` impératif).
 - [ ] **REQ-intent-boundary-adr** — ADR couche d'intention + frontière absorber vs déployer.
 
@@ -322,7 +322,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-31 — v0.10.0 milestone started (Couche d'intention, tranche 1). Scope from validated design `v0.10.0-intention-layer-DESIGN.md` (commit `5bdd7f2`): `intent.yml` + `arrconf generate` → sagas (Radarr Collections + Jellyfin tmdbboxsets), cross-seed, qbit_manage. ADR-1/ADR-5 hold; new intent-boundary ADR pending. SEED-002 resolved by design §4. Phase numbering continues → Phase 28. Research skipped (design §4/§7 covers it). Next: define REQUIREMENTS.md → roadmap.*
+*Last updated: 2026-05-31 after Phase 30 — cross-seed déployé (12e alias Helm, arrconf `:0.19.1`, REQ-cross-seed validé, UAT 4/4 PASS). v0.10.0 à 3/4 phases. Reste tranche 1 : Phase 31 qbit_manage.*
 
 <details>
 <summary>Previous footer — v0.9.0</summary>
