@@ -217,22 +217,61 @@ Closed the half-applied v0.2.0→v0.3.0 Categories migration at the config level
 
 ---
 
+## Milestone: v0.9.0 — configarr-in-UI + Jellyfin skip-intro
+
+**Shipped:** 2026-05-31
+**Phases:** 4 (24-27) | **Plans:** 13/13 | **Requirements:** 13/13 validated (8 CFGUI + 5 JFSKIP)
+
+### What Was Built
+
+Two heterogeneous features. **Jellyfin Intro Skipper** (Phase 24, arrconf `:0.17.0`): reconciler extended to register the Intro Skipper plugin repo, install via the two-run model (Run N queues + logs the single operator `kubectl rollout restart`, Run N+1 enables + configures `MaxParallelism=1`), and set `EnableChapterImageExtraction` on all 10 libraries; ADR-9 reverses D-07-PLUGINS-01 to install-capable. **configarr-in-UI** (Phases 25-27): `arrconf-ui` now edits `configarr.yml` via a schema-driven form (`ConfigarrRootConfig` pydantic, 4 endpoints, task-zero anti-leak round-trip preserving `!env`/`!secret`), with TRaSH CF picker (name→trash_id, multi-id-safe), append-only TRaSH QP picker (collision-blocked), and read-only Recyclarr reference; TRaSH catalog baked at build time (pinned SHAs, zero runtime GitHub HTTP).
+
+### What Worked
+
+- **Independent parallelizable features.** Phase 24 (arrconf Python) and Phases 25-27 (arrconf-ui) had zero code dependency — documented up front, so the Jellyfin reconciler could ship and reach prod (`:0.17.0`) while the UI chain progressed separately.
+- **Task-zero anti-leak test.** Shipping the `!env`/`!secret` byte-preservation round-trip test BEFORE any configarr write-path code (CFGUI-01) meant the secret-leak risk was gated from commit one, not retrofitted.
+- **Build-time-baked TRaSH catalog.** Pinned-SHA static assets removed all runtime GitHub HTTP from both backend and frontend — deterministic, offline-safe, ADR-5-clean (SC#2).
+- **Strict scope boundary on the Recyclarr picker.** Read-only reference with zero `include:` insertion (CFGUI-06) avoided the merge-hazard with the 6 hand-rolled French CFs — deferred the write path to v1.x deliberately rather than half-building it.
+
+### What Was Inefficient
+
+- **Milestone closed while a blocking checkpoint was still open.** Phase 24's plan 24-03 (operator live-verify, `autonomous: false`) paused at its blocking human-verify checkpoint and never got a SUMMARY, yet STATE.md was marked `milestone_complete` (13/13) with ROADMAP still showing Phase 24 `[ ]`. The drift surfaced only when `/gsd-execute-phase 24` was re-run later. **Lesson: a blocking human-verify checkpoint must gate milestone-complete; don't let phases 25-27 completing flip the milestone flag while an earlier phase's operator gate is unresolved.**
+- **ADR-6 snapshots ran operator-side, never committed.** Phase 24's required before/after Jellyfin snapshots were taken against the live cluster but not committed to the repo — accepted as a documented deviation, but it weakens the forensic trail ADR-6 exists to provide.
+
+### Patterns Established
+
+- **Two-run plugin install model (D-02).** Jellyfin loads plugins only at boot, so arrconf splits install (Run N, logs `plugin_install_queued` + restart hint) from enable+config (Run N+1) across a deliberate operator restart — install-only, never uninstall/prune.
+- **UI edits the file, engine still applies (ADR-5 reaffirmed).** `arrconf-ui` learned the configarr model and edits `configarr.yml`, but configarr remains the sole applier and no *arr API URL ever enters arrconf-ui — the boundary held across 3 UI phases.
+
+### Key Lessons
+
+- Blocking operator checkpoints must hard-gate milestone completion — a late-discovered open checkpoint is a tracking-integrity failure.
+- Commit ADR-6 snapshots even when verification is operator-driven; an uncommitted snapshot is not a forensic record.
+- **Milestone tag vs chart tag collision (recurring):** `v0.9.0` already existed as a chart auto-release tag, so `/gsd-complete-milestone`'s git-tag step was skipped again — milestone versioning here is planning-archive only.
+
+### Cost Observations
+
+- Phase 24 closure + milestone archive run on opus inline; verifier delegated to a sonnet `gsd-verifier` subagent (~95k tokens, isolated).
+- Most of Phase 24's cost was operator wall-clock (live two-run verify + Kodi spike), not model time.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 | v0.7.0 | v0.8.0 |
-|--------|--------|--------|--------|--------|--------|--------|--------|
-| Phases shipped | 11 | 3 | 4 | 3 | 1 | 0 | 4 |
-| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) | 0/0 (doc-only) | 5/5 |
-| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) | 0/0 (no new req, removed REQ-bazarr-addition) | 4/4 (CAT-CLEANUP 1-4; 2 w/ caveats) |
-| Out-of-scope decisions recorded | 8 | — | — | — | — | 3 (D-19-CLOSURE/RATIONALE/VIDEO-ONLY) | — (cleanup scope, explicit no-new-Category) |
-| Deferred items at close | 16 | — | — | 6 | 6 | 5 (REQ-bazarr-addition retired, 1 less carry-forward) | 8 (incl. no-22-VERIFICATION + unexercised force_prune) |
-| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 | 0 | 1 (P21 both_missing soft-skip; P22 surgical-vs-force_prune) |
-| Production cutover successes | 1 (Phase 7 chain ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue ~5 min) | 1 (Phase 19 v0.14.0 rescue ~5 min) | — (no chart change) | 1 (:0.15.0 deployed + P23 live UAT) |
-| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories) | 0 | 0 | 0 (1 quick task 260527-jfk) |
-| Milestone duration | weeks | — | — | 1 day intensive | 1 day micro | <30 min (same-session w/ v0.6.0) | ~3 days (operator-paced, destructive) |
-| Auto-tag train rescue needed | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) | 0 (no code change) | 0 (clean co-bump 0.14.1→0.15.0) |
-| Code change footprint | 7044 ins (v0.5.0 net) | — | — | 7044 ins | 91 ins (4xx logging + 5 tests + co-bump) | 30 ins (5 doc files) | ~2.5k LOC (audit.py 997 + migrate 749 + prune/guard + tests; excl. snapshots) |
-| Milestone audit verdict | — | passed_with_caveats | — | — | — | — | tech_debt (no blockers) |
+| Metric | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 | v0.6.0 | v0.7.0 | v0.8.0 | v0.9.0 |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| Phases shipped | 11 | 3 | 4 | 3 | 1 | 0 | 4 | 4 |
+| Plans shipped | 65/66 | 16/16 | 11/11 | 3/3 | 1/1 (via /gsd-quick) | 0/0 (doc-only) | 5/5 | 13/13 |
+| Validated requirements | 17/19 | — | — | 3/3 | 1/1 (OBS-01) | 0/0 (no new req, removed REQ-bazarr-addition) | 4/4 (CAT-CLEANUP 1-4; 2 w/ caveats) | 13/13 (8 CFGUI + 5 JFSKIP) |
+| Out-of-scope decisions recorded | 8 | — | — | — | — | 3 (D-19-CLOSURE/RATIONALE/VIDEO-ONLY) | — (cleanup scope, explicit no-new-Category) | 2 (Recyclarr include: deferred v1.x; Jellyfin native subs out) |
+| Deferred items at close | 16 | — | — | 6 | 6 | 5 (REQ-bazarr-addition retired, 1 less carry-forward) | 8 (incl. no-22-VERIFICATION + unexercised force_prune) | 5 (P27 UAT/verification operator-pending + carry-forwards) |
+| Major mid-flight pivots | 2 (Phase 2.1 + 2.2 inserts) | — | — | 1 (Phase 18 plan task 6 override) | 0 | 0 | 1 (P21 both_missing soft-skip; P22 surgical-vs-force_prune) | 1 (24-03 checkpoint left open at milestone-complete; reconciled later) |
+| Production cutover successes | 1 (Phase 7 chain ~45 min) | — | — | 1 (Phase 18 v0.12.1 rescue ~5 min) | 1 (Phase 19 v0.14.0 rescue ~5 min) | — (no chart change) | 1 (:0.15.0 deployed + P23 live UAT) | 1 (:0.17.0 deployed + P24 live two-run UAT) |
+| Side-quest debug sessions | — | — | — | 1 (sonarr-rpm-400-categories) | 0 | 0 | 0 (1 quick task 260527-jfk) | 0 |
+| Milestone duration | weeks | — | — | 1 day intensive | 1 day micro | <30 min (same-session w/ v0.6.0) | ~3 days (operator-paced, destructive) | ~4 days (24 first, then 25-27 chain) |
+| Auto-tag train rescue needed | — | — | — | 1 (v0.12.1 manual) | 1 (values.yaml co-bump to v0.14.0) | 0 (no code change) | 0 (clean co-bump 0.14.1→0.15.0) | 0 (P24 co-bump to 0.17.0; P25-27 UI-only, no co-bump) |
+| Code change footprint | 7044 ins (v0.5.0 net) | — | — | 7044 ins | 91 ins (4xx logging + 5 tests + co-bump) | 30 ins (5 doc files) | ~2.5k LOC (audit.py 997 + migrate 749 + prune/guard + tests; excl. snapshots) | reconciler + ConfigarrRootConfig + 4 endpoints + 3 trash endpoints + 3 Svelte pickers + baked catalog |
+| Milestone audit verdict | — | passed_with_caveats | — | — | — | — | tech_debt (no blockers) | no formal audit (5 items acknowledged at close) |
 
 **Recurring themes to watch in v0.3.0:**
 

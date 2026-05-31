@@ -8,7 +8,7 @@
 - ✅ **v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening** — Phases 16-18 (shipped 2026-05-24)
 - ✅ **v0.6.0 arrconf observability — 4xx body logging** — Phase 19 (shipped 2026-05-25 via /gsd-quick 260525-bj5)
 - ✅ **v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** — Phases 20-23 (shipped 2026-05-27)
-- 🚧 **v0.9.0 configarr-in-UI + Jellyfin skip-intro** — Phases 24-27 (in progress)
+- ✅ **v0.9.0 configarr-in-UI + Jellyfin skip-intro** — Phases 24-27 (shipped 2026-05-31)
 
 ## Phases
 
@@ -113,104 +113,19 @@ Audit: [`milestones/v0.8.0-MILESTONE-AUDIT.md`](milestones/v0.8.0-MILESTONE-AUDI
 
 </details>
 
-### v0.9.0 — configarr-in-UI + Jellyfin skip-intro (Phases 24-27)
+<details>
+<summary>✅ v0.9.0 configarr-in-UI + Jellyfin skip-intro (Phases 24-27) — SHIPPED 2026-05-31</summary>
 
-- [x] **Phase 24: Jellyfin Intro Skipper** — arrconf reconciler extension: plugin repo + install + chapter extraction + Kodi spike (completed 2026-05-31)
-- [x] **Phase 25: configarr-in-UI backend** — `!env` guard (task-zero) + `ConfigarrRootConfig` pydantic model + 4 endpoints + CI dry-run gate (completed 2026-05-29)
-- [x] **Phase 26: configarr-in-UI frontend** — config selector tab + configarr form via existing `FieldInput.svelte` dispatcher (completed 2026-05-30)
-- [x] **Phase 27: TRaSH CF picker + Recyclarr reference + QP picker** — build-time-baked TRaSH catalog (CFs + quality profiles) + `TrashPicker.svelte` + TRaSH QP picker (add-as-new) + Recyclarr read-only informational dropdown (completed 2026-05-30)
+- [x] Phase 24: Jellyfin Intro Skipper (3/3 plans) — 2026-05-31
+- [x] Phase 25: configarr-in-UI backend (4/4 plans) — 2026-05-29
+- [x] Phase 26: configarr-in-UI frontend (2/2 plans) — 2026-05-30
+- [x] Phase 27: TRaSH CF picker + Recyclarr reference + QP picker (4/4 plans) — 2026-05-30
 
-## Phase Details
+Total: **4 phases, 13/13 plans complete**.
 
-### Phase 24: Jellyfin Intro Skipper
-**Goal**: The Jellyfin server can detect and skip intros, credits, and outros for web/app/Swiftfin users, with chapter markers benefiting all clients including Kodi; the entire setup is declared in `arrconf.yml` and reconciled idempotently by arrconf
-**Depends on**: Nothing (pure arrconf extension, independent of Phases 25-27)
-**Requirements**: JFSKIP-01, JFSKIP-02, JFSKIP-03, JFSKIP-04, JFSKIP-05
-**Success Criteria** (what must be TRUE):
-  1. `arrconf apply` (dry-run) logs that the Intro Skipper plugin repository (`https://intro-skipper.org/manifest.json`) is registered and the plugin entry (GUID `c83d86bb-a1e0-4c35-a113-e2101cf4ee6b`) queued-for-install — both idempotent on second run (zero actions)
-  2. After operator runs `kubectl rollout restart deployment/jellyfin -n selfhost` and a second `arrconf apply`, the plugin appears active in `GET /Plugins` and no duplicate repository entries exist
-  3. Jellyfin web UI shows a skip-intro/skip-credits button during playback on at least one series episode (web client SC is dispositive; Swiftfin treated as equivalent)
-  4. `EnableChapterImageExtraction: true` is confirmed set on all 10 libraries via `GET /Library/VirtualFolders` (seek-bar thumbnails visible in at least one client)
-  5. Kodi/JellyCon spike result documented with binary accept (service.jellyskip works on LibreELEC 10.11.8) or reject (unsupported, runbook notes it as operator-manual only) — spike is non-gating but result is required before phase is declared complete
-**Plans**: 3 plans
-  - [x] 24-01-PLAN.md — Schema/model + chapter-extraction reconciler + Intro Skipper repo registration (JFSKIP-01, JFSKIP-04)
-  - [x] 24-02-PLAN.md — Two-run install + enable + plugin-config logic + co-bump 0.16.0 + ADR reversal (JFSKIP-02, JFSKIP-03)
-  - [x] 24-03-PLAN.md — Operator runbook + live two-run verification + Kodi spike (JFSKIP-05)
-**UI hint**: no
+Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMAP.md)
 
-### Phase 25: configarr-in-UI backend
-**Goal**: The arrconf-ui backend can read, validate, diff, and write `configarr.yml` with the same safety guarantees as `arrconf.yml`, including zero risk of secret leakage via `!env`/`!secret` tag drop
-**Depends on**: Nothing (independent of Phase 24; can run in parallel)
-**Requirements**: CFGUI-01, CFGUI-02, CFGUI-03, CFGUI-07
-**Success Criteria** (what must be TRUE):
-  1. A round-trip test loads the real `charts/arr-stack/files/configarr.yml`, writes it to a temp file, and asserts that every `!env` and `!secret` tag is present verbatim in the output bytes — this test ships as task-zero before any other configarr write-path code
-  2. `GET /api/configarr/config` returns the parsed configarr.yml; `PUT /api/configarr/config` writes back without corrupting `!env`/`!secret` tags (verified by the round-trip test)
-  3. `GET /api/configarr/schema` returns a JSON Schema with `api_key` fields marked `readOnly: true`; no `*arr` API URL appears anywhere in the arrconf-ui source (ADR-5 boundary assertion)
-  4. `POST /api/configarr/diff` returns the diff between current and proposed YAML without resolving env vars — the literal string `!env SONARR_API_KEY` (or equivalent) appears in the diff output, never a resolved secret value
-  5. A CI gate validates the YAML written by `PUT /api/configarr/config` via `ConfigarrRootConfig.model_validate` (pydantic-only, D-08 RESOLVED → Option C: configarr v1.28.0 has no offline validate mode, so the `extra="forbid"` pydantic model is the authoritative structural gate; no *arr containers, no configarr invocation in CI)
-**Plans**: 4 plans
-Plans:
-**Wave 1**
-- [x] 25-01-PLAN.md — Task-zero anti-leak round-trip test + tag-literal read helper + configarr path resolvers (CFGUI-01)
-- [x] 25-02-PLAN.md — ConfigarrRootConfig pydantic model (fully typed, extra="forbid", readOnly markers) + local JSON Schema generator (CFGUI-02)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 25-03-PLAN.md — 4 /api/configarr/* endpoints + configarr-shape structured diff + D-09 anti-leak runtime guard (CFGUI-01, CFGUI-03)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 25-04-PLAN.md — CI gate: pydantic validation of the committed configarr.yml + schema-reproducibility check (CFGUI-07)
-**UI hint**: no
-
-### Phase 26: configarr-in-UI frontend
-**Goal**: Operators can select, view, and edit `configarr.yml` from the arrconf-ui web interface alongside `arrconf.yml`, using the same schema-driven form pattern
-**Depends on**: Phase 25
-**Requirements**: CFGUI-04
-**Success Criteria** (what must be TRUE):
-  1. The arrconf-ui web UI displays a config selector (e.g., tab or dropdown) allowing the operator to switch between `arrconf.yml` and `configarr.yml` without a page reload
-  2. After selecting `configarr.yml`, the form renders quality profiles, custom formats, and scores per profile via the existing `FieldInput.svelte` dispatcher; `quality_definition` and `media_naming` fields appear read-only
-  3. The operator can make a change to a quality profile score and save it; the diff preview shows only the changed field; the saved file round-trips correctly through the Phase 25 backend (no tag corruption)
-**Plans**: 2 plans
-  - [x] 26-01-PLAN.md — Foundation: configarr API funcs + readOnly type/constants/i18n + FieldInput readOnly rendering (CFGUI-04)
-  - [x] 26-02-PLAN.md — Wiring: HeaderBar tab bar + App.svelte two-config orchestration + unsaved-switch confirm + human-verify checkpoint (CFGUI-04)
-**UI hint**: yes
-
-### Phase 27: TRaSH CF picker + Recyclarr reference + QP picker
-**Goal**: Operators can add or remove TRaSH custom formats by human-readable name (no manual hex `trash_id` copying), apply TRaSH quality profiles by name (add-as-new, never touching the hand-rolled profiles), and reference Recyclarr template names as an informational guide without risk of inadvertent `include:` insertion
-**Depends on**: Phase 26
-**Requirements**: CFGUI-05, CFGUI-06, CFGUI-08
-**Success Criteria** (what must be TRUE):
-  1. The configarr form includes a searchable picker where the operator can type a CF name (e.g., "French MULTi") and select it; the corresponding `trash_id` hex value is inserted into `custom_formats[].trash_ids` in the saved YAML — no manual hex entry required
-  2. The TRaSH catalog (custom formats AND quality profiles) is served from a build-time-baked snapshot (committed static asset at a pinned commit SHA); no runtime HTTP call to GitHub is made from the FastAPI backend or the frontend
-  3. A Recyclarr template reference dropdown is present (per-app section) and shows template names + descriptions; selecting a template name shows its description only — no `include:` block is inserted into `configarr.yml` (CFGUI-06 scope boundary enforced in UI)
-  4. A `trash_id` present in the live `configarr.yml` that resolves against the file's own `customFormatDefinitions` (e.g., a hand-rolled French CF) is shown with a "custom" badge (not a warning); a `trash_id` in neither the baked catalog nor local definitions is shown with a warning indicator and preserved verbatim — never silently dropped or rejected
-  5. The operator selects a TRaSH quality profile by name and it is **appended** as a new `quality_profiles[]` entry in the saved YAML; the 3 existing hand-rolled profiles (MULTi.VF / Anime / Family) are never modified or reordered; a name collision is blocked with a warning prompting a rename (CFGUI-08)
-**Plans**: 4 plans
-Plans:
-**Wave 1**
-- [x] 27-01-PLAN.md — fetch-trash-metadata.sh + baked TRaSH CF/QP + Recyclarr catalog assets + SHA manifest (CFGUI-05, CFGUI-06, CFGUI-08)
-
-**Wave 2** *(blocked on Wave 1)*
-- [x] 27-02-PLAN.md — locator + 3 read-only /api/trash/* endpoints (disk-serve, ADR-5/SC#2) + endpoint tests (CFGUI-05, CFGUI-06, CFGUI-08)
-
-**Wave 3** *(blocked on Wave 2)*
-- [x] 27-03-PLAN.md — frontend types/api/i18n + TrashCFPicker (add/remove/classify) + TrashQPPicker (append-only + collision) (CFGUI-05, CFGUI-08)
-
-**Wave 4** *(blocked on Wave 3)*
-- [x] 27-04-PLAN.md — RecyclarrReferencePicker (read-only) + AppSection/App.svelte wiring + human-verify checkpoint (CFGUI-05, CFGUI-06, CFGUI-08)
-**UI hint**: yes
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 24. Jellyfin Intro Skipper | 2/3 | In Progress|  |
-| 25. configarr-in-UI backend | 4/4 | Complete    | 2026-05-29 |
-| 26. configarr-in-UI frontend | 2/2 | Complete    | 2026-05-30 |
-| 27. TRaSH CF picker + Recyclarr reference + QP picker | 4/4 | Complete    | 2026-05-30 |
-
-**Milestone progress:** 0/4 phases complete
-
----
+</details>
 
 ## Historical Progress
 
@@ -222,6 +137,7 @@ Plans:
 | v0.5.0 Jellyfin Categories-as-libs + CI/UX hardening | 3 | 3/3 | ✅ Shipped | 2026-05-24 |
 | v0.6.0 arrconf observability — 4xx body logging | 1 | 1/1 | ✅ Shipped | 2026-05-25 |
 | v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out | 4 | 5/5 | ✅ Shipped | 2026-05-27 |
+| v0.9.0 configarr-in-UI + Jellyfin skip-intro | 4 | 13/13 | ✅ Shipped | 2026-05-31 |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)

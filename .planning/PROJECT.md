@@ -8,7 +8,14 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Milestone complete: v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** (2026-05-27, 4/4 phases). La migration v0.2.0→v0.3.0 Categories à moitié appliquée est fermée côté config : audit (P20), filesystem+metadata migration (P21), arrconf prune reconciler `:0.15.0` + live cleanup (P22), et UAT dispositive (P23). **CAT-CLEANUP-04 fermé** par une UAT opérateur live (arrconf `:0.15.0`) : SC#1-4 PASS (roots legacy absents Radarr+Sonarr, routage Seerr→qBit via DC per-Category `qBittorrent - Films - Enfants` et non le catch-all supprimé, apply non-dry-run idempotent ×2), SC#5 PARTIAL-deferred (10 libs Jellyfin câblées mais 3 vides car migration média disque pas encore exécutée — tâche opérateur séparée, hors scope). 2 todos de suivi capturés (qBit autoTMM `preferences.enable`, migration média filesystem). Production cluster `:0.15.0`. **v0.8.0 archivé 2026-05-27** (audit `tech_debt`, aucun blocker — voir `milestones/v0.8.0-MILESTONE-AUDIT.md`). **v0.9.0 en cadrage** (configarr-in-UI + Jellyfin skip-intro) — voir « Current Milestone » ci-dessous.
+**Milestone complete: v0.9.0 configarr-in-UI + Jellyfin skip-intro** (2026-05-31, 4/4 phases, 13/13 plans). Deux features hétérogènes livrées : (1) **Jellyfin Intro Skipper** (Phase 24, arrconf `:0.17.0`) — reconciler étendu pour enregistrer le repo plugin, l'installer via le two-run model (Run N queue + restart opérateur unique, Run N+1 enable+config `MaxParallelism=1`) et activer `EnableChapterImageExtraction` sur les 10 libs ; ADR-9 inverse D-07-PLUGINS-01 en install-capable ; vérification opérateur live SC#1-4 PASS + spike Kodi `service.jellyskip` = ACCEPT. (2) **configarr-in-UI** (Phases 25-27) — `arrconf-ui` édite désormais `configarr.yml` via formulaire schema-driven (`ConfigarrRootConfig` pydantic, 4 endpoints, anti-leak `!env`/`!secret`), avec pickers TRaSH (CF par nom + QP append-only) et référence Recyclarr read-only, catalogue TRaSH baké au build (SHAs pinnés, zéro HTTP runtime). ADR-5 intact des deux côtés. Production cluster arrconf `:0.17.0`. **v0.9.0 archivé 2026-05-31** (pas de git tag GSD — `v0.9.0` collisionne avec un tag chart-release ; archive planning-only). 5 items deferred (Phase 27 UAT/verification operator-pending, etc. — voir STATE.md). **v0.10.0 en cadrage** (intention-layer design ébauché, commit `5bdd7f2`).
+
+<details>
+<summary>Previous state — v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (2026-05-27)</summary>
+
+Migration v0.2.0→v0.3.0 Categories à moitié appliquée fermée côté config : audit (P20), filesystem+metadata migration (P21), arrconf prune reconciler `:0.15.0` + live cleanup (P22), UAT dispositive (P23). CAT-CLEANUP-04 fermé par UAT opérateur live. Archive: [`milestones/v0.8.0-ROADMAP.md`](milestones/v0.8.0-ROADMAP.md) (audit `tech_debt`, aucun blocker).
+
+</details>
 
 <details>
 <summary>Previous state — v0.7.0 Media stack scope closure (2026-05-25)</summary>
@@ -38,9 +45,9 @@ v0.2.0 transition layer fully ripped out (generators are the only source); Sugge
 
 </details>
 
-## Current Milestone: v0.9.0 — configarr-in-UI + Jellyfin skip-intro
+## Last Milestone: v0.9.0 — configarr-in-UI + Jellyfin skip-intro (shipped 2026-05-31)
 
-**Goal:** Étendre l'UX opérateur (édition de `configarr.yml` depuis `arrconf-ui`, profils + custom formats pré-mâchés depuis TRaSH-Guides + Recyclarr) et l'UX de visionnage (skip-intro / crédits + chapter markers sur Jellyfin).
+**Goal (achieved):** Étendre l'UX opérateur (édition de `configarr.yml` depuis `arrconf-ui`, profils + custom formats pré-mâchés depuis TRaSH-Guides + Recyclarr) et l'UX de visionnage (skip-intro / crédits + chapter markers sur Jellyfin). 4/4 phases, 13/13 plans, 13/13 requirements validés. Détail : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMAP.md). Next: `/gsd-new-milestone` (v0.10.0 intention-layer ébauché, commit `5bdd7f2`).
 
 **Target features:**
 

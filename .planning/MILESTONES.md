@@ -1,5 +1,24 @@
 # Milestones
 
+## v0.9.0 configarr-in-UI + Jellyfin skip-intro (Shipped: 2026-05-31)
+
+**Phases completed:** 4 phases (24-27), 13 plans
+
+**Key accomplishments:**
+
+- **Jellyfin Intro Skipper (Phase 24, arrconf `:0.17.0`)** — arrconf reconciler extended to register the Intro Skipper plugin repo, install it via the two-run model (Run N queues install + logs the single `kubectl rollout restart`, Run N+1 enables + configures with `MaxParallelism=1`), and set `EnableChapterImageExtraction` on all 10 libraries. ADR-9 reverses D-07-PLUGINS-01 to install-capable. Operator live verification (2026-05-31): gating SC#1-4 PASS, Kodi `service.jellyskip` spike = ACCEPT.
+- **configarr-in-UI backend (Phase 25)** — `ConfigarrRootConfig` pydantic model (`extra="forbid"`, `readOnly` markers), 4 `/api/configarr/*` endpoints (config GET/PUT, schema, diff), task-zero anti-leak round-trip test preserving `!env`/`!secret` tags verbatim, and a CI pydantic-validation gate (D-08 → Option C, no configarr invocation in CI). ADR-5 boundary held: no *arr API URL in arrconf-ui.
+- **configarr-in-UI frontend (Phase 26)** — config selector tab bar + two-config App.svelte orchestration; `configarr.yml` rendered via the existing `FieldInput.svelte` dispatcher with read-only `quality_definition`/`media_naming`, diff preview, unsaved-switch confirm.
+- **TRaSH CF/QP pickers + Recyclarr reference (Phase 27)** — build-time-baked TRaSH catalog (CFs + quality profiles, pinned SHAs, zero runtime GitHub HTTP), 3 read-only `/api/trash/*` endpoints, TRaSH CF picker (name→trash_id, multi-id-safe, custom/unknown classification, verbatim-preserve), append-only QP picker (collision-blocked, never touches the 3 hand-rolled profiles), and a read-only Recyclarr template reference (no `include:` insertion — CFGUI-06 boundary).
+
+**Requirements:** 13/13 validated (8 CFGUI + 5 JFSKIP).
+
+**Known deferred items at close: 5** (all previously accepted — see STATE.md Deferred Items). Notable: Phase 27 `27-HUMAN-UAT.md` (2 pending QP scenarios) + `27-VERIFICATION.md` human_needed (code-complete, operator-pending).
+
+**Note:** No git tag created for this GSD milestone — `v0.9.0` already exists as a chart auto-release tag (tags v0.2.0..v0.17.0 are chart releases, not GSD milestones). Milestone is planning-archive only.
+
+---
+
 ## v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases (20-23), 5 plans · 60 commits · 2026-05-25 → 2026-05-27 (~3 days)

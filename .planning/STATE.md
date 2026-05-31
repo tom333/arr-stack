@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: configarr-in-UI + Jellyfin skip-intro
-status: milestone_complete
-last_updated: "2026-05-31T00:00:00.000Z"
-last_activity: 2026-05-31
+status: Awaiting next milestone
+last_updated: "2026-05-31T01:08:35.195Z"
+last_activity: 2026-05-31 — Milestone v0.9.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,19 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 27 — trash-cf-picker-recyclarr-reference
+**Current focus:** Planning next milestone (v0.9.0 shipped + archived 2026-05-31)
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-30
-
-```
-v0.9.0 [████████████████████] 100% (13/13 plans)
-Phase 24 [X] Phase 25 [X] Phase 26 [X] Phase 27 [X]
-```
+Phase: Milestone v0.9.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-31 — Milestone v0.9.0 completed and archived
 
 ## Accumulated Context
 
@@ -104,6 +99,18 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 | quick_task | 260527-jfk autoTMM reconcile (artifact status `missing`) | DONE (commit df280f8) — artifact frontmatter only |
 | uat_gap+verification_gap | phase-09 + phase-10 carry-forward (NFS write test, TVDB-anime routing) | non-blocking — see table above |
 
+### Acknowledged at v0.9.0 close (2026-05-31)
+
+5 open artifact-audit items acknowledged and deferred at milestone close (no formal milestone audit run; all items previously accepted, no blockers):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | phase-27 27-HUMAN-UAT.md — 2 pending scenarios (QP collision normalization, QP live-save mapping) | partial — code complete, operator UAT pending |
+| verification_gap | phase-27 27-VERIFICATION.md human_needed (UAT-driven) | human_needed — code complete |
+| quick_task | 260527-jfk autoTMM reconcile (artifact status `missing`) | DONE (commit df280f8) — artifact frontmatter only (carry-forward from v0.8.0) |
+| todo | 2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0 (ops) | pending — manual operator task (runbook in CLAUDE.md) |
+| seed | SEED-002-stack-tools-evaluation | dormant — évaluer 3 outils media stack (idea, no commitment) |
+
 ## Quick Tasks Completed
 
 | Quick ID | Description | Date | Commit | Tests |
@@ -113,6 +120,4 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-- v0.9.0 fully complete (4/4 phases, 13/13 plans). Phase 24 closed 2026-05-31 — 24-03 live operator verification: gating SC#1-4 PASS, Kodi SC#5 ACCEPT.
-- Next: `/gsd-complete-milestone` to archive v0.9.0, or start v0.10.0 scoping (intention-layer design already drafted in commit 5bdd7f2).
-- Carry-forward: ADR-6 before/after snapshots for Phase 24 were taken operator-side against the live cluster, not committed to this repo (documented deviation in 24-03-SUMMARY.md).
+- Start the next milestone with /gsd-new-milestone
