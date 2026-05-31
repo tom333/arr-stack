@@ -1,11 +1,20 @@
 ---
 id: SEED-002
-status: dormant
+status: resolved
 planted: 2026-05-29
 planted_during: v0.9.0 (Phase 24/25)
+resolved_during: /gsd-new-milestone v0.10.0 (2026-05-31)
+resolved_by: v0.10.0-intention-layer-DESIGN.md §4 (tool evaluation produced per-tool verdict)
 trigger_when: next media-stack scope expansion / new milestone touching download automation, transcoding, or queue cleanup
 scope: Medium
 ---
+
+> **RESOLVED 2026-05-31** (during `/gsd-new-milestone` v0.10.0). The 3-tool evaluation
+> this seed asked for was produced in [`v0.10.0-intention-layer-DESIGN.md`](../v0.10.0-intention-layer-DESIGN.md) §4:
+> **autobrr** ⏸️ deferred (value only with private IRC announces; DB-only config → deploy-only if adopted),
+> **Tdarr** ⏸️ deferred (direct-play clients; non-OSS EULA — FileFlows likewise non-OSS/archived),
+> **decluttarr** ❌ rejected (cleanuparr = strict superset; two queue cleaners conflict).
+> No dedicated v0.10.0 requirement. Kept as forensic anchor; do not re-trigger unless a concrete new use case appears.
 
 # SEED-002: Évaluer la pertinence d'ajouter 3 outils à la media stack
 
