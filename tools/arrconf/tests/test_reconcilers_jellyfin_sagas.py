@@ -79,12 +79,13 @@ def test_empty_sagas_returns_empty_list(respx_mock: respx.MockRouter) -> None:
 @pytest.mark.respx(base_url=JELLYFIN_BASE, assert_all_called=False)
 def test_boxset_created_when_absent(respx_mock: respx.MockRouter) -> None:
     """GET /Items?BoxSet returns empty → POST /Collections fires once with member ids."""
+    # Use url__regex to differentiate BoxSet vs Series GET /Items
     # Step 1: GET existing BoxSets → empty
-    respx_mock.get("/Items").mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=BoxSet").mock(
         return_value=httpx.Response(200, json=_empty_boxsets_response())
     )
     # Step 2: Series search
-    respx_mock.get("/Items", params={"includeItemTypes": "Series"}).mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=Series").mock(
         return_value=httpx.Response(200, json=_series_search_hit("The Mandalorian", SERIES_ID_1))
     )
     # Step 3: POST /Collections → created
@@ -110,17 +111,15 @@ def test_boxset_created_when_absent(respx_mock: respx.MockRouter) -> None:
 def test_no_duplicate_boxset_create(respx_mock: respx.MockRouter) -> None:
     """Existing BoxSet with matching Name → POST /Collections MUST NOT fire (call_count == 0)."""
     # GET existing BoxSets → saga name already present
-    respx_mock.get("/Items").mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=BoxSet").mock(
         return_value=httpx.Response(200, json=_boxsets_with_saga("Star Wars Sagas"))
     )
     # Series search
-    respx_mock.get("/Items", params={"includeItemTypes": "Series"}).mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=Series").mock(
         return_value=httpx.Response(200, json=_series_search_hit("The Mandalorian", SERIES_ID_1))
     )
     # POST /Collections/{id}/Items (idempotent add)
-    respx_mock.post(f"/Collections/{BOXSET_ID}/Items").mock(
-        return_value=httpx.Response(204)
-    )
+    respx_mock.post(f"/Collections/{BOXSET_ID}/Items").mock(return_value=httpx.Response(204))
     # POST /Collections (create) should NOT be called
     create_route = respx_mock.post("/Collections").mock(
         return_value=httpx.Response(200, json={"Id": "new-id"})
@@ -130,7 +129,9 @@ def test_no_duplicate_boxset_create(respx_mock: respx.MockRouter) -> None:
     saga = SagaEntry(name="Star Wars Sagas", kind="series", items=["The Mandalorian"])
     _reconcile_sagas_boxsets(client, [saga], dry_run=False)
 
-    assert create_route.call_count == 0, "POST /Collections must NOT fire when BoxSet name already exists"
+    assert create_route.call_count == 0, (
+        "POST /Collections must NOT fire when BoxSet name already exists"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -140,11 +141,11 @@ def test_no_duplicate_boxset_create(respx_mock: respx.MockRouter) -> None:
 
 @pytest.mark.respx(base_url=JELLYFIN_BASE, assert_all_called=False)
 def test_idempotent_member_add_to_existing_boxset(respx_mock: respx.MockRouter) -> None:
-    """Existing BoxSet → POST /Collections/{id}/Items fires (idempotent add); actions contain items_added."""
-    respx_mock.get("/Items").mock(
+    """Existing BoxSet → POST /Collections/{id}/Items fires; actions contain items_added."""
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=BoxSet").mock(
         return_value=httpx.Response(200, json=_boxsets_with_saga("Star Wars Sagas"))
     )
-    respx_mock.get("/Items", params={"includeItemTypes": "Series"}).mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=Series").mock(
         return_value=httpx.Response(200, json=_series_search_hit("Andor", SERIES_ID_2))
     )
     add_route = respx_mock.post(f"/Collections/{BOXSET_ID}/Items").mock(
@@ -168,17 +169,20 @@ def test_idempotent_member_add_to_existing_boxset(respx_mock: respx.MockRouter) 
 def test_unresolved_title_warn_and_skip(
     respx_mock: respx.MockRouter, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Series search returns no exact Name match → warning logged, function still returns (best-effort)."""
+    """Series search returns no exact Name match → warning logged, function still returns."""
     import structlog.testing
 
-    respx_mock.get("/Items").mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=BoxSet").mock(
         return_value=httpx.Response(200, json=_empty_boxsets_response())
     )
-    # Return a result whose Name does NOT match exactly
-    respx_mock.get("/Items", params={"includeItemTypes": "Series"}).mock(
+    # Return a result whose Name does NOT match exactly (fuzzy match false positive)
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=Series").mock(
         return_value=httpx.Response(
             200,
-            json={"Items": [{"Id": "fuzzy-id", "Name": "The Mandalorian: Extras"}], "TotalRecordCount": 1},
+            json={
+                "Items": [{"Id": "fuzzy-id", "Name": "The Mandalorian: Extras"}],
+                "TotalRecordCount": 1,
+            },
         )
     )
     # POST /Collections allowed (create with no members)
@@ -204,11 +208,11 @@ def test_unresolved_title_warn_and_skip(
 @pytest.mark.respx(base_url=JELLYFIN_BASE, assert_all_called=False)
 def test_no_members_resolved_existing_boxset_no_op(respx_mock: respx.MockRouter) -> None:
     """All titles unresolved + existing BoxSet → saga_boxset_no_op, no POST /{id}/Items."""
-    respx_mock.get("/Items").mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=BoxSet").mock(
         return_value=httpx.Response(200, json=_boxsets_with_saga("Star Wars Sagas"))
     )
     # Return empty search result (no exact match)
-    respx_mock.get("/Items", params={"includeItemTypes": "Series"}).mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=Series").mock(
         return_value=httpx.Response(200, json=_series_search_miss())
     )
     # POST /Collections/{id}/Items should NOT be called
@@ -233,10 +237,10 @@ def test_no_members_resolved_existing_boxset_no_op(respx_mock: respx.MockRouter)
 @pytest.mark.respx(base_url=JELLYFIN_BASE, assert_all_called=False)
 def test_dry_run_no_post_collections(respx_mock: respx.MockRouter) -> None:
     """dry_run=True + absent BoxSet → no POST /Collections; actions contain 'dry_run_create'."""
-    respx_mock.get("/Items").mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=BoxSet").mock(
         return_value=httpx.Response(200, json=_empty_boxsets_response())
     )
-    respx_mock.get("/Items", params={"includeItemTypes": "Series"}).mock(
+    respx_mock.get(url__regex=r"/Items\?.*includeItemTypes=Series").mock(
         return_value=httpx.Response(200, json=_series_search_hit("The Mandalorian", SERIES_ID_1))
     )
     # Should not be called in dry_run
@@ -258,18 +262,19 @@ def test_dry_run_no_post_collections(respx_mock: respx.MockRouter) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.respx(base_url="http://sonarr.test:8989/api/v3", assert_all_called=False)
+_SONARR_BASE = "http://sonarr.test:8989"
+
+
+@pytest.mark.respx(base_url=f"{_SONARR_BASE}/api/v3", assert_all_called=False)
 def test_sonarr_series_editor_put_with_apply_tags_add(respx_mock: respx.MockRouter) -> None:
-    """PUT /series/editor fires with applyTags='add' for a series saga with ≥1 resolvable member."""
+    """PUT /series/editor fires with applyTags=add for a series saga with ≥1 resolvable member."""
+    import json as _json
+
     from arrconf.client_base import SonarrClient
     from arrconf.reconcilers.sonarr import SERIES_EDITOR_PATH, _ensure_managed_tag
 
-    SONARR_BASE = "http://sonarr.test:8989"
-
     # GET /tag → no managed tag yet
-    respx_mock.get("/tag").mock(
-        return_value=httpx.Response(200, json=[])
-    )
+    respx_mock.get("/tag").mock(return_value=httpx.Response(200, json=[]))
     # POST /tag (create managed tag)
     respx_mock.post("/tag").mock(
         return_value=httpx.Response(201, json={"id": 42, "label": "arrconf-managed"})
@@ -282,33 +287,34 @@ def test_sonarr_series_editor_put_with_apply_tags_add(respx_mock: respx.MockRout
         )
     )
     # PUT /series/editor
-    editor_route = respx_mock.put("/series/editor").mock(
-        return_value=httpx.Response(202, json=[])
-    )
+    editor_route = respx_mock.put("/series/editor").mock(return_value=httpx.Response(202, json=[]))
 
-    sonarr_client = SonarrClient(base_url=SONARR_BASE, api_key="fake")
+    sonarr_client = SonarrClient(base_url=_SONARR_BASE, api_key="fake")
 
-    # Simulate the apply saga tagging path
+    # Simulate the apply saga tagging path: _ensure_managed_tag creates the tag
     managed_tag = _ensure_managed_tag(sonarr_client, dry_run=False)
     assert managed_tag.id == 42
 
-    # Resolve series titles → ids
+    # Resolve series titles → ids (mirrors apply saga branch logic)
     raw_series = sonarr_client.get("/series")
     titles = ["The Mandalorian"]
     series_ids = [s["id"] for s in raw_series if s.get("title") in titles]
     assert series_ids == [101]
 
-    # Apply tag via PUT /series/editor with applyTags="add"
+    # Apply tag via PUT /series/editor with applyTags="add" (mirror _reconcile_series_tags)
     sonarr_client._request(
         "PUT",
         SERIES_EDITOR_PATH,
-        json={"seriesIds": series_ids, "tags": [managed_tag.id], "applyTags": "add", "moveFiles": False},
+        json={
+            "seriesIds": series_ids,
+            "tags": [managed_tag.id],
+            "applyTags": "add",
+            "moveFiles": False,
+        },
     )
 
     assert editor_route.call_count == 1
-    call_content = editor_route.calls[0].request.content
-    import json as _json
-    body = _json.loads(call_content)
+    body = _json.loads(editor_route.calls[0].request.content)
     assert body["applyTags"] == "add"
     assert body["moveFiles"] is False
     assert managed_tag.id in body["tags"]
