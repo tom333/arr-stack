@@ -179,9 +179,9 @@ helm repo add bjw-s-labs https://bjw-s-labs.github.io/helm-charts
 # Télécharger les dépendances
 helm dependency build charts/arr-stack/
 
-# Workaround Helm 4 multi-alias (nécessaire car 12 aliases du même chart)
+# Workaround Helm 4 multi-alias (nécessaire car 13 aliases du même chart)
 tar -xzf charts/arr-stack/charts/app-template-5.0.0.tgz -C charts/arr-stack/charts/
-for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr cross-seed; do
+for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr cross-seed qbit-manage; do
   [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
 done
 

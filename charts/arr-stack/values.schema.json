@@ -1701,6 +1701,10 @@
             "type": "object",
             "additionalProperties": true
         },
+        "qbit-manage": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "sonarr": {
             "type": "object",
             "properties": {
