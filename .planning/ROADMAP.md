@@ -159,11 +159,16 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 **Depends on**: Phase 28
 **Requirements**: SAGAS-01, SAGAS-02, SAGAS-03, SAGAS-04
 **Success Criteria** (what must be TRUE):
-  1. L'opérateur ajoute une entrée `sagas: [{name, tmdb_collection, profile, root}]` dans `intent.yml` — `arrconf generate` émet la configuration Radarr Collections correspondante dans `arrconf.yml`
+  1. L'opérateur ajoute une entrée `sagas: [{name, tmdb_collection, profile, root}]` dans `intent.yml` — `arrconf apply --intent` charge le fichier (chargement optionnel : absent ⇒ skip silencieux) et expanse les sagas en desired-state in-memory via `generators/sagas.py` (D-01 : pas d'écriture dans `arrconf.yml` ; corrige la formulation initiale qui mentionnait `arrconf generate` → `arrconf.yml`)
   2. `arrconf apply` réconcilie les Radarr Collections : GET de l'état courant, match par `tmdbId`, PUT uniquement si drift — idempotent (2e run = 0 plan_actions)
   3. Le plugin Jellyfin `tmdbboxsets` est installé et activé via le two-run model ADR-9 (Run N = install queued + hint `kubectl rollout restart`, Run N+1 = plugin actif + BoxSets visibles dans Jellyfin)
   4. Les sagas de séries (Sonarr sans Collections) sont présentées dans Jellyfin via tag `arrconf-managed` + BoxSet curé — la présentation Jellyfin est la seule automation, sans reconciler Sonarr-style
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 29-01-PLAN.md — SagaEntry schema lock (extra=forbid) + generators/sagas.py + `--intent` apply wiring (SAGAS-01) [wave 1, co-bump 0.19.0]
+- [ ] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
+- [ ] 29-03-PLAN.md — Jellyfin series BoxSets (GET-before-POST) + Sonarr arrconf-managed tag + apply branch (SAGAS-04) [wave 3, co-bump]
+- [ ] 29-04-PLAN.md — tmdbboxsets plugin entry in arrconf.yml (two-run install, ADR-9) (SAGAS-03) [wave 1, no co-bump — arrconf.yml-only]
 **UI hint**: yes
 
 ### Phase 30: cross-seed
