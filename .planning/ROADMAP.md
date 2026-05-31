@@ -150,7 +150,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 - [x] 28-01-PLAN.md — IntentConfig model + load_intent + intent-schema-gen + CI schema-reproducibility (INTENT-01)
 - [x] 28-02-PLAN.md — generate_cross_seed pure-function generator (JS module.exports literal) (INTENT-02)
 - [x] 28-03-PLAN.md — `arrconf generate` CLI subcommand + `--check` drift mode (INTENT-02, INTENT-03)
-- [ ] 28-04-PLAN.md — seed intent.yml + generated cross-seed/config.js (INTENT-01, INTENT-03)
+- [x] 28-04-PLAN.md — seed intent.yml + generated cross-seed/config.js (INTENT-01, INTENT-03)
 - [ ] 28-05-PLAN.md — generate-idempotence CI guard job + tests.yml path trigger (INTENT-03)
 - [x] 28-06-PLAN.md — ADR-10 intention layer + absorber/deployer boundary (INTENT-04)
 
@@ -190,7 +190,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 28. Generate foundation | 4/6 | In Progress|  |
+| 28. Generate foundation | 5/6 | In Progress|  |
 | 29. Sagas | 0/TBD | Not started | - |
 | 30. cross-seed | 0/TBD | Not started | - |
 | 31. qbit_manage | 0/TBD | Not started | - |
