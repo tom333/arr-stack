@@ -199,7 +199,7 @@ Plans:
   3. L'alias Helm `app-template` CronJob est opérationnel dans `charts/arr-stack/` avec la config.yml montée ; un `arrconf apply` + ArgoCD sync suffit pour déployer qbit_manage
 **Plans**: 2 plans
 **Wave 1**
-- [ ] 31-01-PLAN.md — QbitManageConfig schema + generate_qbit_manage() + generate CLI dispatch + tests + seed intent.yml + generated config.yml + intent-schema regen + arrconf co-bump 0.19.1→0.20.0 (minor, new feature) (QBM-01, QBM-02) [wave 1]
+- [x] 31-01-PLAN.md — QbitManageConfig schema + generate_qbit_manage() + generate CLI dispatch + tests + seed intent.yml + generated config.yml + intent-schema regen + arrconf co-bump 0.19.1→0.20.0 (minor, new feature) (QBM-01, QBM-02) [wave 1]
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 31-02-PLAN.md — 13th Helm alias (Chart.yaml + values.yaml CronJob) + qbit-manage-configmap.yaml + chart-lint.yml unpack-loop & annotation-guard 12→14 + README (QBM-03) [wave 2, depends 01]
@@ -211,7 +211,7 @@ Plans:
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 4/4 | Complete    | 2026-05-31 |
 | 30. cross-seed | 3/3 | Complete    | 2026-05-31 |
-| 31. qbit_manage | 0/2 | Planned | - |
+| 31. qbit_manage | 1/2 | In Progress|  |
 
 ## Historical Progress
 
