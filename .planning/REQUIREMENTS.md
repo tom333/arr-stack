@@ -12,10 +12,10 @@ Requirements de la tranche 1. Chacun mappe vers une phase du roadmap.
 
 ### Intention (couche `intent.yml` + `arrconf generate`)
 
-- [ ] **INTENT-01**: L'opérateur édite un seul `intent.yml` ; les configs verbeuses cibles sont générées (read-only, committées), jamais hand-edited.
-- [ ] **INTENT-02**: `arrconf generate` transforme `intent.yml` en configs verbeuses via une fonction pure réutilisant le pattern `arrconf/generators/` (extension, pas réinvention).
-- [ ] **INTENT-03**: La CI échoue si les configs committées divergent de l'intention (`arrconf generate && git diff --exit-code` — garde-fou idempotence, modèle G1 local+committé).
-- [ ] **INTENT-04**: Un nouvel ADR documente la couche d'intention + la frontière *absorber (générer la config) vs déployer seulement (DB/UI-only)*, en extension d'ADR-5.
+- [x] **INTENT-01**: L'opérateur édite un seul `intent.yml` ; les configs verbeuses cibles sont générées (read-only, committées), jamais hand-edited.
+- [x] **INTENT-02**: `arrconf generate` transforme `intent.yml` en configs verbeuses via une fonction pure réutilisant le pattern `arrconf/generators/` (extension, pas réinvention).
+- [x] **INTENT-03**: La CI échoue si les configs committées divergent de l'intention (`arrconf generate && git diff --exit-code` — garde-fou idempotence, modèle G1 local+committé).
+- [x] **INTENT-04**: Un nouvel ADR documente la couche d'intention + la frontière *absorber (générer la config) vs déployer seulement (DB/UI-only)*, en extension d'ADR-5.
 
 ### Sagas (Radarr Collections + Jellyfin tmdbboxsets)
 
@@ -71,10 +71,10 @@ Exclusions explicites, avec raison, pour éviter le scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INTENT-01 | Phase 28 | Pending |
-| INTENT-02 | Phase 28 | Pending |
-| INTENT-03 | Phase 28 | Pending |
-| INTENT-04 | Phase 28 | Pending |
+| INTENT-01 | Phase 28 | Complete |
+| INTENT-02 | Phase 28 | Complete |
+| INTENT-03 | Phase 28 | Complete |
+| INTENT-04 | Phase 28 | Complete |
 | SAGAS-01 | Phase 29 | Pending |
 | SAGAS-02 | Phase 29 | Pending |
 | SAGAS-03 | Phase 29 | Pending |

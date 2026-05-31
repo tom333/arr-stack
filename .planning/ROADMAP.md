@@ -190,7 +190,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 28. Generate foundation | 6/6 | Complete   | 2026-05-31 |
+| 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 0/TBD | Not started | - |
 | 30. cross-seed | 0/TBD | Not started | - |
 | 31. qbit_manage | 0/TBD | Not started | - |
