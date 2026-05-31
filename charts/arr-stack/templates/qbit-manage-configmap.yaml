@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qbit-manage-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "arr-stack.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    {{- .Files.Get "files/qbit_manage/config.yml" | nindent 4 }}

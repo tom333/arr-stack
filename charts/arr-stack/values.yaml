@@ -731,3 +731,49 @@ cross-seed:
         main:
           main:
             - path: /data
+
+qbit-manage:
+  global:
+    nameOverride: qbit-manage
+    fullnameOverride: qbit-manage
+  serviceAccount:
+    qbit-manage: {}
+  controllers:
+    main:
+      type: cronjob
+      cronjob:
+        schedule: "0 */4 * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistory: 1
+        failedJobsHistory: 2
+        startingDeadlineSeconds: 600
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/stuffanthings/qbit_manage
+            repository: ghcr.io/stuffanthings/qbit_manage
+            tag: "v4.6.6"
+            pullPolicy: IfNotPresent
+          env:
+            TZ: "Europe/Paris"
+            QBT_RUN: "true"
+            QBT_SCHEDULE: "0"
+            QBT_DRY_RUN: "false"
+          envFrom:
+            - secretRef:
+                name: arrconf-env
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  persistence:
+    config:
+      type: configMap
+      name: qbit-manage-config
+      globalMounts:
+        - path: /config/config.yml
+          subPath: config.yml
+          readOnly: true
