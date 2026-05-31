@@ -1697,6 +1697,10 @@
             "type": "object",
             "additionalProperties": true
         },
+        "cross-seed": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "sonarr": {
             "type": "object",
             "properties": {

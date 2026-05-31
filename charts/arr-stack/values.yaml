@@ -615,3 +615,119 @@ suggestarr:
       size: 1Gi
       globalMounts:
         - path: /app/config/config_files
+
+cross-seed:
+  global:
+    nameOverride: cross-seed
+    fullnameOverride: cross-seed
+  serviceAccount:
+    cross-seed: {}
+  controllers:
+    main:
+      type: deployment   # D-03: daemon mode, long-running, port 2468
+      replicas: 1
+      initContainers:
+        config-init:
+          image:
+            # renovate: image=ghcr.io/cross-seed/cross-seed
+            repository: ghcr.io/cross-seed/cross-seed
+            tag: "6.13.7"
+            pullPolicy: IfNotPresent
+          command:
+            - node
+            - -e
+            - |
+              const fs = require('fs');
+              let c = fs.readFileSync('/config-cm/config.js', 'utf8');
+              c = c.replace(/\$\{PROWLARR_API_KEY\}/g, process.env.PROWLARR_API_KEY || '');
+              c = c.replace(/\$\{QBT_USER\}/g, process.env.QBT_USER || '');
+              c = c.replace(/\$\{QBT_PASS\}/g, process.env.QBT_PASS || '');
+              fs.writeFileSync('/config-resolved/config.js', c);
+          envFrom:
+            - secretRef:
+                name: arrconf-env
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/cross-seed/cross-seed
+            repository: ghcr.io/cross-seed/cross-seed
+            tag: "6.13.7"
+            pullPolicy: IfNotPresent
+          args:
+            - daemon
+          env:
+            TZ: "Europe/Paris"
+          envFrom:
+            - secretRef:
+                name: arrconf-env
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 2468
+                initialDelaySeconds: 30
+                periodSeconds: 30
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 2468
+                initialDelaySeconds: 30
+                periodSeconds: 30
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 2468
+  # NO ingress block — cluster-internal only (mirror suggestarr D-14); access via port-forward.
+  persistence:
+    # Read-only ConfigMap with the ${...}-tokenised config.js. Mounted ONLY into the
+    # initContainer (it is the substitution SOURCE; the main container never reads it).
+    config-cm:
+      type: configMap
+      name: cross-seed-config
+      advancedMounts:
+        main:
+          config-init:
+            - path: /config-cm/config.js
+              subPath: config.js
+              readOnly: true
+    # Writable scratch emptyDir. The initContainer WRITES the resolved file to
+    # /config-resolved/config.js; the main container SURFACES that same file at
+    # /config/config.js via subPath so it does NOT shadow the PVC at /config (Pitfall 1).
+    config-resolved:
+      type: emptyDir
+      advancedMounts:
+        main:
+          config-init:
+            - path: /config-resolved
+          main:
+            - path: /config/config.js
+              subPath: config.js
+    # PVC holds cross-seed state (config.db, torrent_cache/). Mounts at /config in the
+    # main container only; the subPath file mount above sits inside it without shadowing it.
+    config:
+      existingClaim: cross-seed-config
+      advancedMounts:
+        main:
+          main:
+            - path: /config
+    torrents:
+      type: hostPath
+      hostPath: /media/data/torrents
+      hostPathType: DirectoryOrCreate
+      advancedMounts:
+        main:
+          main:
+            - path: /data
