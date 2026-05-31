@@ -37,7 +37,7 @@ from arrconf.logging import configure_logging
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
-from arrconf.schema_gen import write_schema
+from arrconf.schema_gen import write_intent_schema, write_schema
 from arrconf.settings import Settings
 
 
@@ -830,6 +830,23 @@ def schema_gen_cmd(
     output.parent.mkdir(parents=True, exist_ok=True)
     write_schema(output)
     log.info("schema_written", path=str(output))
+    raise typer.Exit(code=0)
+
+
+@app.command(name="intent-schema-gen")
+def intent_schema_gen_cmd(
+    output: Path = typer.Option(
+        Path("schemas/intent-schema.json"),
+        "--output",
+        "-o",
+        help="Output JSON Schema path (INTENT-01)",
+    ),
+) -> None:
+    """Export JSON Schema (Draft 2020-12) from IntentConfig (INTENT-01)."""
+    log = structlog.get_logger()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    write_intent_schema(output)
+    log.info("intent_schema_written", path=str(output))
     raise typer.Exit(code=0)
 
 

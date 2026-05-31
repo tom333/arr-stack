@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "CrossSeedConfig": {
+      "additionalProperties": false,
+      "description": "Configuration block for the cross-seed tool (XSEED, INTENT-01).",
+      "properties": {
+        "action": {
+          "default": "inject",
+          "description": "inject|save.",
+          "title": "Action",
+          "type": "string"
+        },
+        "link_dirs": {
+          "description": "Hardlink destination dirs.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Link Dirs",
+          "type": "array"
+        },
+        "link_type": {
+          "default": "hardlink",
+          "description": "symlink|hardlink|reflink.",
+          "title": "Link Type",
+          "type": "string"
+        },
+        "torrent_clients": {
+          "description": "Client connection strings (e.g. qbittorrent:http://user:pass@host:port).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Torrent Clients",
+          "type": "array"
+        },
+        "torznab": {
+          "description": "List of torznab URLs (Prowlarr: http://host/N/api?apikey=KEY).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Torznab",
+          "type": "array"
+        }
+      },
+      "title": "CrossSeedConfig",
+      "type": "object"
+    },
+    "SagaEntry": {
+      "additionalProperties": true,
+      "description": "A single saga declaration.\n\nSchema present-but-unexercised in P28 (D-05).\nPhase 29 (SAGAS) will tighten the extra-key policy to forbid once the\nfull saga schema is locked.",
+      "properties": {
+        "name": {
+          "description": "Saga name. Full schema locked in Phase 29 (SAGAS).",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "SagaEntry",
+      "type": "object"
+    },
+    "ToolsConfig": {
+      "additionalProperties": false,
+      "description": "Absorbed external tools (cross_seed, qbit_manage).",
+      "properties": {
+        "cross_seed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CrossSeedConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "cross-seed block (XSEED). None when unconfigured."
+        }
+      },
+      "title": "ToolsConfig",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Root schema for intent.yml (INTENT-01, Phase 28).\n\nTop-level layout: ``tools:`` mapping + ``sagas:`` list.\nOnly ``tools.cross_seed`` is exercised in P28; ``sagas`` is present\nfor schema completeness.",
+  "properties": {
+    "sagas": {
+      "description": "Saga declarations. Schema present-but-unexercised in P28 (D-05).",
+      "items": {
+        "$ref": "#/$defs/SagaEntry"
+      },
+      "title": "Sagas",
+      "type": "array"
+    },
+    "tools": {
+      "$ref": "#/$defs/ToolsConfig"
+    }
+  },
+  "title": "IntentConfig",
+  "type": "object"
+}
