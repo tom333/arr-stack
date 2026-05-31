@@ -51,6 +51,7 @@ from arrconf.config import (
     JellyfinUsersSection,
 )
 from arrconf.exceptions import NotFoundError
+from arrconf.intent_config import SagaEntry
 from arrconf.resources.jellyfin.library import JellyfinLibrary
 
 log = structlog.get_logger()
@@ -62,6 +63,8 @@ USERS_PATH = "/Users"
 SYSTEM_CONFIGURATION_PATH = "/System/Configuration"
 PLUGINS_PATH = "/Plugins"
 PACKAGES_INSTALLED_PATH = "/Packages/Installed"
+ITEMS_PATH = "/Items"
+COLLECTIONS_PATH = "/Collections"
 
 # The 7 PascalCase keys in /System/Configuration that arrconf manages (D-07-CONFIG-01).
 SERVER_CONFIG_ALLOWLIST: tuple[str, ...] = (
@@ -621,6 +624,112 @@ def _reconcile_plugins(
         client._request("POST", f"{PLUGINS_PATH}/{plugin_id}/Configuration", json=desired_config)
         log.info("plugin_config_applied", name=entry.name)
         actions.append(f"plugin_config_applied:{entry.name}")
+
+    return actions
+
+
+def _reconcile_sagas_boxsets(
+    client: JellyfinClient,
+    series_sagas: list[SagaEntry],
+    dry_run: bool,
+) -> list[str]:
+    """Reconcile series-saga Jellyfin BoxSets (SAGAS-04).
+
+    Idempotent contract:
+    - POST /Collections is NOT idempotent alone → MUST check existing by name first
+      (mirrors Pitfall 16-1 from _reconcile_libraries lines 354-367).
+    - POST /Collections/{id}/Items IS idempotent (Jellyfin AddToCollectionAsync
+      skips already-linked items by id check).
+    - Best-effort: unresolved titles log warning + skip (ADR-9 spirit).
+
+    Args:
+        client: Authenticated JellyfinClient.
+        series_sagas: SagaEntry list filtered to kind=series only.
+        dry_run: When True, log planned actions without issuing mutating requests.
+
+    Returns:
+        List of action strings describing what was done (or would be done in dry_run).
+
+    """
+    if not series_sagas:
+        return []
+
+    # Step 1: GET existing BoxSets — snapshot by name (Pitfall 16-1 mirror).
+    # Must fetch before any saga loop to prevent duplicates on repeated runs.
+    raw_response = client.get(
+        ITEMS_PATH,
+        params={"includeItemTypes": "BoxSet", "recursive": "true", "fields": "Name,ProviderIds"},
+    )
+    existing_by_name: dict[str, str] = {
+        item["Name"]: str(item["Id"])
+        for item in raw_response.get("Items", [])
+        if item.get("Name") and item.get("Id")
+    }
+
+    actions: list[str] = []
+    for saga in series_sagas:
+        # Step 2: Resolve member titles → Jellyfin item GUIDs.
+        # Pitfall 5: searchTerm is fuzzy — MUST filter on exact Name match.
+        resolved_ids: list[str] = []
+        for title in saga.items or []:
+            results = client.get(
+                ITEMS_PATH,
+                params={
+                    "includeItemTypes": "Series",
+                    "recursive": "true",
+                    "searchTerm": title,
+                    "fields": "Name,ProviderIds",
+                },
+            )
+            exact = next(
+                (item for item in results.get("Items", []) if item.get("Name") == title),
+                None,
+            )
+            if exact is None:
+                log.warning(
+                    "series_saga_member_unresolved",
+                    saga_name=saga.name,
+                    title=title,
+                    hint=(
+                        "Check that the series name in intent.yml matches Jellyfin library exactly"
+                    ),
+                )
+                continue
+            # A3: use the Id string exactly as returned by GET /Items — no reformatting.
+            resolved_ids.append(str(exact["Id"]))
+
+        # Step 3: Create or idempotent-add to BoxSet.
+        if saga.name not in existing_by_name:
+            # Pitfall 16-1 mirror: name absent → safe to POST /Collections.
+            if dry_run:
+                log.info("dry_run_skip", resource="saga_boxset_create", saga_name=saga.name)
+                actions.append(f"saga_boxset:dry_run_create:{saga.name}")
+                continue
+            client._request(
+                "POST",
+                COLLECTIONS_PATH,
+                params={"name": saga.name, "ids": ",".join(resolved_ids)},
+            )
+            log.info("saga_boxset_created", saga_name=saga.name, member_count=len(resolved_ids))
+            actions.append(f"saga_boxset:created:{saga.name}")
+        else:
+            # BoxSet exists: POST /{id}/Items is idempotent (AddToCollectionAsync skips existing).
+            collection_id = existing_by_name[saga.name]
+            if not resolved_ids:
+                # All titles unresolved (or items=None/[]) — nothing to add.
+                log.info("saga_boxset_no_op", saga_name=saga.name)
+                continue
+            if dry_run:
+                log.info("dry_run_skip", resource="saga_boxset_items", saga_name=saga.name)
+                actions.append(f"saga_boxset:dry_run_items:{saga.name}")
+                continue
+            client._request(
+                "POST",
+                f"{COLLECTIONS_PATH}/{collection_id}/Items",
+                params={"ids": ",".join(resolved_ids)},
+            )
+            log.info("saga_boxset_items_added", saga_name=saga.name, member_count=len(resolved_ids))
+            actions.append(f"saga_boxset:items_added:{saga.name}")
 
     return actions
 
