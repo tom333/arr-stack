@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
-status: planning
-last_updated: "2026-05-31T04:56:33.440Z"
-last_activity: 2026-05-31
+status: executing
+last_updated: "2026-05-31T05:33:37.609Z"
+last_activity: 2026-05-31 -- Phase 30 planning complete
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 10
+  total_plans: 13
   completed_plans: 10
-  percent: 100
+  percent: 77
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 30
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-31
+Status: Ready to execute
+Last activity: 2026-05-31 -- Phase 30 planning complete
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]

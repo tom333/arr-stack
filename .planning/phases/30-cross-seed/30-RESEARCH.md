@@ -219,9 +219,9 @@ cross-seed:
 - **Option A (recommended):** initContainer writes to `/config-resolved/config.js`, main container mounts emptyDir with `subPath: config.js` at `/config/config.js`. The PVC at `/config` covers everything else (DB, logs, torrent_cache).
 - **Option B:** initContainer writes resolved file directly into the PVC at `/config/config.js`. Simpler volume wiring but requires the initContainer to also mount the PVC, which means the PVC must exist before first run (it will via `existingClaim`).
 
-Option A is cleaner (no write to PVC from initContainer; PVC is purely cross-seed state). **Recommended: Option A.**
+Option A is cleaner (no write to PVC from initContainer; PVC is purely cross-seed state). **Recommended: Option A.** The per-container mount split (initContainer sees `/config-resolved`, main sees the same emptyDir surfaced at `/config/config.js` via subPath) is expressed in plan 30-02 using app-template 5.0.0 `advancedMounts`.
 
-[VERIFIED: app-template values.schema.json — `initContainers` and `type: emptyDir` confirmed in schema]
+[VERIFIED: app-template values.schema.json — `initContainers`, `type: emptyDir`, and per-container `advancedMounts` confirmed in schema]
 
 ### Pattern 2: Native process.env in config.js (alternate — NOT the locked decision)
 
@@ -279,7 +279,7 @@ module.exports = {
 | Config Key | Value Example | Status vs v6 Schema |
 |------------|--------------|---------------------|
 | `torznab` | `["http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=${PROWLARR_API_KEY}"]` | Valid — exact format confirmed in docs |
-| `torrentClients` | `["qbittorrent:http://admin:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"]` | Valid — `qbittorrent:http://user:pass@host:port` format confirmed |
+| `torrentClients` | `["qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"]` | Valid — `qbittorrent:http://user:pass@host:port` format confirmed |
 | `linkDirs` | `["/data/torrents/cross-seed"]` | Valid — list of strings |
 | `linkType` | `"hardlink"` | Valid — `hardlink` | symlink | reflink |
 | `action` | `"inject"` | Valid — `inject` | `save` |
@@ -299,7 +299,7 @@ The current `generate_cross_seed()` uses `json.dumps(data, ...)` for the entire 
    torznab:
      - "http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=${PROWLARR_API_KEY}"
    torrent_clients:
-     - "qbittorrent:http://admin:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
+     - "qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
    ```
 
 2. In `generate_cross_seed()`, no code change is needed if the intent.yml already carries the distinct tokens — `json.dumps` will serialize `${}` characters as-is (they are valid JSON string characters; only `"` and `\` are escaped by JSON). The `${PROWLARR_API_KEY}` token passes through `json.dumps` unchanged.
@@ -376,7 +376,7 @@ Key structural decisions:
 - `envFrom: secretRef: arrconf-env` on BOTH initContainer and main container (initContainer needs it for envsubst; main container needs it if cross-seed reads any env vars directly, and for consistency)
 - `args: ["daemon"]` on main container (entrypoint is already the cross-seed binary)
 - Port `2468` for probes and service
-- Three persistence entries: configMap (read-only), emptyDir (writable scratch), PVC (state), hostPath (torrents)
+- Four persistence entries: configMap (read-only), emptyDir (writable scratch + per-container subPath surface), PVC (state), hostPath (torrents)
 - No ingress (internal tool — access via port-forward if needed, no public web UI required)
 
 **initContainer image choice:** `busybox:1.36` (pinned, avoids `:latest` CI guard, ships `envsubst`). Alternative: `alpine:3.21` (also ships `envsubst` but heavier). [ASSUMED — busybox ships envsubst; need to verify this is not `gettext` only. Actually: `envsubst` is part of `gettext` package. busybox ships its own `envsubst` equivalent since 1.28+. Alpine ships full `gettext`/`envsubst`. Either works.] [ASSUMED: busybox envsubst compatibility with `${VAR_NAME}` syntax]
@@ -387,6 +387,7 @@ node -e "
 const fs=require('fs');
 let c=fs.readFileSync('/config-cm/config.js','utf8');
 c=c.replace(/\\\${PROWLARR_API_KEY}/g, process.env.PROWLARR_API_KEY||'');
+c=c.replace(/\\\${QBT_USER}/g, process.env.QBT_USER||'');
 c=c.replace(/\\\${QBT_PASS}/g, process.env.QBT_PASS||'');
 fs.writeFileSync('/config-resolved/config.js',c);
 "
@@ -403,7 +404,7 @@ This avoids the busybox envsubst uncertainty. Downside: pulls the same large ima
 
 **Why it happens:** Mount path collision between the PVC (`/config`) and the emptyDir.
 
-**How to avoid:** Mount emptyDir at a distinct path (e.g., `/config-resolved`) and use `subPath: config.js` to place the resolved file at `/config/config.js`. The PVC still covers `/config/config.db`, `/config/torrent_cache/`, etc.
+**How to avoid:** Mount emptyDir at a distinct path (e.g., `/config-resolved`) and use `subPath: config.js` to place the resolved file at `/config/config.js`. The PVC still covers `/config/config.db`, `/config/torrent_cache/`, etc. In app-template 5.0.0, express this with `advancedMounts` so the initContainer mounts the emptyDir at `/config-resolved` (to write) and the main container mounts the same emptyDir at `/config/config.js` via `subPath: config.js` — see plan 30-02 Task 2.
 
 **Warning signs:** cross-seed fails to start with "cannot write to /config" or "config.db not found" after the `config.js` subPath mount.
 
@@ -496,14 +497,14 @@ tools:
     torznab:
       - "http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=${PROWLARR_API_KEY}"
     torrent_clients:
-      - "qbittorrent:http://admin:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
+      - "qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
     link_dirs:
       - "/data/torrents/cross-seed"
     link_type: hardlink
     action: inject
 ```
 
-After this edit, run `arrconf generate` to regenerate `config.js`. The `${PROWLARR_API_KEY}` and `${QBT_PASS}` tokens survive `json.dumps` unmodified (JSON does not escape `$`, `{`, `}`).
+After this edit, run `arrconf generate` to regenerate `config.js`. The `${PROWLARR_API_KEY}`, `${QBT_USER}`, and `${QBT_PASS}` tokens survive `json.dumps` unmodified (JSON does not escape `$`, `{`, `}`).
 
 ### generate_cross_seed() — no code change required
 
@@ -532,6 +533,7 @@ initContainers:
         const fs = require('fs');
         let c = fs.readFileSync('/config-cm/config.js', 'utf8');
         c = c.replace(/\$\{PROWLARR_API_KEY\}/g, process.env.PROWLARR_API_KEY || '');
+        c = c.replace(/\$\{QBT_USER\}/g, process.env.QBT_USER || '');
         c = c.replace(/\$\{QBT_PASS\}/g, process.env.QBT_PASS || '');
         fs.writeFileSync('/config-resolved/config.js', c);
     envFrom:
@@ -549,8 +551,7 @@ probes:
     enabled: true
     custom: true
     spec:
-      httpGet:
-        path: /api/ping
+      tcpSocket:
         port: 2468
       initialDelaySeconds: 30
       periodSeconds: 30
@@ -558,16 +559,13 @@ probes:
     enabled: true
     custom: true
     spec:
-      httpGet:
-        path: /api/ping
+      tcpSocket:
         port: 2468
       initialDelaySeconds: 30
       periodSeconds: 30
 ```
 
-[ASSUMED: `/api/ping` probe path — cross-seed v6 ships an HTTP API on port 2468. The actual health endpoint must be verified. The cross-seed HTTP API reference mentions `/api/job`, but a `/api/ping` style health endpoint is standard. If no health endpoint exists, use `tcpSocket` probe instead.]
-
-**Action for planner:** Verify the exact health/ping endpoint from https://www.cross-seed.org/docs/reference/api OR use `tcpSocket` probe as a safe fallback.
+[RESOLVED in plan 30-02: cross-seed v6 ships an HTTP API on port 2468 but `apiKey` auth is required for API calls, so there is no confirmed no-auth `httpGet` health path. `tcpSocket` on port 2468 is the safe fallback — it verifies the daemon is listening without needing a valid API key. Upgrade to `httpGet` only if a no-auth health endpoint is later confirmed.]
 
 ---
 
@@ -614,27 +612,31 @@ This runbook is an operator action; it appears in the phase verification checkli
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **cross-seed HTTP health endpoint path**
    - What we know: cross-seed v6 runs HTTP API on port 2468; `apiKey` authentication is required for API calls
    - What's unclear: the exact path for a no-auth health/ping endpoint suitable for K8s probes
    - Recommendation: use `tcpSocket` probe as a safe fallback (verifies the daemon is listening without needing a valid API key); upgrade to `httpGet` probe once confirmed
+   - **RESOLVED:** use `tcpSocket` probe on port 2468 for both liveness and readiness (plan 30-02). No no-auth `httpGet` health path is confirmed, so `tcpSocket` is the chosen mechanism.
 
 2. **QBT_USER in torrentClients URL**
    - What we know: current `intent.yml` hardcodes `admin` as the qBit username; `QBT_USER` is a key in `arrconf-env`
    - What's unclear: whether the cluster qBittorrent actually uses `admin` or a different username stored in `QBT_USER`
    - Recommendation: emit `${QBT_USER}:${QBT_PASS}` in the intent.yml torrent_clients string to be safe; update intent.yml and intent_config description accordingly
+   - **RESOLVED:** use `${QBT_USER}:${QBT_PASS}` in the qbittorrent client string (plan 30-01). The initContainer substitutes all three tokens (`PROWLARR_API_KEY`, `QBT_USER`, `QBT_PASS`) from `arrconf-env`.
 
 3. **CI alias copy loop: needed or not for 12th alias**
    - What we know: current CI does not have an explicit per-alias copy loop; existing 11 aliases work
    - What's unclear: how exactly Helm resolves the `cross-seed` alias to the unpacked `app-template/` directory
    - Recommendation: add the copy step explicitly in CI (`cp -r ... cross-seed`) to be safe; it is idempotent and takes < 1 second
+   - **RESOLVED:** add an explicit `cp -r` alias loop (including `cross-seed`) to `chart-lint.yml` (plan 30-03). The local verify step in plan 30-02 already runs the same loop.
 
 4. **Old cross-seed `config.db` migration**
    - What we know: cross-seed stores its SQLite DB at `/config/config.db`; the new PVC starts empty
    - What's unclear: whether the operator wants to preserve old search history
    - Recommendation: document as an optional operator step in the phase verification checklist
+   - **RESOLVED:** documented as an optional operator runbook step (plan 30-03), not automated by arr-stack code.
 
 ---
 
@@ -677,7 +679,7 @@ This runbook is an operator action; it appears in the phase verification checkli
 - [cross-seed options docs](https://www.cross-seed.org/docs/basics/options) — port 2468, torznab format, torrentClients format, linkDirs, linkType, action confirmed
 - [cross-seed getting-started docs](https://www.cross-seed.org/docs/basics/getting-started) — Docker `command: daemon`, `/config` volume, config.js format
 - [cross-seed FAQ](https://www.cross-seed.org/docs/basics/faq-troubleshooting) — Docker config dir = `/config`, CONFIG_DIR env var, config.js path
-- [app-template 5.0.0 values.schema.json](charts/arr-stack/charts/app-template/values.schema.json) — initContainers dict supported, type: emptyDir persistence supported
+- [app-template 5.0.0 values.schema.json](charts/arr-stack/charts/app-template/values.schema.json) — initContainers dict supported, type: emptyDir persistence supported, advancedMounts per-controller/per-container supported
 - [charts/arr-stack/templates/configarr-configmap.yaml](charts/arr-stack/templates/configarr-configmap.yaml) — ConfigMap template pattern
 - [charts/arr-stack/values.yaml lines 533-617](charts/arr-stack/values.yaml) — suggestarr alias pattern (daemon Deployment, envFrom arrconf-env)
 - [charts/arr-stack/values.yaml lines 234-243](charts/arr-stack/values.yaml) — qBittorrent hostPath /media/data/torrents→/data pattern
