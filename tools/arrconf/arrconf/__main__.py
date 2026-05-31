@@ -230,7 +230,6 @@ def apply(
         except ConfigError as e:
             log.error("intent_config_error", error=str(e))
             raise typer.Exit(code=2) from e
-    log.debug("intent_loaded", sagas=len(intent_cfg.sagas) if intent_cfg else 0)
 
     targets = _selected_apps(apps)
     settings = Settings()
@@ -489,6 +488,33 @@ def apply(
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="jellyfin", error=str(e))
             failures.append("jellyfin")
+
+    # Phase 29 (SAGAS-02 / D-07): Saga reconcile branches run AFTER all existing app
+    # branches (quality profiles must exist before collection reconcile reads them).
+    if intent_cfg is not None and intent_cfg.sagas:
+        # SAGAS-02: Radarr Collections reconcile (kind=movies only)
+        if "radarr" in targets and "main" in root.radarr and settings.radarr_api_key:
+            try:
+                from arrconf.reconcilers.radarr import (  # noqa: PLC0415
+                    reconcile_radarr_collections,
+                )
+
+                radarr_saga_client = RadarrClient(
+                    base_url=root.radarr["main"].base_url,
+                    api_key=settings.radarr_api_key.get_secret_value(),
+                )
+                saga_actions = reconcile_radarr_collections(
+                    radarr_saga_client,
+                    intent_cfg.sagas,
+                    dry_run=dry_run or settings.arrconf_dry_run,
+                )
+                log.info("apply_complete", app="radarr_collections", actions=saga_actions)
+            except ConfigError as e:
+                log.error("config_error", app="radarr_collections", error=str(e))
+                raise typer.Exit(code=2) from e
+            except (ApiClientError, ReconcileError) as e:
+                log.error("app_failed", app="radarr_collections", error=str(e))
+                failures.append("radarr_collections")
 
     if failures:
         raise typer.Exit(code=1)
