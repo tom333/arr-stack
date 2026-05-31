@@ -51,6 +51,60 @@ class CrossSeedConfig(BaseModel):
     )
 
 
+class ShareLimitGroup(BaseModel):
+    """One share_limits group (D-02)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(description="Group name (also used as qbit_manage group key).")
+    tracker_tag: str = Field(description="Tracker tag to match (include_all_tags filter).")
+    max_ratio: float = Field(default=-1.0, description="-1 = disabled.")
+    max_seeding_time: int = Field(default=-1, description="Minutes. -1 = disabled.")
+    min_seeding_time: int = Field(default=0, description="Minutes.")
+    cleanup: bool = Field(default=False, description="Delete on limit reached (to recyclebin).")
+    priority: int = Field(description="Lower = higher priority.")
+
+
+class TrackerTagEntry(BaseModel):
+    """One tracker_tags entry."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    keyword: str = Field(description="Tracker URL keyword (partial match).")
+    tag: str = Field(description="Tag to apply to matching torrents.")
+
+
+class QbitManageConfig(BaseModel):
+    """tools.qbit_manage block in intent.yml (QBM-01)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    qbt_host: str = Field(
+        default="http://qbittorrent.selfhost.svc.cluster.local:8080",
+        description="qBittorrent WebUI URL (in-cluster).",
+    )
+    tracker_tags: list[TrackerTagEntry] = Field(
+        default_factory=list,
+        description="Per-tracker tag rules.",
+    )
+    share_limits: list[ShareLimitGroup] = Field(
+        default_factory=list,
+        description="Per-tracker share limit groups (D-01/D-02).",
+    )
+    recyclebin_days: int = Field(
+        default=30,
+        description="Days before recyclebin is purged (D-05).",
+    )
+    rem_orphaned: bool = Field(
+        default=False,
+        description="Remove orphaned files (D-04 opt-in).",
+    )
+    rem_unregistered: bool = Field(
+        default=False,
+        description="Remove unregistered torrents (D-04 opt-in).",
+    )
+
+
 class ToolsConfig(BaseModel):
     """Absorbed external tools (cross_seed, qbit_manage)."""
 
@@ -59,6 +113,10 @@ class ToolsConfig(BaseModel):
     cross_seed: CrossSeedConfig | None = Field(
         default=None,
         description="cross-seed block (XSEED). None when unconfigured.",
+    )
+    qbit_manage: QbitManageConfig | None = Field(
+        default=None,
+        description="qbit_manage block (QBM-01). None when unconfigured.",
     )
 
 
