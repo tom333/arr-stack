@@ -212,12 +212,13 @@ def test_d_suggestarr_alias_listed_in_chart_yaml() -> None:
     )
 
 
-def test_d_chart_yaml_has_exactly_12_aliases() -> None:
-    """Sanity: 10 base aliases + suggestarr (Phase 14) + cross-seed (Phase 30)."""
+def test_d_chart_yaml_has_exactly_13_aliases() -> None:
+    """Sanity: 10 base + suggestarr (P14) + cross-seed (P30) + qbit-manage (P31)."""
     chart = _load_yaml(CHART_YAML)
     aliases = [d.get("alias") for d in chart.get("dependencies", []) if isinstance(d, dict)]
-    assert len(aliases) == 12, (
-        f"expected 12 aliases (10 base + suggestarr + cross-seed), found {len(aliases)}: {aliases}"
+    assert len(aliases) == 13, (
+        f"expected 13 aliases (10 base + suggestarr + cross-seed + qbit-manage), "
+        f"found {len(aliases)}: {aliases}"
     )
 
 
