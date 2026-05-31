@@ -201,7 +201,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
-| 29. Sagas | 4/4 | Complete   | 2026-05-31 |
+| 29. Sagas | 4/4 | Complete    | 2026-05-31 |
 | 30. cross-seed | 0/TBD | Not started | - |
 | 31. qbit_manage | 0/TBD | Not started | - |
 

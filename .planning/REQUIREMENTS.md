@@ -19,10 +19,10 @@ Requirements de la tranche 1. Chacun mappe vers une phase du roadmap.
 
 ### Sagas (Radarr Collections + Jellyfin tmdbboxsets)
 
-- [ ] **SAGAS-01**: L'opérateur déclare une saga (`{name, tmdb_collection, profile, root}`) dans `intent.yml`.
-- [ ] **SAGAS-02**: arrconf réconcilie les Radarr Collections depuis les sagas déclarées (nouveau reconciler : GET-match par `tmdbId`, PUT idempotent).
-- [ ] **SAGAS-03**: arrconf présente les sagas dans Jellyfin via le plugin `tmdbboxsets` (reconciler plugin best-effort, two-run model si install requise — cf ADR-9).
-- [ ] **SAGAS-04**: Les sagas de séries sont présentées via tag arrconf + BoxSet Jellyfin curé (Sonarr sans Collections → présentation Jellyfin only, pas d'automation Radarr-style).
+- [x] **SAGAS-01**: L'opérateur déclare une saga (`{name, tmdb_collection, profile, root}`) dans `intent.yml`.
+- [x] **SAGAS-02**: arrconf réconcilie les Radarr Collections depuis les sagas déclarées (nouveau reconciler : GET-match par `tmdbId`, PUT idempotent).
+- [x] **SAGAS-03**: arrconf présente les sagas dans Jellyfin via le plugin `tmdbboxsets` (reconciler plugin best-effort, two-run model si install requise — cf ADR-9).
+- [x] **SAGAS-04**: Les sagas de séries sont présentées via tag arrconf + BoxSet Jellyfin curé (Sonarr sans Collections → présentation Jellyfin only, pas d'automation Radarr-style).
 
 ### cross-seed (consolidation hors-stack)
 
@@ -75,10 +75,10 @@ Exclusions explicites, avec raison, pour éviter le scope creep.
 | INTENT-02 | Phase 28 | Complete |
 | INTENT-03 | Phase 28 | Complete |
 | INTENT-04 | Phase 28 | Complete |
-| SAGAS-01 | Phase 29 | Pending |
-| SAGAS-02 | Phase 29 | Pending |
-| SAGAS-03 | Phase 29 | Pending |
-| SAGAS-04 | Phase 29 | Pending |
+| SAGAS-01 | Phase 29 | Complete |
+| SAGAS-02 | Phase 29 | Complete |
+| SAGAS-03 | Phase 29 | Complete |
+| SAGAS-04 | Phase 29 | Complete |
 | XSEED-01 | Phase 30 | Pending |
 | XSEED-02 | Phase 30 | Pending |
 | XSEED-03 | Phase 30 | Pending |
