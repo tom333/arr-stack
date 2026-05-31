@@ -67,14 +67,27 @@ def test_cross_seed_config_defaults() -> None:
     assert cfg.link_dirs == []
 
 
-def test_saga_entry_tolerates_extra_keys() -> None:
-    """SagaEntry accepts extra keys (extra=allow) but requires name."""
-    entry = SagaEntry.model_validate({"name": "my-saga", "extra_field": "any-value"})
-    assert entry.name == "my-saga"
+def test_saga_entry_rejects_extra_keys() -> None:
+    """SagaEntry locked in Phase 29 to extra='forbid' — unknown keys are rejected."""
+    # A valid movies saga validates.
+    entry = SagaEntry.model_validate(
+        {
+            "name": "James Bond",
+            "kind": "movies",
+            "tmdb_collection": 645,
+            "profile": "MULTi.VF",
+            "root": "/media/films",
+        }
+    )
+    assert entry.name == "James Bond"
 
     with pytest.raises(ValidationError):
-        # name is required — missing it must fail
-        SagaEntry.model_validate({"extra_field": "no-name-here"})
+        # extra=forbid — unknown keys must fail (was tolerated in the P28 stub).
+        SagaEntry.model_validate({"name": "x", "kind": "series", "extra_field": "any-value"})
+
+    with pytest.raises(ValidationError):
+        # name is required — missing it must fail.
+        SagaEntry.model_validate({"kind": "series"})
 
 
 def test_empty_intent_returns_default_tools_and_empty_sagas(tmp_path: Path) -> None:
