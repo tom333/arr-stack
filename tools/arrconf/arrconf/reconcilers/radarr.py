@@ -64,8 +64,9 @@ from arrconf.differ import (
     merge_fields_for_put,
     reconcile,
 )
-from arrconf.exceptions import ReconcileError
+from arrconf.exceptions import ConfigError, ReconcileError
 from arrconf.generators.categories import RadarrDerived
+from arrconf.intent_config import SagaEntry
 from arrconf.reconcilers._shared import (
     _reconcile_remote_path_mappings,
     _resolve_download_client_tag_labels,
@@ -90,6 +91,8 @@ ROOT_FOLDER_PATH = "/rootfolder"
 HOST_CONFIG_PATH = "/config/host"
 MOVIE_PATH = "/movie"
 MOVIE_EDITOR_PATH = "/movie/editor"
+COLLECTION_PATH = "/collection"
+QUALITY_PROFILE_PATH = "/qualityprofile"
 
 
 @dataclass
@@ -464,6 +467,100 @@ def _reconcile_content_tags(
             count=len(matching_ids),
         )
         actions.append(f"content_tags:{rule.tag}:applied:{len(matching_ids)}")
+
+    return actions
+
+
+def reconcile_radarr_collections(
+    client: RadarrClient,
+    sagas: list[SagaEntry],
+    dry_run: bool,
+) -> list[str]:
+    """Reconcile Radarr Collections from kind=movies sagas (SAGAS-02).
+
+    GET-match by tmdbId, PUT only on drift. Absent collections → log warning + skip (D-03).
+    profile name → qualityProfileId via GET /qualityprofile name-match (D-06).
+    ConfigError raised if profile not found. 2nd run with no drift = 0 PUT (D-07).
+
+    ADR-5 boundary: GET /qualityprofile is read-only and explicitly allowed.
+    No writes to quality_profiles, custom_formats, or quality_definitions.
+    """
+    movie_sagas = [s for s in sagas if s.kind == "movies"]
+    if not movie_sagas:
+        return []
+
+    # Resolve quality profile names → ids (read-only GET, no side effects — ADR-5 safe)
+    raw_qp = client.get(QUALITY_PROFILE_PATH)
+    qp_by_name: dict[str, int] = {qp["name"]: qp["id"] for qp in raw_qp}
+
+    # GET all collections, index by tmdbId (bulk fetch — mirrors _reconcile_content_tags pattern)
+    raw_collections = client.get(COLLECTION_PATH)
+    by_tmdb_id: dict[int, dict[str, Any]] = {c["tmdbId"]: c for c in raw_collections}
+
+    actions: list[str] = []
+
+    for saga in movie_sagas:
+        assert saga.tmdb_collection is not None  # enforced by pydantic model_validator
+        cluster = by_tmdb_id.get(saga.tmdb_collection)
+
+        if cluster is None:
+            # D-03: Radarr auto-discovers collections only when ≥1 member movie present.
+            # No POST endpoint exists — log-skip is the only valid approach.
+            log.warning(
+                "collection_absent_skip",
+                tmdb_collection=saga.tmdb_collection,
+                saga_name=saga.name,
+                hint="Add at least one movie from this collection to Radarr first",
+            )
+            continue
+
+        if saga.profile not in qp_by_name:
+            raise ConfigError(f"quality profile '{saga.profile}' not found in Radarr")
+        quality_profile_id = qp_by_name[saga.profile]
+
+        # Build desired state (fields arrconf owns for this resource)
+        desired: dict[str, Any] = {
+            "monitored": True,
+            "qualityProfileId": quality_profile_id,
+            "rootFolderPath": saga.root,
+            "searchOnAdd": True,
+            # minimumAvailability default: "released" (camelCase per Radarr v3 JSON — A1).
+            # The body starts from dict(cluster) so the cluster's own casing is preserved
+            # for every field we do NOT override (Pitfall 6 / Open Question A1 mitigation).
+            "minimumAvailability": "released",
+        }
+
+        # Drift check: only PUT if something changed (idempotent — D-07)
+        drift_fields = {k for k, v in desired.items() if cluster.get(k) != v}
+
+        if not drift_fields:
+            log.info("collection_no_op", saga_name=saga.name, tmdb_id=saga.tmdb_collection)
+            continue
+
+        if dry_run:
+            log.info(
+                "dry_run_skip",
+                resource="collection",
+                saga_name=saga.name,
+                drift=sorted(drift_fields),
+            )
+            actions.append(f"collection:dry_run:{saga.name}")
+            continue
+
+        # Pitfall 1 (re-inject id): start from cluster state, override desired fields,
+        # then explicitly set id so Radarr routes PUT to the correct collection.
+        # Mirrors _reconcile_host_config lines 244-252 (merge_fields_for_put + body["id"]).
+        body = dict(cluster)
+        body.update(desired)
+        body["id"] = cluster["id"]  # re-inject id (Pitfall 1 / T-29-04 mitigation)
+        client._request("PUT", f"{COLLECTION_PATH}/{cluster['id']}", json=body)
+        log.info(
+            "collection_updated",
+            saga_name=saga.name,
+            tmdb_id=saga.tmdb_collection,
+            drift=sorted(drift_fields),
+        )
+        actions.append(f"collection:updated:{saga.name}")
 
     return actions
 
