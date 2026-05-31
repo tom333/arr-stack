@@ -19,14 +19,17 @@ from arrconf.generators.categories import (
     generate_sonarr_resources,
 )
 from arrconf.generators.intent import generate_cross_seed
+from arrconf.generators.sagas import SagasDesiredState, generate_sagas_desired
 
 __all__ = [
     "RadarrDerived",
+    "SagasDesiredState",
     "SonarrDerived",
     "generate_anime_tag_labels",
     "generate_cross_seed",
     "generate_jellyfin_libraries",
     "generate_qbit_categories",
     "generate_radarr_resources",
+    "generate_sagas_desired",
     "generate_sonarr_resources",
 ]

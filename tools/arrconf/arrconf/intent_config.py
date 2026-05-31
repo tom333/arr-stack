@@ -5,10 +5,10 @@ Every downstream plan in Phase 28 (cross-seed generator, generate CLI) imports
 ``CrossSeedConfig`` / ``load_intent`` from here.
 
 Design decisions:
-- extra=forbid on IntentConfig / ToolsConfig / CrossSeedConfig: unknown keys
-  fail loudly (exit 2) rather than silently — mirrors the RootConfig convention.
-- extra=allow on SagaEntry: Phase 28 ships the schema stub; Phase 29
-  (SAGAS) will tighten the policy once the full saga schema is locked.
+- extra=forbid on IntentConfig / ToolsConfig / CrossSeedConfig / SagaEntry: unknown
+  keys fail loudly (exit 2) rather than silently — mirrors the RootConfig convention.
+- SagaEntry schema locked in Phase 29 (SAGAS-01 / D-02): full field set with
+  model_validator enforcing kind-specific constraints.
 - ``load_intent`` mirrors ``load_config`` verbatim (YAML(typ="safe") + try/except
   wrapping all errors into ConfigError) — the same operator mental model.
 """
@@ -16,8 +16,9 @@ Design decisions:
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
@@ -62,17 +63,43 @@ class ToolsConfig(BaseModel):
 
 
 class SagaEntry(BaseModel):
-    """A single saga declaration.
+    """A single saga declaration (Phase 29 locked schema — D-02).
 
-    Schema present-but-unexercised in P28 (D-05).
-    Phase 29 (SAGAS) will tighten the extra-key policy to forbid once the
-    full saga schema is locked.
+    kind=movies: tmdb_collection REQUIRED; profile + root REQUIRED; items ignored.
+    kind=series: items OPTIONAL (titles of member series); profile/root/tmdb_collection not used.
     """
 
-    # relaxed until P29 locks the schema — do NOT tighten here
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
-    name: str = Field(description="Saga name. Full schema locked in Phase 29 (SAGAS).")
+    name: str = Field(description="Saga display name; also the Jellyfin BoxSet name for series.")
+    kind: Literal["movies", "series"] = Field(description="Discriminator.")
+    tmdb_collection: int | None = Field(
+        default=None,
+        description="TMDB collection id. Required when kind=movies.",
+    )
+    profile: str = Field(
+        default="",
+        description="Radarr quality profile name. Required when kind=movies.",
+    )
+    root: str = Field(
+        default="",
+        description="Radarr root folder path. Required when kind=movies.",
+    )
+    items: list[str] | None = Field(
+        default=None,
+        description="Series titles for Jellyfin BoxSet membership. kind=series only.",
+    )
+
+    @model_validator(mode="after")
+    def check_kind_constraints(self) -> SagaEntry:
+        """Enforce kind=movies requires tmdb_collection, profile, and root."""
+        if self.kind == "movies" and self.tmdb_collection is None:
+            raise ValueError("tmdb_collection is required when kind=movies")
+        if self.kind == "movies" and not self.profile:
+            raise ValueError("profile is required when kind=movies")
+        if self.kind == "movies" and not self.root:
+            raise ValueError("root is required when kind=movies")
+        return self
 
 
 class IntentConfig(BaseModel):

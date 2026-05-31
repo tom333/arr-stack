@@ -45,17 +45,68 @@
       "type": "object"
     },
     "SagaEntry": {
-      "additionalProperties": true,
-      "description": "A single saga declaration.\n\nSchema present-but-unexercised in P28 (D-05).\nPhase 29 (SAGAS) will tighten the extra-key policy to forbid once the\nfull saga schema is locked.",
+      "additionalProperties": false,
+      "description": "A single saga declaration (Phase 29 locked schema \u2014 D-02).\n\nkind=movies: tmdb_collection REQUIRED; profile + root REQUIRED; items ignored.\nkind=series: items OPTIONAL (titles of member series); profile/root/tmdb_collection not used.",
       "properties": {
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Series titles for Jellyfin BoxSet membership. kind=series only.",
+          "title": "Items"
+        },
+        "kind": {
+          "description": "Discriminator.",
+          "enum": [
+            "movies",
+            "series"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
         "name": {
-          "description": "Saga name. Full schema locked in Phase 29 (SAGAS).",
+          "description": "Saga display name; also the Jellyfin BoxSet name for series.",
           "title": "Name",
           "type": "string"
+        },
+        "profile": {
+          "default": "",
+          "description": "Radarr quality profile name. Required when kind=movies.",
+          "title": "Profile",
+          "type": "string"
+        },
+        "root": {
+          "default": "",
+          "description": "Radarr root folder path. Required when kind=movies.",
+          "title": "Root",
+          "type": "string"
+        },
+        "tmdb_collection": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "TMDB collection id. Required when kind=movies.",
+          "title": "Tmdb Collection"
         }
       },
       "required": [
-        "name"
+        "name",
+        "kind"
       ],
       "title": "SagaEntry",
       "type": "object"
