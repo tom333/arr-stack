@@ -40,11 +40,14 @@ jobs:
       - name: Vendor app-template (Helm 4 multi-alias workaround)
         run: |
           helm dependency build charts/arr-stack/
-          # Unpack the single tarball so all 10 aliases find their chart copy.
+          # Unpack the single tarball so all 12 aliases find their chart copy.
           # Helm 4.x has a multi-alias-of-same-chart regression (issue #12748):
           # without unpacking, helm template fails with "found in Chart.yaml, but missing in charts/".
           tar -xzf charts/arr-stack/charts/app-template-5.0.0.tgz -C charts/arr-stack/charts/
           test -f charts/arr-stack/charts/app-template/Chart.yaml || { echo "Vendor failed"; exit 1; }
+          for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr cross-seed; do
+            [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
+          done
 
       - name: helm lint (with values.schema.json validation)
         run: |
@@ -105,7 +108,7 @@ jobs:
           fi
           echo "OK: repository_dispatch + workflow_dispatch triggers present"
 
-      - name: customManagers regex synthetic test (>= 10 matches in values.yaml)
+      - name: customManagers regex synthetic test (>= 12 matches in values.yaml)
         run: |
           python3 <<'PY'
           import json, re, sys
@@ -126,10 +129,10 @@ jobs:
                   matches = re.findall(py_pat, values)
                   total_matches += len(matches)
                   print(f'pattern matched {len(matches)} times: {pat!r}')
-          if total_matches < 10:
-              print(f'ERROR: expected >= 10 image matches, got {total_matches}')
+          if total_matches < 12:
+              print(f'ERROR: expected >= 12 image matches, got {total_matches}')
               sys.exit(1)
-          print(f'OK: {total_matches} image matches (>= 10 required)')
+          print(f'OK: {total_matches} image matches (>= 12 required)')
           PY
 
       - name: Set up Node 22 (renovate-config-validator requires node ^20.15 || ^22.11)
