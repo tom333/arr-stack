@@ -113,6 +113,6 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-- Next: `/gsd-plan-phase 24` — Jellyfin Intro Skipper
-- Note: confirm `POST /Packages/Installed` exact parameter format and `configarr --dry-run` flag availability during planning before coding begins
-- ADR-6: snapshot `snapshots/before-phase-24-$(date +%F)/` before any live Jellyfin write
+- v0.9.0 fully complete (4/4 phases, 13/13 plans). Phase 24 closed 2026-05-31 — 24-03 live operator verification: gating SC#1-4 PASS, Kodi SC#5 ACCEPT.
+- Next: `/gsd-complete-milestone` to archive v0.9.0, or start v0.10.0 scoping (intention-layer design already drafted in commit 5bdd7f2).
+- Carry-forward: ADR-6 before/after snapshots for Phase 24 were taken operator-side against the live cluster, not committed to this repo (documented deviation in 24-03-SUMMARY.md).
