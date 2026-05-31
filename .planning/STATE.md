@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
 status: executing
-last_updated: "2026-05-31T02:46:54.709Z"
-last_activity: 2026-05-31 -- Phase 28 planning complete
+last_updated: "2026-05-31T02:48:07.175Z"
+last_activity: 2026-05-31 -- Phase 28 execution started
 progress:
   total_phases: 4
   completed_phases: 0
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** v0.10.0 — Couche d'intention (tranche 1). Roadmap défini, prêt pour Phase 28.
+**Current focus:** Phase 28 — generate-foundation
 
 ## Current Position
 
-Phase: 28 (not started)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-31 -- Phase 28 planning complete
+Phase: 28 (generate-foundation) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 28
+Last activity: 2026-05-31 -- Phase 28 execution started
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]
