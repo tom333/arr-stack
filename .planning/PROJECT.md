@@ -45,6 +45,27 @@ v0.2.0 transition layer fully ripped out (generators are the only source); Sugge
 
 </details>
 
+## Current Milestone: v0.10.0 — Couche d'intention (méta-orchestrateur, tranche 1)
+
+**Goal:** Généraliser le pattern `categories[]` en une couche d'intention : `intent.yml` (seul fichier hand-edited) → `arrconf generate` (fonction pure) → configs verbeuses générées + committées → `apply`/configarr reconcile (inchangé). Livré par tranches (approche P2 incrémentale, pas de big-bang sur un prod qui marche). Design validé : [`v0.10.0-intention-layer-DESIGN.md`](v0.10.0-intention-layer-DESIGN.md) (commit `5bdd7f2`).
+
+**Target features (tranche 1):**
+
+- **REQ-intent-layer** — `intent.yml` + `arrconf generate` : sous-commande CLI qui transforme l'intention en configs verbeuses (`arrconf.yml`, `configarr.yml`, `qbit_manage/config.yml`, `cross-seed/config.js`), réutilise les générateurs purs `generators/`, garde-fou CI idempotence (`generate && git diff --exit-code`). Modèle G1 : local + committé.
+- **REQ-sagas** — bloc `sagas` dans `intent.yml` → nouveau reconciler Radarr Collections (GET-match-`tmdbId` / PUT idempotent) + plugin Jellyfin `tmdbboxsets`. Sagas séries = présentation Jellyfin only (tag arrconf + BoxSet curé ; Sonarr sans collections).
+- **REQ-cross-seed** — bloc `tools.cross_seed` → `config.js` généré + alias Helm `app-template` (consolidation d'un cross-seed déjà hors-stack).
+- **REQ-qbit-manage** — bloc `tools.qbit_manage` → `config.yml` généré + alias Helm (share_limits/ratio, recyclebin, tracker_tags, orphaned ; `cat_update: False` impératif — arrconf possède les catégories qBit).
+- **REQ-intent-boundary-adr** — nouvel ADR : couche d'intention + frontière *absorber (générer la config) vs déployer seulement (DB/UI-only)*.
+
+**Key context:**
+
+- **ADR-1** (custom Python vs IaC) **tient** ; **ADR-5** (frontière configarr) **tient + étendu** : la couche intention se place *au-dessus* d'arrconf ET configarr ; configarr reste seul à apply TRaSH.
+- **Génération G1** : `arrconf generate` en local, YAML/JS générés committés (read-only), CI vérifie l'idempotence. G2 (in-cluster, perd diff Git/ADR-6) et G3 (commits auto, bruit auto-tagger) rejetés.
+- **Hors tranche 1 → v0.10.x / v0.11** : UI-sur-intention ; `configarr.yml` (CF/QP) généré depuis l'intention ; autobrr ; transcodage (Tdarr/FileFlows non-OSS, différés).
+- **SEED-002** (évaluer autobrr / Tdarr / decluttarr) résolu par le design §4 : autobrr ⏸️ différé, Tdarr/FileFlows ⏸️ différés (non-OSS), decluttarr ❌ rejeté (cleanuparr = sur-ensemble). Pas de req dédiée.
+- **Phase numbering** : continue depuis Phase 27 (v0.9.0) → v0.10.0 démarre **Phase 28**.
+- **5 questions ouvertes** (design §6, à résoudre en discuss/spec) : schéma `intent.yml` ; sagas séries OK ? ; migration cross-seed + `linkDirs` ; politique ratio qbit_manage ; `arrconf generate` CLI (ordre vs apply, garde-fou CI).
+
 ## Last Milestone: v0.9.0 — configarr-in-UI + Jellyfin skip-intro (shipped 2026-05-31)
 
 **Goal (achieved):** Étendre l'UX opérateur (édition de `configarr.yml` depuis `arrconf-ui`, profils + custom formats pré-mâchés depuis TRaSH-Guides + Recyclarr) et l'UX de visionnage (skip-intro / crédits + chapter markers sur Jellyfin). 4/4 phases, 13/13 plans, 13/13 requirements validés. Détail : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMAP.md). Next: `/gsd-new-milestone` (v0.10.0 intention-layer ébauché, commit `5bdd7f2`).
@@ -131,12 +152,17 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 
 ### Active
 
-<!-- Scoped for v0.7.0+ — to be refined via /gsd-new-milestone v0.7.0. -->
+<!-- Scoped for v0.10.0 — tranche 1 of the intention layer. Full set + REQ-IDs in REQUIREMENTS.md. -->
+
+- [ ] **REQ-intent-layer** — `intent.yml` + `arrconf generate` (fonction pure → configs verbeuses committées, CI idempotence guard).
+- [ ] **REQ-sagas** — Radarr Collections reconciler (PUT par `tmdbId`) + Jellyfin `tmdbboxsets` depuis `sagas` dans `intent.yml`.
+- [ ] **REQ-cross-seed** — `config.js` généré + alias Helm (consolidation hors-stack).
+- [ ] **REQ-qbit-manage** — `config.yml` généré + alias Helm (`cat_update: False` impératif).
+- [ ] **REQ-intent-boundary-adr** — ADR couche d'intention + frontière absorber vs déployer.
 
 <details>
-<summary>Carry-forward to v0.7.0+</summary>
+<summary>Carry-forward (pre-v0.10.0)</summary>
 
-- [ ] **REQ-config-ui-multi-config** — configarr.yml editing in same UI (ADR-5 frontière re-check needed).
 - [ ] **REQ-suggestarr-ingress** — SuggestArr ingress + auto-submit (currently port-forward + manual approval).
 - [ ] **REQ-auto-tag-rescue-automation** — NEW: standardize chart-pin co-bump rescue as a post-push hook or phase-final step. v0.5.0 + v0.6.0 both required manual rescue; third recurrence would justify automation.
 </details>
@@ -295,4 +321,11 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-05-31 — v0.10.0 milestone started (Couche d'intention, tranche 1). Scope from validated design `v0.10.0-intention-layer-DESIGN.md` (commit `5bdd7f2`): `intent.yml` + `arrconf generate` → sagas (Radarr Collections + Jellyfin tmdbboxsets), cross-seed, qbit_manage. ADR-1/ADR-5 hold; new intent-boundary ADR pending. SEED-002 resolved by design §4. Phase numbering continues → Phase 28. Research skipped (design §4/§7 covers it). Next: define REQUIREMENTS.md → roadmap.*
+
+<details>
+<summary>Previous footer — v0.9.0</summary>
+
 *Last updated: 2026-05-31 — v0.9.0 in progress. Phase 27 (TRaSH CF picker + Recyclarr reference + QP picker) complete: build-time-baked TRaSH/Recyclarr catalog (pinned SHAs, no runtime GitHub HTTP), 3 read-only `/api/trash/*` endpoints, TRaSH CF picker (multi-id-safe, custom/unknown classification, verbatim-preserve), append-only QP picker (collision-blocked), read-only Recyclarr reference. CFGUI-05/06/08 validated; 2 code-review blockers (multi-id CF handling, QP min_format_score) fixed pre-completion. 2 HUMAN-UAT items pending (QP collision normalization, QP live-save mapping). **Phase 24 (Jellyfin Intro Skipper) now complete (3/3)** — 24-03 live operator verification closed 2026-05-31: gating SC#1-4 PASS (repo registered, plugin Active post-restart with single intro-skipper.org repo, web skip-intro/credits button, EnableChapterImageExtraction on all 10 libs), and non-gating Kodi SC#5 = **ACCEPT** (service.jellyskip works on the LibreELEC salon box + Jellyfin 10.11.8). JFSKIP-01..05 Complete. v0.9.0 milestone fully complete (4/4 phases, 13/13 plans).*
+
+</details>
