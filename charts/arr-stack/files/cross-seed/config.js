@@ -9,6 +9,9 @@ module.exports = {
 		"qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
 	],
 	"torznab": [
-		"http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=${PROWLARR_API_KEY}"
+		"http://prowlarr.selfhost.svc.cluster.local:9696/2/api?apikey=${PROWLARR_API_KEY}",
+		"http://prowlarr.selfhost.svc.cluster.local:9696/5/api?apikey=${PROWLARR_API_KEY}",
+		"http://prowlarr.selfhost.svc.cluster.local:9696/6/api?apikey=${PROWLARR_API_KEY}",
+		"http://prowlarr.selfhost.svc.cluster.local:9696/7/api?apikey=${PROWLARR_API_KEY}"
 	]
 };

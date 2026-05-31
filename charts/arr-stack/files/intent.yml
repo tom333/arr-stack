@@ -4,7 +4,14 @@
 tools:
   cross_seed:
     torznab:
-      - "http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=${PROWLARR_API_KEY}"
+      # Prowlarr per-indexer torznab feeds. Only currently-working torrent indexers
+      # wired (caps HTTP 200): C411=2, Torrent9=5, World-torrent=6, Torr9=7.
+      # Excluded: NorTorrent=1 + ZkTorrent=3 (Prowlarr auto-disabled on failures) —
+      # re-add their /N/api URLs here if they recover.
+      - "http://prowlarr.selfhost.svc.cluster.local:9696/2/api?apikey=${PROWLARR_API_KEY}"
+      - "http://prowlarr.selfhost.svc.cluster.local:9696/5/api?apikey=${PROWLARR_API_KEY}"
+      - "http://prowlarr.selfhost.svc.cluster.local:9696/6/api?apikey=${PROWLARR_API_KEY}"
+      - "http://prowlarr.selfhost.svc.cluster.local:9696/7/api?apikey=${PROWLARR_API_KEY}"
     torrent_clients:
       - "qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
     link_dirs:
