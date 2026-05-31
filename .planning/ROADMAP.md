@@ -186,7 +186,7 @@ Plans:
   3. L'instance cross-seed précédemment hors-stack est remplacée par l'alias Helm `app-template` dans `charts/arr-stack/` — un seul ArgoCD sync suffit à déployer la version consolidée
 **Plans**: 3 plans
 - [x] 30-01-PLAN.md — token-distinct intent.yml + regen config.js + test + arrconf co-bump 0.19.1 (XSEED-01/02) [wave 1]
-- [ ] 30-02-PLAN.md — Chart.yaml 12th alias + cross-seed-configmap.yaml + values.yaml block w/ initContainer secret injection (XSEED-03) [wave 2, depends 01]
+- [x] 30-02-PLAN.md — Chart.yaml 12th alias + cross-seed-configmap.yaml + values.yaml block w/ initContainer secret injection (XSEED-03) [wave 2, depends 01]
 - [ ] 30-03-PLAN.md — chart-lint.yml alias unpack + image-count guard + README loop + operator runbook (XSEED-03) [wave 3, depends 02]
 
 ### Phase 31: qbit_manage
@@ -205,7 +205,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 4/4 | Complete    | 2026-05-31 |
-| 30. cross-seed | 1/3 | In Progress|  |
+| 30. cross-seed | 2/3 | In Progress|  |
 | 31. qbit_manage | 0/TBD | Not started | - |
 
 ## Historical Progress
