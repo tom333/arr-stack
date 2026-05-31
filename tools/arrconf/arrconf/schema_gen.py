@@ -1,4 +1,4 @@
-"""Generate JSON Schema (Draft 2020-12) from RootConfig for VS Code autocomplete."""
+"""Generate JSON Schema (Draft 2020-12) from RootConfig / IntentConfig for VS Code autocomplete."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Any, Literal
 from pydantic.json_schema import GenerateJsonSchema
 
 from arrconf.config import RootConfig
+from arrconf.intent_config import IntentConfig
 
 
 class Draft202012Generator(GenerateJsonSchema):
@@ -30,4 +31,10 @@ class Draft202012Generator(GenerateJsonSchema):
 def write_schema(output_path: Path) -> None:
     """Write JSON Schema reproducibly (sort_keys=True for D-15 git diff check)."""
     schema = RootConfig.model_json_schema(schema_generator=Draft202012Generator)
+    output_path.write_text(json.dumps(schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def write_intent_schema(output_path: Path) -> None:
+    """Write IntentConfig JSON Schema reproducibly (sort_keys=True for INTENT-01 git diff check)."""
+    schema = IntentConfig.model_json_schema(schema_generator=Draft202012Generator)
     output_path.write_text(json.dumps(schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
