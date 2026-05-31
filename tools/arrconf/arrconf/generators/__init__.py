@@ -1,7 +1,12 @@
-"""Phase 10 generator module — Categories→per-app resource expansion (D-01).
+"""Generator module — pure-function resource expansion.
 
-Public API: pure-function generators that take RootConfig and produce typed
-lists of per-app resources. No I/O, no client calls.
+Phase 10 (D-01): Categories → per-app resource lists (qBittorrent, Sonarr,
+Radarr, Jellyfin, Seerr animeTags).
+
+Phase 28 (INTENT-02): CrossSeedConfig → config.js JS literal (D-03 proving
+slice — demonstrates the generator framework supports non-YAML output formats).
+
+Public API: pure functions only. No I/O, no client calls.
 """
 
 from arrconf.generators.categories import (
@@ -13,11 +18,13 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
+from arrconf.generators.intent import generate_cross_seed
 
 __all__ = [
     "RadarrDerived",
     "SonarrDerived",
     "generate_anime_tag_labels",
+    "generate_cross_seed",
     "generate_jellyfin_libraries",
     "generate_qbit_categories",
     "generate_radarr_resources",
