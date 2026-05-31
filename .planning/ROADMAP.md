@@ -165,10 +165,15 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
   4. Les sagas de séries (Sonarr sans Collections) sont présentées dans Jellyfin via tag `arrconf-managed` + BoxSet curé — la présentation Jellyfin est la seule automation, sans reconciler Sonarr-style
 **Plans**: 4 plans
 Plans:
+**Wave 1**
 - [ ] 29-01-PLAN.md — SagaEntry schema lock (extra=forbid) + generators/sagas.py + `--intent` apply wiring (SAGAS-01) [wave 1, co-bump 0.19.0]
-- [ ] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
-- [ ] 29-03-PLAN.md — Jellyfin series BoxSets (GET-before-POST) + Sonarr arrconf-managed tag + apply branch (SAGAS-04) [wave 3, co-bump]
 - [ ] 29-04-PLAN.md — tmdbboxsets plugin entry in arrconf.yml (two-run install, ADR-9) (SAGAS-03) [wave 1, no co-bump — arrconf.yml-only]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 29-03-PLAN.md — Jellyfin series BoxSets (GET-before-POST) + Sonarr arrconf-managed tag + apply branch (SAGAS-04) [wave 3, co-bump]
 **UI hint**: yes
 
 ### Phase 30: cross-seed

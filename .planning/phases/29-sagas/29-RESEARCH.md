@@ -710,22 +710,20 @@ def apply(ctx, apps, dry_run):
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All three are resolved for planning. A1/A2 carry a live-cluster confirmation step (baked into the plan actions as "mirror the cluster value", never a hardcoded guess); A3 is resolved by design.
 
 1. **minimumAvailability casing in Radarr JSON responses**
    - What we know: C# enum `MovieStatusType` has values `tba`, `announced`, `inCinemas`, `released`, `deleted` (from codebase).
-   - What's unclear: JSON serialization casing in the actual Radarr v3 API response (camelCase vs PascalCase).
-   - Recommendation: Read the value from the `GET /api/v3/collection` response in the first reconciler run and match it. Default to `"released"` in the generator. Validate against live cluster during Phase 29 testing.
+   - RESOLVED: Do NOT hardcode casing — the reconciler PUTs `body = dict(cluster); body.update(desired)`, so the cluster's own enum casing is preserved verbatim for every non-overridden field. Generator default `"released"`. Plan 29-02 implements this cluster-mirroring; live confirmation is a test-time observation, not a planning blocker.
 
 2. **`POST /Collections/{id}/Items` IDs format**
-   - What we know: Jellyfin Guid type, comma-delimited in `ids` query param (from controller signature `Guid[] ids`).
-   - What's unclear: Whether Python `str(uuid4_obj)` in standard format (`8-4-4-4-12`) is accepted without braces.
-   - Recommendation: Use lowercase UUID string format (Python `str(guid)`) — matches Jellyfin's internal format. Confirm in first live test.
+   - What we know: Jellyfin `Guid[] ids`, comma-delimited query param (controller signature).
+   - RESOLVED: Use the `Id` string exactly as returned by `GET /Items` (Jellyfin returns lowercase `8-4-4-4-12` UUIDs) — no reformatting, no braces. Plan 29-03 passes the API-returned `Id` verbatim. Source-verified via CollectionController.cs; live confirmation recommended pre-merge but non-blocking.
 
 3. **Sonarr arrconf-managed tag for series sagas: which reconciler step?**
-   - What we know: `_ensure_managed_tag` exists in both Sonarr and Radarr reconcilers. The series saga Sonarr tagging adds the `arrconf-managed` tag to specific series (not bulk).
-   - What's unclear: Whether to add saga series tagging inside `reconcile_sonarr` (after loading intent) or in the Jellyfin saga branch (after BoxSet creation).
-   - Recommendation: Add as a sub-step inside the Jellyfin saga branch in `__main__.py` (after BoxSet creation but using the Sonarr client constructed earlier). Keeps saga-related operations together. Tag only if `"sonarr" in targets` and sonarr client is available.
+   - RESOLVED: Sub-step inside the Jellyfin saga branch in `__main__.py` (after BoxSet creation), using the Sonarr client; guarded on `"sonarr" in targets and settings.sonarr_api_key`. Keeps saga operations together. Plan 29-03 implements this with the full GET /series → PUT /series/editor tagging pattern (mirror `_reconcile_series_tags`).
 
 ---
 
