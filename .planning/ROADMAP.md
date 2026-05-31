@@ -197,7 +197,12 @@ Plans:
   1. L'opérateur déclare `tools.qbit_manage` (share_limits/ratio, recyclebin, tracker_tags, orphaned) dans `intent.yml` — `arrconf generate` émet un `qbit_manage/config.yml` avec `cat_update: False` et `cat: {}` imposés inconditionnellement
   2. qbit_manage s'exécute en CronJob et applique les share_limits/recyclebin/tracker_tags configurés sans toucher aux catégories qBit (propriété exclusive d'arrconf) — pas de conflit d'écriture observable
   3. L'alias Helm `app-template` CronJob est opérationnel dans `charts/arr-stack/` avec la config.yml montée ; un `arrconf apply` + ArgoCD sync suffit pour déployer qbit_manage
-**Plans**: TBD
+**Plans**: 2 plans
+**Wave 1**
+- [ ] 31-01-PLAN.md — QbitManageConfig schema + generate_qbit_manage() + generate CLI dispatch + tests + seed intent.yml + generated config.yml + intent-schema regen + arrconf co-bump 0.19.1→0.19.2 (QBM-01, QBM-02) [wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 31-02-PLAN.md — 13th Helm alias (Chart.yaml + values.yaml CronJob) + qbit-manage-configmap.yaml + chart-lint.yml unpack-loop & annotation-guard 12→14 + README (QBM-03) [wave 2, depends 01]
 
 ## Progress Table
 
@@ -206,7 +211,7 @@ Plans:
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 4/4 | Complete    | 2026-05-31 |
 | 30. cross-seed | 3/3 | Complete    | 2026-05-31 |
-| 31. qbit_manage | 0/TBD | Not started | - |
+| 31. qbit_manage | 0/2 | Planned | - |
 
 ## Historical Progress
 
