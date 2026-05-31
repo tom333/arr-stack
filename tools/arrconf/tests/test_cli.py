@@ -26,11 +26,11 @@ def _strip_ansi(s: str) -> str:
     return _ANSI_RE.sub("", s)
 
 
-def test_help_lists_four_subcommands() -> None:
+def test_help_lists_subcommands() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     plain = _strip_ansi(result.stdout)
-    for cmd in ["apply", "dump", "diff", "schema-gen"]:
+    for cmd in ["apply", "dump", "diff", "schema-gen", "generate"]:
         assert cmd in plain, f"Missing subcommand {cmd} in --help output"
 
 

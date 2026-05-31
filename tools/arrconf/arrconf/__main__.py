@@ -33,6 +33,8 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
+from arrconf.generators.intent import generate_cross_seed
+from arrconf.intent_config import load_intent
 from arrconf.logging import configure_logging
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
@@ -848,6 +850,55 @@ def intent_schema_gen_cmd(
     write_intent_schema(output)
     log.info("intent_schema_written", path=str(output))
     raise typer.Exit(code=0)
+
+
+@app.command()
+def generate(
+    intent: Path = typer.Option(
+        Path("charts/arr-stack/files/intent.yml"),
+        "--intent",
+        "-i",
+        help="Path to intent.yml (hand-edited source of truth).",
+    ),
+    output_dir: Path = typer.Option(
+        Path("charts/arr-stack/files/"),
+        "--output-dir",
+        "-o",
+        help="Directory for generated output files (co-located with arrconf.yml).",
+    ),
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Verify committed files match intent; exit 1 on drift (CI mode).",
+    ),
+) -> None:
+    """Generate committed configs from intent.yml.
+
+    Use --check in CI (INTENT-02/INTENT-03, D-06/D-07).
+    """
+    log = structlog.get_logger()
+    try:
+        intent_cfg = load_intent(intent)
+    except ConfigError as e:
+        log.error("intent_config_error", error=str(e))
+        raise typer.Exit(code=2) from e
+
+    drift = False
+    if intent_cfg.tools.cross_seed is not None:
+        rendered = generate_cross_seed(intent_cfg.tools.cross_seed)
+        target = output_dir / "cross-seed" / "config.js"
+        if check:
+            if not target.exists() or target.read_text(encoding="utf-8") != rendered:
+                log.error("generate_drift", file=str(target))
+                drift = True
+            else:
+                log.info("generate_ok", file=str(target))
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(rendered, encoding="utf-8")
+            log.info("generate_written", file=str(target))
+
+    raise typer.Exit(code=1 if drift else 0)
 
 
 if __name__ == "__main__":
