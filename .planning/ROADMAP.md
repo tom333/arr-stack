@@ -166,8 +166,8 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 **Plans**: 4 plans
 Plans:
 **Wave 1**
-- [ ] 29-01-PLAN.md — SagaEntry schema lock (extra=forbid) + generators/sagas.py + `--intent` apply wiring (SAGAS-01) [wave 1, co-bump 0.19.0]
-- [ ] 29-04-PLAN.md — tmdbboxsets plugin entry in arrconf.yml (two-run install, ADR-9) (SAGAS-03) [wave 1, no co-bump — arrconf.yml-only]
+- [x] 29-01-PLAN.md — SagaEntry schema lock (extra=forbid) + generators/sagas.py + `--intent` apply wiring (SAGAS-01) [wave 1, co-bump 0.19.0]
+- [x] 29-04-PLAN.md — tmdbboxsets plugin entry in arrconf.yml (two-run install, ADR-9) (SAGAS-03) [wave 1, no co-bump — arrconf.yml-only]
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
@@ -201,7 +201,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
-| 29. Sagas | 0/TBD | Not started | - |
+| 29. Sagas | 2/4 | In Progress|  |
 | 30. cross-seed | 0/TBD | Not started | - |
 | 31. qbit_manage | 0/TBD | Not started | - |
 
