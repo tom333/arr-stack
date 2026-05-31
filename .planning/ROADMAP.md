@@ -133,7 +133,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 - [x] **Phase 28: Generate foundation** — `intent.yml` schema + `arrconf generate` CLI + CI idempotence guard + intent-boundary ADR (completed 2026-05-31)
 - [x] **Phase 29: Sagas** — Radarr Collections reconciler (tmdbId-matched) + Jellyfin tmdbboxsets plugin depuis `sagas` dans `intent.yml` (completed 2026-05-31)
 - [x] **Phase 30: cross-seed** — `cross-seed/config.js` généré + alias Helm app-template (consolidation hors-stack) (completed 2026-05-31)
-- [ ] **Phase 31: qbit_manage** — `qbit_manage/config.yml` généré (`cat_update: False`) + alias Helm CronJob
+- [x] **Phase 31: qbit_manage** — `qbit_manage/config.yml` généré (`cat_update: False`) + alias Helm CronJob (completed 2026-05-31)
 
 ## Phase Details
 
@@ -202,7 +202,7 @@ Plans:
 - [x] 31-01-PLAN.md — QbitManageConfig schema + generate_qbit_manage() + generate CLI dispatch + tests + seed intent.yml + generated config.yml + intent-schema regen + arrconf co-bump 0.19.1→0.20.0 (minor, new feature) (QBM-01, QBM-02) [wave 1]
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 31-02-PLAN.md — 13th Helm alias (Chart.yaml + values.yaml CronJob) + qbit-manage-configmap.yaml + chart-lint.yml unpack-loop & annotation-guard 12→14 + README (QBM-03) [wave 2, depends 01]
+- [x] 31-02-PLAN.md — 13th Helm alias (Chart.yaml + values.yaml CronJob) + qbit-manage-configmap.yaml + chart-lint.yml unpack-loop & annotation-guard 12→14 + README (QBM-03) [wave 2, depends 01]
 
 ## Progress Table
 
@@ -211,7 +211,7 @@ Plans:
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 4/4 | Complete    | 2026-05-31 |
 | 30. cross-seed | 3/3 | Complete    | 2026-05-31 |
-| 31. qbit_manage | 1/2 | In Progress|  |
+| 31. qbit_manage | 2/2 | Complete   | 2026-05-31 |
 
 ## Historical Progress
 
