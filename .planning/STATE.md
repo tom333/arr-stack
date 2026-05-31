@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
-status: planning
-last_updated: "2026-05-31T01:23:32.679Z"
+status: roadmapped
+last_updated: "2026-05-31"
 last_activity: 2026-05-31
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,60 +21,67 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Planning next milestone (v0.9.0 shipped + archived 2026-05-31)
+**Current focus:** v0.10.0 — Couche d'intention (tranche 1). Roadmap défini, prêt pour Phase 28.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 28 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-31 — Milestone v0.10.0 started
+Status: Roadmap defined — awaiting `/gsd-plan-phase 28`
+Last activity: 2026-05-31 — Roadmap v0.10.0 created (Phases 28-31)
+
+```
+[Phase 28] [Phase 29] [Phase 30] [Phase 31]
+  ░░░░░░░    ░░░░░░░    ░░░░░░░    ░░░░░░░    0 % complete
+```
 
 ## Accumulated Context
 
 ### Decisions
 
-Quick reference to 8 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block):
+Quick reference to 9 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block):
 
-- **ADR-1** Script Python custom (vs Buildarr/Terraform/Flemmarr)
+- **ADR-1** Script Python custom (vs Buildarr/Terraform/Flemmarr) — tient pour v0.10.0
 - **ADR-2** Helm dependencies sur app-template (Option A)
 - **ADR-3** Image arrconf sur GHCR public
 - **ADR-4** Repo séparé (vs extension my-kluster)
-- **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming) — CRITIQUE pour Phases 25-27: `ConfigarrRootConfig` vit dans `tools/arrconf-ui/` UNIQUEMENT, jamais dans `tools/arrconf/`; aucune URL API *arr dans arrconf-ui
-- **ADR-6** Snapshot baseline avant toute écriture — applicable Phase 24 (live Jellyfin writes)
+- **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming) — étendu par v0.10.0 : la couche intention se place AU-DESSUS d'arrconf ET configarr ; configarr reste seul appliqueur TRaSH
+- **ADR-6** Snapshot baseline avant toute écriture — CRITIQUE Phase 29 (sagas touche Radarr/Jellyfin live)
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
-- **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3, NOT qBit/Jellyfin)
+- **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3)
+- **ADR-9** Jellyfin plugin reconciler install-capable (two-run model) — réutilisé Phase 29 pour tmdbboxsets
 
-v0.8.0 decisions captured Phases 20-22: ambiguous-item mapping (P20), DC catch-all full-prune vs `unsorted` fallback → **full prune chosen** (P22 ADR-PLAN-SPLIT D-01).
+**ADR-nouveau (à rédiger Phase 28):** couche d'intention + frontière "absorber vs déployer" (extension ADR-5).
 
-### v0.9.0 Phase 27 Decisions (2026-05-31)
+### v0.10.0 Roadmap Decisions (2026-05-31)
 
-- **QP field mapping confirmed (27-04):** `upgrade.until_quality == TRaSH cutoff`, `qualities[]` reflects `items[allowed!=false]` in baked Feb-2026 order — MEDIUM confidence per research; operator-verified correct in human checkpoint (no discrepancy found)
-- **Recyclarr picker write-freeze locked:** RecyclarrReferencePicker has zero `onChange`/`include:` — clipboard copy of template id is the only action; `include:` insertion deferred to v1.x (merge-hazard with 6 hand-rolled French CFs)
+- **Phase ordering:** Phase 28 (generate foundation) est le prérequis bloquant de toutes les autres. Phases 29, 30, 31 sont indépendantes entre elles une fois Phase 28 complète — elles peuvent être planifiées/exécutées dans cet ordre logique (complexité décroissante : sagas = plus risqué, cross-seed et qbit_manage = chart-only, pas de co-bump arrconf image).
+- **Co-bump constraint Phase 28:** `arrconf generate` est du code Python dans `tools/arrconf/**` → MUST co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` dans le même commit.
+- **Co-bump constraint Phase 29:** nouveau reconciler Radarr Collections = code Python → MUST co-bump arrconf image tag.
+- **No co-bump Phases 30-31:** cross-seed et qbit_manage = Helm aliases + ConfigMaps uniquement (générateurs purs dans arrconf, mais pas de nouveau reconciler) — si les générateurs sont dans `tools/arrconf/**`, co-bump REQUIS. À clarifier en discuss-phase : si `arrconf generate` code est dans Phase 28 et les générateurs cross-seed/qbit_manage sont ajoutés dans Phase 28, Phases 30-31 n'ajoutent que le Helm. Sinon co-bump si nouvel arrconf code.
+- **ADR-6 Phase 29:** snapshot raw obligatoire AVANT le premier test live cluster sagas (nouveau reconciler Radarr Collections + plugin Jellyfin).
+- **5 questions ouvertes design §6** à résoudre en discuss-phase avant Phase 28 : schéma `intent.yml`, sagas séries validation, cross-seed migration + linkDirs, ratio policy qbit_manage, `arrconf generate` CLI guard.
 
-### v0.9.0 Roadmap Decisions (2026-05-27)
+### v0.9.0 Phase 27 Decisions (carry-forward)
 
-- **Phase ordering:** Phase 24 (Jellyfin) first — smaller scope, validates live Jellyfin plugin API before UI work; Phases 25-27 are a strict dependency chain (backend → frontend → pickers)
-- **Phase 24 and Phase 25 are independently parallelizable** — no code dependency between the arrconf Python reconciler and the arrconf-ui pydantic model; documented for planning
-- **Kodi non-gating:** Phase 24 success criteria gate on web/app/Swiftfin; Kodi spike result documented but does NOT block phase completion
-- **CFGUI-06 scope boundary:** Recyclarr template picker is READ-ONLY reference (no `include:` insertion) — enforced in Phase 27 UI; deferring insert to v1.x due to merge-hazard with 6 hand-rolled French CFs
-- **co-bump constraint:** Phase 24 touches `tools/arrconf/**` → MUST co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` in the same commit. Phases 25-27 touch only `tools/arrconf-ui/**` → NO arrconf image co-bump, no chart auto-tag trigger
+- **QP field mapping confirmed (27-04):** `upgrade.until_quality == TRaSH cutoff`, `qualities[]` reflects `items[allowed!=false]` in baked Feb-2026 order
+- **Recyclarr picker write-freeze locked:** RecyclarrReferencePicker = clipboard-only, zero `include:` insertion
 
 ### Blockers/Concerns
 
-None blocking. Carry-forward from v0.8.0:
+None blocking. Notes for Phase 28 planning:
 
-- Phase 22 `force_prune=true` live DELETE path never exercised (surgical deletes used) — re-verify before `prune:true` in `arrconf.yml`. Not relevant to v0.9.0 scope.
-- `POST /Packages/Installed` exact parameter format against live Jellyfin 10.11.8 is MEDIUM confidence — must be confirmed during Phase 24 planning/early implementation.
-- configarr `--dry-run` flag availability in v1.28.0 must be confirmed before adding to CI gate in Phase 25.
+- **5 open design questions** (design §6) must be resolved in discuss-phase before Phase 28 coding — especially `intent.yml` schema cohabitation with `categories[]` (same file or separate?) and the `arrconf generate` CLI guard mechanism.
+- **Phase 29 medium-confidence items**: exact Radarr `/api/v3/collection` PUT parameter format (GET-match tmdbId confirmed in design sources) ; `tmdbboxsets` plugin GUID/version to pin for ADR-9 install model.
+- **Phase 30 cross-seed migration**: instance already running out-of-stack — consolidation must not lose the existing `linkDirs` volume config. Clarify in discuss-phase.
 
 ### Pending Todos
 
-- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook déjà dans CLAUDE.md. Découvert Phase 23 UAT SC#5 (partial 7/10). Tâche opérateur manuelle, hors v0.9.0.
+- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook dans CLAUDE.md. Tâche opérateur manuelle, hors v0.10.0.
 
 ## Deferred Items
 
-Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may be re-evaluated for v0.9.0+:
+Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.10.0 scope:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
@@ -85,8 +92,6 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 | upgrade_check | D-07-PLAYLIST-MGMT-NULL re-verify on Jellyfin 11.x upgrade | watch-only | v0.3.0 close (2026-05-22) |
 
 ### Acknowledged at v0.8.0 close (2026-05-27)
-
-8 open artifact-audit items acknowledged and deferred at milestone close (audit = `tech_debt`, no blockers — see `v0.8.0-MILESTONE-AUDIT.md`):
 
 | Category | Item | Status |
 |----------|------|--------|
@@ -101,15 +106,13 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ### Acknowledged at v0.9.0 close (2026-05-31)
 
-5 open artifact-audit items acknowledged and deferred at milestone close (no formal milestone audit run; all items previously accepted, no blockers):
-
 | Category | Item | Status |
 |----------|------|--------|
 | uat_gap | phase-27 27-HUMAN-UAT.md — 2 pending scenarios (QP collision normalization, QP live-save mapping) | partial — code complete, operator UAT pending |
 | verification_gap | phase-27 27-VERIFICATION.md human_needed (UAT-driven) | human_needed — code complete |
 | quick_task | 260527-jfk autoTMM reconcile (artifact status `missing`) | DONE (commit df280f8) — artifact frontmatter only (carry-forward from v0.8.0) |
 | todo | 2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0 (ops) | pending — manual operator task (runbook in CLAUDE.md) |
-| seed | SEED-002-stack-tools-evaluation | dormant — évaluer 3 outils media stack (idea, no commitment) |
+| seed | SEED-002-stack-tools-evaluation | resolved by v0.10.0 design §4 — autobrr deferred, Tdarr/FileFlows rejected non-OSS, decluttarr rejected |
 
 ## Quick Tasks Completed
 
@@ -120,4 +123,5 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.8.0 scope, may b
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run `/gsd-plan-phase 28` to start planning Phase 28 (Generate foundation)
+- Before Phase 28 discuss: resolve the 5 open design questions (design §6) — especially `intent.yml` schema and `arrconf generate` CLI guard

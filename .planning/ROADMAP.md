@@ -9,6 +9,7 @@
 - ✅ **v0.6.0 arrconf observability — 4xx body logging** — Phase 19 (shipped 2026-05-25 via /gsd-quick 260525-bj5)
 - ✅ **v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** — Phases 20-23 (shipped 2026-05-27)
 - ✅ **v0.9.0 configarr-in-UI + Jellyfin skip-intro** — Phases 24-27 (shipped 2026-05-31)
+- 🔄 **v0.10.0 Couche d'intention (tranche 1)** — Phases 28-31 (in progress)
 
 ## Phases
 
@@ -127,6 +128,67 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 
 </details>
 
+### v0.10.0 — Couche d'intention (tranche 1)
+
+- [ ] **Phase 28: Generate foundation** — `intent.yml` schema + `arrconf generate` CLI + CI idempotence guard + intent-boundary ADR
+- [ ] **Phase 29: Sagas** — Radarr Collections reconciler (tmdbId-matched) + Jellyfin tmdbboxsets plugin depuis `sagas` dans `intent.yml`
+- [ ] **Phase 30: cross-seed** — `cross-seed/config.js` généré + alias Helm app-template (consolidation hors-stack)
+- [ ] **Phase 31: qbit_manage** — `qbit_manage/config.yml` généré (`cat_update: False`) + alias Helm CronJob
+
+## Phase Details
+
+### Phase 28: Generate foundation
+**Goal**: L'opérateur édite un seul `intent.yml` et `arrconf generate` transforme l'intention en configs verbeuses committées, avec un garde-fou CI qui bloque tout drift
+**Depends on**: Nothing (first phase of this milestone)
+**Requirements**: INTENT-01, INTENT-02, INTENT-03, INTENT-04
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur crée ou modifie `intent.yml` — c'est le seul fichier hand-edited ; `arrconf.yml`, `configarr.yml`, `qbit_manage/config.yml`, `cross-seed/config.js` sont tous marqués read-only (commentaire en tête) et jamais modifiés à la main
+  2. `arrconf generate` exécuté localement produit les 4 configs cibles identiques au run précédent (idempotence de la fonction pure) ; les générateurs réutilisent le pattern `arrconf/generators/` existant sans réinvention
+  3. La CI échoue sur une PR où les configs committées divergent de l'intention (`arrconf generate && git diff --exit-code` non-zéro) — drift détecté avant merge
+  4. Un nouvel ADR documenté dans `.planning/` formalise la couche d'intention, la frontière "absorber vs déployer", et l'extension d'ADR-5 (configarr reste seul appliqueur TRaSH)
+**Plans**: TBD
+
+### Phase 29: Sagas
+**Goal**: L'opérateur déclare des sagas dans `intent.yml` et les voit réconciliées automatiquement dans Radarr (Collections par tmdbId) et présentées dans Jellyfin (BoxSets via tmdbboxsets)
+**Depends on**: Phase 28
+**Requirements**: SAGAS-01, SAGAS-02, SAGAS-03, SAGAS-04
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur ajoute une entrée `sagas: [{name, tmdb_collection, profile, root}]` dans `intent.yml` — `arrconf generate` émet la configuration Radarr Collections correspondante dans `arrconf.yml`
+  2. `arrconf apply` réconcilie les Radarr Collections : GET de l'état courant, match par `tmdbId`, PUT uniquement si drift — idempotent (2e run = 0 plan_actions)
+  3. Le plugin Jellyfin `tmdbboxsets` est installé et activé via le two-run model ADR-9 (Run N = install queued + hint `kubectl rollout restart`, Run N+1 = plugin actif + BoxSets visibles dans Jellyfin)
+  4. Les sagas de séries (Sonarr sans Collections) sont présentées dans Jellyfin via tag `arrconf-managed` + BoxSet curé — la présentation Jellyfin est la seule automation, sans reconciler Sonarr-style
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 30: cross-seed
+**Goal**: cross-seed est consolidé dans l'umbrella chart avec sa config entièrement générée depuis `intent.yml`, remplaçant l'instance hors-stack existante
+**Depends on**: Phase 28
+**Requirements**: XSEED-01, XSEED-02, XSEED-03
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur déclare `tools.cross_seed` (torznab URLs, link policy) dans `intent.yml` — `arrconf generate` émet un `cross-seed/config.js` valide avec la syntaxe `module.exports = {...}`
+  2. `cross-seed/config.js` généré est monté dans le pod cross-seed via ConfigMap ; cross-seed démarre et s'authentifie aux torznab configurés sans erreur
+  3. L'instance cross-seed précédemment hors-stack est remplacée par l'alias Helm `app-template` dans `charts/arr-stack/` — un seul ArgoCD sync suffit à déployer la version consolidée
+**Plans**: TBD
+
+### Phase 31: qbit_manage
+**Goal**: qbit_manage est déployé en CronJob avec sa config entièrement générée depuis `intent.yml`, sans jamais entrer en conflit avec arrconf sur la propriété des catégories qBit
+**Depends on**: Phase 28
+**Requirements**: QBM-01, QBM-02, QBM-03
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur déclare `tools.qbit_manage` (share_limits/ratio, recyclebin, tracker_tags, orphaned) dans `intent.yml` — `arrconf generate` émet un `qbit_manage/config.yml` avec `cat_update: False` et `cat: {}` imposés inconditionnellement
+  2. qbit_manage s'exécute en CronJob et applique les share_limits/recyclebin/tracker_tags configurés sans toucher aux catégories qBit (propriété exclusive d'arrconf) — pas de conflit d'écriture observable
+  3. L'alias Helm `app-template` CronJob est opérationnel dans `charts/arr-stack/` avec la config.yml montée ; un `arrconf apply` + ArgoCD sync suffit pour déployer qbit_manage
+**Plans**: TBD
+
+## Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 28. Generate foundation | 0/TBD | Not started | - |
+| 29. Sagas | 0/TBD | Not started | - |
+| 30. cross-seed | 0/TBD | Not started | - |
+| 31. qbit_manage | 0/TBD | Not started | - |
+
 ## Historical Progress
 
 | Milestone | Phases | Plans | Status | Completed |
@@ -138,6 +200,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 | v0.6.0 arrconf observability — 4xx body logging | 1 | 1/1 | ✅ Shipped | 2026-05-25 |
 | v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out | 4 | 5/5 | ✅ Shipped | 2026-05-27 |
 | v0.9.0 configarr-in-UI + Jellyfin skip-intro | 4 | 13/13 | ✅ Shipped | 2026-05-31 |
+| v0.10.0 Couche d'intention (tranche 1) | 4 | 0/TBD | In progress | - |
 
 **Cluster HUMAN-UAT pending from v0.3.0** (operator-exercise opt-in, not blocking):
 - Phase 9 initContainer NFS uid=1000 write test (09-HUMAN-UAT.md, 2 open scenarios)

@@ -69,30 +69,28 @@ Exclusions explicites, avec raison, pour éviter le scope creep.
 
 ## Traceability
 
-Rempli pendant la création du roadmap.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INTENT-01 | TBD | Pending |
-| INTENT-02 | TBD | Pending |
-| INTENT-03 | TBD | Pending |
-| INTENT-04 | TBD | Pending |
-| SAGAS-01 | TBD | Pending |
-| SAGAS-02 | TBD | Pending |
-| SAGAS-03 | TBD | Pending |
-| SAGAS-04 | TBD | Pending |
-| XSEED-01 | TBD | Pending |
-| XSEED-02 | TBD | Pending |
-| XSEED-03 | TBD | Pending |
-| QBM-01 | TBD | Pending |
-| QBM-02 | TBD | Pending |
-| QBM-03 | TBD | Pending |
+| INTENT-01 | Phase 28 | Pending |
+| INTENT-02 | Phase 28 | Pending |
+| INTENT-03 | Phase 28 | Pending |
+| INTENT-04 | Phase 28 | Pending |
+| SAGAS-01 | Phase 29 | Pending |
+| SAGAS-02 | Phase 29 | Pending |
+| SAGAS-03 | Phase 29 | Pending |
+| SAGAS-04 | Phase 29 | Pending |
+| XSEED-01 | Phase 30 | Pending |
+| XSEED-02 | Phase 30 | Pending |
+| XSEED-03 | Phase 30 | Pending |
+| QBM-01 | Phase 31 | Pending |
+| QBM-02 | Phase 31 | Pending |
+| QBM-03 | Phase 31 | Pending |
 
 **Coverage:**
 - v1 requirements: 14 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 14 ⚠️ (résolu à la création du roadmap)
+- Mapped to phases: 14 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-31*
-*Last updated: 2026-05-31 — initial definition for milestone v0.10.0 (tranche 1). Phase numbering continues → Phase 28.*
+*Last updated: 2026-05-31 — traceability filled, roadmap Phases 28-31 created.*
