@@ -314,3 +314,10 @@ jellyfin:
             AutoSkip: false          # show skip button only; auto-skip is Out of Scope (PROJECT.md)
             AutoSkipCredits: false
             MaxParallelism: 1        # D-05: off-peak concurrency cap for single-node MicroK8s
+        # Phase 29 (SAGAS-03): TMDb Box Sets install (two-run, ADR-9). Auto-groups movies
+        # sharing a TMDB collection into Jellyfin BoxSets via its scheduled task — no per-saga
+        # config needed. Repo URL matches the "Jellyfin Stable" repo manifest entry above.
+        - name: "TMDb Box Sets"
+          install_guid: "bc4aad2e-d3d0-4725-a5e2-fd07949e5b42"
+          install_version: "13.0.0.0"
+          install_repo_url: "https://repo.jellyfin.org/files/plugin/manifest.json"
