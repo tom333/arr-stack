@@ -211,7 +211,7 @@ Plans:
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 4/4 | Complete    | 2026-05-31 |
 | 30. cross-seed | 3/3 | Complete    | 2026-05-31 |
-| 31. qbit_manage | 2/2 | Complete   | 2026-05-31 |
+| 31. qbit_manage | 2/2 | Complete    | 2026-05-31 |
 
 ## Historical Progress
 

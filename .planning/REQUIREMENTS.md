@@ -32,9 +32,9 @@ Requirements de la tranche 1. Chacun mappe vers une phase du roadmap.
 
 ### qbit_manage (share limits / recyclebin / tags / orphaned)
 
-- [ ] **QBM-01**: L'opérateur déclare `tools.qbit_manage` (share_limits/ratio, recyclebin, tracker_tags, orphaned) dans `intent.yml`.
-- [ ] **QBM-02**: `arrconf generate` émet un `qbit_manage/config.yml` avec `cat_update: False` + `cat: {}` impératifs (arrconf reste seul propriétaire des catégories qBit — pas de second écrivain).
-- [ ] **QBM-03**: qbit_manage est déployé en CronJob via un alias Helm `app-template`.
+- [x] **QBM-01**: L'opérateur déclare `tools.qbit_manage` (share_limits/ratio, recyclebin, tracker_tags, orphaned) dans `intent.yml`.
+- [x] **QBM-02**: `arrconf generate` émet un `qbit_manage/config.yml` avec `cat_update: False` + `cat: {}` impératifs (arrconf reste seul propriétaire des catégories qBit — pas de second écrivain).
+- [x] **QBM-03**: qbit_manage est déployé en CronJob via un alias Helm `app-template`.
 
 ## v2 Requirements (tranches v0.10.x / v0.11)
 
@@ -82,9 +82,9 @@ Exclusions explicites, avec raison, pour éviter le scope creep.
 | XSEED-01 | Phase 30 | Complete |
 | XSEED-02 | Phase 30 | Complete |
 | XSEED-03 | Phase 30 | Complete |
-| QBM-01 | Phase 31 | Pending |
-| QBM-02 | Phase 31 | Pending |
-| QBM-03 | Phase 31 | Pending |
+| QBM-01 | Phase 31 | Complete |
+| QBM-02 | Phase 31 | Complete |
+| QBM-03 | Phase 31 | Complete |
 
 **Coverage:**
 - v1 requirements: 14 total

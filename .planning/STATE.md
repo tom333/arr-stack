@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
-status: executing
+status: milestone_complete
 last_updated: "2026-05-31T07:08:45.398Z"
 last_activity: 2026-05-31 -- Phase 31 execution started
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 15
   completed_plans: 13
-  percent: 87
+  percent: 125
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 31 (qbit-manage) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 31
-Last activity: 2026-05-31 -- Phase 31 execution started
+Phase: 31
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-05-31
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]
