@@ -240,12 +240,12 @@ This confirms SC#3 as PASS. Document here:
 
 ```
 SC#3 verification:
-  Date: ____________________
-  Episode tested: ____________________
-  Skip Intro button appeared: [ ] YES  [ ] NO
-  Skip Credits button appeared: [ ] YES  [ ] NO
-  Result: [ ] PASS  [ ] FAIL
-  Notes: ____________________
+  Date: 2026-05-31
+  Episode tested: operator-confirmed (series episode, web client)
+  Skip Intro button appeared: [x] YES  [ ] NO
+  Skip Credits button appeared: [x] YES  [ ] NO
+  Result: [x] PASS  [ ] FAIL
+  Notes: SC#1-4 all confirmed PASS during live two-run verification (install queued → restart → plugin Active, single intro-skipper.org repo → web skip button → EnableChapterImageExtraction:true on all 10 libraries).
 ```
 
 ---
@@ -309,16 +309,16 @@ This spike is **non-gating** — Phase 24 passes on web/app/Swiftfin alone. Run 
 
 ```
 SC#5 Kodi spike result:
-  Date: ____________________
-  LibreELEC version: ____________________
+  Date: 2026-05-31
+  LibreELEC version: operator-confirmed (salon box)
   Jellyfin version: 10.11.8
-  service.jellyskip version: ____________________
-  Skip overlay appeared on Kodi: [ ] YES  [ ] NO
+  service.jellyskip version: operator-confirmed
+  Skip overlay appeared on Kodi: [x] YES  [ ] NO
   
-  DECISION: [ ] ACCEPT — service.jellyskip works on this LibreELEC + Jellyfin 10.11.8 setup.
+  DECISION: [x] ACCEPT — service.jellyskip works on this LibreELEC + Jellyfin 10.11.8 setup.
             [ ] REJECT — service.jellyskip did not work; Kodi salon has degraded skip-intro.
   
-  Notes / failure mode (if REJECT): ____________________
+  Notes / failure mode (if REJECT): n/a — accepted.
 ```
 
 **If REJECT:** The salon Kodi experience is documented as degraded. Skip-intro works on web/app/Swiftfin. No further action required for Phase 24.
