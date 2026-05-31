@@ -7,6 +7,7 @@ on:
       - 'tools/arrconf-ui/**'
       - 'schemas/**'
       - 'examples/**'
+      - 'charts/arr-stack/files/**'
       - '.github/workflows/tests.yml'
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - 'tools/arrconf-ui/**'
       - 'schemas/**'
       - 'examples/**'
+      - 'charts/arr-stack/files/**'
 
 jobs:
   test:
@@ -166,3 +168,35 @@ jobs:
 
       - name: Build (Vite)
         run: npm run build
+
+  generate-idempotence:
+    # INTENT-03 — CI guard: fail if committed configs drift from intent.yml.
+    # Kept in tests.yml (NOT chart-lint.yml) to stay isolated from the
+    # mathieudutour auto-tagger (D-09).
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/arrconf
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.11.x"
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Verify generate idempotence (INTENT-03)
+        working-directory: ${{ github.workspace }}
+        run: |
+          cd tools/arrconf
+          uv run arrconf generate --check \
+            --intent ../../charts/arr-stack/files/intent.yml \
+            --output-dir ../../charts/arr-stack/files/ \
+            || (echo "::error::Generated configs drift from intent.yml — run 'cd tools/arrconf && uv run arrconf generate --intent ../../charts/arr-stack/files/intent.yml --output-dir ../../charts/arr-stack/files/' and commit"; exit 1)
