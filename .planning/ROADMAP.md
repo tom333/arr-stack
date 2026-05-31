@@ -132,7 +132,7 @@ Full archived details: [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMA
 
 - [x] **Phase 28: Generate foundation** — `intent.yml` schema + `arrconf generate` CLI + CI idempotence guard + intent-boundary ADR (completed 2026-05-31)
 - [x] **Phase 29: Sagas** — Radarr Collections reconciler (tmdbId-matched) + Jellyfin tmdbboxsets plugin depuis `sagas` dans `intent.yml` (completed 2026-05-31)
-- [ ] **Phase 30: cross-seed** — `cross-seed/config.js` généré + alias Helm app-template (consolidation hors-stack)
+- [x] **Phase 30: cross-seed** — `cross-seed/config.js` généré + alias Helm app-template (consolidation hors-stack) (completed 2026-05-31)
 - [ ] **Phase 31: qbit_manage** — `qbit_manage/config.yml` généré (`cat_update: False`) + alias Helm CronJob
 
 ## Phase Details
@@ -187,7 +187,7 @@ Plans:
 **Plans**: 3 plans
 - [x] 30-01-PLAN.md — token-distinct intent.yml + regen config.js + test + arrconf co-bump 0.19.1 (XSEED-01/02) [wave 1]
 - [x] 30-02-PLAN.md — Chart.yaml 12th alias + cross-seed-configmap.yaml + values.yaml block w/ initContainer secret injection (XSEED-03) [wave 2, depends 01]
-- [ ] 30-03-PLAN.md — chart-lint.yml alias unpack + image-count guard + README loop + operator runbook (XSEED-03) [wave 3, depends 02]
+- [x] 30-03-PLAN.md — chart-lint.yml alias unpack + image-count guard + README loop + operator runbook (XSEED-03) [wave 3, depends 02]
 
 ### Phase 31: qbit_manage
 **Goal**: qbit_manage est déployé en CronJob avec sa config entièrement générée depuis `intent.yml`, sans jamais entrer en conflit avec arrconf sur la propriété des catégories qBit
@@ -205,7 +205,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
 | 29. Sagas | 4/4 | Complete    | 2026-05-31 |
-| 30. cross-seed | 2/3 | In Progress|  |
+| 30. cross-seed | 3/3 | Complete   | 2026-05-31 |
 | 31. qbit_manage | 0/TBD | Not started | - |
 
 ## Historical Progress
