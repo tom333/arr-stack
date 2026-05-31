@@ -170,7 +170,7 @@ Plans:
 - [x] 29-04-PLAN.md — tmdbboxsets plugin entry in arrconf.yml (two-run install, ADR-9) (SAGAS-03) [wave 1, no co-bump — arrconf.yml-only]
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
+- [x] 29-02-PLAN.md — Radarr Collections reconciler (tmdbId-match, PUT-on-drift, idempotent) + apply branch (SAGAS-02) [wave 2, co-bump]
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 29-03-PLAN.md — Jellyfin series BoxSets (GET-before-POST) + Sonarr arrconf-managed tag + apply branch (SAGAS-04) [wave 3, co-bump]
@@ -201,7 +201,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 28. Generate foundation | 6/6 | Complete    | 2026-05-31 |
-| 29. Sagas | 2/4 | In Progress|  |
+| 29. Sagas | 3/4 | In Progress|  |
 | 30. cross-seed | 0/TBD | Not started | - |
 | 31. qbit_manage | 0/TBD | Not started | - |
 
