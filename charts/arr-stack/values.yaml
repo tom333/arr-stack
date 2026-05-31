@@ -747,6 +747,22 @@ qbit-manage:
         successfulJobsHistory: 1
         failedJobsHistory: 2
         startingDeadlineSeconds: 600
+      initContainers:
+        # qbit_manage rewrites /config/config.yml on startup (normalisation + state),
+        # so the config cannot be a read-only ConfigMap subPath (Errno 30 read-only FS).
+        # Mirror the cross-seed pattern: copy the committed ConfigMap into a writable
+        # emptyDir at /config. No token substitution needed — qbit_manage resolves
+        # !ENV QBT_USER/QBT_PASS itself from envFrom (arrconf-env).
+        config-init:
+          image:
+            # renovate: image=ghcr.io/stuffanthings/qbit_manage
+            repository: ghcr.io/stuffanthings/qbit_manage
+            tag: "v4.6.6"
+            pullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - cp /config-cm/config.yml /config/config.yml
       containers:
         main:
           image:
@@ -770,10 +786,23 @@ qbit-manage:
               cpu: 50m
               memory: 128Mi
   persistence:
-    config:
+    # Read-only ConfigMap with the generated config.yml — mounted ONLY into the
+    # initContainer (copy source). The main container never reads it directly.
+    config-cm:
       type: configMap
       name: qbit-manage-config
-      globalMounts:
-        - path: /config/config.yml
-          subPath: config.yml
-          readOnly: true
+      advancedMounts:
+        main:
+          config-init:
+            - path: /config-cm/config.yml
+              subPath: config.yml
+              readOnly: true
+    # Writable scratch: initContainer copies config.yml here; main runs against it.
+    config:
+      type: emptyDir
+      advancedMounts:
+        main:
+          config-init:
+            - path: /config
+          main:
+            - path: /config
