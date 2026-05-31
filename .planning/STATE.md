@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
 status: executing
-last_updated: "2026-05-31T05:33:37.609Z"
-last_activity: 2026-05-31 -- Phase 30 planning complete
+last_updated: "2026-05-31T05:34:10.864Z"
+last_activity: 2026-05-31 -- Phase 30 execution started
 progress:
   total_phases: 4
   completed_phases: 2
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 29 — Sagas
+**Current focus:** Phase 30 — cross-seed
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-31 -- Phase 30 planning complete
+Phase: 30 (cross-seed) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 30
+Last activity: 2026-05-31 -- Phase 30 execution started
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]

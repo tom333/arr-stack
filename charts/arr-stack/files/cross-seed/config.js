@@ -6,9 +6,9 @@ module.exports = {
 	],
 	"linkType": "hardlink",
 	"torrentClients": [
-		"qbittorrent:http://admin:PLACEHOLDER@qbittorrent.selfhost.svc.cluster.local:8080"
+		"qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
 	],
 	"torznab": [
-		"http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=PLACEHOLDER"
+		"http://prowlarr.selfhost.svc.cluster.local:9696/1/api?apikey=${PROWLARR_API_KEY}"
 	]
 };
