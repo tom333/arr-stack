@@ -34,7 +34,7 @@ from arrconf.generators.categories import (
     generate_sonarr_resources,
 )
 from arrconf.generators.intent import generate_cross_seed
-from arrconf.intent_config import load_intent
+from arrconf.intent_config import IntentConfig, load_intent
 from arrconf.logging import configure_logging
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
@@ -184,6 +184,12 @@ def main(
         "-c",
         help="Path to arrconf YAML config",
     ),
+    intent: Path = typer.Option(
+        Path("/etc/arrconf/intent.yml"),
+        "--intent",
+        "-i",
+        help="Path to intent.yml (sagas, tools). Optional — skipped if absent.",
+    ),
     log_level: str = typer.Option(
         "INFO",
         "--log-level",
@@ -193,7 +199,7 @@ def main(
 ) -> None:
     """Configure logging and stash common options for subcommands."""
     configure_logging(log_level)
-    ctx.obj = {"config_path": config}
+    ctx.obj = {"config_path": config, "intent_path": intent}
 
 
 @app.command()
@@ -212,6 +218,19 @@ def apply(
     except ScopeViolationError as e:
         log.error("scope_violation", error=str(e))
         raise typer.Exit(code=2) from e
+
+    # Phase 29 (SAGAS-01 / D-01): optional intent.yml load.
+    # Guard: absent intent.yml = no crash, intent_cfg stays None (backward-compatible
+    # with clusters that have no intent.yml — T-29-01 availability mitigation).
+    intent_path: Path = ctx.obj["intent_path"]
+    intent_cfg: IntentConfig | None = None
+    if intent_path.exists():
+        try:
+            intent_cfg = load_intent(intent_path)
+        except ConfigError as e:
+            log.error("intent_config_error", error=str(e))
+            raise typer.Exit(code=2) from e
+    log.debug("intent_loaded", sagas=len(intent_cfg.sagas) if intent_cfg else 0)
 
     targets = _selected_apps(apps)
     settings = Settings()
