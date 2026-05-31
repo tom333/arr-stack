@@ -1,0 +1,15 @@
+{
+  "id": 1,
+  "title": "James Bond Collection",
+  "sortTitle": "james bond collection",
+  "tmdbId": 645,
+  "monitored": true,
+  "qualityProfileId": 3,
+  "rootFolderPath": "/media/films",
+  "searchOnAdd": true,
+  "minimumAvailability": "released",
+  "missingMovies": 0,
+  "movies": [],
+  "tags": [],
+  "images": []
+}
