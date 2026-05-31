@@ -953,6 +953,20 @@ arrconf's Jellyfin plugin reconciler moves from activation-only (D-07-PLUGINS-01
 
 ---
 
+### ADR-10 — Couche d'intention : absorber vs déployer-seulement
+
+**Phase 28 / INTENT-04 — 2026-05-31**
+
+La v0.10.0 introduit une couche d'intention explicite au-dessus d'arrconf et de configarr, généralisant le pattern `categories[]` (1 ligne → N reconcilers) à l'ensemble de la stack.
+
+- **Contexte / Couche :** La couche d'intention se place **au-dessus** d'arrconf ET de configarr. Flux : `intent.yml` (seul fichier hand-edited) → `arrconf generate` (fonction pure) → configs verbeuses **committées** (`arrconf.yml`, `configarr.yml`, `qbit_manage/config.yml`, `cross-seed/config.js`) → `arrconf apply` / configarr reconcilient (inchangés). Généralise le pattern `categories[]` en couche explicite et découplée.
+- **Décision — frontière absorber vs déployer-seulement :** "Absorber" (générer la config) = tout outil exposant un fichier déclaratif ou une API de config propre (cross-seed, qbit_manage, arrconf existant) → sa config est **générée** par la couche d'intention depuis `intent.yml`. "Déployer-seulement" = outils config DB-only ou UI-only (autobrr, cleanuparr) → déployés comme aliases Helm uniquement, **aucune** config intention-générée.
+- **Extension d'ADR-5 :** configarr reste le **seul appliqueur TRaSH**. La couche d'intention ne touche **jamais** `quality_profiles` / `custom_formats` / `quality_definitions` / `media_naming` — frontière dure ADR-5 inchangée. La couche d'intention se place au-dessus d'ADR-5 ; elle ne le contredit pas.
+- **Conséquences :** G1 (générer en local + committer) préserve le diff Git et la discipline ADR-6 (review-in-PR). `generate` et `apply` restent découplés (D-06). Le drift est bloqué par la garde CI d'idempotence (`arrconf generate && git diff --exit-code`, INTENT-03). Le générateur réutilise `arrconf/generators/categories.py` — extension, pas réinvention.
+- **Alternatives rejetées :** G2 (génération in-cluster — perd le diff Git et ADR-6), G3 (auto-commit — bruit Git + interaction auto-tagger), P1 (couche d'intention big-bang en une passe — réécriture brutale d'un prod qui marche, rejeté en favour de P2 incrémentale). Voir REQUIREMENTS.md Out of Scope.
+
+---
+
 ## 12. Références
 
 - **GSD** : https://github.com/gsd-build/get-shit-done
