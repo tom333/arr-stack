@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Couche d'intention (tranche 1)
-status: Roadmap defined — awaiting `/gsd-plan-phase 28`
-last_updated: "2026-05-31T02:11:21.207Z"
-last_activity: 2026-05-31 — Roadmap v0.10.0 created (Phases 28-31)
+status: executing
+last_updated: "2026-05-31T02:46:54.709Z"
+last_activity: 2026-05-31 -- Phase 28 planning complete
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 6
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -26,8 +27,8 @@ See: `.planning/PROJECT.md`
 
 Phase: 28 (not started)
 Plan: —
-Status: Roadmap defined — awaiting `/gsd-plan-phase 28`
-Last activity: 2026-05-31 — Roadmap v0.10.0 created (Phases 28-31)
+Status: Ready to execute
+Last activity: 2026-05-31 -- Phase 28 planning complete
 
 ```
 [Phase 28] [Phase 29] [Phase 30] [Phase 31]
