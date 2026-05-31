@@ -8,8 +8,8 @@ from __future__ import annotations
 import json
 import re
 
-from arrconf.intent_config import CrossSeedConfig
 from arrconf.generators.intent import generate_cross_seed
+from arrconf.intent_config import CrossSeedConfig
 
 
 def test_generate_cross_seed_minimal() -> None:
@@ -39,7 +39,7 @@ def test_generate_cross_seed_sort_keys() -> None:
 
 
 def test_generate_cross_seed_omits_empty() -> None:
-    """Empty list fields (torznab/torrent_clients/link_dirs) are omitted; linkType/action always present."""
+    """Empty list fields are omitted; linkType/action always present."""
     cfg = CrossSeedConfig()
     result = generate_cross_seed(cfg)
     body = re.search(r"module\.exports = (\{.*\});", result, re.DOTALL)
