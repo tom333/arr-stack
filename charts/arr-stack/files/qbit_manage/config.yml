@@ -20,7 +20,17 @@ settings:
     empty_after_x_days: 30
     save_torrents: false
 
-cat: {}
+cat:
+  films: /data/torrents/films
+  films-animation-enfants: /data/torrents/films-animation-enfants
+  films-enfants: /data/torrents/films-enfants
+  films-zoe: /data/torrents/films-zoe
+  nouveaux-films: /data/torrents/nouveaux-films
+  series: /data/torrents/series
+  series-emilie: /data/torrents/series-emilie
+  series-garcons: /data/torrents/series-garcons
+  series-thomas: /data/torrents/series-thomas
+  series-zoe: /data/torrents/series-zoe
 
 tracker_tags:
   beyond-hd:

@@ -448,7 +448,7 @@ arrconf:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf
             repository: ghcr.io/tom333/arr-stack-arrconf
-            tag: "0.20.0"
+            tag: "0.21.0"
             pullPolicy: IfNotPresent
           args:
             - "--config"
@@ -775,6 +775,9 @@ qbit-manage:
             QBT_RUN: "true"
             QBT_SCHEDULE: "0"
             QBT_DRY_RUN: "false"
+            # Disable the v4.6 web API server so the CronJob runs once and EXITS
+            # (otherwise uvicorn stays up → Job never completes).
+            QBT_WEB_SERVER: "false"
           envFrom:
             - secretRef:
                 name: arrconf-env

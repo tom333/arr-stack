@@ -1044,7 +1044,17 @@ def generate(
             log.info("generate_written", file=str(target))
 
     if intent_cfg.tools.qbit_manage is not None:
-        rendered = generate_qbit_manage(intent_cfg.tools.qbit_manage)
+        # qbit_manage needs a populated cat: section (QBM-02). Categories live in
+        # arrconf.yml (hand-edited owner), co-located with output_dir. Load it and
+        # mirror the same <name> → /data/torrents/<name> mapping.
+        try:
+            qbm_root = load_config(output_dir / "arrconf.yml")
+        except ConfigError as e:
+            log.error("arrconf_config_error", error=str(e), path=str(output_dir / "arrconf.yml"))
+            raise typer.Exit(code=2) from e
+        rendered = generate_qbit_manage(
+            intent_cfg.tools.qbit_manage, generate_qbit_categories(qbm_root)
+        )
         target = output_dir / "qbit_manage" / "config.yml"
         if check:
             if not target.exists() or target.read_text(encoding="utf-8") != rendered:
