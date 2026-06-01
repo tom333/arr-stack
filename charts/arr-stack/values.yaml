@@ -448,7 +448,7 @@ arrconf:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf
             repository: ghcr.io/tom333/arr-stack-arrconf
-            tag: "0.21.0"
+            tag: "0.22.0"
             pullPolicy: IfNotPresent
           args:
             - "--config"
@@ -757,7 +757,7 @@ qbit-manage:
           image:
             # renovate: image=ghcr.io/stuffanthings/qbit_manage
             repository: ghcr.io/stuffanthings/qbit_manage
-            tag: "v4.6.6"
+            tag: "v4.8.0"
             pullPolicy: IfNotPresent
           command:
             - sh
@@ -768,7 +768,7 @@ qbit-manage:
           image:
             # renovate: image=ghcr.io/stuffanthings/qbit_manage
             repository: ghcr.io/stuffanthings/qbit_manage
-            tag: "v4.6.6"
+            tag: "v4.8.0"
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
@@ -809,3 +809,14 @@ qbit-manage:
             - path: /config
           main:
             - path: /config
+    # qBit torrents root — so config.yml's directory.root_dir (/data/torrents) and
+    # recycle_bin resolve on disk (recyclebin / orphaned / noHL file ops). Same
+    # hostPath as qbittorrent + cross-seed (/media/data/torrents → /data).
+    torrents:
+      type: hostPath
+      hostPath: /media/data/torrents
+      hostPathType: DirectoryOrCreate
+      advancedMounts:
+        main:
+          main:
+            - path: /data

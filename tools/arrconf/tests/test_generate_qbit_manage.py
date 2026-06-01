@@ -66,10 +66,38 @@ def test_generate_qbit_manage_env_tags_literal() -> None:
 
 
 def test_generate_qbit_manage_cat_update_false() -> None:
-    """cat_update: false is always present, cat_update: true is never present (QBM-02)."""
+    """cat_update: false in commands (QBM-02), cat_update: true never present."""
     result = generate_qbit_manage(QbitManageConfig(), _cats())
     assert "cat_update: false" in result
     assert "cat_update: true" not in result
+
+
+def test_generate_qbit_manage_commands_section() -> None:
+    """commands: section drives operations; share_limits on, cat_update off."""
+    result = generate_qbit_manage(QbitManageConfig(), _cats())
+    assert result.index("commands:") < result.index("qbt:")
+    assert "  share_limits: true" in result
+
+
+def test_generate_qbit_manage_tracker_section_name() -> None:
+    """The mandatory section key is `tracker:`, NOT `tracker_tags:`."""
+    result = generate_qbit_manage(QbitManageConfig(), _cats())
+    assert "\ntracker:\n" in result
+    assert "tracker_tags:" not in result
+
+
+def test_generate_qbit_manage_directory_root_dir() -> None:
+    """directory.root_dir is mandatory (qbit_manage errors without it)."""
+    result = generate_qbit_manage(QbitManageConfig(), _cats())
+    assert "\ndirectory:\n" in result
+    assert "  root_dir: /data/torrents" in result
+
+
+def test_generate_qbit_manage_recyclebin_top_level() -> None:
+    """recyclebin is a top-level section (not nested under settings)."""
+    result = generate_qbit_manage(QbitManageConfig(recyclebin_days=30), _cats())
+    assert "\nrecyclebin:\n" in result
+    assert "  empty_after_x_days: 30" in result
 
 
 def test_generate_qbit_manage_cat_populated() -> None:
@@ -106,7 +134,8 @@ def test_generate_qbit_manage_recyclebin_days() -> None:
 
 
 def test_generate_qbit_manage_yaml_valid() -> None:
-    """Non-qbt sections parse as valid YAML; cat_update is False and cat is populated."""
+    """Non-qbt sections parse as valid YAML; cat_update is False (in commands) and
+    cat is populated."""
     result = generate_qbit_manage(QbitManageConfig(), _cats())
     # The qbt: block carries !ENV tags that yaml.safe_load cannot parse — strip it.
     kept = [
@@ -115,8 +144,10 @@ def test_generate_qbit_manage_yaml_valid() -> None:
         if "!ENV" not in line and line.strip() not in ("qbt:",) and not line.startswith("  host:")
     ]
     parsed = _yaml_safe.load(io.StringIO("\n".join(kept)))
-    assert parsed["settings"]["cat_update"] is False
+    assert parsed["commands"]["cat_update"] is False
+    assert parsed["commands"]["share_limits"] is True
     assert parsed["cat"] == {
         "films": "/data/torrents/films",
         "anime-zoe": "/data/torrents/anime-zoe",
     }
+    assert parsed["recyclebin"]["enabled"] is True

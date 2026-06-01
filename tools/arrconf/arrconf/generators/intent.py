@@ -58,16 +58,24 @@ _QBM_HEADER: Final[str] = (
 def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) -> str:
     """Pure function: (QbitManageConfig, qBit categories) → config.yml content string.
 
-    Key invariants enforced unconditionally (QBM-02/D-03/D-04):
-    - cat_update: false  (NEVER writes qBit categories — arrconf stays sole owner)
-    - cat: <name>: <save_path> for every arrconf category (qbit_manage v4.6.6
-      rejects an empty cat section: "Category section is not completed and is
-      mandatory"). cat_update:false is the no-second-writer guard; the populated
-      cat section only lets qbit_manage *know* the categories for share_limits /
-      recyclebin / orphaned filtering — it never mutates them.
-    - tag_nohardlinks: true (safe observability tag)
-    - rem_orphaned / rem_unregistered: from cfg (default False)
-    - recyclebin: enabled: true, empty_after_x_days from cfg
+    Structured against the real qbit_manage v4.6.6 schema (verified against the
+    image's config.yml.sample):
+    - commands:  operation toggles. cat_update: false (QBM-02 — arrconf is sole
+      category owner, no second writer). share_limits / tag_update /
+      tag_tracker_error enabled; rem_orphaned / rem_unregistered from cfg;
+      tag_nohardlinks / recheck off (not configured).
+    - qbt:  connection (host + !ENV creds).
+    - settings:  minimal tuning only — qbit_manage auto-fills missing sub-attributes
+      with defaults. Operation toggles live in commands:, NOT here.
+    - cat:  <name>: <save_path> for every arrconf category. MANDATORY non-empty
+      section in v4.6.6 ("Category section is not completed and is mandatory").
+      cat_update:false (above) is the no-writer guard; cat only lets qbit_manage
+      *know* the categories for filtering — it never mutates them.
+    - tracker:  <keyword>: {tag}. MANDATORY non-empty section ("Tracker section is
+      not completed and is mandatory"). The key is `tracker:`, NOT `tracker_tags:`.
+    - share_limits:  per-group ratio/seeding policy (top-level).
+    - recyclebin:  top-level section (NOT nested under settings).
+    - orphaned:  emitted only when rem_orphaned is enabled.
 
     The categories are sourced from arrconf.yml (the hand-edited owner), passed in
     by the `generate` CLI — keeps this function pure (no I/O) while mirroring the
@@ -78,7 +86,25 @@ def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) 
     representer (Pitfall 1 in RESEARCH.md — avoided by string construction).
     Determinism: explicit section/key order; categories sorted by name.
     """
+    rem_orphaned = "true" if cfg.rem_orphaned else "false"
+    rem_unregistered = "true" if cfg.rem_unregistered else "false"
     lines: list[str] = [_QBM_HEADER]
+    # commands: drive which operations run. cat_update HARD false (QBM-02).
+    lines += [
+        "commands:",
+        "  dry_run: false",
+        "  recheck: false",
+        "  cat_update: false            # QBM-02: arrconf is sole category owner",
+        "  tag_update: true",
+        f"  rem_unregistered: {rem_unregistered}",
+        "  tag_tracker_error: true",
+        f"  rem_orphaned: {rem_orphaned}",
+        "  tag_nohardlinks: false       # nohardlinks not configured in intent",
+        "  share_limits: true",
+        "  skip_qb_version_check: false",
+        "  skip_cleanup: false",
+        "",
+    ]
     lines += [
         "qbt:",
         f"  host: {cfg.qbt_host}",
@@ -86,31 +112,28 @@ def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) 
         "  pass: !ENV QBT_PASS",
         "",
     ]
+    # Minimal settings — qbit_manage auto-fills the rest with defaults.
     lines += [
         "settings:",
         "  force_auto_tmm: false",
-        "  cat_update: false            # QBM-02: arrconf is sole category owner",
-        "  tag_update: true",
-        f"  rem_unregistered: {'true' if cfg.rem_unregistered else 'false'}",
-        f"  rem_orphaned: {'true' if cfg.rem_orphaned else 'false'}",
-        "  tag_nohardlinks: true        # D-03: observability only",
-        "  skip_cleanup: false",
-        "  dry_run: false",
-        "  share_limits: true",
-        "  recyclebin:",
-        "    enabled: true",
-        f"    empty_after_x_days: {cfg.recyclebin_days}",
-        "    save_torrents: false",
         "",
     ]
-    # QBM-02: cat is populated (qbit_manage mandates a non-empty cat section) but
-    # cat_update:false above guarantees qbit_manage never writes them. Sorted for
-    # determinism. Mirrors generate_qbit_categories (<name> → /data/torrents/<name>).
+    # MANDATORY: directory.root_dir (qbit_manage errors "directory attribute not
+    # found" without it). root_dir is the qBit-side torrents root — matches the
+    # cat save_paths (/data/torrents/<name>). recycle_bin lives under it.
+    lines += [
+        "directory:",
+        "  root_dir: /data/torrents",
+        "  recycle_bin: /data/torrents/.RecycleBin",
+        "",
+    ]
+    # MANDATORY: cat populated (cat_update:false above keeps arrconf the owner).
     lines.append("cat:")
     for cat in sorted(categories, key=lambda c: c.name):
         lines.append(f"  {cat.name}: {cat.savePath}")
     lines.append("")
-    lines.append("tracker_tags:")
+    # MANDATORY: tracker section (key is `tracker:`, NOT `tracker_tags:`).
+    lines.append("tracker:")
     for entry in cfg.tracker_tags:
         lines += [f"  {entry.keyword}:", f"    tag: {entry.tag}"]
     lines += ["  other:", "    tag: public", ""]
@@ -126,9 +149,7 @@ def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) 
             f"    min_seeding_time: {grp.min_seeding_time}",
             f"    cleanup: {'true' if grp.cleanup else 'false'}",
         ]
-    # RESEARCH.md A1 — the default group omits include_all_tags, assumed to mean
-    # "match all" (catch-all for untagged torrents). UNVERIFIED for qbit_manage
-    # v4.6.6: verify post-deploy that untagged torrents actually match this group.
+    # Catch-all group (lowest priority, no tag filter → matches remaining torrents).
     lines += [
         "  default:",
         "    priority: 999",
@@ -138,5 +159,20 @@ def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) 
         "    cleanup: false",
         "",
     ]
-    lines += ["nohardlinks: {}", ""]
+    # recyclebin is a TOP-LEVEL section in v4.6.6 (not nested under settings).
+    lines += [
+        "recyclebin:",
+        "  enabled: true",
+        f"  empty_after_x_days: {cfg.recyclebin_days}",
+        "  save_torrents: false",
+        "  split_by_category: false",
+        "",
+    ]
+    if cfg.rem_orphaned:
+        lines += [
+            "orphaned:",
+            "  empty_after_x_days: 30",
+            "  exclude_patterns: []",
+            "",
+        ]
     return "\n".join(lines)
