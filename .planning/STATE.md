@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
-status: executing
+status: ready_to_plan
 last_updated: "2026-06-04T09:31:49.551Z"
 last_activity: 2026-06-04 -- Phase 32 execution started
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
   completed_plans: 0
-  percent: 0
+  percent: 33
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 32 (categories-migration-hard-cut) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 32
-Last activity: 2026-06-04 -- Phase 32 execution started
+Phase: 33
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-04
 
 ```
 Progress: [          ] 0% (0/3 phases)

@@ -9,9 +9,9 @@ Requirements for milestone v0.11.0. Each maps to roadmap phases (continue from P
 
 ### Categories migration (hard cut)
 
-- [ ] **CATMIG-01**: Le schéma `intent.yml` absorbe les 10 catégories de production (`name`/`kind`/`profile`/`display`/`base_path`) — `categories[]` n'existe plus que dans `intent.yml`.
-- [ ] **CATMIG-02**: `arrconf generate` émet `arrconf.yml` intégralement depuis les catégories de l'intent (aucun `categories[]` hand-edited résiduel dans `arrconf.yml`).
-- [ ] **CATMIG-03**: `arrconf.yml` devient généré + read-only ; hard cut sans chemin double-source ; la garde CI `generate-idempotence` couvre `arrconf.yml`.
+- [x] **CATMIG-01**: Le schéma `intent.yml` absorbe les 10 catégories de production (`name`/`kind`/`profile`/`display`/`base_path`) — `categories[]` n'existe plus que dans `intent.yml`.
+- [x] **CATMIG-02**: `arrconf generate` émet `arrconf.yml` intégralement depuis les catégories de l'intent (aucun `categories[]` hand-edited résiduel dans `arrconf.yml`).
+- [x] **CATMIG-03**: `arrconf.yml` devient généré + read-only ; hard cut sans chemin double-source ; la garde CI `generate-idempotence` couvre `arrconf.yml`.
 
 ### configarr.yml generation
 
@@ -58,9 +58,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CATMIG-01 | Phase 32 | Pending |
-| CATMIG-02 | Phase 32 | Pending |
-| CATMIG-03 | Phase 32 | Pending |
+| CATMIG-01 | Phase 32 | Complete |
+| CATMIG-02 | Phase 32 | Complete |
+| CATMIG-03 | Phase 32 | Complete |
 | CFGARR-01 | Phase 33 | Pending |
 | CFGARR-02 | Phase 33 | Pending |
 | CFGARR-03 | Phase 33 | Pending |
