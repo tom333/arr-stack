@@ -10,7 +10,7 @@ Fixture mirrors the production ``charts/arr-stack/files/arrconf.yml`` 10-categor
 
 from __future__ import annotations
 
-from arrconf.config import RootConfig
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.generators.categories import generate_jellyfin_libraries
 
 PRODUCTION_CATEGORIES = [
@@ -87,8 +87,8 @@ PRODUCTION_CATEGORIES = [
 ]
 
 
-def _build_cfg() -> RootConfig:
-    return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+def _build_cfg() -> list[MediaCategory]:
+    return [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
 
 def test_generate_jellyfin_libraries_ten_libs() -> None:
@@ -153,7 +153,6 @@ def test_generate_jellyfin_libraries_order_follows_categories() -> None:
 
 
 def test_generate_jellyfin_libraries_empty_cfg() -> None:
-    """Empty cfg.categories → empty list (no implicit super-libs — Phase 16 reversal)."""
-    cfg_empty = RootConfig()
-    libs = generate_jellyfin_libraries(cfg_empty)
+    """Empty categories → empty list (no implicit super-libs — Phase 16 reversal)."""
+    libs = generate_jellyfin_libraries([])
     assert libs == []

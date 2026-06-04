@@ -1,8 +1,12 @@
 """Phase 10 category generators — D-01 pure-function module.
 
-Expands ``RootConfig.categories`` into per-app resource lists for
+Expands a ``list[MediaCategory]`` into per-app resource lists for
 qBittorrent, Sonarr, Radarr, Jellyfin, and Seerr (animeTags).
 See CONTEXT.md D-01, D-03a–e and RESEARCH.md §Pattern 1.
+
+Phase 32 (CATMIG-01 / D-32-01): generator signatures changed from
+``cfg: RootConfig`` to ``categories: list[MediaCategory]`` — generators
+are now config-type-agnostic (pure list input).
 
 Key invariants (from PATTERNS.md + RESEARCH.md):
 - D-03a: qBit category names are bare slugs (<name>), NOT <kind>-<name>.
@@ -17,7 +21,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-from arrconf.config import RootConfig, TagItem
+from arrconf.config import TagItem
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.resources.jellyfin.library import JellyfinLibrary
 from arrconf.resources.qbittorrent.category import Category as QbitCategory
 from arrconf.resources.sonarr.download_client import DownloadClient, FieldKV
@@ -123,18 +128,18 @@ def _qbit_dc_fields_radarr(category_name: str) -> list[FieldKV]:
 # ---------------------------------------------------------------------------
 
 
-def generate_qbit_categories(cfg: RootConfig) -> list[QbitCategory]:
+def generate_qbit_categories(categories: list[MediaCategory]) -> list[QbitCategory]:
     """D-03a: each Category → 1 QbitCategory with bare ``<name>`` (NOT ``<kind>-<name>``).
 
     ``savePath`` = ``/data/torrents/<name>`` per Pitfall 3 — qBit-side mount path differs
     from ``c.base_path`` (``/media/<name>`` is where Jellyfin/Sonarr/Radarr read).
     """
-    return [QbitCategory(name=c.name, savePath=f"/data/torrents/{c.name}") for c in cfg.categories]
+    return [QbitCategory(name=c.name, savePath=f"/data/torrents/{c.name}") for c in categories]
 
 
-def generate_sonarr_resources(cfg: RootConfig) -> SonarrDerived:
+def generate_sonarr_resources(categories: list[MediaCategory]) -> SonarrDerived:
     """D-03b/c/d/e: 5 series Categories → 5 each of tags, root_folders, DCs, RPMs."""
-    series = [c for c in cfg.categories if c.kind == "series"]
+    series = [c for c in categories if c.kind == "series"]
     return SonarrDerived(
         tags=[TagItem(label=c.name) for c in series],
         root_folders=[RootFolder(path=c.base_path) for c in series],
@@ -164,9 +169,9 @@ def generate_sonarr_resources(cfg: RootConfig) -> SonarrDerived:
     )
 
 
-def generate_radarr_resources(cfg: RootConfig) -> RadarrDerived:
+def generate_radarr_resources(categories: list[MediaCategory]) -> RadarrDerived:
     """D-03b/c/d/e: 5 movies Categories → 5 each of tags, root_folders, DCs, RPMs."""
-    movies = [c for c in cfg.categories if c.kind == "movies"]
+    movies = [c for c in categories if c.kind == "movies"]
     return RadarrDerived(
         tags=[TagItem(label=c.name) for c in movies],
         root_folders=[RootFolder(path=c.base_path) for c in movies],
@@ -196,7 +201,7 @@ def generate_radarr_resources(cfg: RootConfig) -> RadarrDerived:
     )
 
 
-def generate_jellyfin_libraries(cfg: RootConfig) -> list[JellyfinLibrary]:
+def generate_jellyfin_libraries(categories: list[MediaCategory]) -> list[JellyfinLibrary]:
     """REQ-jellyfin-categories-as-libs: 10 libs, one per Category (D-16-LIB-CREATE-01).
 
     Phase 16 reverses Phase 7's 2-super-libs design (`Séries`/`Films` with multi-path
@@ -209,10 +214,10 @@ def generate_jellyfin_libraries(cfg: RootConfig) -> list[JellyfinLibrary]:
     Flows generator → JellyfinLibrary.enable_chapter_image_extraction →
     _create_library() POST body / _update_library_options() for existing libs.
 
-    Order of output follows ``cfg.categories`` order — deterministic for tests
+    Order of output follows ``categories`` order — deterministic for tests
     and operator readability of the resulting JSON.
 
-    Returns empty list when ``cfg.categories`` is empty (no implicit super-libs).
+    Returns empty list when ``categories`` is empty (no implicit super-libs).
     """
     return [
         JellyfinLibrary(
@@ -221,14 +226,14 @@ def generate_jellyfin_libraries(cfg: RootConfig) -> list[JellyfinLibrary]:
             paths=[c.base_path],
             enable_chapter_image_extraction=True,  # D-06: uniform, all 10 libs (Phase 24)
         )
-        for c in cfg.categories
+        for c in categories
     ]
 
 
-def generate_anime_tag_labels(cfg: RootConfig) -> list[str]:
+def generate_anime_tag_labels(categories: list[MediaCategory]) -> list[str]:
     """REQ-categories-seerr-routing: label strings for every category with profile=anime.
 
     These labels are resolved to Sonarr integer tag IDs in __main__.py via a
     POST-reconcile GET /api/v3/tag call (RESEARCH.md §Pattern 5 Option A).
     """
-    return [c.name for c in cfg.categories if c.profile == "anime"]
+    return [c.name for c in categories if c.profile == "anime"]

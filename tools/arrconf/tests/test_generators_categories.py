@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from arrconf.config import RootConfig
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.generators.categories import (
     RadarrDerived,
     SonarrDerived,
@@ -95,31 +95,31 @@ PRODUCTION_CATEGORIES: list[dict[str, str]] = [
 ]
 
 
-def _make_cfg(categories: list[dict[str, str]] | None = None) -> RootConfig:
-    """Build a RootConfig with the given category dicts (default: production 10)."""
+def _make_cats(categories: list[dict[str, str]] | None = None) -> list[MediaCategory]:
+    """Build a list[MediaCategory] from category dicts (default: production 10)."""
     cats_data = categories if categories is not None else PRODUCTION_CATEGORIES
-    return RootConfig.model_validate({"categories": cats_data})
+    return [MediaCategory.model_validate(c) for c in cats_data]
 
 
 @pytest.fixture
-def cfg_production() -> RootConfig:
-    return _make_cfg()
+def cfg_production() -> list[MediaCategory]:
+    return _make_cats()
 
 
 @pytest.fixture
-def cfg_empty() -> RootConfig:
-    return RootConfig()
+def cfg_empty() -> list[MediaCategory]:
+    return []
 
 
 # ===== qBit =====
 
 
-def test_generate_qbit_categories_returns_10(cfg_production: RootConfig) -> None:
+def test_generate_qbit_categories_returns_10(cfg_production: list[MediaCategory]) -> None:
     result = generate_qbit_categories(cfg_production)
     assert len(result) == 10
 
 
-def test_generate_qbit_categories_bare_names(cfg_production: RootConfig) -> None:
+def test_generate_qbit_categories_bare_names(cfg_production: list[MediaCategory]) -> None:
     """D-03a: names are bare slugs, NOT '<kind>-<name>'."""
     result = generate_qbit_categories(cfg_production)
     names = [c.name for c in result]
@@ -138,21 +138,21 @@ def test_generate_qbit_categories_bare_names(cfg_production: RootConfig) -> None
             }
 
 
-def test_generate_qbit_categories_savepath_format(cfg_production: RootConfig) -> None:
+def test_generate_qbit_categories_savepath_format(cfg_production: list[MediaCategory]) -> None:
     """Pitfall 3: savePath uses /data/torrents/<name>, NOT base_path (/media/<name>)."""
     result = generate_qbit_categories(cfg_production)
     for c in result:
         assert c.savePath == f"/data/torrents/{c.name}"
 
 
-def test_generate_qbit_categories_empty(cfg_empty: RootConfig) -> None:
+def test_generate_qbit_categories_empty(cfg_empty: list[MediaCategory]) -> None:
     assert generate_qbit_categories(cfg_empty) == []
 
 
 # ===== Sonarr =====
 
 
-def test_generate_sonarr_resources_5_each(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_resources_5_each(cfg_production: list[MediaCategory]) -> None:
     """D-03b/c/d/e: 5 series → 5 of each resource."""
     result = generate_sonarr_resources(cfg_production)
     assert isinstance(result, SonarrDerived)
@@ -162,7 +162,7 @@ def test_generate_sonarr_resources_5_each(cfg_production: RootConfig) -> None:
     assert len(result.remote_path_mappings) == 5
 
 
-def test_generate_sonarr_tag_labels(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_tag_labels(cfg_production: list[MediaCategory]) -> None:
     """D-03c: TagItem(label=c.name) for each series category."""
     result = generate_sonarr_resources(cfg_production)
     labels = [t.label for t in result.tags]
@@ -175,7 +175,7 @@ def test_generate_sonarr_tag_labels(cfg_production: RootConfig) -> None:
     ]
 
 
-def test_generate_sonarr_root_folders(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_root_folders(cfg_production: list[MediaCategory]) -> None:
     """D-03d: RootFolder(path=c.base_path) for each series category."""
     result = generate_sonarr_resources(cfg_production)
     paths = [rf.path for rf in result.root_folders]
@@ -188,7 +188,7 @@ def test_generate_sonarr_root_folders(cfg_production: RootConfig) -> None:
     ]
 
 
-def test_generate_sonarr_dc_tag_labels(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_dc_tag_labels(cfg_production: list[MediaCategory]) -> None:
     """D-03b: each DC has tag_labels=[c.name]."""
     result = generate_sonarr_resources(cfg_production)
     expected_labels = [
@@ -204,7 +204,7 @@ def test_generate_sonarr_dc_tag_labels(cfg_production: RootConfig) -> None:
         assert dc.configContract == "QBittorrentSettings"
 
 
-def test_generate_sonarr_dc_tvCategory_field(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_dc_tvCategory_field(cfg_production: list[MediaCategory]) -> None:
     """D-03b Sonarr-side: fields[] contains tvCategory=<c.name>."""
     result = generate_sonarr_resources(cfg_production)
     expected_names = [
@@ -221,7 +221,7 @@ def test_generate_sonarr_dc_tvCategory_field(cfg_production: RootConfig) -> None
         assert not any(f.name == "movieCategory" for f in dc.fields)
 
 
-def test_generate_sonarr_rpm_trailing_slashes(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_rpm_trailing_slashes(cfg_production: list[MediaCategory]) -> None:
     """D-03e + Pitfall 6: both paths end with '/'."""
     result = generate_sonarr_resources(cfg_production)
     for rpm in result.remote_path_mappings:
@@ -234,7 +234,7 @@ def test_generate_sonarr_rpm_trailing_slashes(cfg_production: RootConfig) -> Non
     assert rpm_zoe.localPath == "/data/torrents/series-zoe/"
 
 
-def test_generate_sonarr_resources_empty(cfg_empty: RootConfig) -> None:
+def test_generate_sonarr_resources_empty(cfg_empty: list[MediaCategory]) -> None:
     result = generate_sonarr_resources(cfg_empty)
     assert result.tags == []
     assert result.root_folders == []
@@ -245,7 +245,7 @@ def test_generate_sonarr_resources_empty(cfg_empty: RootConfig) -> None:
 # ===== Radarr =====
 
 
-def test_generate_radarr_resources_5_each(cfg_production: RootConfig) -> None:
+def test_generate_radarr_resources_5_each(cfg_production: list[MediaCategory]) -> None:
     """D-03b/c/d/e Radarr-side: 5 movies → 5 of each resource."""
     result = generate_radarr_resources(cfg_production)
     assert isinstance(result, RadarrDerived)
@@ -255,7 +255,7 @@ def test_generate_radarr_resources_5_each(cfg_production: RootConfig) -> None:
     assert len(result.remote_path_mappings) == 5
 
 
-def test_generate_radarr_dc_movieCategory_field(cfg_production: RootConfig) -> None:
+def test_generate_radarr_dc_movieCategory_field(cfg_production: list[MediaCategory]) -> None:
     """D-03b Radarr-side: fields[] contains movieCategory (NOT tvCategory)."""
     result = generate_radarr_resources(cfg_production)
     expected_names = [
@@ -272,7 +272,7 @@ def test_generate_radarr_dc_movieCategory_field(cfg_production: RootConfig) -> N
         assert not any(f.name == "tvCategory" for f in dc.fields)
 
 
-def test_generate_radarr_resources_empty(cfg_empty: RootConfig) -> None:
+def test_generate_radarr_resources_empty(cfg_empty: list[MediaCategory]) -> None:
     result = generate_radarr_resources(cfg_empty)
     assert result.tags == []
     assert result.root_folders == []
@@ -280,7 +280,7 @@ def test_generate_radarr_resources_empty(cfg_empty: RootConfig) -> None:
     assert result.remote_path_mappings == []
 
 
-def test_generate_radarr_rpm_trailing_slashes(cfg_production: RootConfig) -> None:
+def test_generate_radarr_rpm_trailing_slashes(cfg_production: list[MediaCategory]) -> None:
     """Pitfall 6: Radarr RPMs also need trailing slashes."""
     result = generate_radarr_resources(cfg_production)
     for rpm in result.remote_path_mappings:
@@ -292,7 +292,7 @@ def test_generate_radarr_rpm_trailing_slashes(cfg_production: RootConfig) -> Non
 # ===== Jellyfin =====
 
 
-def test_generate_jellyfin_libraries_ten_libs(cfg_production: RootConfig) -> None:
+def test_generate_jellyfin_libraries_ten_libs(cfg_production: list[MediaCategory]) -> None:
     """REQ-jellyfin-categories-as-libs: 10 categories → 10 libs (D-16-LIB-CREATE-01)."""
     result = generate_jellyfin_libraries(cfg_production)
     assert len(result) == 10
@@ -302,7 +302,7 @@ def test_generate_jellyfin_libraries_ten_libs(cfg_production: RootConfig) -> Non
     assert result[0].paths == ["/media/series"]
 
 
-def test_generate_jellyfin_paths_match_base_paths(cfg_production: RootConfig) -> None:
+def test_generate_jellyfin_paths_match_base_paths(cfg_production: list[MediaCategory]) -> None:
     """D-16-LIB-CREATE-01: each lib has exactly 1 PathInfo = categories[i].base_path."""
     result = generate_jellyfin_libraries(cfg_production)
     expected_paths = [
@@ -322,13 +322,13 @@ def test_generate_jellyfin_paths_match_base_paths(cfg_production: RootConfig) ->
 
 def test_generate_jellyfin_all_series_no_movies() -> None:
     """D-16-LIB-CREATE-01: series-only cfg → only tvshows libs (no implicit empty Films)."""
-    cfg = _make_cfg([c for c in PRODUCTION_CATEGORIES if c["kind"] == "series"])
-    result = generate_jellyfin_libraries(cfg)
+    cats = _make_cats([c for c in PRODUCTION_CATEGORIES if c["kind"] == "series"])
+    result = generate_jellyfin_libraries(cats)
     assert len(result) == 5
     assert all(lib.collection_type == "tvshows" for lib in result)
 
 
-def test_generate_jellyfin_libraries_empty(cfg_empty: RootConfig) -> None:
+def test_generate_jellyfin_libraries_empty(cfg_empty: list[MediaCategory]) -> None:
     """D-16-LIB-CREATE-01: empty cfg → empty list (no implicit super-libs — Phase 16 reversal)."""
     result = generate_jellyfin_libraries(cfg_empty)
     assert result == []
@@ -337,7 +337,7 @@ def test_generate_jellyfin_libraries_empty(cfg_empty: RootConfig) -> None:
 # ===== animeTags =====
 
 
-def test_generate_anime_tag_labels_production(cfg_production: RootConfig) -> None:
+def test_generate_anime_tag_labels_production(cfg_production: list[MediaCategory]) -> None:
     """REQ-categories-seerr-routing: 2 anime categories in production (films-zoe + series-zoe)."""
     result = generate_anime_tag_labels(cfg_production)
     # Both anime-profile categories show up here; downstream filtering by kind
@@ -345,14 +345,14 @@ def test_generate_anime_tag_labels_production(cfg_production: RootConfig) -> Non
     assert set(result) == {"films-zoe", "series-zoe"}
 
 
-def test_generate_anime_tag_labels_empty(cfg_empty: RootConfig) -> None:
+def test_generate_anime_tag_labels_empty(cfg_empty: list[MediaCategory]) -> None:
     assert generate_anime_tag_labels(cfg_empty) == []
 
 
 # ===== Cross-case: order preservation =====
 
 
-def test_order_preservation_qbit(cfg_production: RootConfig) -> None:
+def test_order_preservation_qbit(cfg_production: list[MediaCategory]) -> None:
     """Categories ordering in cfg is preserved in qBit output (no sorting)."""
     result = generate_qbit_categories(cfg_production)
     names = [c.name for c in result]
@@ -360,7 +360,7 @@ def test_order_preservation_qbit(cfg_production: RootConfig) -> None:
     assert names == expected
 
 
-def test_order_preservation_sonarr(cfg_production: RootConfig) -> None:
+def test_order_preservation_sonarr(cfg_production: list[MediaCategory]) -> None:
     """Series categories ordering preserved in Sonarr output (no sorting)."""
     result = generate_sonarr_resources(cfg_production)
     series_names = [c["name"] for c in PRODUCTION_CATEGORIES if c["kind"] == "series"]
@@ -368,7 +368,7 @@ def test_order_preservation_sonarr(cfg_production: RootConfig) -> None:
     assert tag_labels == series_names
 
 
-def test_generate_sonarr_dc_connection_constants(cfg_production: RootConfig) -> None:
+def test_generate_sonarr_dc_connection_constants(cfg_production: list[MediaCategory]) -> None:
     """Sonarr DCs use correct qBit connection constants."""
     result = generate_sonarr_resources(cfg_production)
     for dc in result.download_clients:

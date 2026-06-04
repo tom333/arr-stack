@@ -8,7 +8,7 @@ NOT an HTTP integration test -- pure data-flow verification.
 
 from __future__ import annotations
 
-from arrconf.config import RootConfig
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.generators.categories import generate_sonarr_resources
 
 PRODUCTION_CATEGORIES = [
@@ -85,8 +85,8 @@ PRODUCTION_CATEGORIES = [
 ]
 
 
-def _build_cfg() -> RootConfig:
-    return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+def _build_cfg() -> list[MediaCategory]:
+    return [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
 
 def test_sonarr_tags_wiring() -> None:

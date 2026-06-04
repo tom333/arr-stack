@@ -16,12 +16,13 @@ Design decisions:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
+from arrconf.resources.categories import Category as MediaCategory
 
 
 class CrossSeedConfig(BaseModel):
@@ -163,9 +164,10 @@ class SagaEntry(BaseModel):
 class IntentConfig(BaseModel):
     """Root schema for intent.yml (INTENT-01, Phase 28).
 
-    Top-level layout: ``tools:`` mapping + ``sagas:`` list.
-    Only ``tools.cross_seed`` is exercised in P28; ``sagas`` is present
-    for schema completeness.
+    Top-level layout: ``tools:`` mapping + ``sagas:`` list + ``categories:`` list + ``apps:`` dict.
+    Phase 32 (CATMIG-01 / D-32-01): ``categories`` and ``apps`` absorbed from arrconf.yml.
+    ``categories`` is now the single hand-edited owner of the media category list.
+    ``apps`` is an untyped pass-through dict emitted verbatim into generated arrconf.yml.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -177,6 +179,17 @@ class IntentConfig(BaseModel):
     sagas: list[SagaEntry] = Field(
         default_factory=list,
         description="Saga declarations. Schema present-but-unexercised in P28 (D-05).",
+    )
+    categories: list[MediaCategory] = Field(
+        default_factory=list,
+        description="Cross-cutting media categories (lifted from arrconf.yml, D-32-01).",
+    )
+    apps: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "App config pass-through (sonarr/radarr/prowlarr/qbittorrent/seerr/jellyfin). "
+            "Emitted verbatim into generated arrconf.yml — no pydantic validation (D-32-01 YAGNI)."
+        ),
     )
 
 
