@@ -9,11 +9,9 @@ Verifies the 4-step chain:
 
 from __future__ import annotations
 
-import pytest
 import respx
 
 from arrconf.client_base import SonarrClient
-from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_anime_tag_labels
 from arrconf.resources.categories import Category as MediaCategory
 
@@ -103,14 +101,15 @@ def test_anime_labels_filtered_to_series_only() -> None:
 
 
 def test_animetags_resolution_chain_happy_path() -> None:
-    """Full 4-step chain: cfg → labels → Sonarr GET /tag → resolved IDs."""
+    """Full 4-step chain: categories → labels → Sonarr GET /tag → resolved IDs."""
     import structlog
 
     from arrconf.__main__ import _resolve_seerr_anime_tag_ids
 
     log = structlog.get_logger()
 
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+    # CATMIG-01: categories now passed directly (list[MediaCategory]) not via RootConfig
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
     with respx.mock(base_url="http://sonarr.test:8989/api/v3") as router:
         router.get("/tag").respond(
@@ -124,34 +123,29 @@ def test_animetags_resolution_chain_happy_path() -> None:
             ]
         )
         client = SonarrClient(base_url="http://sonarr.test:8989", api_key="test")
-        resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
+        resolved = _resolve_seerr_anime_tag_ids(cats, client, log)
 
     assert resolved == [7]
 
 
-@pytest.mark.skip(
-    reason=(
-        "CATMIG-01 Task 1: _resolve_seerr_anime_tag_ids signature updated in Task 2 "
-        "to accept categories separately instead of reading from RootConfig.categories "
-        "(which no longer exists). Re-enabled in Task 2."
-    )
-)
 def test_animetags_resolution_no_anime_categories() -> None:
-    """Empty when cfg has no anime-profile series categories."""
+    """Empty when categories has no anime-profile series entries."""
     import structlog
 
     from arrconf.__main__ import _resolve_seerr_anime_tag_ids
 
     log = structlog.get_logger()
 
-    no_anime_cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES if c["profile"] != "anime"]
-    cfg = RootConfig()
+    # CATMIG-01: pass categories directly (list[MediaCategory]), not via RootConfig
+    no_anime_cats = [
+        MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES if c["profile"] != "anime"
+    ]
 
     # No GET issued because labels list is empty; use a respx mock to assert no GET was made.
     with respx.mock(base_url="http://sonarr.test:8989/api/v3", assert_all_called=False) as router:
         tag_route = router.get("/tag")
         client = SonarrClient(base_url="http://sonarr.test:8989", api_key="test")
-        resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
+        resolved = _resolve_seerr_anime_tag_ids(no_anime_cats, client, log)
         assert tag_route.call_count == 0  # no GET issued
 
     assert resolved == []
@@ -165,7 +159,8 @@ def test_animetags_resolution_missing_label_warns_no_raise() -> None:
 
     log = structlog.get_logger()
 
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+    # CATMIG-01: categories now passed directly (list[MediaCategory]) not via RootConfig
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
     with respx.mock(base_url="http://sonarr.test:8989/api/v3") as router:
         # Sonarr does NOT have series-zoe yet — only the existing v0.2.0 tags:
@@ -178,6 +173,6 @@ def test_animetags_resolution_missing_label_warns_no_raise() -> None:
             ]
         )
         client = SonarrClient(base_url="http://sonarr.test:8989", api_key="test")
-        resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
+        resolved = _resolve_seerr_anime_tag_ids(cats, client, log)
 
     assert resolved == []  # missing — operator runs apply again on next cycle

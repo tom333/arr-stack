@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import pytest
 
-from arrconf.resources.categories import Category as MediaCategory
 from arrconf.generators.categories import (
     RadarrDerived,
     SonarrDerived,
@@ -18,6 +17,7 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
+from arrconf.resources.categories import Category as MediaCategory
 
 # Production 10-category fixture (verbatim from charts/arr-stack/files/arrconf.yml).
 # Order matches arrconf.yml: series categories first, then movies categories.

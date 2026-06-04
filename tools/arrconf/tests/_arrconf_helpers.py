@@ -83,13 +83,13 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
-from arrconf.resources.categories import Category as MediaCategory
 from arrconf.reconcilers.jellyfin import reconcile_jellyfin
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.seerr import reconcile_seerr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.resources.categories import Category as MediaCategory
 
 _FIXTURE_ROOT = Path(__file__).parent / "fixtures"
 
@@ -173,7 +173,7 @@ def dry_run_all_apps(
     }
 
     with respx.mock(assert_all_called=False) as mock, patch.dict(os.environ, qbit_env_overrides):
-        _register_sonarr_routes(mock, cfg)
+        _register_sonarr_routes(mock, cfg, categories=cats)
         _register_radarr_routes(mock, cfg)
         _register_prowlarr_routes(mock, cfg)
         _register_qbittorrent_routes(mock, cfg)
@@ -274,7 +274,11 @@ def dry_run_all_apps(
 # ---------------------------------------------------------------------------
 
 
-def _register_sonarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
+def _register_sonarr_routes(
+    mock: respx.MockRouter,
+    cfg: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> None:
     """Register Sonarr GET routes using production fixtures.
 
     Sonarr reconciler touches: /tag, /indexer, /rootfolder, /downloadclient,
@@ -286,9 +290,12 @@ def _register_sonarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
     output (series, series-emilie, series-zoe, ...). This helper now extends the
     base fixture with the per-category labels the generator will produce so
     ``_resolve_download_client_tag_labels`` finds a match in step 2's all_tags.
+
+    Phase 32 (CATMIG-01): categories param added (formerly cfg.categories).
     """
     base_tags = _load_fixture("sonarr/tag_with_tv_anime_family.json")
-    series_labels = [c.name for c in cfg.categories if c.kind == "series"]
+    _cats = categories or []
+    series_labels = [c.name for c in _cats if c.kind == "series"]
     existing_labels = {t["label"] for t in base_tags}
     next_id = max((t["id"] for t in base_tags), default=0) + 1
     tag_fixture = list(base_tags)

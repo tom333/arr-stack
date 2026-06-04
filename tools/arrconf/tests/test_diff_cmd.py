@@ -181,7 +181,7 @@ def test_diff_jellyfin_zero_drift_when_desired_matches_cluster(
     dump_jellyfin(_make_client(), out)
     root = load_config(out)
 
-    code = diff_jellyfin(_make_client(), root)
+    code = diff_jellyfin(_make_client(), root, [])
     assert code == 0, f"Expected code=0 (no drift) but got {code}"
 
 
@@ -317,7 +317,7 @@ def test_diff_jellyfin_returns_3_on_drift(
     )
     root = RootConfig(jellyfin={"main": inst})
 
-    code = diff_jellyfin(_make_client(), root)
+    code = diff_jellyfin(_make_client(), root, [])
     assert code == 3, f"Expected code=3 (drift) but got {code}"
 
 
@@ -353,7 +353,7 @@ def test_diff_jellyfin_round_trip_with_dump(
     assert "main" in root.jellyfin
 
     # Step 3: diff against the SAME cluster state → must return 0 (no drift).
-    code = diff_jellyfin(_make_client(), root)
+    code = diff_jellyfin(_make_client(), root, [])
     assert code == 0, (
         f"SC#4 round-trip violated: diff_jellyfin returned {code} instead of 0 — "
         "the dumped YAML, when applied against the same cluster, should produce zero drift"

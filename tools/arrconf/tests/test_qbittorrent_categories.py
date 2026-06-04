@@ -7,8 +7,8 @@ NOT a __main__.py end-to-end test -- pure data-flow verification.
 
 from __future__ import annotations
 
-from arrconf.resources.categories import Category as MediaCategory
 from arrconf.generators.categories import generate_qbit_categories
+from arrconf.resources.categories import Category as MediaCategory
 
 # Production fixture (same 10-category set as test_generators_categories.py).
 PRODUCTION_CATEGORIES = [

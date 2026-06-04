@@ -15,7 +15,6 @@ from pydantic import ValidationError
 
 from arrconf.resources.categories import Category
 
-
 # ---------------------------------------------------------------------------
 # Shared fixture data
 # ---------------------------------------------------------------------------
@@ -107,16 +106,76 @@ def _make_cats(raw: list[dict[str, str]]) -> list[Category]:
 
 
 _PRODUCTION_CATS_RAW: list[dict[str, str]] = [
-    {"name": "series", "kind": "series", "profile": "general", "display": "Séries", "base_path": "/media/series"},
-    {"name": "series-emilie", "kind": "series", "profile": "general", "display": "Séries - Émilie", "base_path": "/media/series-emilie"},
-    {"name": "series-thomas", "kind": "series", "profile": "general", "display": "Séries - Thomas", "base_path": "/media/series-thomas"},
-    {"name": "series-garcons", "kind": "series", "profile": "family", "display": "Séries - Garçons", "base_path": "/media/series-garcons"},
-    {"name": "series-zoe", "kind": "series", "profile": "anime", "display": "Séries - Zoé", "base_path": "/media/series-zoe"},
-    {"name": "films", "kind": "movies", "profile": "general", "display": "Films", "base_path": "/media/films"},
-    {"name": "nouveaux-films", "kind": "movies", "profile": "general", "display": "Nouveaux Films", "base_path": "/media/nouveaux-films"},
-    {"name": "films-enfants", "kind": "movies", "profile": "family", "display": "Films - Enfants", "base_path": "/media/films-enfants"},
-    {"name": "films-animation-enfants", "kind": "movies", "profile": "family", "display": "Films - Animation Enfants", "base_path": "/media/films-animation-enfants"},
-    {"name": "films-zoe", "kind": "movies", "profile": "anime", "display": "Films - Zoé", "base_path": "/media/films-zoe"},
+    {
+        "name": "series",
+        "kind": "series",
+        "profile": "general",
+        "display": "Séries",
+        "base_path": "/media/series",
+    },
+    {
+        "name": "series-emilie",
+        "kind": "series",
+        "profile": "general",
+        "display": "Séries - Émilie",
+        "base_path": "/media/series-emilie",
+    },
+    {
+        "name": "series-thomas",
+        "kind": "series",
+        "profile": "general",
+        "display": "Séries - Thomas",
+        "base_path": "/media/series-thomas",
+    },
+    {
+        "name": "series-garcons",
+        "kind": "series",
+        "profile": "family",
+        "display": "Séries - Garçons",
+        "base_path": "/media/series-garcons",
+    },
+    {
+        "name": "series-zoe",
+        "kind": "series",
+        "profile": "anime",
+        "display": "Séries - Zoé",
+        "base_path": "/media/series-zoe",
+    },
+    {
+        "name": "films",
+        "kind": "movies",
+        "profile": "general",
+        "display": "Films",
+        "base_path": "/media/films",
+    },
+    {
+        "name": "nouveaux-films",
+        "kind": "movies",
+        "profile": "general",
+        "display": "Nouveaux Films",
+        "base_path": "/media/nouveaux-films",
+    },
+    {
+        "name": "films-enfants",
+        "kind": "movies",
+        "profile": "family",
+        "display": "Films - Enfants",
+        "base_path": "/media/films-enfants",
+    },
+    {
+        "name": "films-animation-enfants",
+        "kind": "movies",
+        "profile": "family",
+        "display": "Films - Animation Enfants",
+        "base_path": "/media/films-animation-enfants",
+    },
+    {
+        "name": "films-zoe",
+        "kind": "movies",
+        "profile": "anime",
+        "display": "Films - Zoé",
+        "base_path": "/media/films-zoe",
+    },
 ]
 
 

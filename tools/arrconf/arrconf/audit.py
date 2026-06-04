@@ -25,6 +25,7 @@ from arrconf.client_base import (
     SonarrClient,
 )
 from arrconf.config import RootConfig
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.settings import Settings
 
 log = structlog.get_logger()
@@ -139,9 +140,14 @@ def is_legacy_tag(label: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def audit_radarr(client: RadarrClient, root: RootConfig) -> dict[str, Any]:
+def audit_radarr(
+    client: RadarrClient,
+    root: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> dict[str, Any]:
     """Audit Radarr movies + tags + DCs. Returns the per-app YAML dict shape.
 
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
     Issues only GET requests — never mutates cluster state.
     """
     movies: list[dict[str, Any]] = client.get("/movie")
@@ -149,7 +155,8 @@ def audit_radarr(client: RadarrClient, root: RootConfig) -> dict[str, Any]:
     dcs: list[dict[str, Any]] = client.get("/downloadclient")
 
     tag_id_to_label: dict[int, str] = {t["id"]: t["label"] for t in tags}
-    category_paths = {c.base_path for c in root.categories}
+    _cats = categories or []
+    category_paths = {c.base_path for c in _cats}
 
     legacy_movie_rows: list[dict[str, Any]] = []
     for m in movies:
@@ -211,9 +218,14 @@ def audit_radarr(client: RadarrClient, root: RootConfig) -> dict[str, Any]:
     }
 
 
-def audit_sonarr(client: SonarrClient, root: RootConfig) -> dict[str, Any]:
+def audit_sonarr(
+    client: SonarrClient,
+    root: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> dict[str, Any]:
     """Audit Sonarr series + tags + DCs. Returns the per-app YAML dict shape.
 
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
     Issues only GET requests — never mutates cluster state.
     """
     series: list[dict[str, Any]] = client.get("/series")
@@ -221,7 +233,8 @@ def audit_sonarr(client: SonarrClient, root: RootConfig) -> dict[str, Any]:
     dcs: list[dict[str, Any]] = client.get("/downloadclient")
 
     tag_id_to_label: dict[int, str] = {t["id"]: t["label"] for t in tags}
-    category_paths = {c.base_path for c in root.categories}
+    _cats = categories or []
+    category_paths = {c.base_path for c in _cats}
 
     legacy_series_rows: list[dict[str, Any]] = []
     for s in series:
@@ -283,16 +296,22 @@ def audit_sonarr(client: SonarrClient, root: RootConfig) -> dict[str, Any]:
     }
 
 
-def audit_qbittorrent(client: QbittorrentClient, root: RootConfig) -> dict[str, Any]:
+def audit_qbittorrent(
+    client: QbittorrentClient,
+    root: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> dict[str, Any]:
     """Audit qBit torrents save_paths and categories alignment. Read-only.
 
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
     Issues only GET requests — never mutates cluster state.
     """
     torrents: list[dict[str, Any]] = client.get("/torrents/info")
     raw_cats: dict[str, Any] = client.get("/torrents/categories")
 
     # Valid qBit-side save paths (qBit sees /data/<name>, not /data/torrents/<name> — Pitfall 1)
-    valid_qbit_save_paths = {f"/data/{c.name}" for c in root.categories}
+    _cats = categories or []
+    valid_qbit_save_paths = {f"/data/{c.name}" for c in _cats}
 
     legacy_torrents: list[dict[str, Any]] = []
     for t in torrents:
@@ -319,7 +338,7 @@ def audit_qbittorrent(client: QbittorrentClient, root: RootConfig) -> dict[str, 
     # Categories sanity check (post-debug-session expectation: all aligned)
     categories_validation: str | dict[str, Any] = "OK"
     drift: list[dict[str, Any]] = []
-    category_names = {c.name for c in root.categories}
+    category_names = {c.name for c in _cats}
     for cat_name, obj in raw_cats.items():
         if cat_name not in category_names:
             continue  # not a managed category — skip
@@ -348,9 +367,15 @@ def audit_qbittorrent(client: QbittorrentClient, root: RootConfig) -> dict[str, 
     }
 
 
-def audit_seerr(seerr: SeerrClient, sonarr: SonarrClient, root: RootConfig) -> dict[str, Any]:
+def audit_seerr(
+    seerr: SeerrClient,
+    sonarr: SonarrClient,
+    root: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> dict[str, Any]:
     """Audit Seerr animeTags routing. Read-only.
 
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
     Requires Sonarr GET /tag to resolve animeTags IDs → labels (RESEARCH.md Pitfall 3).
     Issues only GET requests — never mutates cluster state.
     """
@@ -360,9 +385,8 @@ def audit_seerr(seerr: SeerrClient, sonarr: SonarrClient, root: RootConfig) -> d
     tag_id_to_label: dict[int, str] = {t["id"]: t["label"] for t in sonarr_tags}
 
     # Anime-profile series Category names → target animetag candidates
-    anime_series_names = {
-        c.name for c in root.categories if c.profile == "anime" and c.kind == "series"
-    }
+    _cats = categories or []
+    anime_series_names = {c.name for c in _cats if c.profile == "anime" and c.kind == "series"}
     label_to_id: dict[str, int] = {t["label"]: t["id"] for t in sonarr_tags}
     proposed_anime_ids: list[int] = [
         label_to_id[name] for name in anime_series_names if name in label_to_id
@@ -399,14 +423,20 @@ def audit_seerr(seerr: SeerrClient, sonarr: SonarrClient, root: RootConfig) -> d
     }
 
 
-def audit_jellyfin(client: JellyfinClient, root: RootConfig) -> dict[str, Any]:
+def audit_jellyfin(
+    client: JellyfinClient,
+    root: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> dict[str, Any]:
     """Audit Jellyfin library alignment with Category base_paths. Read-only.
 
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
     Issues only GET requests — never mutates cluster state.
     """
     libs: list[dict[str, Any]] = client.get("/Library/VirtualFolders")
 
-    category_paths = {c.base_path for c in root.categories}
+    _cats = categories or []
+    category_paths = {c.base_path for c in _cats}
     # Also accept paths with trailing slash (Pitfall 7)
     category_paths_norm = {_norm_path(p) for p in category_paths}
 
@@ -797,8 +827,12 @@ def run_audit(
     settings: Settings,
     output_path: Path,
     targets: set[str],
+    categories: list[MediaCategory] | None = None,
 ) -> None:
     """Orchestrate per-app audit GETs and emit 20-AUDIT.md.
+
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
+    Pass the list from IntentConfig.categories; defaults to [] when None.
 
     Constructs clients for each target app, calls audit_* functions, aggregates
     results into the YAML appendix dict, and writes the Markdown + YAML appendix
@@ -817,7 +851,7 @@ def run_audit(
             base_url=instance.base_url,
             api_key=settings.radarr_api_key.get_secret_value(),
         )
-        state["radarr"] = audit_radarr(radarr_client, root)
+        state["radarr"] = audit_radarr(radarr_client, root, categories=categories)
     else:
         state["radarr"] = {}
 
@@ -828,7 +862,7 @@ def run_audit(
             base_url=instance_sonarr.base_url,
             api_key=settings.sonarr_api_key.get_secret_value(),
         )
-        state["sonarr"] = audit_sonarr(sonarr_client, root)
+        state["sonarr"] = audit_sonarr(sonarr_client, root, categories=categories)
     else:
         state["sonarr"] = {}
 
@@ -840,7 +874,7 @@ def run_audit(
             username=settings.qbt_user.get_secret_value(),
             password=settings.qbt_pass.get_secret_value(),
         )
-        state["qbittorrent"] = audit_qbittorrent(qbit_client, root)
+        state["qbittorrent"] = audit_qbittorrent(qbit_client, root, categories=categories)
     else:
         state["qbittorrent"] = {}
 
@@ -867,7 +901,9 @@ def run_audit(
         else:
             sonarr_for_seerr = None
         if sonarr_for_seerr is not None:
-            state["seerr"] = audit_seerr(seerr_client, sonarr_for_seerr, root)
+            state["seerr"] = audit_seerr(
+                seerr_client, sonarr_for_seerr, root, categories=categories
+            )
     else:
         state["seerr"] = {}
 
@@ -878,7 +914,7 @@ def run_audit(
             base_url=instance_jf.base_url,
             api_key=settings.jellyfin_api_key.get_secret_value(),
         )
-        state["jellyfin"] = audit_jellyfin(jellyfin_client, root)
+        state["jellyfin"] = audit_jellyfin(jellyfin_client, root, categories=categories)
     else:
         state["jellyfin"] = {}
 
@@ -914,9 +950,11 @@ def verify_audit(
     root: RootConfig,
     sonarr: SonarrClient | None,
     radarr: RadarrClient | None,
+    categories: list[MediaCategory] | None = None,
 ) -> int:
     """Pre-commit verification gate for 20-AUDIT.md. Returns 0 on pass, 1 on failure.
 
+    Phase 32 (CATMIG-01): categories param added (formerly root.categories).
     Gate 1: no `?` or `TBD` cells remaining in Markdown tables.
     Gate 2: YAML appendix block is present and parses without error.
     Gate 3: every to.rootFolderPath in the appendix is a known Category base_path.
@@ -943,7 +981,8 @@ def verify_audit(
         return 1
 
     # Gate 3: all to.rootFolderPath ∈ categories[*].base_path
-    valid_paths = {c.base_path for c in root.categories}
+    _cats = categories or []
+    valid_paths = {c.base_path for c in _cats}
     for movie in appendix.get("radarr", {}).get("movies_to_migrate", []):
         target = (movie.get("to") or {}).get("rootFolderPath", "")
         if target and target not in valid_paths:

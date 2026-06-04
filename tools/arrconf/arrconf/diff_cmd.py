@@ -2,6 +2,10 @@
 
 Returns ``3`` if drift is detected (CLAUDE.md CLI exit-code contract),
 ``0`` if every planned action is NO_OP.
+
+Phase 32 (CATMIG-01 / D-32-01): diff_sonarr/radarr/qbittorrent/jellyfin now accept
+``categories: list[MediaCategory]`` as an explicit parameter (sourced from IntentConfig).
+diff_prowlarr is unaffected (no categories).
 """
 
 from __future__ import annotations
@@ -26,11 +30,16 @@ from arrconf.generators.categories import (
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.resources.categories import Category as MediaCategory
 
 log = structlog.get_logger()
 
 
-def diff_sonarr(client: SonarrClient, root_config: RootConfig) -> int:
+def diff_sonarr(
+    client: SonarrClient,
+    root_config: RootConfig,
+    categories: list[MediaCategory],
+) -> int:
     """Run ``reconcile_sonarr`` in dry-run mode and return CLI exit code.
 
     Returns ``0`` when every planned action is ``Action.NO_OP``, ``3``
@@ -39,11 +48,12 @@ def diff_sonarr(client: SonarrClient, root_config: RootConfig) -> int:
 
     Phase 12-A (D-03/D-04): generators called here and passed as the 3rd
     positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
+    Phase 32 (CATMIG-01): categories param replaces RootConfig.categories.
     """
     if "main" not in root_config.sonarr:
         log.warning("no_sonarr_config", hint="sonarr.main missing in YAML")
         return 0
-    sonarr_derived = generate_sonarr_resources(root_config)
+    sonarr_derived = generate_sonarr_resources(categories)
     result = reconcile_sonarr(client, root_config.sonarr["main"], sonarr_derived, dry_run=True)
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
@@ -54,16 +64,21 @@ def diff_sonarr(client: SonarrClient, root_config: RootConfig) -> int:
     return 3
 
 
-def diff_radarr(client: RadarrClient, root_config: RootConfig) -> int:
+def diff_radarr(
+    client: RadarrClient,
+    root_config: RootConfig,
+    categories: list[MediaCategory],
+) -> int:
     """Run ``reconcile_radarr`` in dry-run mode and return CLI exit code (mirror of diff_sonarr).
 
     Phase 12-A (D-03/D-04): generators called here and passed as the 3rd
     positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
+    Phase 32 (CATMIG-01): categories param replaces RootConfig.categories.
     """
     if "main" not in root_config.radarr:
         log.warning("no_radarr_config", hint="radarr.main missing in YAML")
         return 0
-    radarr_derived = generate_radarr_resources(root_config)
+    radarr_derived = generate_radarr_resources(categories)
     result = reconcile_radarr(client, root_config.radarr["main"], radarr_derived, dry_run=True)
     non_noop = [p for p in result.plan if p.action != Action.NO_OP]
     if not non_noop:
@@ -96,7 +111,11 @@ def diff_prowlarr(client: ProwlarrClient, root_config: RootConfig) -> int:
     return 3
 
 
-def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
+def diff_qbittorrent(
+    client: QbittorrentClient,
+    root_config: RootConfig,
+    categories: list[MediaCategory],
+) -> int:
     """Run qBittorrent reconcile in dry-run mode and return CLI exit code.
 
     Mirror of diff_prowlarr (CR-02 pattern): gates on result.plan (populated
@@ -107,13 +126,14 @@ def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
 
     Phase 12-A (D-03/D-04): generator called here and passed as the 3rd
     positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
+    Phase 32 (CATMIG-01): categories param replaces RootConfig.categories.
     """
     from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
 
     if "main" not in root_config.qbittorrent:
         log.warning("no_qbittorrent_config", hint="qbittorrent.main missing in YAML")
         return 0
-    qbit_generated = generate_qbit_categories(root_config)
+    qbit_generated = generate_qbit_categories(categories)
     result = reconcile_qbittorrent(
         client, root_config.qbittorrent["main"], qbit_generated, dry_run=True
     )
@@ -126,7 +146,11 @@ def diff_qbittorrent(client: QbittorrentClient, root_config: RootConfig) -> int:
     return 3
 
 
-def diff_jellyfin(client: JellyfinClient, root_config: RootConfig) -> int:
+def diff_jellyfin(
+    client: JellyfinClient,
+    root_config: RootConfig,
+    categories: list[MediaCategory],
+) -> int:
     """Run ``reconcile_jellyfin`` in dry-run mode and return CLI exit code.
 
     Returns ``0`` when ``result.actions_taken`` is empty (every step was a no-op),
@@ -139,6 +163,7 @@ def diff_jellyfin(client: JellyfinClient, root_config: RootConfig) -> int:
 
     Phase 12-A (D-03/D-04): generator called here and passed as the 3rd
     positional arg — merge_with_manual removed (Plan A, v0.4.0 cleanup).
+    Phase 32 (CATMIG-01): categories param replaces RootConfig.categories.
     """
     from arrconf.reconcilers.jellyfin import reconcile_jellyfin  # noqa: PLC0415
 
@@ -146,7 +171,7 @@ def diff_jellyfin(client: JellyfinClient, root_config: RootConfig) -> int:
         log.warning("no_jellyfin_config", hint="jellyfin.main missing in YAML")
         return 0
 
-    jellyfin_generated = generate_jellyfin_libraries(root_config)
+    jellyfin_generated = generate_jellyfin_libraries(categories)
     result = reconcile_jellyfin(
         client, root_config.jellyfin["main"], jellyfin_generated, dry_run=True
     )

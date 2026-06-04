@@ -10,8 +10,8 @@ NOT an HTTP integration test -- pure data-flow verification.
 
 from __future__ import annotations
 
-from arrconf.resources.categories import Category as MediaCategory
 from arrconf.generators.categories import generate_radarr_resources
+from arrconf.resources.categories import Category as MediaCategory
 
 PRODUCTION_CATEGORIES = [
     {

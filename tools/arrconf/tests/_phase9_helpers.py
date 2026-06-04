@@ -68,13 +68,13 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
-from arrconf.resources.categories import Category as MediaCategory
 from arrconf.reconcilers.jellyfin import reconcile_jellyfin
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.seerr import reconcile_seerr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.resources.categories import Category as MediaCategory
 
 _FIXTURE_ROOT = Path(__file__).parent / "fixtures"
 
