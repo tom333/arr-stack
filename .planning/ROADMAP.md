@@ -226,12 +226,12 @@ Plans:
 **Requirements**: CATMIG-01, CATMIG-02, CATMIG-03
 **Success Criteria** (what must be TRUE):
   1. L'opérateur ouvre `intent.yml` et voit les 10 catégories de production (`name`/`kind`/`profile`/`display`/`base_path`) — c'est le seul endroit où elles existent ; `arrconf.yml` ne contient plus aucune section `categories[]` hand-edited
-  2. `arrconf generate` produit `arrconf.yml` en intégralité depuis l'intent (toutes les sections que les générateurs émettent : qBit categories, Sonarr/Radarr tags/root_folders/download_clients, Jellyfin libraries, Seerr animeTags) ; un `arrconf.yml` hand-edited ne peut pas coexister avec la version générée
+  2. `arrconf generate` produit `arrconf.yml` = bloc `apps:` pass-through (config instance) depuis l'intent ; les ressources categories-derived (qBit categories, Sonarr/Radarr tags/root_folders/download_clients/RPMs, Jellyfin libraries, Seerr animeTags) sont matérialisées au **apply-time** depuis `intent_cfg.categories`, PAS inlinées dans `arrconf.yml` (les sections app de `RootConfig` sont des prune-stubs ; `items:` retiré en v0.4.0, `extra=forbid`) ; un `arrconf.yml` hand-edited avec une section `categories:` est rejeté par `RootConfig` et ne peut pas coexister avec la version générée
   3. La CI `generate-idempotence` couvre désormais `arrconf.yml` : une PR qui modifie `intent.yml` sans régénérer `arrconf.yml` échoue immédiatement
   4. `arrconf.yml` porte un commentaire d'entête `# GENERATED — do not edit by hand` et son contenu est byte-for-byte reproductible par `arrconf generate`
 **Plans**: 2 plans
-- [ ] 32-01-PLAN.md — Contract migration: IntentConfig gains categories+apps, RootConfig drops categories+guard, generators retargeted to list[MediaCategory], apply/diff rewired, schemas regen (CATMIG-01)
-- [ ] 32-02-PLAN.md — generate_arrconf_yml emission + qbit_manage coupling inversion + intent.yml lift + read-only arrconf.yml regen + CI guard + co-bump 0.22.0→0.23.0 (CATMIG-02, CATMIG-03)
+- [ ] 32-01-PLAN.md — Contract migration: IntentConfig gains categories+apps, RootConfig drops categories+guard, generators retargeted to list[MediaCategory], apply/diff rewired (missing-intent guard tested), schemas regen + co-bump 0.22.0→0.23.0 (CATMIG-01)
+- [ ] 32-02-PLAN.md — generate_arrconf_yml emission (deterministic by construction) + qbit_manage coupling inversion + intent.yml lift + read-only arrconf.yml regen + CI guard + SC#2 wording fix (CATMIG-02, CATMIG-03)
 **Co-bump note**: Phase touche `tools/arrconf/**` (IntentConfig schema + generators/) → co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` REQUIS dans le même commit que le code Python.
 
 ### Phase 33: configarr.yml generation
