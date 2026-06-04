@@ -699,6 +699,20 @@ def audit(
         log.error("scope_violation", error=str(e))
         raise typer.Exit(code=2) from e
 
+    # Phase 32 (CATMIG-01 / D-32-01): categories live in intent.yml, not root.
+    # Audit is read-only; load intent so legacy detection compares against the
+    # real categories (mirrors apply()/diff()). Without this, run_audit sees an
+    # empty category list and flags everything as legacy.
+    intent_path: Path = ctx.obj["intent_path"]
+    intent_cfg: IntentConfig | None = None
+    if intent_path.exists():
+        try:
+            intent_cfg = load_intent(intent_path)
+        except ConfigError as e:
+            log.error("intent_config_error", error=str(e))
+            raise typer.Exit(code=2) from e
+    cats: list[MediaCategory] = intent_cfg.categories if intent_cfg else []
+
     targets = _selected_apps(apps)
     settings = Settings()
 
@@ -727,7 +741,7 @@ def audit(
             raise typer.Exit(code=2)
 
     try:
-        run_audit(root, settings, output_path=output, targets=targets)
+        run_audit(root, settings, output_path=output, targets=targets, categories=cats)
     except ConfigError as e:
         log.error("config_error", error=str(e))
         raise typer.Exit(code=2) from e
@@ -753,6 +767,19 @@ def audit_verify_cmd(
         log.error("config_error", error=str(e))
         raise typer.Exit(code=2) from e
 
+    # Phase 32 (CATMIG-01 / D-32-01): categories live in intent.yml, not root.
+    # Gate 3 validates target paths against the real categories — without this
+    # load the valid-path set is empty and every target path is flagged invalid.
+    intent_path: Path = ctx.obj["intent_path"]
+    intent_cfg: IntentConfig | None = None
+    if intent_path.exists():
+        try:
+            intent_cfg = load_intent(intent_path)
+        except ConfigError as e:
+            log.error("intent_config_error", error=str(e))
+            raise typer.Exit(code=2) from e
+    cats: list[MediaCategory] = intent_cfg.categories if intent_cfg else []
+
     settings = Settings()
     # For Gate 4 (live tag re-GET) we need Sonarr+Radarr clients if available.
     # If their API keys are missing, fall back to skipping Gate 4 (log a warning).
@@ -774,7 +801,7 @@ def audit_verify_cmd(
             reason="missing API keys — Gate 4 live tag re-GET skipped",
         )
 
-    exit_code = verify_audit(input, root, sonarr_client, radarr_client)
+    exit_code = verify_audit(input, root, sonarr_client, radarr_client, categories=cats)
     raise typer.Exit(code=exit_code)
 
 
