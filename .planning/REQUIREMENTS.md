@@ -58,23 +58,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CATMIG-01 | TBD | Pending |
-| CATMIG-02 | TBD | Pending |
-| CATMIG-03 | TBD | Pending |
-| CFGARR-01 | TBD | Pending |
-| CFGARR-02 | TBD | Pending |
-| CFGARR-03 | TBD | Pending |
-| CFGARR-04 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
-| UI-04 | TBD | Pending |
+| CATMIG-01 | Phase 32 | Pending |
+| CATMIG-02 | Phase 32 | Pending |
+| CATMIG-03 | Phase 32 | Pending |
+| CFGARR-01 | Phase 33 | Pending |
+| CFGARR-02 | Phase 33 | Pending |
+| CFGARR-03 | Phase 33 | Pending |
+| CFGARR-04 | Phase 33 | Pending |
+| UI-01 | Phase 34 | Pending |
+| UI-02 | Phase 34 | Pending |
+| UI-03 | Phase 34 | Pending |
+| UI-04 | Phase 34 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 11 ⚠️ (filled by roadmapper)
+- Mapped to phases: 11 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-03*
-*Last updated: 2026-06-03 after milestone v0.11.0 definition*
+*Last updated: 2026-06-04 — traceability filled (roadmap created: phases 32/33/34)*

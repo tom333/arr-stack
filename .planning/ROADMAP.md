@@ -10,6 +10,7 @@
 - ✅ **v0.8.0 Categories cleanup — v0.2.0 legacy migration close-out** — Phases 20-23 (shipped 2026-05-27)
 - ✅ **v0.9.0 configarr-in-UI + Jellyfin skip-intro** — Phases 24-27 (shipped 2026-05-31)
 - ✅ **v0.10.0 Couche d'intention (tranche 1)** — Phases 28-31 (shipped 2026-05-31)
+- 🔄 **v0.11.0 Couche d'intention (tranche 2)** — Phases 32-34 (in progress)
 
 ## Phases
 
@@ -216,6 +217,53 @@ Plans:
 - [x] 31-02-PLAN.md — 13th Helm alias (Chart.yaml + values.yaml CronJob) + qbit-manage-configmap.yaml + chart-lint.yml unpack-loop & annotation-guard 12→14 + README (QBM-03) [wave 2, depends 01]
 
 </details>
+
+## Phase Details — v0.11.0 Couche d'intention (tranche 2)
+
+### Phase 32: Categories migration (hard cut)
+**Goal**: `categories[]` vit uniquement dans `intent.yml` ; `arrconf.yml` devient 100% généré et read-only
+**Depends on**: Phase 28 (generate foundation + `arrconf generate` CLI already in place)
+**Requirements**: CATMIG-01, CATMIG-02, CATMIG-03
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur ouvre `intent.yml` et voit les 10 catégories de production (`name`/`kind`/`profile`/`display`/`base_path`) — c'est le seul endroit où elles existent ; `arrconf.yml` ne contient plus aucune section `categories[]` hand-edited
+  2. `arrconf generate` produit `arrconf.yml` en intégralité depuis l'intent (toutes les sections que les générateurs émettent : qBit categories, Sonarr/Radarr tags/root_folders/download_clients, Jellyfin libraries, Seerr animeTags) ; un `arrconf.yml` hand-edited ne peut pas coexister avec la version générée
+  3. La CI `generate-idempotence` couvre désormais `arrconf.yml` : une PR qui modifie `intent.yml` sans régénérer `arrconf.yml` échoue immédiatement
+  4. `arrconf.yml` porte un commentaire d'entête `# GENERATED — do not edit by hand` et son contenu est byte-for-byte reproductible par `arrconf generate`
+**Plans**: TBD
+**Co-bump note**: Phase touche `tools/arrconf/**` (IntentConfig schema + generators/) → co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` REQUIS dans le même commit que le code Python.
+
+### Phase 33: configarr.yml generation
+**Goal**: `configarr.yml` (quality_profiles + custom_formats) est généré par catégorie depuis le champ `profile` de l'intent ; ADR-5 est préservé par construction
+**Depends on**: Phase 32 (categories must live in intent.yml before profile-per-category generation is coherent)
+**Requirements**: CFGARR-01, CFGARR-02, CFGARR-03, CFGARR-04
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur déclare `profile: <nom>` sur chaque catégorie dans `intent.yml` — `arrconf generate` émet les blocs `quality_profiles` correspondants dans `configarr.yml` (un profil par valeur de `profile` unique dans les catégories)
+  2. `arrconf generate` émet les `custom_formats` dans `configarr.yml` depuis l'intent (réutilisant le catalogue TRaSH baké en Phase 27) ; les sections non-générées (`templates`, `includes`, refs Recyclarr) sont passées verbatim depuis un bloc dédié `intent.yml`
+  3. La garde CI `generate-idempotence` couvre `configarr.yml` : une PR qui modifie l'intent sans régénérer `configarr.yml` échoue
+  4. `arrconf generate` ne contacte aucune API `quality_profiles`/`custom_formats` — il n'écrit qu'un fichier ; `ScopeViolationError` reste intacte dans les reconcilers arrconf ; configarr reste le seul appliqueur TRaSH
+**Plans**: TBD
+**Co-bump note**: Phase touche `tools/arrconf/**` (nouveau générateur configarr) → co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` REQUIS dans le même commit que le code Python.
+
+### Phase 34: UI over intent
+**Goal**: `arrconf-ui` édite `intent.yml` comme seule source, les formulaires legacy arrconf.yml/configarr.yml sont retirés, et l'opérateur peut visualiser le diff généré avant commit
+**Depends on**: Phase 32, Phase 33 (intent schema doit absorber categories + configarr blocks avant que l'UI en soit le seul éditeur)
+**Requirements**: UI-01, UI-02, UI-03, UI-04
+**Success Criteria** (what must be TRUE):
+  1. L'opérateur ouvre `arrconf-ui` et trouve un unique formulaire d'édition pour `intent.yml` — charger, modifier, sauvegarder l'intent fonctionne end-to-end ; aucun champ d'`arrconf.yml` ou `configarr.yml` n'est éditable (formulaires legacy supprimés ou réduits à read-only)
+  2. Le picker CF/QP TRaSH/Recyclarr (construit en Phase 27) est intégré dans le formulaire intent — l'opérateur peut sélectionner des custom formats et des quality profiles depuis le catalogue baké sans quitter l'UI
+  3. L'UI expose un panneau diff montrant les fichiers générés (`arrconf.yml`, `configarr.yml`) tels qu'ils seraient produits par `arrconf generate` après la modification intent courante — l'opérateur voit la matérialisation avant tout commit
+  4. Un run `arrconf generate` (localement, depuis l'UI via appel backend, ou équivalent) appliqué après une sauvegarde intent produit les mêmes fichiers que le diff affiché — cohérence diff/génération vérifiable par l'opérateur
+**Plans**: TBD
+**UI hint**: yes
+**Co-bump note**: Phase touche `tools/arrconf-ui/**` uniquement (FastAPI backend + Svelte frontend) — PAS de co-bump `arrconf.image.tag` (l'image cluster arrconf n'est pas modifiée).
+
+## Progress — v0.11.0
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 32. Categories migration (hard cut) | 0/TBD | Not started | - |
+| 33. configarr.yml generation | 0/TBD | Not started | - |
+| 34. UI over intent | 0/TBD | Not started | - |
 
 ## Historical Progress
 

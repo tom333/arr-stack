@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
 status: planning
-last_updated: "2026-06-04T07:47:05.266Z"
+last_updated: "2026-06-04T00:00:00.000Z"
 last_activity: 2026-06-04
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,42 +21,46 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Awaiting next milestone (v0.10.0 complete — tranche 2 of intention layer candidate, see PROJECT.md v2 requirements)
+**Current focus:** v0.11.0 — Couche d'intention (tranche 2) : `intent.yml` devient le seul fichier hand-edited pour toute la stack (categories migration hard cut + configarr.yml génération + UI-sur-intent).
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 32 (not started — roadmap defined)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-04 — Milestone v0.11.0 started
+Status: Roadmap defined — ready to plan phases
+Last activity: 2026-06-04 — Roadmap created (3 phases: 32 CATMIG, 33 CFGARR, 34 UI)
+
+```
+Progress: [          ] 0% (0/3 phases)
+```
 
 ## Accumulated Context
 
 ### Decisions
 
-Quick reference to 9 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block):
+Quick reference to 10 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block):
 
-- **ADR-1** Script Python custom (vs Buildarr/Terraform/Flemmarr) — tient pour v0.10.0
+- **ADR-1** Script Python custom (vs Buildarr/Terraform/Flemmarr) — tient
 - **ADR-2** Helm dependencies sur app-template (Option A)
 - **ADR-3** Image arrconf sur GHCR public
 - **ADR-4** Repo séparé (vs extension my-kluster)
-- **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming) — étendu par v0.10.0 : la couche intention se place AU-DESSUS d'arrconf ET configarr ; configarr reste seul appliqueur TRaSH
-- **ADR-6** Snapshot baseline avant toute écriture — CRITIQUE Phase 29 (sagas touche Radarr/Jellyfin live)
+- **ADR-5** configarr conservé (frontière dure quality_profiles/custom_formats/quality_definitions/media_naming) — étendu par v0.10.0 ADR-10 : la couche intention se place AU-DESSUS ; configarr reste seul appliqueur TRaSH ; `ScopeViolationError` intact et **critique pour Phase 33 (CFGARR)**
+- **ADR-6** Snapshot baseline avant toute écriture
 - **ADR-7** Single instance Sonarr/Radarr + tags (pas multi-instance)
 - **ADR-8** arrconf trusted controller — `?forceSave=true` PUT bypass (scoped to *arr v3)
-- **ADR-9** Jellyfin plugin reconciler install-capable (two-run model) — réutilisé Phase 29 pour tmdbboxsets
+- **ADR-9** Jellyfin plugin reconciler install-capable (two-run model)
+- **ADR-10** Couche d'intention + frontière "absorber vs déployer" (Phase 28) — étendu par v0.11.0 tranche 2 : `generate` absorbe categories[] + configarr.yml CF/QP ; modèle G1 (local + committé) inchangé
 
-**ADR-nouveau (à rédiger Phase 28):** couche d'intention + frontière "absorber vs déployer" (extension ADR-5).
+### v0.11.0 Roadmap Decisions (2026-06-04)
 
-### v0.10.0 Roadmap Decisions (2026-05-31)
-
-- **Phase ordering:** Phase 28 (generate foundation) est le prérequis bloquant de toutes les autres. Phases 29, 30, 31 sont indépendantes entre elles une fois Phase 28 complète — elles peuvent être planifiées/exécutées dans cet ordre logique (complexité décroissante : sagas = plus risqué, cross-seed et qbit_manage = chart-only, pas de co-bump arrconf image).
-- **Co-bump constraint Phase 28:** `arrconf generate` est du code Python dans `tools/arrconf/**` → MUST co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` dans le même commit.
-- **Co-bump constraint Phase 29:** nouveau reconciler Radarr Collections = code Python → MUST co-bump arrconf image tag.
-- **No co-bump Phases 30-31:** cross-seed et qbit_manage = Helm aliases + ConfigMaps uniquement (générateurs purs dans arrconf, mais pas de nouveau reconciler) — si les générateurs sont dans `tools/arrconf/**`, co-bump REQUIS. À clarifier en discuss-phase : si `arrconf generate` code est dans Phase 28 et les générateurs cross-seed/qbit_manage sont ajoutés dans Phase 28, Phases 30-31 n'ajoutent que le Helm. Sinon co-bump si nouvel arrconf code.
-- **ADR-6 Phase 29:** snapshot raw obligatoire AVANT le premier test live cluster sagas (nouveau reconciler Radarr Collections + plugin Jellyfin).
-- **5 questions ouvertes design §6** à résoudre en discuss-phase avant Phase 28 : schéma `intent.yml`, sagas séries validation, cross-seed migration + linkDirs, ratio policy qbit_manage, `arrconf generate` CLI guard.
-- **Phase 30 cross-seed (livré 2026-05-31, 3/3 plans):** tokens env distincts dans `intent.yml`/`config.js` (pas de `PLACEHOLDER` partagé) ; `${QBT_USER}` (pas `admin` hard-codé) ; 12e alias `app-template` avec initContainer Node.js (pas busybox+envsubst) faisant la substitution secret → emptyDir, advancedMounts pour éviter PVC shadowing (Pitfall 1) ; probes `tcpSocket` 2468 (pas d'endpoint health no-auth) ; `values.schema.json` étendu (`cross-seed` additionalProperties:true) ; CI renovate threshold 10→12. Patch bump arrconf `:0.19.1` (token-emission fix). Pas de nouveau reconciler arrconf → Helm-only au-delà du générateur.
+- **Phase ordering:** Phase 32 (CATMIG hard cut) est le prérequis bloquant des deux suivantes : Phase 33 (CFGARR) requiert que `categories[]` soit dans `intent.yml` pour pouvoir générer les profils par catégorie ; Phase 34 (UI) requiert le schéma intent complet (categories + configarr blocks) pour devenir le seul éditeur cohérent. Ordre forcé : 32 → 33 → 34.
+- **Co-bump constraint Phase 32:** CATMIG étend le schéma `IntentConfig` (absorption `categories[]`) + les générateurs dans `tools/arrconf/**` → co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` REQUIS.
+- **Co-bump constraint Phase 33:** CFGARR ajoute un nouveau générateur `generators/configarr.py` dans `tools/arrconf/**` → co-bump REQUIS.
+- **No co-bump Phase 34:** UI-over-intent touche uniquement `tools/arrconf-ui/**` (FastAPI backend + Svelte frontend) — l'image cluster arrconf n'est pas modifiée → PAS de co-bump.
+- **ADR-5 guard Phase 33 (CRITIQUE):** `generate` n'écrit qu'un fichier `configarr.yml` — arrconf ne doit jamais appeler les APIs `quality_profiles`/`custom_formats` (ScopeViolationError intact). Succès critère obligatoire.
+- **Hard cut CATMIG:** Pas de double-source ni de période de deprecation-warning (opérateur unique). `arrconf.yml` passe directement de hand-edited à 100% généré. Le guide CI idempotence (`generate --check` + `git diff --exit-code`) est étendu pour couvrir `arrconf.yml` en Phase 32 et `configarr.yml` en Phase 33.
+- **Réutilisation Phase 27 catalogue TRaSH:** le catalogue TRaSH baké au build (SHAs pinnés, zéro HTTP runtime) livré en Phase 27 est directement réutilisable pour le générateur CF en Phase 33. Pas de rebuild du catalogue.
+- **Build-on-existing:** `arrconf generate` CLI + `--check` mode (Phase 28), générateurs purs dans `generators/`, garde CI `generate-idempotence` dans `tests.yml` — tout est en place, Phase 32 et 33 étendent l'existant.
 
 ### v0.9.0 Phase 27 Decisions (carry-forward)
 
@@ -65,15 +69,15 @@ Quick reference to 9 LOCKED ADRs (full text in `PROJECT.md` `<decisions>` block)
 
 ### Blockers/Concerns
 
-None blocking — v0.10.0 tranche 1 complete (28-31), all 14 requirements validated. Cluster-runtime UAT on Phases 30/31 pending (see Deferred Items) — code-complete, non-blocking. Next-milestone candidate: tranche 2 (INTENT-UI-01 UI-over-intent, INTENT-CFGARR-01 configarr.yml generated, INTENT-CATMIG-01 categories[] migration into intent.yml).
+None blocking — roadmap defined (3 phases, 11 requirements, 100% coverage). Next: plan Phase 32 via `/gsd-plan-phase 32`.
 
 ### Pending Todos
 
-- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook dans CLAUDE.md. Tâche opérateur manuelle, hors v0.10.0.
+- `2026-05-27-migrer-mediatheque-existante-vers-buckets-categories-v0-3-0` (area: ops) — migration filesystem média v0.2.0→v0.3.0 pas encore exécutée ⇒ 3 libs Jellyfin vides (Films, Films-Animation-Enfants, Séries-Émilie). Runbook dans CLAUDE.md. Tâche opérateur manuelle, hors v0.11.0.
 
 ## Deferred Items
 
-Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.10.0 scope:
+Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.11.0 scope:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
@@ -131,4 +135,4 @@ Items carried from v0.3.0 / v0.4.0 / v0.5.0 close — not in v0.10.0 scope:
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 32 via `/gsd-plan-phase 32`
