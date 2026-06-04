@@ -8,7 +8,7 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Milestone in progress: v0.11.0 Couche d'intention (tranche 2)** (started 2026-06-03). Complète la couche d'intention : `intent.yml` devient le **seul fichier hand-edited** pour TOUTE la stack. 3 features : **INTENT-UI-01** (l'UI `arrconf-ui` édite `intent.yml` uniquement ; les formulaires schema-mirror arrconf.yml/configarr.yml deviennent read-only/retirés — fin du mirror coûteux ~5020 LOC) ; **INTENT-CFGARR-01** (`configarr.yml` CF/QP générés par catégorie depuis l'intent `profile` field ; templates/includes pass-through — ADR-5 préservé, configarr seul appliqueur TRaSH) ; **INTENT-CATMIG-01** (hard cut : `categories[]` vit UNIQUEMENT dans `intent.yml`, `arrconf.yml` devient 100% généré read-only). Extension ADR-10. Next : `/gsd-plan-phase`.
+**Milestone in progress: v0.11.0 Couche d'intention (tranche 2)** (started 2026-06-03). Complète la couche d'intention : `intent.yml` devient le **seul fichier hand-edited** pour TOUTE la stack. 3 features : **INTENT-UI-01** (l'UI `arrconf-ui` édite `intent.yml` uniquement ; les formulaires schema-mirror arrconf.yml/configarr.yml deviennent read-only/retirés — fin du mirror coûteux ~5020 LOC) ; **INTENT-CFGARR-01** (`configarr.yml` CF/QP générés par catégorie depuis l'intent `profile` field ; templates/includes pass-through — ADR-5 préservé, configarr seul appliqueur TRaSH) ; **INTENT-CATMIG-01** (hard cut : `categories[]` vit UNIQUEMENT dans `intent.yml`, `arrconf.yml` devient 100% généré read-only). Extension ADR-10. **Phase 32 (CATMIG) livré** (2026-06-04, 2/2 plans, 4/4 SC) : `categories[]` migré RootConfig→IntentConfig (`extra=forbid` rejette `categories:` dans arrconf.yml), 5 générateurs retargetés `list[MediaCategory]`, `apply`/`diff` sourcent `intent_cfg.categories` (garde missing-intent), `generate_arrconf_yml` émet arrconf.yml read-only (header GENERATED, byte-reproductible), garde CI `generate-idempotence` couvre arrconf.yml, qbit_manage coupling inversé (D-32-05). arrconf co-bump `:0.23.0`. CATMIG-01..03 validés. Next : Phase 33 (CFGARR).
 
 <details>
 <summary>Previous state — v0.10.0 Couche d'intention (tranche 1) (shipped & archived 2026-05-31)</summary>
@@ -331,6 +331,8 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-06-04 — Phase 32 (CATMIG hard cut) complete: categories[] migrated to intent.yml, arrconf.yml now 100% generated read-only, arrconf :0.23.0. CATMIG-01..03 validated. Next: Phase 33 (CFGARR).*
+
 *Last updated: 2026-06-03 — v0.11.0 milestone started (Couche d'intention tranche 2). Current Milestone section rewritten for v0.11.0 (3 features: INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01), v0.10.0 demoted to Last Milestone + Current State details collapsed, Active section populated with 3 tranche-2 requirements. Scoping decisions: UI replaces mirror, CFGARR = CF/QP par catégorie, CATMIG = hard cut. Phase numbering continues from Phase 31 → Phase 32. Next: requirements → roadmap.*
 
 <details>
