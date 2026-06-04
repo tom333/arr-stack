@@ -15,6 +15,35 @@ from arrconf.__main__ import app
 
 runner = CliRunner()
 
+# CATMIG-01 (Phase 32): helper to create a minimal intent.yml so tests bypass the
+# intent_required_for_categories guard. Tests that focus on API key / credentials
+# gates (not categories behavior) need an intent.yml that declares the app instances.
+_SERIES_CAT_INTENT = """\
+categories:
+  - name: series
+    kind: series
+    profile: general
+    display: Series
+    base_path: /media/series
+"""
+
+
+_EMPTY_INTENT = "{}\n"
+
+
+def _write_intent(path: Path, content: str = _SERIES_CAT_INTENT) -> Path:
+    """Write an intent.yml to path and return its path."""
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
+def _write_empty_intent(path: Path) -> Path:
+    """Write an empty intent.yml (no categories) — bypasses intent guard without affecting
+    categories-dependent gates (qbt_creds check, etc.)."""
+    path.write_text(_EMPTY_INTENT, encoding="utf-8")
+    return path
+
+
 # Rich-based typer help output interleaves ANSI color codes through flag names
 # (e.g. "--dry-run" renders as "-\x1b[0m\x1b[1;36m-dry\x1b[0m\x1b[1;36m-run"),
 # breaking naive substring checks in CI environments where rich force-detects
@@ -56,8 +85,11 @@ def test_apply_missing_api_key_returns_exit_2(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
         "    download_clients:\n      prune: false\n"
     )
+    intent = _write_empty_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: empty intent (no cats → creds gate won't fire first)
     monkeypatch.delenv("SONARR_API_KEY", raising=False)
-    result = runner.invoke(app, ["--config", str(cfg), "apply"])
+    result = runner.invoke(app, ["--config", str(cfg), "--intent", str(intent), "apply"])
     assert result.exit_code == 2, (
         f"Expected exit 2 (missing api key), got {result.exit_code}: {result.stdout}"
     )
@@ -99,8 +131,11 @@ def test_diff_missing_api_key_returns_exit_2(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
         "    download_clients:\n      prune: false\n"
     )
+    intent = _write_empty_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: empty intent (no cats → creds gate won't fire first)
     monkeypatch.delenv("SONARR_API_KEY", raising=False)
-    result = runner.invoke(app, ["--config", str(cfg), "diff"])
+    result = runner.invoke(app, ["--config", str(cfg), "--intent", str(intent), "diff"])
     assert result.exit_code == 2
     assert "missing_api_key" in result.stdout
 
@@ -206,8 +241,9 @@ def test_diff_sonarr_catches_reconcile_error(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
         "    download_clients:\n      prune: false\n"
     )
+    intent = _write_empty_intent(tmp_path / "intent.yml")  # CATMIG-01: empty intent
     monkeypatch.setenv("SONARR_API_KEY", "fake")
-    result = runner.invoke(app, ["--config", str(cfg), "diff"])
+    result = runner.invoke(app, ["--config", str(cfg), "--intent", str(intent), "diff"])
     assert result.exit_code == 1, (
         f"WR-03: diff branch must catch ReconcileError and exit 1, got "
         f"{result.exit_code}: {result.stdout!r}"
@@ -231,8 +267,11 @@ def test_diff_radarr_catches_reconcile_error(
         "radarr:\n  main:\n    base_url: http://radarr.test\n"
         "    download_clients:\n      prune: false\n"
     )
+    intent = _write_empty_intent(tmp_path / "intent.yml")  # CATMIG-01: empty intent
     monkeypatch.setenv("RADARR_API_KEY", "fake")
-    result = runner.invoke(app, ["--config", str(cfg), "diff", "--apps", "radarr"])
+    result = runner.invoke(
+        app, ["--config", str(cfg), "--intent", str(intent), "diff", "--apps", "radarr"]
+    )
     assert result.exit_code == 1
     assert "app_failed" in result.stdout
 
@@ -244,10 +283,16 @@ def test_apply_known_apps_subset_accepted(tmp_path: Path, monkeypatch: pytest.Mo
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
         "    download_clients:\n      prune: false\n"
     )
+    intent = _write_empty_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: empty intent (no cats → reaches api key check)
     # No SONARR_API_KEY → exit 2 from missing_api_key (not from CR-03 validation),
     # which still proves CR-03 validation accepted "sonarr,radarr":
     monkeypatch.delenv("SONARR_API_KEY", raising=False)
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr,radarr"])
+    result = runner.invoke(
+        app,
+        ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "sonarr,radarr"],
+    )
     assert result.exit_code == 2
     assert "missing_api_key" in result.stdout, (
         "validation must let known-apps subset through to api-key check; "
@@ -281,8 +326,11 @@ def test_diff_returns_3_on_drift(
         "sonarr:\n  main:\n    base_url: http://sonarr.test\n"
         "    download_clients:\n      prune: false\n"
     )
+    intent = _write_empty_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: empty intent (no cats → creds gate doesn't fire)
     monkeypatch.setenv("SONARR_API_KEY", "fake")
-    result = runner.invoke(app, ["--config", str(cfg), "diff"])
+    result = runner.invoke(app, ["--config", str(cfg), "--intent", str(intent), "diff"])
     assert result.exit_code == 3, (
         f"Expected exit code 3 (drift), got {result.exit_code}: {result.stdout}"
     )
@@ -299,9 +347,13 @@ def test_apply_missing_qbt_user_returns_exit_2(
     """D-05-BOOTSTRAP-01 gate #2: exit 2 + missing_env_vars log when QBT_USER is unset."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
+    intent = _write_intent(tmp_path / "intent.yml")  # CATMIG-01: bypass intent guard
     monkeypatch.delenv("QBT_USER", raising=False)
     monkeypatch.setenv("QBT_PASS", "secret")
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "qbittorrent"])
+    result = runner.invoke(
+        app,
+        ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "qbittorrent"],
+    )
     assert result.exit_code == 2, (
         f"Expected exit 2 (missing QBT_USER), got {result.exit_code}: {result.stdout}"
     )
@@ -317,9 +369,13 @@ def test_apply_missing_qbt_pass_returns_exit_2(
     """D-05-BOOTSTRAP-01 gate #2: exit 2 + missing_env_vars log when QBT_PASS is unset."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
+    intent = _write_intent(tmp_path / "intent.yml")  # CATMIG-01: bypass intent guard
     monkeypatch.setenv("QBT_USER", "admin")
     monkeypatch.delenv("QBT_PASS", raising=False)
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "qbittorrent"])
+    result = runner.invoke(
+        app,
+        ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "qbittorrent"],
+    )
     assert result.exit_code == 2, (
         f"Expected exit 2 (missing QBT_PASS), got {result.exit_code}: {result.stdout}"
     )
@@ -339,9 +395,13 @@ def test_apply_qbittorrent_both_env_set_does_not_exit_2(
     """
     cfg = tmp_path / "cfg.yml"
     cfg.write_text("qbittorrent:\n  main:\n    base_url: http://qbit:8080\n")
+    intent = _write_intent(tmp_path / "intent.yml")  # CATMIG-01: bypass intent guard
     monkeypatch.setenv("QBT_USER", "admin")
     monkeypatch.setenv("QBT_PASS", "secret")
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "qbittorrent"])
+    result = runner.invoke(
+        app,
+        ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "qbittorrent"],
+    )
     assert result.exit_code != 2, f"Exit 2 means fail-fast fired unexpectedly; got: {result.stdout}"
 
 
@@ -388,13 +448,9 @@ def test_apply_invalid_app_qbittorent_typo_rejected(
 # ---------------------------------------------------------------------------
 
 
+# CATMIG-01: categories removed from arrconf.yml; they live in intent.yml now.
+# These tests use _SERIES_CAT_INTENT (defined above) as intent.yml content.
 _SONARR_RADARR_CATEGORIES_CFG = """\
-categories:
-  - name: series
-    kind: series
-    profile: general
-    display: Series
-    base_path: /media/series
 sonarr:
   main:
     base_url: http://sonarr.test
@@ -411,12 +467,17 @@ def test_apply_sonarr_missing_qbt_user_preflight_exit_2(
     → exit 2 with `missing_env_vars` log BEFORE any HTTP call lands."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(_SONARR_RADARR_CATEGORIES_CFG)
+    intent = _write_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: provides categories for creds check
     monkeypatch.setenv("SONARR_API_KEY", "fake")
     monkeypatch.setenv("RADARR_API_KEY", "fake")
     monkeypatch.delenv("QBT_USER", raising=False)
     monkeypatch.setenv("QBT_PASS", "secret")
 
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr"])
+    result = runner.invoke(
+        app, ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "sonarr"]
+    )
     assert result.exit_code == 2, (
         f"CR-01: expected exit 2, got {result.exit_code}: {result.stdout!r}"
     )
@@ -433,12 +494,17 @@ def test_apply_radarr_missing_qbt_pass_preflight_exit_2(
     → exit 2 BEFORE any reconcile HTTP call."""
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(_SONARR_RADARR_CATEGORIES_CFG)
+    intent = _write_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: provides categories for creds check
     monkeypatch.setenv("SONARR_API_KEY", "fake")
     monkeypatch.setenv("RADARR_API_KEY", "fake")
     monkeypatch.setenv("QBT_USER", "admin")
     monkeypatch.delenv("QBT_PASS", raising=False)
 
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "radarr"])
+    result = runner.invoke(
+        app, ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "radarr"]
+    )
     assert result.exit_code == 2
     assert "missing_env_vars" in result.stdout
     assert "QBT_PASS" in result.stdout
@@ -456,6 +522,9 @@ def test_apply_sonarr_radarr_preflight_blocks_http_calls(
     """
     cfg = tmp_path / "cfg.yml"
     cfg.write_text(_SONARR_RADARR_CATEGORIES_CFG)
+    intent = _write_intent(
+        tmp_path / "intent.yml"
+    )  # CATMIG-01: provides categories for creds check
     monkeypatch.setenv("SONARR_API_KEY", "fake")
     monkeypatch.setenv("RADARR_API_KEY", "fake")
     monkeypatch.delenv("QBT_USER", raising=False)
@@ -468,7 +537,10 @@ def test_apply_sonarr_radarr_preflight_blocks_http_calls(
     sonarr_indexer_get = respx_mock.get("http://sonarr.test/api/v3/indexer")
     sonarr_rootfolder_get = respx_mock.get("http://sonarr.test/api/v3/rootfolder")
 
-    result = runner.invoke(app, ["--config", str(cfg), "apply", "--apps", "sonarr,radarr"])
+    result = runner.invoke(
+        app,
+        ["--config", str(cfg), "--intent", str(intent), "apply", "--apps", "sonarr,radarr"],
+    )
     assert result.exit_code == 2, (
         f"CR-02: expected exit 2 from pre-flight gate, got {result.exit_code}: {result.stdout!r}"
     )

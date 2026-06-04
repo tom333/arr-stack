@@ -89,6 +89,7 @@ from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.seerr import reconcile_seerr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.resources.categories import Category as MediaCategory
 
 _FIXTURE_ROOT = Path(__file__).parent / "fixtures"
 
@@ -126,8 +127,14 @@ def _plan_to_tuples(plan: list[Any]) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda d: (d["resource_type"], d["name"], d["action"]))
 
 
-def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
+def dry_run_all_apps(
+    cfg: RootConfig, categories: list[MediaCategory] | None = None
+) -> dict[str, Any]:
     """Run every reconciler in dry_run=True mode against cfg; return sorted plan dict.
+
+    ``categories`` is the list of MediaCategory objects passed to the generators
+    (formerly from RootConfig.categories, now from IntentConfig.categories —
+    CATMIG-01 / D-32-01). Pass an explicit list; defaults to [] when None.
 
     Manages its own respx.mock() context. No external router required.
 
@@ -147,6 +154,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
     Returns a dict with alphabetically sorted app keys for byte-stable output.
     """
     out: dict[str, Any] = {}
+    cats: list[MediaCategory] = categories if categories is not None else []
 
     # Collect env-var names Prowlarr needs for api_key_env resolution.
     prowlarr_env_overrides: dict[str, str] = {}
@@ -165,7 +173,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
     }
 
     with respx.mock(assert_all_called=False) as mock, patch.dict(os.environ, qbit_env_overrides):
-        _register_sonarr_routes(mock, cfg)
+        _register_sonarr_routes(mock, cfg, categories=cats)
         _register_radarr_routes(mock, cfg)
         _register_prowlarr_routes(mock, cfg)
         _register_qbittorrent_routes(mock, cfg)
@@ -173,7 +181,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         _register_jellyfin_routes(mock, cfg)
 
         # Sonarr
-        sonarr_derived = generate_sonarr_resources(cfg)
+        sonarr_derived = generate_sonarr_resources(cats)
         sonarr_plans: list[dict[str, Any]] = []
         for _sonarr_name, sonarr_instance in cfg.sonarr.items():
             sonarr_client = SonarrClient(base_url=sonarr_instance.base_url, api_key="fake")
@@ -189,7 +197,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         )
 
         # Radarr
-        radarr_derived = generate_radarr_resources(cfg)
+        radarr_derived = generate_radarr_resources(cats)
         radarr_plans: list[dict[str, Any]] = []
         for _radarr_name, radarr_instance in cfg.radarr.items():
             radarr_client = RadarrClient(base_url=radarr_instance.base_url, api_key="fake")
@@ -220,7 +228,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         )
 
         # qBittorrent (auth shim is auto-handled by QbittorrentClient.__init__)
-        qbt_categories = generate_qbit_categories(cfg)
+        qbt_categories = generate_qbit_categories(cats)
         qbittorrent_plans: list[dict[str, Any]] = []
         for _qbt_name, qbt_instance in cfg.qbittorrent.items():
             qbt_client = QbittorrentClient(
@@ -249,7 +257,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         out["seerr"] = {"completed": True, "actions_taken": []}
 
         # Jellyfin — no .plan field; capture completion status
-        jf_libraries = generate_jellyfin_libraries(cfg)
+        jf_libraries = generate_jellyfin_libraries(cats)
         for _jf_name, jf_instance in cfg.jellyfin.items():
             jf_client = JellyfinClient(base_url=jf_instance.base_url, api_key="fake")
             _jf_result = reconcile_jellyfin(jf_client, jf_instance, jf_libraries, dry_run=True)
@@ -266,7 +274,11 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def _register_sonarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
+def _register_sonarr_routes(
+    mock: respx.MockRouter,
+    cfg: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> None:
     """Register Sonarr GET routes using production fixtures.
 
     Sonarr reconciler touches: /tag, /indexer, /rootfolder, /downloadclient,
@@ -278,9 +290,12 @@ def _register_sonarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
     output (series, series-emilie, series-zoe, ...). This helper now extends the
     base fixture with the per-category labels the generator will produce so
     ``_resolve_download_client_tag_labels`` finds a match in step 2's all_tags.
+
+    Phase 32 (CATMIG-01): categories param added (formerly cfg.categories).
     """
     base_tags = _load_fixture("sonarr/tag_with_tv_anime_family.json")
-    series_labels = [c.name for c in cfg.categories if c.kind == "series"]
+    _cats = categories or []
+    series_labels = [c.name for c in _cats if c.kind == "series"]
     existing_labels = {t["label"] for t in base_tags}
     next_id = max((t["id"] for t in base_tags), default=0) + 1
     tag_fixture = list(base_tags)

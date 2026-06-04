@@ -30,25 +30,23 @@ def test_schema_is_reproducible(tmp_path: Path) -> None:
     assert out1.read_bytes() == out2.read_bytes()
 
 
-def test_schema_includes_category_descriptions(tmp_path: Path) -> None:
-    """REQ-yaml-autocomplete: descriptions surface as VS Code hover tooltips.
+def test_schema_no_categories_in_rootconfig(tmp_path: Path) -> None:
+    """CATMIG-01 (Phase 32): RootConfig schema must NOT include categories.
 
-    Phase 12-B (D-01): DownloadClient is no longer in the schema (the flat
-    `items: list[DownloadClient]` field was removed from DownloadClientsSection).
-    Category remains as a top-level RootConfig entry and is the canonical
-    operator-edited type for autocomplete coverage.
+    Categories moved to IntentConfig (intent.yml). The arrconf schema (RootConfig)
+    must not expose categories to avoid operator confusion.
     """
     out = tmp_path / "s.json"
     write_schema(out)
     data = json.loads(out.read_text())
-    defs = data.get("$defs", {})
-    cat_defs = [v for k, v in defs.items() if k == "Category"]
-    assert cat_defs, f"Category definition not found in $defs (keys: {sorted(defs.keys())})"
-    cat_props = cat_defs[0].get("properties", {})
-    assert "name" in cat_props, "Category.name property not found"
-    assert cat_props["name"].get("description"), (
-        "Category.name MUST have a description for VS Code autocomplete (REQ-yaml-autocomplete)"
+    # The top-level RootConfig properties must NOT have categories
+    top_props = data.get("properties", {})
+    assert "categories" not in top_props, (
+        "CATMIG-01: categories must NOT appear in RootConfig schema (arrconf.yml). "
+        "Categories now live in IntentConfig (intent.yml)."
     )
+    # Category MAY still appear in $defs (referenced by IntentConfig or other models)
+    # but its absence from RootConfig properties is the key assertion.
 
 
 def test_schema_committed_matches_regen(tmp_path: Path) -> None:

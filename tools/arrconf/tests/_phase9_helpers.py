@@ -74,6 +74,7 @@ from arrconf.reconcilers.qbittorrent import reconcile_qbittorrent
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.seerr import reconcile_seerr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.resources.categories import Category as MediaCategory
 
 _FIXTURE_ROOT = Path(__file__).parent / "fixtures"
 
@@ -111,10 +112,16 @@ def _plan_to_tuples(plan: list[Any]) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda d: (d["resource_type"], d["name"], d["action"]))
 
 
-def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
+def dry_run_all_apps(
+    cfg: RootConfig, categories: list[MediaCategory] | None = None
+) -> dict[str, Any]:
     """Run every reconciler in dry_run=True mode against cfg; return sorted plan dict.
 
     Manages its own respx.mock() context. No external router required.
+
+    ``categories`` is the list of MediaCategory objects passed to the generators
+    (formerly from RootConfig.categories, now from IntentConfig.categories —
+    CATMIG-01 / D-32-01). Pass an explicit list; defaults to [] when None.
 
     For reconcilers with a .plan attribute (sonarr/radarr/prowlarr/qbittorrent):
     returns a sorted list of plan tuples via _plan_to_tuples.
@@ -132,6 +139,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
     Returns a dict with alphabetically sorted app keys for byte-stable output.
     """
     out: dict[str, Any] = {}
+    cats: list[MediaCategory] = categories if categories is not None else []
 
     # Collect env-var names Prowlarr needs for api_key_env resolution.
     prowlarr_env_overrides: dict[str, str] = {}
@@ -148,7 +156,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         _register_jellyfin_routes(mock, cfg)
 
         # Sonarr
-        sonarr_derived = generate_sonarr_resources(cfg)
+        sonarr_derived = generate_sonarr_resources(cats)
         sonarr_plans: list[dict[str, Any]] = []
         for _sonarr_name, sonarr_instance in cfg.sonarr.items():
             sonarr_client = SonarrClient(base_url=sonarr_instance.base_url, api_key="fake")
@@ -164,7 +172,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         )
 
         # Radarr
-        radarr_derived = generate_radarr_resources(cfg)
+        radarr_derived = generate_radarr_resources(cats)
         radarr_plans: list[dict[str, Any]] = []
         for _radarr_name, radarr_instance in cfg.radarr.items():
             radarr_client = RadarrClient(base_url=radarr_instance.base_url, api_key="fake")
@@ -195,7 +203,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         )
 
         # qBittorrent (auth shim is auto-handled by QbittorrentClient.__init__)
-        qbt_categories = generate_qbit_categories(cfg)
+        qbt_categories = generate_qbit_categories(cats)
         qbittorrent_plans: list[dict[str, Any]] = []
         for _qbt_name, qbt_instance in cfg.qbittorrent.items():
             qbt_client = QbittorrentClient(
@@ -224,7 +232,7 @@ def dry_run_all_apps(cfg: RootConfig) -> dict[str, Any]:
         out["seerr"] = {"completed": True, "actions_taken": []}
 
         # Jellyfin — no .plan field; capture completion status
-        jf_libraries = generate_jellyfin_libraries(cfg)
+        jf_libraries = generate_jellyfin_libraries(cats)
         for _jf_name, jf_instance in cfg.jellyfin.items():
             jf_client = JellyfinClient(base_url=jf_instance.base_url, api_key="fake")
             _jf_result = reconcile_jellyfin(jf_client, jf_instance, jf_libraries, dry_run=True)

@@ -1,5 +1,55 @@
 {
   "$defs": {
+    "Category": {
+      "additionalProperties": false,
+      "description": "A single Category \u2014 declarative input for Phase 10's 6-app propagation.\n\nMatch key: ``name`` (kebab-case slug, stable across reconcile runs).\nD-04 invariant: ``base_path`` MUST equal ``f\"/media/{name}\"``.",
+      "properties": {
+        "base_path": {
+          "description": "Absolute path under /media \u2014 MUST be /media/{name} (D-04).",
+          "title": "Base Path",
+          "type": "string"
+        },
+        "display": {
+          "description": "Title Case human label (e.g. 'S\u00e9ries - \u00c9milie').",
+          "title": "Display",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Media kind \u2014 drives Sonarr vs Radarr propagation.",
+          "enum": [
+            "movies",
+            "series"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "description": "Kebab-case slug (e.g. 'series-emilie'). Stable match key.",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "profile": {
+          "description": "Quality profile group \u2014 drives configarr profile selection (Phase 10) and Seerr animeTags routing for profile=anime.",
+          "enum": [
+            "general",
+            "anime",
+            "family"
+          ],
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "profile",
+        "display",
+        "base_path"
+      ],
+      "title": "Category",
+      "type": "object"
+    },
     "CrossSeedConfig": {
       "additionalProperties": false,
       "description": "Configuration block for the cross-seed tool (XSEED, INTENT-01).",
@@ -268,8 +318,22 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Root schema for intent.yml (INTENT-01, Phase 28).\n\nTop-level layout: ``tools:`` mapping + ``sagas:`` list.\nOnly ``tools.cross_seed`` is exercised in P28; ``sagas`` is present\nfor schema completeness.",
+  "description": "Root schema for intent.yml (INTENT-01, Phase 28).\n\nTop-level layout: ``tools:`` mapping + ``sagas:`` list + ``categories:`` list + ``apps:`` dict.\nPhase 32 (CATMIG-01 / D-32-01): ``categories`` and ``apps`` absorbed from arrconf.yml.\n``categories`` is now the single hand-edited owner of the media category list.\n``apps`` is an untyped pass-through dict emitted verbatim into generated arrconf.yml.",
   "properties": {
+    "apps": {
+      "additionalProperties": true,
+      "description": "App config pass-through (sonarr/radarr/prowlarr/qbittorrent/seerr/jellyfin). Emitted verbatim into generated arrconf.yml \u2014 no pydantic validation (D-32-01 YAGNI).",
+      "title": "Apps",
+      "type": "object"
+    },
+    "categories": {
+      "description": "Cross-cutting media categories (lifted from arrconf.yml, D-32-01).",
+      "items": {
+        "$ref": "#/$defs/Category"
+      },
+      "title": "Categories",
+      "type": "array"
+    },
     "sagas": {
       "description": "Saga declarations. Schema present-but-unexercised in P28 (D-05).",
       "items": {

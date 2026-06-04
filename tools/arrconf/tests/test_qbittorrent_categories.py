@@ -7,8 +7,8 @@ NOT a __main__.py end-to-end test -- pure data-flow verification.
 
 from __future__ import annotations
 
-from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_qbit_categories
+from arrconf.resources.categories import Category as MediaCategory
 
 # Production fixture (same 10-category set as test_generators_categories.py).
 PRODUCTION_CATEGORIES = [
@@ -87,8 +87,8 @@ PRODUCTION_CATEGORIES = [
 
 def test_categories_wiring_10_entries() -> None:
     """10 categories declared -> reconciler sees 10 entries."""
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
-    generated = generate_qbit_categories(cfg)
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
+    generated = generate_qbit_categories(cats)
     assert len(generated) == 10
     names = {c.name for c in generated}
     assert "series-zoe" in names
@@ -97,7 +97,7 @@ def test_categories_wiring_10_entries() -> None:
 
 def test_savepath_format() -> None:
     """Generated qBit savePath uses /data/torrents/<name> not <c.base_path>."""
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
-    generated = generate_qbit_categories(cfg)
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
+    generated = generate_qbit_categories(cats)
     zoe = next(c for c in generated if c.name == "series-zoe")
     assert zoe.savePath == "/data/torrents/series-zoe"

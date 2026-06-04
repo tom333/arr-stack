@@ -84,56 +84,6 @@
       "title": "CategoriesSection",
       "type": "object"
     },
-    "Category": {
-      "additionalProperties": false,
-      "description": "A single Category \u2014 declarative input for Phase 10's 6-app propagation.\n\nMatch key: ``name`` (kebab-case slug, stable across reconcile runs).\nD-04 invariant: ``base_path`` MUST equal ``f\"/media/{name}\"``.",
-      "properties": {
-        "base_path": {
-          "description": "Absolute path under /media \u2014 MUST be /media/{name} (D-04).",
-          "title": "Base Path",
-          "type": "string"
-        },
-        "display": {
-          "description": "Title Case human label (e.g. 'S\u00e9ries - \u00c9milie').",
-          "title": "Display",
-          "type": "string"
-        },
-        "kind": {
-          "description": "Media kind \u2014 drives Sonarr vs Radarr propagation.",
-          "enum": [
-            "movies",
-            "series"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "name": {
-          "description": "Kebab-case slug (e.g. 'series-emilie'). Stable match key.",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-          "title": "Name",
-          "type": "string"
-        },
-        "profile": {
-          "description": "Quality profile group \u2014 drives configarr profile selection (Phase 10) and Seerr animeTags routing for profile=anime.",
-          "enum": [
-            "general",
-            "anime",
-            "family"
-          ],
-          "title": "Profile",
-          "type": "string"
-        }
-      },
-      "required": [
-        "name",
-        "kind",
-        "profile",
-        "display",
-        "base_path"
-      ],
-      "title": "Category",
-      "type": "object"
-    },
     "ContentRoutingRule": {
       "additionalProperties": false,
       "description": "A single content_tags routing rule (Phase 6, D-06-RETAG-01).\n\nGenre-keyword-driven post-import retagger rule. `tag` MUST exist in\n`instance.tags.items` (reconciler enforces via ReconcileError).\n`keywords` is case-insensitive substring-matched against `item.genres[]`\non each series/movie. Phase 6 default config (Plan 06-06) ships:\n  - Sonarr family: [\"Family\", \"Kids\", \"Children\"]   (NOT Animation \u2014 too broad)\n  - Sonarr anime:  [\"Anime\"]                         (TVDB first-class genre)\n  - Radarr family: [\"Family\"]                        (NO Animation \u2014 catches Pixar/Disney)\n  - Radarr anime:  (no rule)                          (TMDB has no Anime genre)",
@@ -2045,13 +1995,6 @@
   "additionalProperties": false,
   "description": "Top-level arrconf YAML schema (root for JSON Schema generation).\n\nPhase 3 (D-03-05): flat ``sonarr`` / ``radarr`` / ``prowlarr`` dicts at the\nroot level. The Phase-1 ``apps:`` indirection has been removed \u2014 every\ncaller updated atomically with this rewrite (Plan 02 Task 2.3).\n\nPhase 5 (D-05-QBT-02): adds ``qbittorrent`` dict following the same flat-root\nconvention (D-03-05). RootConfig still uses ``extra='forbid'`` to reject typos.\n\nPhase 6 (D-06-SCOPE-01): adds ``seerr`` dict following the same flat-root convention.\n\nPhase 7 (D-07-INSTANCE-01): adds ``jellyfin`` dict following the same flat-root convention.\n\nPhase 9 (D-05): adds top-level ``categories`` list \u2014 cross-cutting,\ndrives Phase 10 propagation to qBit/Sonarr/Radarr/configarr/Seerr/Jellyfin.",
   "properties": {
-    "categories": {
-      "items": {
-        "$ref": "#/$defs/Category"
-      },
-      "title": "Categories",
-      "type": "array"
-    },
     "jellyfin": {
       "additionalProperties": {
         "$ref": "#/$defs/JellyfinInstance"

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
-status: planning
-last_updated: "2026-06-04T09:00:35.375Z"
-last_activity: "2026-06-04 — Roadmap created (3 phases: 32 CATMIG, 33 CFGARR, 34 UI)"
+status: executing
+last_updated: "2026-06-04T09:31:49.551Z"
+last_activity: 2026-06-04 -- Phase 32 execution started
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** v0.11.0 — Couche d'intention (tranche 2) : `intent.yml` devient le seul fichier hand-edited pour toute la stack (categories migration hard cut + configarr.yml génération + UI-sur-intent).
+**Current focus:** Phase 32 — categories-migration-hard-cut
 
 ## Current Position
 
-Phase: Phase 32 (not started — roadmap defined)
-Plan: —
-Status: Roadmap defined — ready to plan phases
-Last activity: 2026-06-04 — Roadmap created (3 phases: 32 CATMIG, 33 CFGARR, 34 UI)
+Phase: 32 (categories-migration-hard-cut) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 32
+Last activity: 2026-06-04 -- Phase 32 execution started
 
 ```
 Progress: [          ] 0% (0/3 phases)

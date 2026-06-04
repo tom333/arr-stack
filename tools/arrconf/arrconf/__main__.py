@@ -18,7 +18,13 @@ import typer
 from arrconf.audit import run_audit, verify_audit
 from arrconf.client_base import JellyfinClient, ProwlarrClient, RadarrClient, SonarrClient
 from arrconf.config import RootConfig, load_config
-from arrconf.diff_cmd import diff_jellyfin, diff_prowlarr, diff_radarr, diff_sonarr
+from arrconf.diff_cmd import (
+    diff_jellyfin,
+    diff_prowlarr,
+    diff_qbittorrent,
+    diff_radarr,
+    diff_sonarr,
+)
 from arrconf.dump import dump_jellyfin, dump_sonarr
 from arrconf.exceptions import (
     ApiClientError,
@@ -39,18 +45,22 @@ from arrconf.logging import configure_logging
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
 from arrconf.reconcilers.radarr import reconcile_radarr
 from arrconf.reconcilers.sonarr import reconcile_sonarr
+from arrconf.resources.categories import Category as MediaCategory
 from arrconf.schema_gen import write_intent_schema, write_schema
 from arrconf.settings import Settings
 
 
 def _resolve_seerr_anime_tag_ids(
-    root: RootConfig,
+    categories: list[MediaCategory],
     sonarr_client: SonarrClient,
     log: structlog.BoundLogger,
 ) -> list[int]:
     """Seerr animeTags resolution chain (Plan 10-F, RESEARCH.md Pattern 5).
 
-    Returns Sonarr integer tag IDs for every cfg.categories entry where
+    Phase 32 (CATMIG-01): signature changed from ``root: RootConfig`` to
+    ``categories: list[MediaCategory]`` — categories now come from IntentConfig.
+
+    Returns Sonarr integer tag IDs for every category entry where
     kind=='series' AND profile=='anime'. Returns [] if no anime series
     categories exist or if the tags haven't been created in Sonarr yet
     (caller passes the resolved IDs directly to reconcile_seerr).
@@ -64,10 +74,10 @@ def _resolve_seerr_anime_tag_ids(
     # generate_anime_tag_labels returns ALL anime-profile labels (series + movies).
     # Filter to kind=="series" — Seerr.animeTags is Sonarr-side only; Radarr-side
     # has no animeTags field (RESEARCH §Pattern 5, Pitfall 3).
-    all_anime_labels = set(generate_anime_tag_labels(root))
+    all_anime_labels = set(generate_anime_tag_labels(categories))
     series_anime_labels = [
         c.name
-        for c in root.categories
+        for c in categories
         if c.profile == "anime" and c.kind == "series" and c.name in all_anime_labels
     ]
     if not series_anime_labels:
@@ -109,6 +119,10 @@ _VALID_APPS: frozenset[str] = frozenset(
     {"sonarr", "radarr", "prowlarr", "qbittorrent", "seerr", "jellyfin"}
 )
 
+# CATMIG-01 (Phase 32 / D-32-01): apps that consume categories from intent.yml.
+# intent.yml is REQUIRED when any of these are in --apps targets.
+_CAT_DRIVEN_APPS: frozenset[str] = frozenset({"sonarr", "radarr", "qbittorrent", "jellyfin"})
+
 
 def _selected_apps(apps: str | None) -> set[str]:
     """Return the set of apps targeted by ``--apps``; defaults to all Phase-3 apps.
@@ -143,7 +157,11 @@ def _selected_apps(apps: str | None) -> set[str]:
     return selected
 
 
-def _qbit_creds_required_for_sonarr_radarr(root: RootConfig, targets: set[str]) -> bool:
+def _qbit_creds_required_for_sonarr_radarr(
+    root: RootConfig,
+    targets: set[str],
+    categories: list[MediaCategory],
+) -> bool:
     """Return True if a Sonarr or Radarr reconcile/diff will need QBT_USER/QBT_PASS.
 
     Phase 18 (REQ-qbit-post-credentials): the Categories generator emits qBit
@@ -157,8 +175,11 @@ def _qbit_creds_required_for_sonarr_radarr(root: RootConfig, targets: set[str]) 
     True when:
       - At least one of {sonarr, radarr} is in ``targets`` AND
       - That app's ``main`` instance is declared in YAML AND
-      - ``root.categories`` is non-empty (the generator emits at least one
+      - ``categories`` is non-empty (the generator emits at least one
         qBit DC with empty creds — the production shape since v0.3.0).
+
+    Phase 32 (CATMIG-01): signature changed to accept ``categories`` explicitly
+    (formerly ``root.categories``, now sourced from IntentConfig.categories).
 
     A non-empty ``categories`` list is the dispositive signal because
     ``generate_sonarr_resources`` / ``generate_radarr_resources`` always emit a
@@ -166,7 +187,7 @@ def _qbit_creds_required_for_sonarr_radarr(root: RootConfig, targets: set[str]) 
     ``password=""`` from the generator (the Phase 18 helper is the only path
     that fills them in).
     """
-    if not root.categories:
+    if not categories:
         return False
     if "sonarr" in targets and "main" in root.sonarr:
         return True
@@ -220,8 +241,8 @@ def apply(
         raise typer.Exit(code=2) from e
 
     # Phase 29 (SAGAS-01 / D-01): optional intent.yml load.
-    # Guard: absent intent.yml = no crash, intent_cfg stays None (backward-compatible
-    # with clusters that have no intent.yml — T-29-01 availability mitigation).
+    # Phase 32 (CATMIG-01 / D-32-01): intent is now REQUIRED when any of
+    # sonarr/radarr/qbittorrent/jellyfin is in targets (categories live in intent).
     intent_path: Path = ctx.obj["intent_path"]
     intent_cfg: IntentConfig | None = None
     if intent_path.exists():
@@ -232,6 +253,32 @@ def apply(
             raise typer.Exit(code=2) from e
 
     targets = _selected_apps(apps)
+
+    # CATMIG-01 guard: fail fast when intent is absent and a categories-driven app is targeted.
+    # Categories moved to intent.yml — without it the generators produce empty lists,
+    # leading to silent partial reconcile (T-32-03 mitigation).
+    # Only require intent when the app is BOTH targeted AND declared in the YAML config
+    # (mirrors the existing per-app "main" in root.<app> guards — avoids false-positive
+    # fail when the operator runs `--apps sonarr` but sonarr.main is absent from YAML).
+    _cat_apps_active = {
+        app
+        for app in targets & _CAT_DRIVEN_APPS
+        if (
+            (app == "sonarr" and "main" in root.sonarr)
+            or (app == "radarr" and "main" in root.radarr)
+            or (app == "qbittorrent" and "main" in root.qbittorrent)
+            or (app == "jellyfin" and "main" in root.jellyfin)
+        )
+    }
+    if intent_cfg is None and _cat_apps_active:
+        log.error(
+            "intent_required_for_categories",
+            apps=sorted(_cat_apps_active),
+            intent_path=str(intent_path),
+        )
+        raise typer.Exit(code=2)
+
+    cats: list[MediaCategory] = intent_cfg.categories if intent_cfg else []
     settings = Settings()
     failures: list[str] = []
 
@@ -241,7 +288,7 @@ def apply(
     # indexers, root_folders, RPMs) must not be POSTed before the credential
     # contract is validated. Fixes CR-02 (partial cluster writes) and CR-01
     # (uncaught ConfigError → traceback exit 1 instead of exit 2).
-    if _qbit_creds_required_for_sonarr_radarr(root, targets):
+    if _qbit_creds_required_for_sonarr_radarr(root, targets, cats):
         missing = [
             k
             for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
@@ -259,7 +306,8 @@ def apply(
         instance = root.sonarr["main"]
         # Phase 12-A (D-03/D-04): generators called here; derived object passed directly
         # to reconcile_sonarr — merge_with_manual removed (Plan A, v0.4.0 cleanup).
-        sonarr_derived = generate_sonarr_resources(root)
+        # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
+        sonarr_derived = generate_sonarr_resources(cats)
         # Fast-fail when SONARR_API_KEY missing — no silent fallback to "" (CLAUDE.md
         # "no silent failures"). Symptom of the old fallback: 401 from upstream with
         # no clear hint that env was missing.
@@ -297,7 +345,8 @@ def apply(
         radarr_instance = root.radarr["main"]
         # Phase 12-A (D-03/D-04): generators called here; derived object passed directly
         # to reconcile_radarr — merge_with_manual removed (Plan A, v0.4.0 cleanup).
-        radarr_derived = generate_radarr_resources(root)
+        # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
+        radarr_derived = generate_radarr_resources(cats)
         if not settings.radarr_api_key:
             log.error("missing_api_key", app="radarr", env_var="RADARR_API_KEY")
             raise typer.Exit(code=2)
@@ -377,7 +426,8 @@ def apply(
             qbit_instance = root.qbittorrent["main"]
             # Phase 12-A (D-03/D-04): generator called here; list passed directly
             # to reconcile_qbittorrent — merge_with_manual removed (Plan A, v0.4.0 cleanup).
-            qbit_generated = generate_qbit_categories(root)
+            # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
+            qbit_generated = generate_qbit_categories(cats)
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_client = QbittorrentClient(
                 base_url=qbit_instance.base_url,
@@ -430,7 +480,8 @@ def apply(
                     base_url=root.sonarr["main"].base_url,
                     api_key=settings.sonarr_api_key.get_secret_value(),
                 )
-                resolved_anime_ids = _resolve_seerr_anime_tag_ids(root, sonarr_for_resolution, log)
+                # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
+                resolved_anime_ids = _resolve_seerr_anime_tag_ids(cats, sonarr_for_resolution, log)
             else:
                 resolved_anime_ids = []
                 log.info(
@@ -469,7 +520,8 @@ def apply(
             jellyfin_instance = root.jellyfin["main"]
             # Phase 12-A (D-03/D-04): generator called here; list passed directly
             # to reconcile_jellyfin — merge_with_manual removed (Plan A, v0.4.0 cleanup).
-            jellyfin_generated = generate_jellyfin_libraries(root)
+            # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
+            jellyfin_generated = generate_jellyfin_libraries(cats)
             jellyfin_api_key = settings.jellyfin_api_key.get_secret_value()
             jellyfin_client = JellyfinClient(
                 base_url=jellyfin_instance.base_url,
@@ -797,7 +849,41 @@ def diff(
     except ConfigError as e:
         log.error("config_error", error=str(e))
         raise typer.Exit(code=2) from e
+
+    # Phase 32 (CATMIG-01 / D-32-01): load intent.yml for categories.
+    # Mirror of apply() intent load — diff must use the same categories source as apply.
+    intent_path: Path = ctx.obj["intent_path"]
+    intent_cfg: IntentConfig | None = None
+    if intent_path.exists():
+        try:
+            intent_cfg = load_intent(intent_path)
+        except ConfigError as e:
+            log.error("intent_config_error", error=str(e))
+            raise typer.Exit(code=2) from e
+
     targets = _selected_apps(apps)
+
+    # CATMIG-01 guard: fail fast when intent is absent and a categories-driven app is targeted.
+    # Only fires when the app is BOTH targeted AND declared in YAML (mirrors apply logic).
+    _cat_apps_active_diff = {
+        app
+        for app in targets & _CAT_DRIVEN_APPS
+        if (
+            (app == "sonarr" and "main" in root.sonarr)
+            or (app == "radarr" and "main" in root.radarr)
+            or (app == "qbittorrent" and "main" in root.qbittorrent)
+            or (app == "jellyfin" and "main" in root.jellyfin)
+        )
+    }
+    if intent_cfg is None and _cat_apps_active_diff:
+        log.error(
+            "intent_required_for_categories",
+            apps=sorted(_cat_apps_active_diff),
+            intent_path=str(intent_path),
+        )
+        raise typer.Exit(code=2)
+
+    cats: list[MediaCategory] = intent_cfg.categories if intent_cfg else []
     settings = Settings()
     max_code = 0
 
@@ -806,7 +892,7 @@ def diff(
     # helper chain as reconcile_sonarr/reconcile_radarr — pre-validating the
     # env contract here keeps the diff CLI in line with apply's fail-fast
     # semantics (exit 2 instead of an in-reconcile ConfigError traceback).
-    if _qbit_creds_required_for_sonarr_radarr(root, targets):
+    if _qbit_creds_required_for_sonarr_radarr(root, targets, cats):
         missing = [
             k
             for k, v in (("QBT_USER", settings.qbt_user), ("QBT_PASS", settings.qbt_pass))
@@ -831,7 +917,7 @@ def diff(
         api_key = settings.sonarr_api_key.get_secret_value()
         try:
             client = SonarrClient(base_url=instance.base_url, api_key=api_key)
-            code = diff_sonarr(client, root)
+            code = diff_sonarr(client, root, cats)
             max_code = max(max_code, code)
         except ConfigError as e:
             # Phase 18 (CR-01 defense-in-depth): same straggler catch as apply.
@@ -858,7 +944,7 @@ def diff(
             radarr_diff_client = RadarrClient(
                 base_url=radarr_diff_instance.base_url, api_key=radarr_diff_key
             )
-            code = diff_radarr(radarr_diff_client, root)
+            code = diff_radarr(radarr_diff_client, root, cats)
             max_code = max(max_code, code)
         except ConfigError as e:
             # Phase 18 (CR-01 defense-in-depth): mirror of Sonarr diff branch.
@@ -898,18 +984,18 @@ def diff(
             raise typer.Exit(code=2)
         try:
             from arrconf.client_base import QbittorrentClient  # noqa: PLC0415
-            from arrconf.diff_cmd import diff_qbittorrent  # noqa: PLC0415
 
             qbit_diff_instance = root.qbittorrent["main"]
             # Phase 12-B (D-01): items attribute deleted; diff_qbittorrent calls the
             # generator inline (Plan A, Phase 12-A pattern).
+            # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
             assert settings.qbt_user is not None and settings.qbt_pass is not None
             qbit_diff_client = QbittorrentClient(
                 base_url=qbit_diff_instance.base_url,
                 username=settings.qbt_user.get_secret_value(),
                 password=settings.qbt_pass.get_secret_value(),
             )
-            code = diff_qbittorrent(qbit_diff_client, root)
+            code = diff_qbittorrent(qbit_diff_client, root, cats)
             max_code = max(max_code, code)
         except ImportError as e:
             log.error(
@@ -954,7 +1040,8 @@ def diff(
                 base_url=jellyfin_diff_instance.base_url,
                 api_key=jellyfin_diff_key,
             )
-            code = diff_jellyfin(jellyfin_diff_client, root)
+            # Phase 32 (CATMIG-01): categories sourced from intent_cfg.categories via `cats`.
+            code = diff_jellyfin(jellyfin_diff_client, root, cats)
             max_code = max(max_code, code)
         except (ApiClientError, ReconcileError) as e:
             log.error("app_failed", app="jellyfin", error=str(e))
@@ -1044,16 +1131,13 @@ def generate(
             log.info("generate_written", file=str(target))
 
     if intent_cfg.tools.qbit_manage is not None:
-        # qbit_manage needs a populated cat: section (QBM-02). Categories live in
-        # arrconf.yml (hand-edited owner), co-located with output_dir. Load it and
-        # mirror the same <name> → /data/torrents/<name> mapping.
-        try:
-            qbm_root = load_config(output_dir / "arrconf.yml")
-        except ConfigError as e:
-            log.error("arrconf_config_error", error=str(e), path=str(output_dir / "arrconf.yml"))
-            raise typer.Exit(code=2) from e
+        # qbit_manage needs a populated cat: section (QBM-02).
+        # Phase 32 (CATMIG-01): categories now sourced from intent_cfg.categories directly
+        # (no longer loaded from arrconf.yml which no longer has categories after Plan 02).
+        # The qbm_root load is kept for legacy Plan 02 transition window but categories
+        # come from intent_cfg (consistent with apply/diff).
         rendered = generate_qbit_manage(
-            intent_cfg.tools.qbit_manage, generate_qbit_categories(qbm_root)
+            intent_cfg.tools.qbit_manage, generate_qbit_categories(intent_cfg.categories)
         )
         target = output_dir / "qbit_manage" / "config.yml"
         if check:

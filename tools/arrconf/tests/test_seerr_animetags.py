@@ -12,8 +12,8 @@ from __future__ import annotations
 import respx
 
 from arrconf.client_base import SonarrClient
-from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_anime_tag_labels
+from arrconf.resources.categories import Category as MediaCategory
 
 PRODUCTION_CATEGORIES = [
     {
@@ -91,24 +91,25 @@ PRODUCTION_CATEGORIES = [
 
 def test_anime_labels_filtered_to_series_only() -> None:
     """Pattern 5: Seerr.animeTags is Sonarr-side only; kind='movies' anime categories excluded."""
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
-    all_anime = generate_anime_tag_labels(cfg)
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
+    all_anime = generate_anime_tag_labels(cats)
     assert "series-zoe" in all_anime
     assert "films-zoe" in all_anime
     # The __main__.py helper further filters by kind="series" — re-do that here for the test:
-    series_anime = [c.name for c in cfg.categories if c.profile == "anime" and c.kind == "series"]
+    series_anime = [c.name for c in cats if c.profile == "anime" and c.kind == "series"]
     assert series_anime == ["series-zoe"]
 
 
 def test_animetags_resolution_chain_happy_path() -> None:
-    """Full 4-step chain: cfg → labels → Sonarr GET /tag → resolved IDs."""
+    """Full 4-step chain: categories → labels → Sonarr GET /tag → resolved IDs."""
     import structlog
 
     from arrconf.__main__ import _resolve_seerr_anime_tag_ids
 
     log = structlog.get_logger()
 
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+    # CATMIG-01: categories now passed directly (list[MediaCategory]) not via RootConfig
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
     with respx.mock(base_url="http://sonarr.test:8989/api/v3") as router:
         router.get("/tag").respond(
@@ -122,27 +123,29 @@ def test_animetags_resolution_chain_happy_path() -> None:
             ]
         )
         client = SonarrClient(base_url="http://sonarr.test:8989", api_key="test")
-        resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
+        resolved = _resolve_seerr_anime_tag_ids(cats, client, log)
 
     assert resolved == [7]
 
 
 def test_animetags_resolution_no_anime_categories() -> None:
-    """Empty when cfg has no anime-profile series categories."""
+    """Empty when categories has no anime-profile series entries."""
     import structlog
 
     from arrconf.__main__ import _resolve_seerr_anime_tag_ids
 
     log = structlog.get_logger()
 
-    no_anime_cats = [c for c in PRODUCTION_CATEGORIES if c["profile"] != "anime"]
-    cfg = RootConfig.model_validate({"categories": no_anime_cats})
+    # CATMIG-01: pass categories directly (list[MediaCategory]), not via RootConfig
+    no_anime_cats = [
+        MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES if c["profile"] != "anime"
+    ]
 
     # No GET issued because labels list is empty; use a respx mock to assert no GET was made.
     with respx.mock(base_url="http://sonarr.test:8989/api/v3", assert_all_called=False) as router:
         tag_route = router.get("/tag")
         client = SonarrClient(base_url="http://sonarr.test:8989", api_key="test")
-        resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
+        resolved = _resolve_seerr_anime_tag_ids(no_anime_cats, client, log)
         assert tag_route.call_count == 0  # no GET issued
 
     assert resolved == []
@@ -156,7 +159,8 @@ def test_animetags_resolution_missing_label_warns_no_raise() -> None:
 
     log = structlog.get_logger()
 
-    cfg = RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+    # CATMIG-01: categories now passed directly (list[MediaCategory]) not via RootConfig
+    cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
     with respx.mock(base_url="http://sonarr.test:8989/api/v3") as router:
         # Sonarr does NOT have series-zoe yet — only the existing v0.2.0 tags:
@@ -169,6 +173,6 @@ def test_animetags_resolution_missing_label_warns_no_raise() -> None:
             ]
         )
         client = SonarrClient(base_url="http://sonarr.test:8989", api_key="test")
-        resolved = _resolve_seerr_anime_tag_ids(cfg, client, log)
+        resolved = _resolve_seerr_anime_tag_ids(cats, client, log)
 
     assert resolved == []  # missing — operator runs apply again on next cycle

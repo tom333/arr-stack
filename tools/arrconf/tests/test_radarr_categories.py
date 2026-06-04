@@ -10,8 +10,8 @@ NOT an HTTP integration test -- pure data-flow verification.
 
 from __future__ import annotations
 
-from arrconf.config import RootConfig
 from arrconf.generators.categories import generate_radarr_resources
+from arrconf.resources.categories import Category as MediaCategory
 
 PRODUCTION_CATEGORIES = [
     {
@@ -87,8 +87,8 @@ PRODUCTION_CATEGORIES = [
 ]
 
 
-def _build_cfg() -> RootConfig:
-    return RootConfig.model_validate({"categories": PRODUCTION_CATEGORIES})
+def _build_cfg() -> list[MediaCategory]:
+    return [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
 
 
 def test_radarr_tags_wiring() -> None:
@@ -143,9 +143,7 @@ def test_radarr_rpm_wiring() -> None:
 
 def test_radarr_no_movies_in_cfg() -> None:
     """If cfg has only series categories, Radarr derived containers are all empty."""
-    cfg = RootConfig.model_validate(
-        {"categories": [c for c in PRODUCTION_CATEGORIES if c["kind"] == "series"]}
-    )
+    cfg = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES if c["kind"] == "series"]
     derived = generate_radarr_resources(cfg)
     assert derived.tags == []
     assert derived.root_folders == []

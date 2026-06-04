@@ -19,7 +19,6 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from ruyaml import YAML
 
 from arrconf.exceptions import ConfigError
-from arrconf.resources.categories import Category as MediaCategory
 from arrconf.resources.jellyfin import (
     JellyfinUserPolicy,
     PluginEntry,
@@ -660,34 +659,12 @@ class RootConfig(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    categories: list[MediaCategory] = Field(default_factory=list)
     sonarr: dict[str, SonarrInstance] = Field(default_factory=dict)
     radarr: dict[str, RadarrInstance] = Field(default_factory=dict)
     prowlarr: dict[str, ProwlarrInstance] = Field(default_factory=dict)
     qbittorrent: dict[str, QbittorrentInstance] = Field(default_factory=dict)
     seerr: dict[str, SeerrInstance] = Field(default_factory=dict)
     jellyfin: dict[str, JellyfinInstance] = Field(default_factory=dict)
-
-
-_LEGACY_CATEGORY_NAMES: frozenset[str] = frozenset(
-    {"films-anime", "films-family", "anime", "family"}
-)
-
-
-def _check_no_legacy_categories(cfg: RootConfig, path: Path) -> None:
-    """Deny legacy v0.2.0 bucket names in categories[].name (D-07/D-08).
-
-    Raises ConfigError (CLI exit 2) naming the offending category.
-    ``films`` and ``series`` are valid default Categories — NOT denied.
-    """
-    for cat in cfg.categories:
-        if cat.name in _LEGACY_CATEGORY_NAMES:
-            raise ConfigError(
-                f"Config validation error in {path}: "
-                f"legacy category name {cat.name!r} is not allowed "
-                f"(v0.2.0 bucket — remove from categories[] or rename). "
-                f"Denied names: {sorted(_LEGACY_CATEGORY_NAMES)}"
-            )
 
 
 def load_config(path: Path) -> RootConfig:
@@ -708,5 +685,4 @@ def load_config(path: Path) -> RootConfig:
         cfg = RootConfig.model_validate(raw)
     except ValidationError as e:
         raise ConfigError(f"Config validation error in {path}: {e}") from e
-    _check_no_legacy_categories(cfg, path)
     return cfg

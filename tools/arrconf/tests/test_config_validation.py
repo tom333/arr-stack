@@ -52,12 +52,12 @@ def test_load_config_rejects_legacy_items_field() -> None:
     assert any("items" in p for p in paths), f"items not in any error loc: {paths}"
 
 
-def test_load_config_rejects_legacy_category_name(tmp_path: Path) -> None:
-    """SC#3 / D-07 / D-08: synthetic config with a films-family category -> ConfigError (exit 2).
+def test_load_config_rejects_categories_field(tmp_path: Path) -> None:
+    """CATMIG-01 (Phase 32): categories: in arrconf.yml is now extra_forbidden.
 
-    The Category must be model_validate-VALID (all required fields present,
-    base_path == /media/films-family) so the D-04 base_path invariant passes
-    and the D-08 legacy-name guard is what rejects it.
+    After D-32-01, categories[] lives in intent.yml (IntentConfig), not arrconf.yml
+    (RootConfig). Any attempt to declare categories: in arrconf.yml raises ConfigError
+    (exit 2) via pydantic extra=forbid.
     """
     cfg_file = tmp_path / "arrconf.yml"
     cfg_file.write_text(
@@ -70,4 +70,5 @@ def test_load_config_rejects_legacy_category_name(tmp_path: Path) -> None:
     )
     with pytest.raises(ConfigError) as exc_info:
         load_config(cfg_file)
-    assert "films-family" in str(exc_info.value)
+    # pydantic extra=forbid emits "Extra inputs are not permitted" for the categories key
+    assert "categories" in str(exc_info.value)
