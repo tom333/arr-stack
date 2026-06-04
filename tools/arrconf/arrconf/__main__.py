@@ -39,7 +39,11 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
-from arrconf.generators.intent import generate_cross_seed, generate_qbit_manage
+from arrconf.generators.intent import (
+    generate_arrconf_yml,
+    generate_cross_seed,
+    generate_qbit_manage,
+)
 from arrconf.intent_config import IntentConfig, load_intent
 from arrconf.logging import configure_logging
 from arrconf.reconcilers.prowlarr import reconcile_prowlarr
@@ -1130,12 +1134,26 @@ def generate(
             target.write_text(rendered, encoding="utf-8")
             log.info("generate_written", file=str(target))
 
+    # Phase 32 (CATMIG-02): emit arrconf.yml as GENERATED apps pass-through.
+    # Unconditional — intent always carries apps (may be empty dict).
+    # Categories materialize at apply-time from intent_cfg.categories; NOT inlined here.
+    rendered = generate_arrconf_yml(intent_cfg)
+    target = output_dir / "arrconf.yml"
+    if check:
+        if not target.exists() or target.read_text(encoding="utf-8") != rendered:
+            log.error("generate_drift", file=str(target))
+            drift = True
+        else:
+            log.info("generate_ok", file=str(target))
+    else:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(rendered, encoding="utf-8")
+        log.info("generate_written", file=str(target))
+
     if intent_cfg.tools.qbit_manage is not None:
         # qbit_manage needs a populated cat: section (QBM-02).
-        # Phase 32 (CATMIG-01): categories now sourced from intent_cfg.categories directly
-        # (no longer loaded from arrconf.yml which no longer has categories after Plan 02).
-        # The qbm_root load is kept for legacy Plan 02 transition window but categories
-        # come from intent_cfg (consistent with apply/diff).
+        # Phase 32 (CATMIG-01/CATMIG-02): categories sourced from intent_cfg.categories
+        # directly — D-32-05 coupling inversion (no longer loaded from arrconf.yml).
         rendered = generate_qbit_manage(
             intent_cfg.tools.qbit_manage, generate_qbit_categories(intent_cfg.categories)
         )
