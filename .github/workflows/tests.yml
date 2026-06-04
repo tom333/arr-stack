@@ -199,4 +199,4 @@ jobs:
           uv run arrconf generate --check \
             --intent ../../charts/arr-stack/files/intent.yml \
             --output-dir ../../charts/arr-stack/files/ \
-            || (echo "::error::Generated configs drift from intent.yml — run 'cd tools/arrconf && uv run arrconf generate --intent ../../charts/arr-stack/files/intent.yml --output-dir ../../charts/arr-stack/files/' and commit"; exit 1)
+            || (echo "::error::Generated configs drift from intent.yml (cross-seed/config.js, qbit_manage/config.yml, or arrconf.yml) — run 'cd tools/arrconf && uv run arrconf generate --intent ../../charts/arr-stack/files/intent.yml --output-dir ../../charts/arr-stack/files/' and commit"; exit 1)

@@ -174,7 +174,7 @@ def dry_run_all_apps(
 
     with respx.mock(assert_all_called=False) as mock, patch.dict(os.environ, qbit_env_overrides):
         _register_sonarr_routes(mock, cfg, categories=cats)
-        _register_radarr_routes(mock, cfg)
+        _register_radarr_routes(mock, cfg, categories=cats)
         _register_prowlarr_routes(mock, cfg)
         _register_qbittorrent_routes(mock, cfg)
         _register_seerr_routes(mock, cfg)
@@ -328,7 +328,11 @@ def _register_sonarr_routes(
         mock.get(f"{api}/series").mock(return_value=httpx.Response(200, json=[]))
 
 
-def _register_radarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
+def _register_radarr_routes(
+    mock: respx.MockRouter,
+    cfg: RootConfig,
+    categories: list[MediaCategory] | None = None,
+) -> None:
     """Register Radarr GET routes using production fixtures.
 
     Radarr reconciler touches: /tag, /indexer, /rootfolder, /downloadclient,
@@ -337,9 +341,12 @@ def _register_radarr_routes(mock: respx.MockRouter, cfg: RootConfig) -> None:
     Phase 12-B (D-01): same generator-derived tag extension as Sonarr — the
     static fixture is augmented with each movies-kind category's label so
     ``_resolve_download_client_tag_labels`` finds a match in step 2.
+
+    Phase 32 (CATMIG-01/02): categories param added (formerly cfg.categories).
     """
     base_tags = _load_fixture("radarr/tag_with_movies_anime_family.json")
-    movies_labels = [c.name for c in cfg.categories if c.kind == "movies"]
+    _cats = categories or []
+    movies_labels = [c.name for c in _cats if c.kind == "movies"]
     existing_labels = {t["label"] for t in base_tags}
     next_id = max((t["id"] for t in base_tags), default=0) + 1
     tag_fixture = list(base_tags)
@@ -392,8 +399,10 @@ def _register_qbittorrent_routes(mock: respx.MockRouter, cfg: RootConfig) -> Non
     Auth shim: QbittorrentClient.__init__ calls POST /api/v2/auth/login.
     Must return "Ok." with Set-Cookie SID header (Pitfall 1).
     Then reconciler GETs /api/v2/torrents/categories (returns dict, not list).
+    If preferences.enable=True, also GETs /api/v2/app/preferences.
     """
     categories_fixture = _load_fixture("qbittorrent/categories.json")
+    preferences_fixture = _load_fixture("qbittorrent/preferences.json")
 
     for instance in cfg.qbittorrent.values():
         base = instance.base_url.rstrip("/")
@@ -407,6 +416,11 @@ def _register_qbittorrent_routes(mock: respx.MockRouter, cfg: RootConfig) -> Non
         )
         mock.get(f"{base}/api/v2/torrents/categories").mock(
             return_value=httpx.Response(200, json=categories_fixture)
+        )
+        # preferences reconcile: only called when instance.preferences.enable=True
+        # (D-05-QBT-02 opt-in). Register unconditionally with assert_all_called=False.
+        mock.get(f"{base}/api/v2/app/preferences").mock(
+            return_value=httpx.Response(200, json=preferences_fixture)
         )
 
 
