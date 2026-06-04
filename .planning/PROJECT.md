@@ -8,7 +8,14 @@ Cible utilisateur : Thomas (tom333), homelab single-tenant. Pattern transposable
 
 ## Current State
 
-**Milestone shipped & archived: v0.10.0 Couche d'intention (tranche 1)** (2026-05-31, 4/4 phases 28-31, 15/15 plans, 14/14 requirements, audit `tech_debt` no-blockers). Généralise le pattern `categories[]` en couche d'intention explicite : `intent.yml` (seul fichier hand-edited) → `arrconf generate` (pure fn, `--check` CI guard) → configs verbeuses committées → `apply`/configarr (inchangés). ADR-10 (couche d'intention + frontière absorber/déployer, extension ADR-5). 3 blocs absorbés : **sagas** (reconciler Radarr Collections tmdbId-matched + plugin Jellyfin tmdbboxsets two-run + BoxSets séries), **cross-seed** (12e alias Helm, initContainer secret-injection), **qbit_manage** (13e alias Helm CronJob, `cat_update:false`+`cat:{}` forcés — arrconf seul propriétaire catégories qBit). arrconf `:0.18.0`→`:0.20.0`. Archive : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.10.0-ROADMAP.md`](milestones/v0.10.0-ROADMAP.md) + [`milestones/v0.10.0-MILESTONE-AUDIT.md`](milestones/v0.10.0-MILESTONE-AUDIT.md). **Pas de git tag GSD** (`v0.10.0` collisionne avec un tag chart-release ; archive planning-only). 7 items deferred (Phases 30/31 runtime UAT pending + 3 warnings 1-line + carry-forwards — voir STATE.md). Next : `/gsd-new-milestone` (tranche 2 : INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01).
+**Milestone in progress: v0.11.0 Couche d'intention (tranche 2)** (started 2026-06-03). Complète la couche d'intention : `intent.yml` devient le **seul fichier hand-edited** pour TOUTE la stack. 3 features : **INTENT-UI-01** (l'UI `arrconf-ui` édite `intent.yml` uniquement ; les formulaires schema-mirror arrconf.yml/configarr.yml deviennent read-only/retirés — fin du mirror coûteux ~5020 LOC) ; **INTENT-CFGARR-01** (`configarr.yml` CF/QP générés par catégorie depuis l'intent `profile` field ; templates/includes pass-through — ADR-5 préservé, configarr seul appliqueur TRaSH) ; **INTENT-CATMIG-01** (hard cut : `categories[]` vit UNIQUEMENT dans `intent.yml`, `arrconf.yml` devient 100% généré read-only). Extension ADR-10. Next : `/gsd-plan-phase`.
+
+<details>
+<summary>Previous state — v0.10.0 Couche d'intention (tranche 1) (shipped & archived 2026-05-31)</summary>
+
+**Milestone shipped & archived: v0.10.0 Couche d'intention (tranche 1)** (2026-05-31, 4/4 phases 28-31, 15/15 plans, 14/14 requirements, audit `tech_debt` no-blockers). Généralise le pattern `categories[]` en couche d'intention explicite : `intent.yml` (seul fichier hand-edited) → `arrconf generate` (pure fn, `--check` CI guard) → configs verbeuses committées → `apply`/configarr (inchangés). ADR-10 (couche d'intention + frontière absorber/déployer, extension ADR-5). 3 blocs absorbés : **sagas** (reconciler Radarr Collections tmdbId-matched + plugin Jellyfin tmdbboxsets two-run + BoxSets séries), **cross-seed** (12e alias Helm, initContainer secret-injection), **qbit_manage** (13e alias Helm CronJob, `cat_update:false`+`cat:{}` forcés — arrconf seul propriétaire catégories qBit). arrconf `:0.18.0`→`:0.20.0`. Archive : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.10.0-ROADMAP.md`](milestones/v0.10.0-ROADMAP.md) + [`milestones/v0.10.0-MILESTONE-AUDIT.md`](milestones/v0.10.0-MILESTONE-AUDIT.md). **Pas de git tag GSD** (`v0.10.0` collisionne avec un tag chart-release ; archive planning-only). 7 items deferred (Phases 30/31 runtime UAT pending + 3 warnings 1-line + carry-forwards — voir STATE.md).
+
+</details>
 
 <details>
 <summary>Previous state — v0.9.0 configarr-in-UI + Jellyfin skip-intro (2026-05-31)</summary>
@@ -52,45 +59,30 @@ v0.2.0 transition layer fully ripped out (generators are the only source); Sugge
 
 </details>
 
-## Current Milestone: v0.10.0 — Couche d'intention (méta-orchestrateur, tranche 1)
+## Current Milestone: v0.11.0 — Couche d'intention (tranche 2 : `intent.yml` source unique)
 
-**Goal:** Généraliser le pattern `categories[]` en une couche d'intention : `intent.yml` (seul fichier hand-edited) → `arrconf generate` (fonction pure) → configs verbeuses générées + committées → `apply`/configarr reconcile (inchangé). Livré par tranches (approche P2 incrémentale, pas de big-bang sur un prod qui marche). Design validé : [`v0.10.0-intention-layer-DESIGN.md`](v0.10.0-intention-layer-DESIGN.md) (commit `5bdd7f2`).
-
-**Target features (tranche 1):**
-
-- **REQ-intent-layer** — `intent.yml` + `arrconf generate` : sous-commande CLI qui transforme l'intention en configs verbeuses (`arrconf.yml`, `configarr.yml`, `qbit_manage/config.yml`, `cross-seed/config.js`), réutilise les générateurs purs `generators/`, garde-fou CI idempotence (`generate && git diff --exit-code`). Modèle G1 : local + committé.
-- **REQ-sagas** — bloc `sagas` dans `intent.yml` → nouveau reconciler Radarr Collections (GET-match-`tmdbId` / PUT idempotent) + plugin Jellyfin `tmdbboxsets`. Sagas séries = présentation Jellyfin only (tag arrconf + BoxSet curé ; Sonarr sans collections).
-- **REQ-cross-seed** — bloc `tools.cross_seed` → `config.js` généré + alias Helm `app-template` (consolidation d'un cross-seed déjà hors-stack).
-- **REQ-qbit-manage** — bloc `tools.qbit_manage` → `config.yml` généré + alias Helm (share_limits/ratio, recyclebin, tracker_tags, orphaned ; `cat_update: False` impératif — arrconf possède les catégories qBit).
-- **REQ-intent-boundary-adr** — nouvel ADR : couche d'intention + frontière *absorber (générer la config) vs déployer seulement (DB/UI-only)*.
-
-**Key context:**
-
-- **ADR-1** (custom Python vs IaC) **tient** ; **ADR-5** (frontière configarr) **tient + étendu** : la couche intention se place *au-dessus* d'arrconf ET configarr ; configarr reste seul à apply TRaSH.
-- **Génération G1** : `arrconf generate` en local, YAML/JS générés committés (read-only), CI vérifie l'idempotence. G2 (in-cluster, perd diff Git/ADR-6) et G3 (commits auto, bruit auto-tagger) rejetés.
-- **Hors tranche 1 → v0.10.x / v0.11** : UI-sur-intention ; `configarr.yml` (CF/QP) généré depuis l'intention ; autobrr ; transcodage (Tdarr/FileFlows non-OSS, différés).
-- **SEED-002** (évaluer autobrr / Tdarr / decluttarr) résolu par le design §4 : autobrr ⏸️ différé, Tdarr/FileFlows ⏸️ différés (non-OSS), decluttarr ❌ rejeté (cleanuparr = sur-ensemble). Pas de req dédiée.
-- **Phase numbering** : continue depuis Phase 27 (v0.9.0) → v0.10.0 démarre **Phase 28**.
-- **5 questions ouvertes** (design §6, à résoudre en discuss/spec) : schéma `intent.yml` ; sagas séries OK ? ; migration cross-seed + `linkDirs` ; politique ratio qbit_manage ; `arrconf generate` CLI (ordre vs apply, garde-fou CI).
-
-## Last Milestone: v0.9.0 — configarr-in-UI + Jellyfin skip-intro (shipped 2026-05-31)
-
-**Goal (achieved):** Étendre l'UX opérateur (édition de `configarr.yml` depuis `arrconf-ui`, profils + custom formats pré-mâchés depuis TRaSH-Guides + Recyclarr) et l'UX de visionnage (skip-intro / crédits + chapter markers sur Jellyfin). 4/4 phases, 13/13 plans, 13/13 requirements validés. Détail : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.9.0-ROADMAP.md`](milestones/v0.9.0-ROADMAP.md). Next: `/gsd-new-milestone` (v0.10.0 intention-layer ébauché, commit `5bdd7f2`).
+**Goal:** Compléter la couche d'intention ouverte en v0.10.0 : faire de `intent.yml` le **seul fichier hand-edited** pour toute la stack. Trois mouvements convergents — l'UI bascule sur l'intent, `configarr.yml` (CF/QP) devient généré, et `categories[]` migre dans `intent.yml` (hard cut). Tous les YAML aval (`arrconf.yml`, `configarr.yml`) deviennent 100% générés + read-only. Design d'origine : [`v0.10.0-intention-layer-DESIGN.md`](v0.10.0-intention-layer-DESIGN.md) §3 (hors-tranche-1).
 
 **Target features:**
 
-- **REQ-config-ui-multi-config** — Formulaire schema-driven dans `arrconf-ui` pour éditer `configarr.yml`. Quality profiles + custom formats **sourcés depuis TRaSH-Guides + Recyclarr** (picker par nom, pas de `trash_ids` à la main). `arrconf-ui` apprend le modèle configarr (quality_profiles / custom_formats / includes / templates). ADR-5 intact : l'UI édite le *fichier*, configarr reste seul à apply.
-- **REQ-jellyfin-skip-intro** — Plugin Intro Skipper (détection intro **+** crédits/outro) via le reconciler Jellyfin plugins arrconf (best-effort) + extraction des chapter markers Jellyfin. Clients cibles = web/app/Swiftfin (support natif Media Segments, Jellyfin 10.10+) **et** Kodi/JellyCon salon (best-effort, dégradé possible).
+- **INTENT-UI-01** — `arrconf-ui` édite `intent.yml` **uniquement**. Les formulaires schema-mirror de `arrconf.yml` et `configarr.yml` deviennent read-only (vue diff/inspection) ou sont retirés. Fin du mirror 1:1 coûteux (~5020 LOC) — l'UI abstrait enfin au lieu de refléter. ADR-5 préservé : l'UI édite le *fichier* intent ; `generate` + apply/configarr inchangés.
+- **INTENT-CFGARR-01** — `configarr.yml` (quality_profiles + custom_formats) **généré par catégorie** depuis le champ `profile` de l'intent. Sections restantes (templates, includes, recyclarr refs) pass-through verbatim depuis un bloc intent. ADR-5 strictement préservé : configarr reste **seul appliqueur TRaSH** ; `generate` n'écrit qu'un *fichier*, ne touche jamais les APIs quality_profiles/custom_formats.
+- **INTENT-CATMIG-01** — **Hard cut** : `categories[]` vit UNIQUEMENT dans `intent.yml`. `arrconf.yml` devient 100% généré (read-only). Pas de double-source ni période de transition (opérateur unique = pas de compat fork nécessaire). Le schéma `intent.yml` absorbe les 10 catégories prod.
 
 **Key context:**
 
-- **`config-ui-multi-config` = gros morceau.** Sourcer les profils/CF depuis TRaSH-Guides + Recyclarr implique de connaître le modèle de templates configarr + d'aller chercher les métadonnées TRaSH/Recyclarr. Recherche recommandée avant requirements.
-- **ADR-5 préservé des deux côtés** : `arrconf-ui` édite `configarr.yml` (fichier), configarr applique ; arrconf ne touche jamais quality_profiles/custom_formats via API.
-- **skip-intro multi-client** : marche sur web/app/Swiftfin, dégradé/absent sur Kodi salon (faisabilité à confirmer — spike Kodi possible).
-- **Phase numbering** : continue depuis Phase 23 (v0.8.0) → v0.9.0 démarre **Phase 24**.
-- **2 features hétérogènes** (config UX vs playback UX) → probablement 2+ phases séparées.
+- **Décisions de scoping (new-milestone 2026-06-03)** : UI **remplace** (pas s'ajoute) ; CFGARR = **CF/QP par catégorie** (pas configarr.yml complet) ; CATMIG = **hard cut** (pas transition douce) ; version **v0.11.0**.
+- **ADR-1** (custom Python vs IaC) **tient** ; **ADR-5** (frontière configarr) **tient + critique** : INTENT-CFGARR-01 génère un *fichier* configarr.yml — arrconf ne doit JAMAIS apply quality_profiles/custom_formats via API (`ScopeViolationError` intact). Frontière dure préservée.
+- **ADR-10** (couche d'intention, G1 local+committé) **étendu** : la tranche 2 élargit `generate` à configarr.yml + absorbe `categories[]` ; modèle de génération inchangé (local, committé, CI idempotence guard).
+- **Build sur tranche 1** : `arrconf generate` (Phase 28), générateurs purs `generators/`, CI `generate-idempotence` guard, et le picker TRaSH/Recyclarr déjà construit en v0.9.0 (Phase 27, catalogue baké au build) — réutilisables pour INTENT-CFGARR-01.
+- **Phase numbering** : continue depuis Phase 31 (v0.10.0) → v0.11.0 démarre **Phase 32**.
+- **Questions ouvertes (à résoudre discuss/spec)** : schéma `intent.yml` pour CF/QP (comment exprimer profil par catégorie sans réintroduire la verbosité TRaSH ?) ; sort exact des formulaires UI legacy (retirés vs read-only) ; gestion des sections configarr non-générées (templates/includes pass-through) ; intégration picker TRaSH v0.9.0 dans l'UI-sur-intent.
 
-**Last shipped:** v0.8.0 Categories cleanup (Phases 20-23, archivé 2026-05-27, audit `tech_debt`). Détail : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.8.0-ROADMAP.md`](milestones/v0.8.0-ROADMAP.md) + [`milestones/v0.8.0-phases/`](milestones/v0.8.0-phases/).
+## Last Milestone: v0.10.0 — Couche d'intention (tranche 1) (shipped 2026-05-31)
+
+**Goal (achieved):** Généraliser `categories[]` en couche d'intention : `intent.yml` → `arrconf generate` (pure fn) → configs committées → apply/configarr (inchangés). 4/4 phases (28-31), 15/15 plans, 14/14 requirements validés, audit `tech_debt` no-blockers. 3 blocs absorbés (sagas, cross-seed, qbit_manage) + ADR-10. arrconf `:0.18.0`→`:0.20.0`. Détail : [`MILESTONES.md`](MILESTONES.md) + [`milestones/v0.10.0-ROADMAP.md`](milestones/v0.10.0-ROADMAP.md) + [`milestones/v0.10.0-MILESTONE-AUDIT.md`](milestones/v0.10.0-MILESTONE-AUDIT.md).
+
+**Last shipped before that:** v0.9.0 configarr-in-UI + Jellyfin skip-intro (Phases 24-27, archivé 2026-05-31, 13/13 plans). Le picker TRaSH/Recyclarr de Phase 27 est réutilisable pour INTENT-CFGARR-01.
 
 ## Backlog (post-v0.9.0)
 
@@ -169,9 +161,13 @@ Aucune intervention UI nécessaire pour configurer Sonarr / Radarr / Prowlarr / 
 
 ### Active
 
-<!-- v0.10.0 shipped. No active milestone — next via /gsd-new-milestone. Tranche-2 candidates carried in v2 requirements below + INTENT-* in archived milestones/v0.10.0-REQUIREMENTS.md. -->
+<!-- v0.11.0 in progress (tranche 2). REQ-IDs finalized in REQUIREMENTS.md by the requirements step. -->
 
-- _(none — awaiting `/gsd-new-milestone`)_ Tranche-2 candidates: **INTENT-UI-01** (UI over `intent.yml`), **INTENT-CFGARR-01** (`configarr.yml` CF/QP generated from intent), **INTENT-CATMIG-01** (`categories[]` migration into `intent.yml`), **AUTOBRR-01** (autobrr deploy-only if adopted).
+- [ ] **INTENT-UI-01** — `arrconf-ui` édite `intent.yml` uniquement ; formulaires schema-mirror arrconf.yml/configarr.yml retirés ou read-only. Fin du mirror 1:1.
+- [ ] **INTENT-CFGARR-01** — `configarr.yml` CF/QP générés par catégorie depuis l'intent ; templates/includes pass-through. ADR-5 préservé (configarr seul appliqueur).
+- [ ] **INTENT-CATMIG-01** — Hard cut : `categories[]` uniquement dans `intent.yml` ; `arrconf.yml` 100% généré read-only.
+
+Carried (post-v0.11.0 candidates): **AUTOBRR-01** (autobrr deploy-only si adopté).
 
 <details>
 <summary>Carry-forward (pre-v0.10.0)</summary>
@@ -335,7 +331,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-31 after v0.10.0 milestone — Couche d'intention (tranche 1) **SHIPPED & ARCHIVED** (4/4 phases 28-31, 15/15 plans, 14/14 requirements, audit `tech_debt` no-blockers, 7 items deferred). Full PROJECT.md evolution: v0.10.0 requirements moved to Validated, Active emptied (awaiting `/gsd-new-milestone`), ADR-10 logged. No git tag (planning-only, `v0.10.0` collides with chart-release tag). Next: `/gsd-new-milestone` for tranche 2 (INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01).*
+*Last updated: 2026-06-03 — v0.11.0 milestone started (Couche d'intention tranche 2). Current Milestone section rewritten for v0.11.0 (3 features: INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01), v0.10.0 demoted to Last Milestone + Current State details collapsed, Active section populated with 3 tranche-2 requirements. Scoping decisions: UI replaces mirror, CFGARR = CF/QP par catégorie, CATMIG = hard cut. Phase numbering continues from Phase 31 → Phase 32. Next: requirements → roadmap.*
 
 <details>
 <summary>Previous footer — v0.9.0</summary>
