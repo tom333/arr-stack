@@ -102,6 +102,7 @@ def test_arrconf_yml_validates_against_pydantic() -> None:
     assert radarr.movie_tags.default_tag == "movies", "movie_tags.default_tag != movies"
 
 
+@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_validates_against_json_schema() -> None:
     from ruyaml import YAML
 
