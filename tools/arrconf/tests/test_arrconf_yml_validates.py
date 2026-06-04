@@ -10,6 +10,10 @@ Plan 05-07 threat mitigations:
 - Pitfall 3 invariant: every qBit category MUST declare an explicit savePath.
 - Pitfall 6 invariant: remotePath and localPath MUST end with '/'.
 - D-05-PATHS-01: radarr-movies uses /data/films (NOT /data/movies).
+
+Phase 32 (CATMIG-02): arrconf.yml is now GENERATED read-only (no categories:).
+Categories live in intent.yml. Tests that previously accessed cfg.categories
+now load categories from intent.yml via load_intent.
 """
 
 from __future__ import annotations
@@ -18,7 +22,6 @@ import json
 from pathlib import Path
 
 import jsonschema
-import pytest
 
 from arrconf.config import RootConfig, load_config
 from arrconf.generators.categories import (
@@ -27,17 +30,8 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
-
-# CATMIG-01 (Phase 32 Plan 01): arrconf.yml still has categories: at the top-level.
-# Plan 02 will remove it (hard cut). Tests that load ARRCONF_YML and pass cfg to
-# generators are skipped until Plan 02 updates the chart file.
-_SKIP_UNTIL_PLAN02 = pytest.mark.skip(
-    reason=(
-        "CATMIG-01 Plan 01: arrconf.yml still has 'categories:' which RootConfig "
-        "now rejects (extra_forbidden). Plan 02 will remove categories from arrconf.yml "
-        "and update these tests."
-    )
-)
+from arrconf.intent_config import load_intent
+from arrconf.resources.categories import Category as MediaCategory
 
 # ---------------------------------------------------------------------------
 # Path helpers — relative to this file (tools/arrconf/tests/ — 3 dirs from repo root)
@@ -45,7 +39,13 @@ _SKIP_UNTIL_PLAN02 = pytest.mark.skip(
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ARRCONF_YML = REPO_ROOT / "charts" / "arr-stack" / "files" / "arrconf.yml"
+INTENT_YML = REPO_ROOT / "charts" / "arr-stack" / "files" / "intent.yml"
 ARRCONF_SCHEMA = REPO_ROOT / "schemas" / "arrconf-schema.json"
+
+
+def _load_production_categories() -> list[MediaCategory]:
+    """Load the 10 production categories from intent.yml (CATMIG-02 — source of truth)."""
+    return load_intent(INTENT_YML).categories
 
 
 def test_files_exist() -> None:
@@ -53,19 +53,19 @@ def test_files_exist() -> None:
     assert ARRCONF_SCHEMA.exists(), f"arrconf-schema.json not found at {ARRCONF_SCHEMA}"
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_validates_against_pydantic() -> None:
     """Phase 12-B (D-01): generator outputs derive from categories[], NOT from
-    deleted flat sections. Production arrconf.yml has 10 categories — 5 series-kind
-    + 5 movies-kind — so generators produce 10 qbit categories, 5 sonarr tags,
+    deleted flat sections. Production has 10 categories — 5 series-kind + 5
+    movies-kind — so generators produce 10 qbit categories, 5 sonarr tags,
     5 radarr tags, and so on per side.
-    CATMIG-01: categories now in intent.yml; test updated in Plan 02.
+    CATMIG-02 (Phase 32): categories sourced from intent.yml, not arrconf.yml.
     """
     cfg = load_config(ARRCONF_YML)
+    cats = _load_production_categories()
     assert isinstance(cfg, RootConfig)
     # qbittorrent.main must exist; categories come from generator (Phase 12-B)
     assert "main" in cfg.qbittorrent, "qbittorrent.main not declared"
-    qbt_categories = generate_qbit_categories(cfg)
+    qbt_categories = generate_qbit_categories(cats)
     cat_names = {c.name for c in qbt_categories}
     expected_cats = {
         "series",
@@ -83,8 +83,8 @@ def test_arrconf_yml_validates_against_pydantic() -> None:
     # Sonarr.main: generator-derived from 5 series categories
     assert "main" in cfg.sonarr, "sonarr.main not declared"
     sonarr = cfg.sonarr["main"]
-    sonarr_derived = generate_sonarr_resources(cfg)
-    series_names = {c.name for c in cfg.categories if c.kind == "series"}
+    sonarr_derived = generate_sonarr_resources(cats)
+    series_names = {c.name for c in cats if c.kind == "series"}
     assert {t.label for t in sonarr_derived.tags} == series_names
     assert len(sonarr_derived.root_folders) == 5
     assert len(sonarr_derived.download_clients) == 5
@@ -93,8 +93,8 @@ def test_arrconf_yml_validates_against_pydantic() -> None:
     # Radarr.main: generator-derived from 5 movies categories
     assert "main" in cfg.radarr, "radarr.main not declared"
     radarr = cfg.radarr["main"]
-    radarr_derived = generate_radarr_resources(cfg)
-    movies_names = {c.name for c in cfg.categories if c.kind == "movies"}
+    radarr_derived = generate_radarr_resources(cats)
+    movies_names = {c.name for c in cats if c.kind == "movies"}
     assert {t.label for t in radarr_derived.tags} == movies_names
     assert len(radarr_derived.root_folders) == 5
     assert len(radarr_derived.download_clients) == 5
@@ -102,8 +102,8 @@ def test_arrconf_yml_validates_against_pydantic() -> None:
     assert radarr.movie_tags.default_tag == "movies", "movie_tags.default_tag != movies"
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_validates_against_json_schema() -> None:
+    """CATMIG-02: arrconf.yml is now GENERATED read-only (no categories:). Validates."""
     from ruyaml import YAML
 
     y = YAML(typ="safe")
@@ -113,12 +113,13 @@ def test_arrconf_yml_validates_against_json_schema() -> None:
     jsonschema.validate(doc, schema)
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
-    """Phase 12-B (D-01): 10 RPMs total (5 series + 5 movies), one per category."""
-    cfg = load_config(ARRCONF_YML)
-    sonarr_rpms = generate_sonarr_resources(cfg).remote_path_mappings
-    radarr_rpms = generate_radarr_resources(cfg).remote_path_mappings
+    """Phase 12-B (D-01): 10 RPMs total (5 series + 5 movies), one per category.
+    CATMIG-02: categories sourced from intent.yml.
+    """
+    cats = _load_production_categories()
+    sonarr_rpms = generate_sonarr_resources(cats).remote_path_mappings
+    radarr_rpms = generate_radarr_resources(cats).remote_path_mappings
     all_rpms = list(sonarr_rpms) + list(radarr_rpms)
     n_rpms = len(all_rpms)
     assert n_rpms == 10, f"Expected 10 RPMs total (5+5), got {n_rpms}"
@@ -131,31 +132,31 @@ def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
         )
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_films_category_uses_data_torrents_films() -> None:
     """D-05-PATHS-01 spirit: the canonical movies-bucket category ('films') maps
-    to /data/torrents/films. Phase 12-B (D-01): generator now emits paths keyed
-    on category names (not v0.2.0 'radarr-movies')."""
-    cfg = load_config(ARRCONF_YML)
-    cats = {c.name: c.savePath for c in generate_qbit_categories(cfg)}
-    assert "films" in cats, "films category not declared"
-    assert cats["films"] == "/data/torrents/films", (
-        f"films savePath is {cats['films']!r}, expected '/data/torrents/films'"
+    to /data/torrents/films. CATMIG-02: categories sourced from intent.yml."""
+    cats = _load_production_categories()
+    cat_map = {c.name: c.savePath for c in generate_qbit_categories(cats)}
+    assert "films" in cat_map, "films category not declared"
+    assert cat_map["films"] == "/data/torrents/films", (
+        f"films savePath is {cat_map['films']!r}, expected '/data/torrents/films'"
     )
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_all_qbit_categories_have_explicit_save_path() -> None:
-    cfg = load_config(ARRCONF_YML)
-    for cat in generate_qbit_categories(cfg):
+    """Pitfall 3 invariant: every qBit category MUST have an explicit savePath.
+    CATMIG-02: categories sourced from intent.yml.
+    """
+    cats = _load_production_categories()
+    for cat in generate_qbit_categories(cats):
         assert cat.savePath, (
             f"Pitfall 3 violation: category {cat.name!r} has empty savePath — "
             "must be explicit (qBit treats empty as default save path)"
         )
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_prowlarr_apps_declared() -> None:
+    """CATMIG-02: generated arrconf.yml loads via RootConfig; prowlarr.main declared."""
     cfg = load_config(ARRCONF_YML)
     assert "main" in cfg.prowlarr, "prowlarr.main not declared"
     apps = cfg.prowlarr["main"].apps.items
@@ -167,7 +168,6 @@ def test_arrconf_yml_prowlarr_apps_declared() -> None:
 # -- Phase 6 assertions (D-06-SCOPE-01 + D-06-RETAG-01) ------------------------
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_has_seerr_main_block() -> None:
     """charts/arr-stack/files/arrconf.yml validates against RootConfig with a seerr.main block."""
     cfg = load_config(ARRCONF_YML)
@@ -195,7 +195,6 @@ def test_arrconf_yml_has_seerr_main_block() -> None:
     )
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_sonarr_content_routing_has_family_and_anime() -> None:
     """Sonarr content_routing wires both family + anime rules (D-06-RETAG-01)."""
     cfg = load_config(ARRCONF_YML)
@@ -215,7 +214,6 @@ def test_arrconf_yml_sonarr_content_routing_has_family_and_anime() -> None:
     )
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_radarr_content_routing_has_NO_anime_rule() -> None:
     """Pitfall 5 enforced at the chart layer: Radarr MUST NOT have an anime rule.
 
@@ -244,15 +242,17 @@ def test_arrconf_yml_radarr_content_routing_has_NO_anime_rule() -> None:
 #    + D-07-CONFIG-01 + D-07-PLUGINS-01) --
 
 
-@_SKIP_UNTIL_PLAN02
 def test_arrconf_yml_validates_jellyfin() -> None:
     """Live chart YAML parses against the Phase 7 pydantic schema (D-07-INSTANCE-01).
 
     Regression contract — prevents shipping a chart-side jellyfin block that
     does not match the arrconf RootConfig schema. Mirrors the Seerr
     test_arrconf_yml_validates pattern.
+
+    CATMIG-02: libraries generated from intent.yml categories (not arrconf.yml).
     """
     cfg = load_config(ARRCONF_YML)
+    cats = _load_production_categories()
     assert "main" in cfg.jellyfin, (
         "charts/arr-stack/files/arrconf.yml missing jellyfin.main section"
     )
@@ -261,7 +261,7 @@ def test_arrconf_yml_validates_jellyfin() -> None:
     assert j.base_url == "http://jellyfin.selfhost.svc.cluster.local:8096"
 
     # Libraries (Phase 16 D-16-LIB-CREATE-01: 10 entries, 1 PathInfo each)
-    jf_libraries = generate_jellyfin_libraries(cfg)
+    jf_libraries = generate_jellyfin_libraries(cats)
     assert len(jf_libraries) == 10
     # First entry mirrors first Category in arrconf.yml — Séries.
     assert jf_libraries[0].name == "Séries"
@@ -310,15 +310,14 @@ def test_arrconf_yml_validates_jellyfin() -> None:
 # -- Phase 9 assertions (D-01, D-02, D-03, D-04 — categories block) ----------
 
 
-@_SKIP_UNTIL_PLAN02
-def test_arrconf_yml_has_10_categories() -> None:
-    """REQ-categories-10-target: production arrconf.yml declares exactly 10 categories.
+def test_intent_yml_has_10_categories() -> None:
+    """REQ-categories-10-target: production intent.yml declares exactly 10 categories.
 
-    CATMIG-01: categories moved from arrconf.yml to intent.yml. This test is
-    superseded by a new test in Plan 02 (intent.yml has 10 categories).
+    CATMIG-02: categories moved from arrconf.yml to intent.yml (Phase 32 Plan 02).
+    This replaces the former test_arrconf_yml_has_10_categories.
     """
-    cfg = load_config(ARRCONF_YML)
-    assert len(cfg.categories) == 10, f"Expected 10 categories, got {len(cfg.categories)}"  # type: ignore[attr-defined]
+    cats = _load_production_categories()
+    assert len(cats) == 10, f"Expected 10 categories, got {len(cats)}"
 
     expected = [
         ("series", "series", "general"),
@@ -332,28 +331,31 @@ def test_arrconf_yml_has_10_categories() -> None:
         ("films-animation-enfants", "movies", "family"),
         ("films-zoe", "movies", "anime"),
     ]
-    actual = [(c.name, c.kind, c.profile) for c in cfg.categories]
+    actual = [(c.name, c.kind, c.profile) for c in cats]
     assert actual == expected, f"Categories order/values mismatch: {actual}"
 
-    for cat in cfg.categories:
+    for cat in cats:
         assert cat.base_path == f"/media/{cat.name}", (
             f"D-04 violation: base_path {cat.base_path!r} != /media/{cat.name!r}"
         )
 
 
-@_SKIP_UNTIL_PLAN02
-def test_arrconf_yml_categories_ruyaml_roundtrip() -> None:
-    """W-03 belt-and-suspenders: ruyaml can parse arrconf.yml + categories validates raw."""
+def test_intent_yml_categories_ruyaml_roundtrip() -> None:
+    """W-03 belt-and-suspenders: ruyaml can parse intent.yml + categories validates raw.
+
+    CATMIG-02: categories now in intent.yml (not arrconf.yml). Verifies the raw
+    YAML round-trip so that a partial parse failure does not silently drop entries.
+    """
     from ruyaml import YAML
 
     yaml = YAML(typ="safe")
-    with ARRCONF_YML.open("r", encoding="utf-8") as f:
+    with INTENT_YML.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
     cats = data.get("categories", [])
-    assert len(cats) == 10, f"ruyaml saw {len(cats)} categories, expected 10"
+    assert len(cats) == 10, f"ruyaml saw {len(cats)} categories in intent.yml, expected 10"
     for cat in cats:
         assert cat["base_path"] == f"/media/{cat['name']}", (
-            f"D-04 ruyaml-roundtrip violation: {cat}"
+            f"D-04 ruyaml-roundtrip violation in intent.yml: {cat}"
         )
 
 
