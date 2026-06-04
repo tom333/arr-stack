@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
 status: planning
-last_updated: "2026-06-04T00:00:00.000Z"
-last_activity: 2026-06-04
+last_updated: "2026-06-04T09:00:35.375Z"
+last_activity: "2026-06-04 — Roadmap created (3 phases: 32 CATMIG, 33 CFGARR, 34 UI)"
 progress:
   total_phases: 3
   completed_phases: 0
