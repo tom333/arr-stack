@@ -527,22 +527,22 @@ Step 2.6: SKIPPED — only ruyaml, pydantic, and the baked JSON catalog are need
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Profile rename scope (D-33-04):**
+1. **Profile rename scope (D-33-04):** **RESOLVED → Option B (mapping layer).**
    - What we know: D-33-04 says to rename `category.profile` values "in `intent.yml`."
    - What's unclear: Does this mean rename the `Profile` Literal enum (Option A, ~100 test updates) or add a mapping layer (Option B, zero test churn)?
-   - Recommendation: Present both options in the plan with explicit cost. Default to Option B unless the user explicitly wants enum alignment.
+   - Resolution: Option B. Keep the `Profile` Literal enum (`general`/`anime`/`family`) unchanged; generator maps `general→MULTi.VF`/`anime→Anime`/`family→Family` at emit time; `profile_definitions` keyed by configarr names. Satisfies D-33-04's binding invariants (emitted QP names + zero live migration) with zero test churn. Recorded in both plans' `orchestrator_decisions`.
 
-2. **`profile_definitions` typing strategy:**
+2. **`profile_definitions` typing strategy:** **RESOLVED → minimal typed local model.**
    - What we know: ADR-5 forbids importing from arrconf-ui. The `apps` field uses `dict[str, Any]` (YAGNI precedent).
    - What's unclear: Should `profile_definitions` be fully typed (`QualityProfile`-like model in `intent_config.py`) or untyped (`dict[str, Any]`)?
-   - Recommendation: Minimal typed model covering `custom_formats` (needed for routing logic) + untyped dict for the QP body. The generator only needs to extract `custom_formats` and pass the rest verbatim.
+   - Resolution: Minimal local typed model (`ProfileDefinition` + `CustomFormatRef`, `extra="forbid"`) covering `custom_formats` + untyped dict for the QP body. NO cross-package import of `ConfigarrRootConfig` (ADR-5). Recorded in 33-01 Task 1.
 
-3. **CF aggregation shape in generated output:**
+3. **CF aggregation shape in generated output:** **RESOLVED → Option A (one entry per profile_definition CF).**
    - What we know: Current hand-edited file groups multiple CF ids under one `assign_scores_to`. Option A (one entry per CF) produces more verbose output.
    - What's unclear: Does the operator care about output verbosity?
-   - Recommendation: Plan with Option A for simplicity; note that structural equivalence to old hand-edited file is achievable but not required.
+   - Resolution: Option A. Structural equivalence to the old hand-edited file is not required (semantic equivalence is). Recorded in 33-01 Task 2.
 
 ---
 
