@@ -161,6 +161,48 @@ class SagaEntry(BaseModel):
         return self
 
 
+class CustomFormatRef(BaseModel):
+    """One custom_format reference inside a profile_definition (D-33-06).
+
+    trash_id references a TRaSH-Guides id OR a local CF defined in the configarr
+    pass-through block's customFormatDefinitions. score is optional; when omitted
+    the CF's own default score (from its definition) applies at configarr apply time.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    trash_ids: list[str] = Field(
+        default_factory=list,
+        description="CF ids (TRaSH or local) sharing the same per-profile score.",
+    )
+    score: int | None = Field(
+        default=None,
+        description="Per-profile score override. None → use CF default score.",
+    )
+
+
+class ProfileDefinition(BaseModel):
+    """A reusable quality-profile body, written once per profile name (D-33-01/02).
+
+    body: the QP fields emitted verbatim into configarr quality_profiles
+    (language, reset_unmatched_scores, upgrade, min_format_score, quality_sort,
+    qualities). Carried as dict[str, Any] — configarr validates at apply time,
+    arrconf does NOT (ADR-5: arrconf-ui models must not be imported here).
+    custom_formats: structured so generate emits assign_scores_to per profile.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    body: dict[str, Any] = Field(
+        default_factory=dict,
+        description="QP body fields (language/upgrade/qualities/...) emitted verbatim.",
+    )
+    custom_formats: list[CustomFormatRef] = Field(
+        default_factory=list,
+        description="CF refs + per-profile scores (D-33-06).",
+    )
+
+
 class IntentConfig(BaseModel):
     """Root schema for intent.yml (INTENT-01, Phase 28).
 
@@ -168,6 +210,11 @@ class IntentConfig(BaseModel):
     Phase 32 (CATMIG-01 / D-32-01): ``categories`` and ``apps`` absorbed from arrconf.yml.
     ``categories`` is now the single hand-edited owner of the media category list.
     ``apps`` is an untyped pass-through dict emitted verbatim into generated arrconf.yml.
+    Phase 33 (CFGARR-01..04): ``profile_definitions`` + ``configarr`` carry the
+    configarr.yml generator inputs. ``configarr`` holds the pass-through skeleton
+    (trashGuideUrl, customFormatDefinitions, per-instance base_url/api_key/media_naming/
+    quality_definition). ``profile_definitions`` holds QP bodies + CF refs keyed by
+    configarr profile name (MULTi.VF/Anime/Family).
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -189,6 +236,22 @@ class IntentConfig(BaseModel):
         description=(
             "App config pass-through (sonarr/radarr/prowlarr/qbittorrent/seerr/jellyfin). "
             "Emitted verbatim into generated arrconf.yml — no pydantic validation (D-32-01 YAGNI)."
+        ),
+    )
+    profile_definitions: dict[str, ProfileDefinition] = Field(
+        default_factory=dict,
+        description=(
+            "Reusable QP bodies keyed by configarr profile name "
+            "(MULTi.VF/Anime/Family). Expanded into configarr.yml quality_profiles "
+            "by 'arrconf generate' (D-33-01)."
+        ),
+    )
+    configarr: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "configarr.yml pass-through skeleton (trashGuideUrl, customFormatDefinitions, "
+            "base_url/api_key/media_naming/quality_definition per instance). Emitted "
+            "verbatim; generate injects quality_profiles + custom_formats (D-33-07/08)."
         ),
     )
 
