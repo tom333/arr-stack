@@ -190,16 +190,19 @@ _ARRCONF_HEADER: Final[str] = (
 )
 
 
-def _sort_dict(d: Any) -> Any:
+def sort_dict(d: Any) -> Any:
     """Recursively sort dict keys for deterministic YAML output (SC#4).
 
     Determinism by construction — does not rely on ruyaml insertion-order
     preservation or on a fixed parse order of intent.yml.
+
+    Public (renamed from _sort_dict in Phase 33) so generators/configarr.py
+    can import it directly — no duplication (orchestrator decision 2 / D-33).
     """
     if isinstance(d, dict):
-        return {k: _sort_dict(v) for k, v in sorted(d.items())}
+        return {k: sort_dict(v) for k, v in sorted(d.items())}
     if isinstance(d, list):
-        return [_sort_dict(x) for x in d]
+        return [sort_dict(x) for x in d]
     return d
 
 
@@ -207,7 +210,7 @@ def generate_arrconf_yml(intent_cfg: IntentConfig) -> str:
     """Pure: IntentConfig -> arrconf.yml content (apps pass-through).
 
     Emits the GENERATED header then intent_cfg.apps dumped as deterministic
-    YAML (keys recursively sorted via _sort_dict). Categories-derived *arr
+    YAML (keys recursively sorted via sort_dict). Categories-derived *arr
     resources are NOT stored here — they materialize at apply-time from
     intent_cfg.categories (Plan 01). The output validates against RootConfig
     (apply/diff load it). No I/O.
@@ -217,5 +220,5 @@ def generate_arrconf_yml(intent_cfg: IntentConfig) -> str:
     yaml = YAML(typ="safe")
     yaml.default_flow_style = False
     stream = io.StringIO()
-    yaml.dump(_sort_dict(dict(intent_cfg.apps)), stream)
+    yaml.dump(sort_dict(dict(intent_cfg.apps)), stream)
     return _ARRCONF_HEADER + stream.getvalue()

@@ -39,6 +39,7 @@ from arrconf.generators.categories import (
     generate_radarr_resources,
     generate_sonarr_resources,
 )
+from arrconf.generators.configarr import generate_configarr_yml
 from arrconf.generators.intent import (
     generate_arrconf_yml,
     generate_cross_seed,
@@ -1166,6 +1167,23 @@ def generate(
     # Categories materialize at apply-time from intent_cfg.categories; NOT inlined here.
     rendered = generate_arrconf_yml(intent_cfg)
     target = output_dir / "arrconf.yml"
+    if check:
+        if not target.exists() or target.read_text(encoding="utf-8") != rendered:
+            log.error("generate_drift", file=str(target))
+            drift = True
+        else:
+            log.info("generate_ok", file=str(target))
+    else:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(rendered, encoding="utf-8")
+        log.info("generate_written", file=str(target))
+
+    # Phase 33 (CFGARR-01..04): emit configarr.yml as GENERATED quality_profiles +
+    # custom_formats (per category profile) + verbatim pass-through skeleton.
+    # Unconditional — intent always carries the configarr: block (D-33-08).
+    # ADR-5: writes a file only; never calls quality_profiles/custom_formats APIs.
+    rendered = generate_configarr_yml(intent_cfg)
+    target = output_dir / "configarr.yml"
     if check:
         if not target.exists() or target.read_text(encoding="utf-8") != rendered:
             log.error("generate_drift", file=str(target))
