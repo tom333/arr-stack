@@ -15,10 +15,10 @@ Requirements for milestone v0.11.0. Each maps to roadmap phases (continue from P
 
 ### configarr.yml generation
 
-- [ ] **CFGARR-01**: `arrconf generate` émet les `quality_profiles` de `configarr.yml` par catégorie depuis le champ `profile` de l'intent.
-- [ ] **CFGARR-02**: `arrconf generate` émet les `custom_formats` de `configarr.yml` depuis l'intent (sourcés TRaSH, réutilisant le catalogue/picker baké en v0.9.0 Phase 27).
-- [ ] **CFGARR-03**: Les sections configarr non-générées (`templates`, `includes`, refs Recyclarr) sont pass-through verbatim depuis un bloc dédié de `intent.yml`.
-- [ ] **CFGARR-04**: ADR-5 préservé — `generate` n'écrit qu'un *fichier* `configarr.yml` ; arrconf n'appelle jamais les APIs `quality_profiles`/`custom_formats` (`ScopeViolationError` intact) ; garde CI idempotence étendue à `configarr.yml`.
+- [x] **CFGARR-01**: `arrconf generate` émet les `quality_profiles` de `configarr.yml` par catégorie depuis le champ `profile` de l'intent.
+- [x] **CFGARR-02**: `arrconf generate` émet les `custom_formats` de `configarr.yml` depuis l'intent (sourcés TRaSH, réutilisant le catalogue/picker baké en v0.9.0 Phase 27).
+- [x] **CFGARR-03**: Les sections configarr non-générées (`templates`, `includes`, refs Recyclarr) sont pass-through verbatim depuis un bloc dédié de `intent.yml`.
+- [x] **CFGARR-04**: ADR-5 préservé — `generate` n'écrit qu'un *fichier* `configarr.yml` ; arrconf n'appelle jamais les APIs `quality_profiles`/`custom_formats` (`ScopeViolationError` intact) ; garde CI idempotence étendue à `configarr.yml`.
 
 ### UI over intent
 
@@ -61,10 +61,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CATMIG-01 | Phase 32 | Complete |
 | CATMIG-02 | Phase 32 | Complete |
 | CATMIG-03 | Phase 32 | Complete |
-| CFGARR-01 | Phase 33 | Pending |
-| CFGARR-02 | Phase 33 | Pending |
-| CFGARR-03 | Phase 33 | Pending |
-| CFGARR-04 | Phase 33 | Pending |
+| CFGARR-01 | Phase 33 | Complete |
+| CFGARR-02 | Phase 33 | Complete |
+| CFGARR-03 | Phase 33 | Complete |
+| CFGARR-04 | Phase 33 | Complete |
 | UI-01 | Phase 34 | Pending |
 | UI-02 | Phase 34 | Pending |
 | UI-03 | Phase 34 | Pending |

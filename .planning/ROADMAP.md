@@ -266,7 +266,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 32. Categories migration (hard cut) | 2/2 | Complete    | 2026-06-04 |
-| 33. configarr.yml generation | 2/2 | Complete   | 2026-06-06 |
+| 33. configarr.yml generation | 2/2 | Complete    | 2026-06-06 |
 | 34. UI over intent | 0/TBD | Not started | - |
 
 ## Historical Progress
