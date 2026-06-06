@@ -244,7 +244,7 @@ Plans:
   3. La garde CI `generate-idempotence` couvre `configarr.yml` : une PR qui modifie l'intent sans régénérer `configarr.yml` échoue
   4. `arrconf generate` ne contacte aucune API `quality_profiles`/`custom_formats` — il n'écrit qu'un fichier ; `ScopeViolationError` reste intacte dans les reconcilers arrconf ; configarr reste le seul appliqueur TRaSH
 **Plans**: 2 plans (2 waves)
-- [ ] 33-01-PLAN.md — Add generate_configarr_yml generator + IntentConfig schema fields (profile_definitions + configarr) + CLI wiring + unit tests
+- [x] 33-01-PLAN.md — Add generate_configarr_yml generator + IntentConfig schema fields (profile_definitions + configarr) + CLI wiring + unit tests
 - [ ] 33-02-PLAN.md — Lift configarr.yml content into intent.yml, regenerate configarr.yml (hard cut to GENERATED), extend CI guard, co-bump image tag
 **Co-bump note**: Phase touche `tools/arrconf/**` (nouveau générateur configarr) → co-bump `charts/arr-stack/values.yaml#arrconf.image.tag` REQUIS dans le même commit que le code Python.
 
@@ -266,7 +266,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 32. Categories migration (hard cut) | 2/2 | Complete    | 2026-06-04 |
-| 33. configarr.yml generation | 0/TBD | Not started | - |
+| 33. configarr.yml generation | 1/2 | In Progress|  |
 | 34. UI over intent | 0/TBD | Not started | - |
 
 ## Historical Progress
