@@ -1,9 +1,14 @@
 """Chart-side validation tests for charts/arr-stack/files/configarr.yml.
 
-These tests ensure the declarative configarr YAML source-of-truth has the
-expected 3-profile-per-instance structure required by Phase 5.
+Phase 33 (hard cut): configarr.yml is now a GENERATED artifact produced by
+'arrconf generate' from charts/arr-stack/files/intent.yml. Do NOT edit
+configarr.yml by hand — edit intent.yml and re-run the generator.
 
-Plan 05-07 threat mitigations:
+These tests validate the GENERATED artifact has the expected 3-profile-per-instance
+structure required by Phase 5, confirming the generator correctly emits the
+declared profile_definitions + categories from intent.yml.
+
+Plan 05-07 threat mitigations (still enforced on generated output):
 - T-05-CONTENT: D-05-FAM-01 — Family is a byte-equivalent clone of MULTi.VF.
 - D-05-CONFIGARR-01: 3 profiles per instance (MULTi.VF + Anime + Family).
 - Q5 explicit-score syntax: VOSTFR has per-profile scores
