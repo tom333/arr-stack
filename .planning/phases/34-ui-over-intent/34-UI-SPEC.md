@@ -5,6 +5,8 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-06-08
+revised: 2026-06-08
+revision_reason: "Checker block fix — Typography: collapse 5 sizes to 4 (drop 13px tier), reduce weights from 3 to 2 (drop 500); non-blocking a11y: CF chip aria-label + confirm button copy"
 ---
 
 # Phase 34 — UI Design Contract
@@ -25,8 +27,8 @@ created: 2026-06-08
 | Preset | not applicable | codebase |
 | Component library | none (hand-crafted Svelte 5 components) | codebase |
 | Icon library | none (inline SVG, single chevron in SectionDoc.svelte) | codebase |
-| Font — body/UI | IBM Plex Sans 400/500/600 | app.css @import |
-| Font — code/paths | IBM Plex Mono 400/500 | app.css @import |
+| Font — body/UI | IBM Plex Sans 400/600 | app.css @import |
+| Font — code/paths | IBM Plex Mono 400 | app.css @import |
 
 **shadcn gate:** project is Svelte 5 + Vite (not React/Next.js). shadcn is React-only — not applicable. Registry safety gate: not applicable.
 
@@ -52,20 +54,26 @@ Exceptions: none — the 8-point grid covers all Phase 34 cases.
 
 ## Typography
 
-All sizes pre-exist in `app.css`. No new sizes may be introduced.
+All sizes pre-exist in `app.css`. No new sizes may be introduced. **Exactly 4 sizes, 2 weights.**
 
 | Role | Size | Weight | Font | Line Height | CSS Context |
 |------|------|--------|------|-------------|-------------|
-| Body / form labels | 14px | 400 | IBM Plex Sans | 1.55 | `html` base |
-| Secondary / metadata / chips | 13px | 400 or 500 | IBM Plex Sans | 1.5 | `.confirm-message`, `.tab`, `.picker-title` |
-| Small / badges / code inline | 12px | 400 | IBM Plex Mono | 1.4 | `.filepath`, `.diff-chip`, `code` |
-| Section heading (DiffPanel h2) | 16px | 600 | IBM Plex Sans | 1.2 | `h2` in panels |
-| App heading (HeaderBar h1) | 20px | 600 | IBM Plex Sans | 1.2 | `.title` |
+| Body / form labels / confirm-message | 14px | 400 | IBM Plex Sans | 1.55 | `html` base, `.confirm-message` (14px confirmed in App.svelte) |
+| Code / mono / chips / tabs / picker-title | 12px | 400 | IBM Plex Mono | 1.4 | `code`, `pre`, `.tab` (12px in HeaderBar), `.diff-chip`, `.filepath`, CF chip text, `.picker-title` contexts use 12px floor |
+| Section heading (DiffPanel h2, AppSection h2) | 16px | 600 | IBM Plex Sans | 1.2 | `h2` in panels, AppSection heading |
+| App heading (HeaderBar h1 `.title`) | 20px | 600 | IBM Plex Sans | 1.2 | `.title` in HeaderBar |
 
-Rules:
-- Paths, IDs, `trash_id` values, score numbers, YAML snippets, unified diff lines: **always** `IBM Plex Mono`.
+**Weight contract: 400 (regular) and 600 (semibold) only.**
+- All body text, labels, metadata, helper text, chip text, confirm dialogs: weight 400.
+- All headings (h1/h2/h3), primary CTAs ("Enregistrer", "Confirmer et enregistrer"), and picker section titles: weight 600.
+- The CSS occasionally uses weight 500 in `.tab-active` and `input.mono` — those pre-existing component styles are grandfathered and must not be changed; new Phase 34 components must use only 400 or 600.
+
+Additional rules:
+- Paths, IDs, `trash_id` values, score numbers, YAML snippets, unified diff lines: **always** `IBM Plex Mono` 12px.
 - No new font sizes. Phase 34 does not add display/hero text.
 - Raw textarea for `configarr` opaque block: `IBM Plex Mono` 12px, matching `code` convention.
+- The "Bloc configarr pass-through" label above the textarea is IBM Plex Sans 14px weight 600 (treated as a mini-heading, not a new size).
+- ConfigarrRawEditor helper text below: IBM Plex Sans 12px weight 400 rendered via `<code>` wrapper or explicit `font-size: 12px` — reuses the existing `code` element size.
 
 ---
 
@@ -196,9 +204,10 @@ Layout: one collapsible card per profile name (MULTi.VF, Anime, Family). Each ca
 
 - The `body` field is a raw `<textarea>` with `IBM Plex Mono` 12px. The operator edits QP fields (language, upgrade, qualities, etc.) as YAML text. No structured form — the body is `dict[str, Any]` opaque from arrconf's perspective.
 - The `custom_formats` list renders as CF chips (identical to existing `TrashCFPicker` chip style: `--panel-alt` background, `--border` border, `IBM Plex Mono` 12px, `✕` delete button).
+- CF chip `✕` button: `aria-label="Retirer le format {name}"` (analogous to profile-delete aria-label; required for screen-reader accessibility).
 - Below the chip list: `TrashCFPicker` and `TrashQPPicker` components **mounted per profile** with `app` inferred from profile kind (sonarr-profiles → `sonarr`, radarr-profiles → `radarr`; if ambiguous, show an `app` selector). These are the existing v0.9.0 components reused without modification.
 - Score override: next to each CF chip, a compact `<input type="number">` (width 5em, `IBM Plex Mono`) shows the `score` field. Empty = use CF default. Placeholder: `défaut`.
-- Add profile button: `+ Ajouter un profil` — same style as the existing `array-add` pattern (`--accent-soft` background, `--accent` border, `IBM Plex Sans` 13px). Prompts for profile name via an inline text input.
+- Add profile button: `+ Ajouter un profil` — same style as the existing `array-add` pattern (`--accent-soft` background, `--accent` border, `IBM Plex Sans` 14px weight 400). Prompts for profile name via an inline text input.
 - Delete profile button: `✕` small button at card header right, `--ink-muted` color, `--destructive` on hover. No confirmation dialog (not destructive enough for a separate confirmation).
 
 ### ConfigarrRawEditor (special-cased)
@@ -209,7 +218,7 @@ A single `<textarea>` bound to `intent.configarr` serialized as YAML. The backen
 - Min-height: 200px; auto-grow on content (or fixed 320px with scroll)
 - Background: `--code-bg` (matches the existing `code` element background — `#f4f1ea` light, `#161c24` dark)
 - Border: `1px solid var(--border)`, `border-radius: 3px`, focus ring `--accent`
-- Label above textarea: "Bloc configarr pass-through (YAML brut)" at 13px `IBM Plex Sans` weight 500 `--ink`
+- Label above textarea: "Bloc configarr pass-through (YAML brut)" at 14px `IBM Plex Sans` weight 600 `--ink`
 - Helper text below: "Ce bloc est émis verbatim dans configarr.yml. arrconf-ui ne le valide pas." at 12px `--ink-faint` italic.
 
 ---
@@ -260,7 +269,7 @@ Two buttons, right-aligned in a `flex gap: var(--space-sm)` row with a top borde
 | Button | Style |
 |--------|-------|
 | "Continuer l'édition" | Default button style — `--panel` bg, `--border` border, `--ink` text |
-| "Confirmer et enregistrer" | `--accent` bg, `--accent-fg` text, `--accent` border, weight 500 |
+| "Confirmer et enregistrer" | `--accent` bg, `--accent-fg` text, `--accent` border, weight 600 |
 
 ---
 
@@ -297,6 +306,7 @@ All copy is in French (FR i18n — pre-existing convention in `src/i18n/fr.ts`).
 | Add profile button | `+ Ajouter un profil` |
 | Profile name input placeholder | `Nom du profil (ex: MULTi.VF)` |
 | Delete profile button aria-label | `Supprimer le profil {name}` |
+| CF chip delete button aria-label | `Retirer le format {name}` |
 | Load error | `Impossible de charger {path} — {reason}. Vérifie le chemin du fichier puis réessaie.` (unchanged pattern) |
 | Spinner loading intent | `Chargement de intent.yml…` |
 | SectionDoc intent.categories title | `Catégories média` |
@@ -310,8 +320,8 @@ All copy is in French (FR i18n — pre-existing convention in `src/i18n/fr.ts`).
 
 | Action | Trigger | Confirmation |
 |--------|---------|--------------|
-| Delete a CF from a profile | `✕` button on CF chip | None — inline, immediate (low consequence; chip is re-addable) |
-| Delete a profile definition | `✕` at profile card header | Inline confirm: text changes to `Supprimer {name} ?` with `[Annuler]` / `[Supprimer]` buttons at the card header level. No modal — scoped to the card. |
+| Delete a CF from a profile | `✕` button on CF chip (`aria-label="Retirer le format {name}"`) | None — inline, immediate (low consequence; chip is re-addable) |
+| Delete a profile definition | `✕` at profile card header (`aria-label="Supprimer le profil {name}"`) | Inline confirm: text changes to `Supprimer {name} ?` with `[Annuler la suppression]` / `[Supprimer le profil]` buttons at the card header level. No modal — scoped to the card. |
 | Switch tab with unsaved changes | Tab click | Existing `confirmSwitchOpen` dialog (reuse verbatim) |
 
 ---
