@@ -1,6 +1,8 @@
 import type {
   ConfigPayload,
   DiffResponse,
+  IntentPayload,
+  MaterializationDiffResponse,
   PydanticErrorEntry,
   RecyclarrTemplateEntry,
   RootSchema,
@@ -43,13 +45,7 @@ export async function getSchema(): Promise<RootSchema> {
   return _fetchJson<RootSchema>(`${API_BASE}/schema`);
 }
 
-export async function putConfig(payload: ConfigPayload): Promise<DiffResponse> {
-  return _fetchJson<DiffResponse>(`${API_BASE}/config`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
+// D-34-04: direct write to arrconf.yml removed; arrconf.yml is 100% generated via intent.
 
 export async function postDiff(payload: ConfigPayload): Promise<DiffResponse> {
   return _fetchJson<DiffResponse>(`${API_BASE}/diff`, {
@@ -59,23 +55,39 @@ export async function postDiff(payload: ConfigPayload): Promise<DiffResponse> {
   });
 }
 
-// configarr endpoints — Phase 26 (D-03)
+// configarr endpoints — Phase 26 (D-03); PUT removed (D-34-04)
 export async function getConfigarrConfig(): Promise<Record<string, unknown>> {
   return _fetchJson<Record<string, unknown>>(`${API_BASE}/configarr/config`);
 }
 export async function getConfigarrSchema(): Promise<RootSchema> {
   return _fetchJson<RootSchema>(`${API_BASE}/configarr/schema`);
 }
-export async function putConfigarrConfig(payload: Record<string, unknown>): Promise<DiffResponse> {
-  return _fetchJson<DiffResponse>(`${API_BASE}/configarr/config`, {
-    method: 'PUT',
+// D-34-04: direct write to configarr.yml removed; configarr.yml is 100% generated via intent.
+export async function postConfigarrDiff(payload: Record<string, unknown>): Promise<DiffResponse> {
+  return _fetchJson<DiffResponse>(`${API_BASE}/configarr/diff`, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 }
-export async function postConfigarrDiff(payload: Record<string, unknown>): Promise<DiffResponse> {
-  return _fetchJson<DiffResponse>(`${API_BASE}/configarr/diff`, {
+
+// Phase 34 — intent endpoints (UI-01)
+export async function getIntent(): Promise<IntentPayload> {
+  return _fetchJson<IntentPayload>(`${API_BASE}/intent`);
+}
+export async function getIntentSchema(): Promise<RootSchema> {
+  return _fetchJson<RootSchema>(`${API_BASE}/intent/schema`);
+}
+export async function postIntentDiff(payload: IntentPayload): Promise<MaterializationDiffResponse> {
+  return _fetchJson<MaterializationDiffResponse>(`${API_BASE}/intent/diff`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+export async function putIntent(payload: IntentPayload): Promise<{ saved: boolean }> {
+  return _fetchJson<{ saved: boolean }>(`${API_BASE}/intent`, {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });

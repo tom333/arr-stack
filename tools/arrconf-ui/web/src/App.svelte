@@ -1,103 +1,110 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ConfigPayload, MediaCategory, PydanticErrorEntry, RootSchema, SaveStatus, SemanticDiff } from './types';
-  import { APP_SECTIONS, CONFIG_FILE_PATHS } from './constants';
+  import type { IntentPayload, MaterializationDiffResponse, PydanticErrorEntry, RootSchema, SaveStatus } from './types';
+  import { CONFIG_FILE_PATHS } from './constants';
   import type { ActiveConfig } from './constants';
   import * as api from './api';
   import { ApiError } from './api';
   import { UNSAVED_SWITCH_MESSAGE } from './i18n/fr';
   import HeaderBar from './lib/HeaderBar.svelte';
-  import CategoriesEditor from './lib/CategoriesEditor.svelte';
-  import AppSection from './lib/AppSection.svelte';
-  import DiffPanel from './lib/DiffPanel.svelte';
+  import MaterializationDiffPanel from './lib/MaterializationDiffPanel.svelte';
+  import ReadOnlyInspector from './lib/ReadOnlyInspector.svelte';
   import SaveToast from './lib/SaveToast.svelte';
   import ValidationBanner from './lib/ValidationBanner.svelte';
   import Spinner from './lib/Spinner.svelte';
-  import SectionDoc from './lib/SectionDoc.svelte';
 
-  // State (Svelte 5 runes per UI-SPEC).
+  // Intent tab state.
   let schema = $state<RootSchema | null>(null);
-  let configState = $state<ConfigPayload | null>(null);
-  let savedConfig = $state<ConfigPayload | null>(null);
+  let intentState = $state<IntentPayload | null>(null);
+  let savedIntent = $state<IntentPayload | null>(null);
   let validationErrors = $state<PydanticErrorEntry[]>([]);
   let saveStatus = $state<SaveStatus>('idle');
   let loadError = $state<string | null>(null);
 
-  // Diff panel + toast visibility.
+  // Inspector tab state (raw file content for arrconf/configarr tabs).
+  let inspectorContent = $state<string | null>(null);
+
+  // Materialization diff panel state.
   let showDiffPanel = $state(false);
-  let pendingDiff = $state<SemanticDiff | null>(null);
+  let pendingMatDiff = $state<MaterializationDiffResponse | null>(null);
   let showSaveToast = $state(false);
 
-  // Active config selector state (Phase 26 D-01/D-04).
-  let activeConfig = $state<ActiveConfig>('arrconf');
+  // Active config selector state (Phase 34 three-tab).
+  let activeConfig = $state<ActiveConfig>('intent');
   let confirmSwitchOpen = $state(false);
   let pendingSwitch = $state<ActiveConfig | null>(null);
 
   // Derived: diff count for HeaderBar chip.
+  // Only meaningful on the intent tab — shows 1 if in-memory intent differs from last-saved.
   const diffCount = $derived(
-    configState && savedConfig
-      ? (JSON.stringify(configState) === JSON.stringify(savedConfig) ? 0 : 1)
+    activeConfig === 'intent' && intentState && savedIntent
+      ? (JSON.stringify(intentState) === JSON.stringify(savedIntent) ? 0 : 1)
       : 0
   );
 
   async function loadForConfig(cfg: ActiveConfig) {
-    schema = null; configState = null;
-    try {
-      const [s, c] = cfg === 'arrconf'
-        ? await Promise.all([api.getSchema(), api.getConfig()])
-        : await Promise.all([api.getConfigarrSchema(), api.getConfigarrConfig()]);
-      schema = s;
-      configState = c as ConfigPayload;
-      savedConfig = JSON.parse(JSON.stringify(c)) as ConfigPayload;
-      loadError = null;
-    } catch (e) {
-      loadError = e instanceof Error ? e.message : String(e);
+    loadError = null;
+    if (cfg === 'intent') {
+      schema = null;
+      intentState = null;
+      savedIntent = null;
+      try {
+        const [s, intent] = await Promise.all([api.getIntentSchema(), api.getIntent()]);
+        schema = s;
+        intentState = intent;
+        savedIntent = JSON.parse(JSON.stringify(intent)) as IntentPayload;
+      } catch (e) {
+        loadError = e instanceof Error ? e.message : String(e);
+      }
+    } else if (cfg === 'arrconf') {
+      inspectorContent = null;
+      try {
+        // getConfig returns ConfigPayload (object); stringify for inspector display.
+        const raw = await api.getConfig();
+        inspectorContent = typeof raw === 'string' ? raw : JSON.stringify(raw, null, 2);
+      } catch (e) {
+        loadError = e instanceof Error ? e.message : String(e);
+      }
+    } else {
+      // configarr
+      inspectorContent = null;
+      try {
+        const raw = await api.getConfigarrConfig();
+        inspectorContent = typeof raw === 'string' ? raw : JSON.stringify(raw, null, 2);
+      } catch (e) {
+        loadError = e instanceof Error ? e.message : String(e);
+      }
     }
   }
 
   onMount(async () => {
-    await loadForConfig('arrconf');
+    await loadForConfig('intent');
   });
 
-  function updateCategories(next: MediaCategory[]) {
-    if (!configState) return;
-    configState = { ...configState, categories: next };
-  }
-
-  function updateAppSection(name: string, next: Record<string, unknown>) {
-    if (!configState) return;
-    configState = { ...configState, [name]: next } as ConfigPayload;
-  }
-
   async function openDiffPanel() {
-    if (!configState) return;
+    if (!intentState) return;
     try {
-      const resp = activeConfig === 'arrconf'
-        ? await api.postDiff(configState)
-        : await api.postConfigarrDiff(configState as Record<string, unknown>);
-      pendingDiff = resp.diff;
+      const r = await api.postIntentDiff(intentState);
+      pendingMatDiff = r;
       showDiffPanel = true;
     } catch (e) {
       console.error('diff preview failed', e);
-      // Fall back to opening with an empty diff — operator still can confirm.
-      pendingDiff = {} as SemanticDiff;
+      // Fall back: show panel with empty diffs so operator can still confirm.
+      pendingMatDiff = { arrconf_diff: '', configarr_diff: '', has_changes: false };
       showDiffPanel = true;
     }
   }
 
   async function confirmSave() {
-    if (!configState) return;
+    if (!intentState) return;
     saveStatus = 'saving';
     showDiffPanel = false;
     try {
-      const resp = activeConfig === 'arrconf'
-        ? await api.putConfig(configState)
-        : await api.putConfigarrConfig(configState as Record<string, unknown>);
-      savedConfig = JSON.parse(JSON.stringify(configState)) as ConfigPayload;
+      await api.putIntent(intentState);
+      savedIntent = JSON.parse(JSON.stringify(intentState)) as IntentPayload;
       validationErrors = [];
       saveStatus = 'saved';
       showSaveToast = true;
-      pendingDiff = resp.diff;
     } catch (e) {
       saveStatus = 'error';
       if (e instanceof ApiError && Array.isArray(e.detail)) {
@@ -146,58 +153,45 @@
   </div>
 {/if}
 
-{#if loadError}
-  <div class="load-error" role="alert">
-    Impossible de charger {CONFIG_FILE_PATHS[activeConfig]} — {loadError}. Vérifie le chemin du fichier puis réessaie.
-  </div>
-{:else if !configState || !schema}
-  <Spinner label="Chargement de {CONFIG_FILE_PATHS[activeConfig]}…" />
+{#if activeConfig === 'intent'}
+  {#if loadError}
+    <div class="load-error" role="alert">
+      Impossible de charger {CONFIG_FILE_PATHS.intent} — {loadError}. Vérifie le chemin du fichier puis réessaie.
+    </div>
+  {:else if !intentState || !schema}
+    <Spinner label="Chargement de intent.yml…" />
+  {:else}
+    <main class="page">
+      <ValidationBanner errors={validationErrors} onDismiss={() => (validationErrors = [])} />
+
+      {#if showDiffPanel && pendingMatDiff}
+        <MaterializationDiffPanel
+          arrconfDiff={pendingMatDiff.arrconf_diff}
+          configarrDiff={pendingMatDiff.configarr_diff}
+          onConfirm={confirmSave}
+          onCancel={cancelDiffPanel}
+        />
+      {/if}
+
+      <!-- 34-03: mount intent form sections here -->
+      <pre class="intent-preview">{JSON.stringify(intentState, null, 2)}</pre>
+    </main>
+  {/if}
+{:else if activeConfig === 'arrconf'}
+  <main class="page">
+    <ReadOnlyInspector
+      content={inspectorContent}
+      filePath={CONFIG_FILE_PATHS.arrconf}
+      {loadError}
+    />
+  </main>
 {:else}
   <main class="page">
-    <ValidationBanner errors={validationErrors} onDismiss={() => (validationErrors = [])} />
-
-    {#if showDiffPanel && pendingDiff}
-      <DiffPanel diff={pendingDiff} onConfirm={confirmSave} onCancel={cancelDiffPanel} />
-    {/if}
-
-    {#if activeConfig === 'arrconf'}
-      <SectionDoc section="categories" defaultOpen={false} />
-      <CategoriesEditor categories={configState.categories} onChange={updateCategories} />
-      {#each APP_SECTIONS as sectionName}
-        {@const sectionSchema = schema.properties[sectionName]}
-        {#if sectionSchema}
-          <SectionDoc section={sectionName} />
-          <AppSection
-            {sectionName}
-            {sectionSchema}
-            root={schema}
-            value={(configState as Record<string, unknown>)[sectionName] as Record<string, unknown>}
-            onChange={(next) => updateAppSection(sectionName, next)}
-            errors={validationErrors}
-          />
-        {/if}
-      {/each}
-    {:else}
-      <SectionDoc section="configarr" defaultOpen={true} />
-      {#each Object.keys(schema!.properties).filter(
-        (k) => (schema!.properties[k] as { additionalProperties?: unknown }).additionalProperties != null
-      ) as sectionName}
-        {@const sectionSchema = schema!.properties[sectionName]}
-        {#if sectionSchema}
-          <SectionDoc section={`configarr.${sectionName}`} />
-          <AppSection
-            {sectionName}
-            {sectionSchema}
-            root={schema}
-            value={(configState as Record<string, unknown>)[sectionName] as Record<string, unknown>}
-            onChange={(next) => updateAppSection(sectionName, next)}
-            errors={validationErrors}
-            configarrMode={true}
-            localDefinitions={(configState as Record<string, unknown>).customFormatDefinitions as { trash_id: string; name: string }[] ?? []}
-          />
-        {/if}
-      {/each}
-    {/if}
+    <ReadOnlyInspector
+      content={inspectorContent}
+      filePath={CONFIG_FILE_PATHS.configarr}
+      {loadError}
+    />
   </main>
 {/if}
 
@@ -262,5 +256,17 @@
     background: var(--accent);
     border: 1px solid var(--accent);
     color: var(--accent-fg);
+  }
+  .intent-preview {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: var(--space-lg);
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--ink-muted);
   }
 </style>

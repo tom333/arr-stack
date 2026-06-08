@@ -11,10 +11,11 @@
     activeConfig?: ActiveConfig;
     onTabChange?: (next: ActiveConfig) => void;
   };
-  let { filePath, diffCount, saveStatus, onSaveClick, activeConfig = 'arrconf', onTabChange }: Props = $props();
+  let { filePath, diffCount, saveStatus, onSaveClick, activeConfig = 'intent', onTabChange }: Props = $props();
 
   const isDisabled = $derived(diffCount === 0 || saveStatus === 'saving');
   const buttonLabel = $derived(saveStatus === 'saving' ? 'Enregistrement…' : 'Enregistrer');
+  const showReadOnlyBadge = $derived(activeConfig !== 'intent');
 </script>
 
 <header class="header">
@@ -22,9 +23,16 @@
     <h1 class="title">
       arrconf<span class="title-divider">/</span><span class="title-accent">editor</span>
     </h1>
-    <code class="filepath">{filePath}</code>
+    <div class="filepath-row">
+      <code class="filepath">{filePath}</code>
+      {#if showReadOnlyBadge}
+        <span class="readonly-badge">généré — lecture seule</span>
+      {/if}
+    </div>
     {#if onTabChange}
       <nav class="tab-bar" aria-label="Sélection du fichier de configuration">
+        <button type="button" class="tab" class:tab-active={activeConfig === 'intent'}
+          onclick={() => onTabChange('intent')}>intent.yml</button>
         <button type="button" class="tab" class:tab-active={activeConfig === 'arrconf'}
           onclick={() => onTabChange('arrconf')}>arrconf.yml</button>
         <button type="button" class="tab" class:tab-active={activeConfig === 'configarr'}
@@ -39,9 +47,11 @@
       </span>
     {/if}
     <ThemeToggle />
-    <button type="button" class="save-btn" disabled={isDisabled} onclick={onSaveClick}>
-      {buttonLabel}
-    </button>
+    {#if activeConfig === 'intent'}
+      <button type="button" class="save-btn" disabled={isDisabled} onclick={onSaveClick}>
+        {buttonLabel}
+      </button>
+    {/if}
   </div>
 </header>
 
@@ -82,6 +92,11 @@
     color: var(--accent);
     font-weight: 600;
   }
+  .filepath-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
   .filepath {
     color: var(--ink-muted);
     font-size: 12px;
@@ -89,6 +104,16 @@
     padding: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .readonly-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    background: var(--panel-alt);
+    padding: 2px 10px;
+    border-radius: 999px;
     white-space: nowrap;
   }
   .actions {
