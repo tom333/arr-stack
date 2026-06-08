@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
 status: executing
-last_updated: "2026-06-08T08:31:08.183Z"
-last_activity: 2026-06-08 -- Phase 34 planning complete
+last_updated: "2026-06-08T08:40:52.470Z"
+last_activity: 2026-06-08 -- Phase 34 execution started
 progress:
   total_phases: 3
   completed_phases: 2
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 33 — configarr-yml-generation
+**Current focus:** Phase 34 — ui-over-intent
 
 ## Current Position
 
-Phase: 34
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-08 -- Phase 34 planning complete
+Phase: 34 (ui-over-intent) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 34
+Last activity: 2026-06-08 -- Phase 34 execution started
 
 ```
 Progress: [          ] 0% (0/3 phases)

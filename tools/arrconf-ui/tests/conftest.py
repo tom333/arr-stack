@@ -18,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 CANONICAL_ARRCONF_YML = REPO_ROOT / "charts" / "arr-stack" / "files" / "arrconf.yml"
 CANONICAL_SCHEMA_JSON = REPO_ROOT / "schemas" / "arrconf-schema.json"
 CANONICAL_CONFIGARR_YML = REPO_ROOT / "charts" / "arr-stack" / "files" / "configarr.yml"
+CANONICAL_INTENT_YML = REPO_ROOT / "charts" / "arr-stack" / "files" / "intent.yml"
 
 
 @pytest.fixture
@@ -48,6 +49,16 @@ def sandboxed_configarr_yml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     # Plan 03 added configarr_yml_path to app.py imports, so raising=True (strict).
     monkeypatch.setattr("arrconf_ui.locator.configarr_yml_path", fake_path)
     monkeypatch.setattr("arrconf_ui.app.configarr_yml_path", fake_path)
+    yield target
+
+
+@pytest.fixture
+def sandboxed_intent_yml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
+    """Copy the canonical intent.yml to tmp_path; patch locator to return the copy."""
+    target = tmp_path / "intent.yml"
+    shutil.copy(CANONICAL_INTENT_YML, target)
+    monkeypatch.setattr("arrconf_ui.locator.intent_yml_path", lambda: target)
+    monkeypatch.setattr("arrconf_ui.app.intent_yml_path", lambda: target)
     yield target
 
 

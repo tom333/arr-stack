@@ -1,11 +1,12 @@
 """Tests for /api/configarr/* endpoints (CFGUI-01 / CFGUI-03 / SC#2 / SC#3 / D-09).
 
-Covers:
+Note: PUT /api/configarr/config was removed in D-34-04. configarr.yml is now 100%
+generated from intent.yml. Tests 3-5 (PUT round-trip, PUT invalid, D-09 rollback)
+are removed because the endpoint no longer exists.
+
+Remaining tests:
 - Test 1: SC#2 GET literal — api_key shows "!env SONARR_API_KEY" not bare var name
 - Test 2: SC#2 GET literal — api_key shows "!env RADARR_API_KEY"
-- Test 3: SC#2 PUT round-trip — file still has !env tags after write; diff returned
-- Test 4: PUT invalid payload → 422, file byte-unchanged
-- Test 5: D-09 rollback — tag-dropping write → 500 + file rolled back
 - Test 6: POST /diff — stateless, file byte-unchanged
 - Test 7: GET /schema — returns configarr-schema.json; 404 when missing
 """
@@ -15,14 +16,11 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
 from arrconf_ui.app import create_app
-from arrconf_ui.configarr_io import count_secret_tags
-from arrconf_ui.io import read_yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CANONICAL_SCHEMA = REPO_ROOT / "schemas" / "configarr-schema.json"
@@ -87,127 +85,6 @@ def test_get_configarr_config_radarr_api_key_is_literal(client: TestClient) -> N
     assert api_key == "!env RADARR_API_KEY", (
         f"api_key must be '!env RADARR_API_KEY' literal, got: {api_key!r} (Pitfall 1 regression)"
     )
-
-
-# ---------------------------------------------------------------------------
-# Test 3: SC#2 PUT round-trip — tags survive, diff returned
-# ---------------------------------------------------------------------------
-
-
-def test_put_configarr_config_roundtrip_preserves_env_tags(
-    client: TestClient,
-    sandboxed_configarr_yml: Path,
-) -> None:
-    """Full GET->edit->PUT round-trip must keep api_key as a !env TAG, not demote it.
-
-    CR-01 regression: the frontend GETs the whole config (api_key arrives as the
-    plain literal "!env SONARR_API_KEY") and PUTs it back. A wholesale block
-    replacement would re-quote api_key as a plain string ('!env SONARR_API_KEY'),
-    silently dropping the tag while keeping the substring — defeating SC#4. This
-    test sends the FULL config back (including sonarr/radarr) and asserts the tag
-    survives as a YAML tag node, not a quoted string.
-    """
-    # GET current config — api_key comes back as the plain literal "!env ..."
-    current = client.get("/api/configarr/config").json()
-    assert current["sonarr"]["main"]["api_key"] == "!env SONARR_API_KEY"
-    payload = json.loads(json.dumps(current))  # deep copy via JSON
-
-    # Edit an editable field, send the WHOLE config back (real frontend behavior)
-    payload["trashGuideUrl"] = "https://github.com/TRaSH-Guides/Guides-modified"
-
-    resp = client.put("/api/configarr/config", json=payload)
-    assert resp.status_code == 200, resp.text
-    body = resp.json()
-    assert "diff" in body
-    assert body["has_changes"] is True
-
-    content = sandboxed_configarr_yml.read_text("utf-8")
-    # The change was actually written
-    assert "Guides-modified" in content
-    # Tags survive as YAML TAGS (unquoted), not demoted to quoted plain strings
-    assert "!env SONARR_API_KEY" in content
-    assert "!env RADARR_API_KEY" in content
-    assert "'!env SONARR_API_KEY'" not in content, (
-        "api_key was demoted to a quoted plain string — !env tag dropped (CR-01)"
-    )
-    assert '"!env SONARR_API_KEY"' not in content, (
-        "api_key was demoted to a quoted plain string — !env tag dropped (CR-01)"
-    )
-    # Authoritative check: the re-read tree still has the secret tag NODES
-    assert count_secret_tags(read_yaml(sandboxed_configarr_yml)) >= 2
-
-
-# ---------------------------------------------------------------------------
-# Test 4: PUT invalid payload → 422, file byte-unchanged
-# ---------------------------------------------------------------------------
-
-
-def test_put_configarr_config_invalid_payload_returns_422_no_write(
-    client: TestClient,
-    sandboxed_configarr_yml: Path,
-) -> None:
-    """PUT with an unknown top key returns 422; on-disk file is byte-unchanged."""
-    original_bytes = sandboxed_configarr_yml.read_bytes()
-
-    # whisparr is out-of-scope (extra="forbid" on ConfigarrRootConfig rejects it)
-    bad_payload: dict[str, Any] = {"whisparr": {}}
-
-    resp = client.put("/api/configarr/config", json=bad_payload)
-    assert resp.status_code == 422, resp.text
-    body = resp.json()
-    assert "detail" in body
-
-    # File is byte-unchanged
-    assert sandboxed_configarr_yml.read_bytes() == original_bytes, (
-        "File was written despite 422 validation failure"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Test 5: D-09 rollback — tag-dropping write triggers 500 + rollback
-# ---------------------------------------------------------------------------
-
-
-def test_put_configarr_config_d09_rollback_on_tag_loss(
-    client: TestClient,
-    sandboxed_configarr_yml: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """D-09 defense-in-depth: if the merge step ever drops a secret tag node,
-    the guard returns 500 and rolls back to the original bytes.
-
-    Simulates a future regression in ``merge_preserving_tags`` by patching it to
-    a naive wholesale overwrite — which demotes api_key to a plain string (tag
-    node lost). The hardened guard counts TaggedScalar NODES (not the "!env"
-    substring, which survives the demotion), so it must fire here. This is the
-    exact corruption vector CR-01 shipped silently.
-    """
-    original_bytes = sandboxed_configarr_yml.read_bytes()
-    assert count_secret_tags(read_yaml(sandboxed_configarr_yml)) >= 2
-
-    def naive_overwrite(target: Any, payload: Any) -> None:
-        # Wholesale replace — demotes api_key TaggedScalar to a plain string
-        for key, val in payload.items():
-            target[key] = val
-
-    monkeypatch.setattr("arrconf_ui.app.merge_preserving_tags", naive_overwrite)
-
-    current = client.get("/api/configarr/config").json()
-    payload = json.loads(json.dumps(current))  # api_key arrives as plain "!env ..."
-
-    resp = client.put("/api/configarr/config", json=payload)
-    assert resp.status_code == 500, (
-        f"Expected 500 from D-09 anti-leak guard, got {resp.status_code}: {resp.text}"
-    )
-    assert "anti-leak" in resp.text.lower() or "tag" in resp.text.lower(), (
-        f"Expected anti-leak error message, got: {resp.text}"
-    )
-
-    # File rolled back to original bytes; tag nodes intact
-    assert sandboxed_configarr_yml.read_bytes() == original_bytes, (
-        "D-09 rollback failed: file was not restored to original bytes after tag loss"
-    )
-    assert count_secret_tags(read_yaml(sandboxed_configarr_yml)) >= 2
 
 
 # ---------------------------------------------------------------------------
