@@ -92,6 +92,32 @@ Les **quality profiles** (MULTi.VF, Anime, Family…) listent leurs \`qualities\
 
 Différence pratique : les profils Radarr ciblent des résolutions/sources de films (Remux-1080p, WEB-2160p…) plutôt que des saisons de séries. Le scoring TRaSH par custom format reste le mécanisme central pour arbitrer entre releases.`,
   },
+
+  // Phase 34 — intent.yml sections
+  'intent.categories': {
+    title: 'Catégories média',
+    body: `Les catégories définissent les buckets de contenu (Séries de Zoé, Films enfants, etc.) avec un dossier sur disque, un type (series/movies) et un profil qualité. Chaque catégorie se propage automatiquement vers Sonarr, Radarr, qBittorrent et Jellyfin via les générateurs arrconf.`,
+  },
+  'intent.sagas': {
+    title: 'Sagas (collections Radarr + BoxSets Jellyfin)',
+    body: `Les sagas regroupent des films en collections thématiques (ex: Marvel, Star Wars). Chaque saga se matérialise en Radarr collection et en Jellyfin BoxSet. Format : liste de blocs avec \`name\` et \`tmdb_collection_id\`.`,
+  },
+  'intent.apps': {
+    title: 'Configuration des apps (pass-through arrconf.yml)',
+    body: `Blocs de configuration des applications *arr (Sonarr, Radarr, Prowlarr, qBittorrent, Seerr, Jellyfin). Ces valeurs sont émises verbatim dans \`arrconf.yml\` et réconciliées par arrconf au prochain run. Modifier avec précaution — certains champs sont immutables après création.`,
+  },
+  'intent.tools': {
+    title: 'Outils externes (cross-seed, qbit_manage)',
+    body: `Configuration des outils satellites : \`cross_seed\` (recherche de seeds équivalents) et \`qbit_manage\` (maintenance automatique de qBittorrent). Ces blocs sont pass-through vers les ConfigMaps cluster correspondants.`,
+  },
+  'intent.profile_definitions': {
+    title: 'Définitions de profils qualité (configarr)',
+    body: `Profils qualité TRaSH (MULTi.VF, Anime, Family…) utilisés par configarr. Chaque profil contient un bloc corps YAML (upgrade rules, qualities, language) et une liste de custom formats avec score par profil. Les \`trash_ids\` référencent le catalogue TRaSH bakéé — arrconf-ui ne diale jamais une API *arr (ADR-5).`,
+  },
+  'intent.configarr': {
+    title: 'Squelette configarr (pass-through verbatim)',
+    body: `Bloc configarr émis verbatim dans \`configarr.yml\`. Ce bloc est opaque pour arrconf-ui — il n'est ni validé ni structuré ici. Utilisez ce champ pour les sections configarr qui ne correspondent pas aux profils définis ci-dessus (ex: \`trashGuideUrl\`, \`recyclarrConfigUrl\`, \`customFormatDefinitions\`).`,
+  },
 };
 
 /* ============================================================================
@@ -424,3 +450,13 @@ export const RECYCLARR_COPY_FAILED_TEXT =
   "Copie impossible — copiez le nom manuellement.";
 export const TRASH_CF_SEARCH_PLACEHOLDER = "Rechercher un format par nom…";
 export const TRASH_QP_ADD_LABEL = "Insérer le quality profile";
+
+// Phase 34 — intent form string constants
+export const READONLY_BADGE_TEXT = 'généré — lecture seule';
+export const MATERIALIZATION_EMPTY_TEXT = 'Aucune modification';
+export const PROFILE_BODY_LABEL = 'Bloc corps du profil (YAML brut)';
+export const CONFIGARR_RAW_LABEL = 'Bloc configarr pass-through (YAML brut)';
+export const CONFIGARR_RAW_HELPER = "Ce bloc est émis verbatim dans configarr.yml. arrconf-ui ne le valide pas.";
+export const ADD_PROFILE_TEXT = '+ Ajouter un profil';
+export const PROFILE_NAME_PLACEHOLDER = 'Nom du profil (ex: MULTi.VF)';
+export const SCORE_OVERRIDE_PLACEHOLDER = 'défaut';
