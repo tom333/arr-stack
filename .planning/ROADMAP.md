@@ -258,7 +258,7 @@ Plans:
   3. L'UI expose un panneau diff montrant les fichiers générés (`arrconf.yml`, `configarr.yml`) tels qu'ils seraient produits par `arrconf generate` après la modification intent courante — l'opérateur voit la matérialisation avant tout commit
   4. Un run `arrconf generate` (localement, depuis l'UI via appel backend, ou équivalent) appliqué après une sauvegarde intent produit les mêmes fichiers que le diff affiché — cohérence diff/génération vérifiable par l'opérateur
 **Plans**: 3 plans (3 waves)
-- [ ] 34-01-PLAN.md — Backend: intent endpoints (GET/PUT/diff/schema) + locator paths + remove legacy PUT endpoints + tests
+- [x] 34-01-PLAN.md — Backend: intent endpoints (GET/PUT/diff/schema) + locator paths + remove legacy PUT endpoints + tests
 - [ ] 34-02-PLAN.md — Frontend skeleton: 3-tab state machine, ReadOnlyInspector, MaterializationDiffPanel, api/types/constants
 - [ ] 34-03-PLAN.md — Frontend intent form: ProfileDefinitionsEditor + ProfileCard (TRaSH picker), ConfigarrRawEditor, i18n, App.svelte section wiring
 **UI hint**: yes
@@ -270,7 +270,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 32. Categories migration (hard cut) | 2/2 | Complete    | 2026-06-04 |
 | 33. configarr.yml generation | 2/2 | Complete    | 2026-06-06 |
-| 34. UI over intent | 0/3 | Planned | - |
+| 34. UI over intent | 1/3 | In Progress|  |
 
 ## Historical Progress
 
