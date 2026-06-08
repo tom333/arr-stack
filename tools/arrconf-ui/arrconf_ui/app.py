@@ -1,19 +1,26 @@
-"""FastAPI application — 11 endpoints + StaticFiles mount placeholder (D-02).
+"""FastAPI application — intent endpoints + read-only inspectors (D-02, D-34-04).
 
-arrconf endpoints:
+intent endpoints (UI-01 / UI-04 backend):
+- GET  /api/intent         — read intent.yml → IntentConfig.model_dump(mode='json')
+- GET  /api/intent/schema  — return schemas/intent-schema.json (drives schema-driven UI)
+- POST /api/intent/diff    — stateless preview: generate arrconf.yml + configarr.yml from
+                             payload, diff vs on-disk, return two unified text diffs
+- PUT  /api/intent         — validate → write intent.yml → regenerate arrconf.yml + configarr.yml
+
+arrconf read-only inspector (GET kept; PUT removed — D-34-04):
 - GET  /api/config  — read arrconf.yml → RootConfig.model_dump(mode='json')
-- PUT  /api/config  — validate body via RootConfig.model_validate → atomic write → diff summary
-- GET  /api/schema  — return schemas/arrconf-schema.json content (drives D-13 schema-driven UI)
-- POST /api/diff    — stateless preview: accept pending RootConfig, return diff vs on-disk
+- GET  /api/schema  — return schemas/arrconf-schema.json
+- POST /api/diff    — stateless preview vs on-disk arrconf.yml
 
-configarr endpoints (CFGUI-01 / CFGUI-03 / SC#2 / SC#3 / D-09):
+configarr read-only inspector (GET kept; PUT removed — D-34-04):
 - GET  /api/configarr/config  — read configarr.yml → tag-literal dict (SC#2: !env preserved)
-- PUT  /api/configarr/config  — validate → atomic write + D-09 anti-leak guard → diff summary
 - POST /api/configarr/diff    — stateless preview (SC#4: tag-literal preserving)
 - GET  /api/configarr/schema  — return schemas/configarr-schema.json
 
+TRaSH / Recyclarr metadata (read-only static assets):
+- GET  /api/trash/custom-formats, /api/trash/quality-profiles, /api/trash/recyclarr-templates
+
 StaticFiles mount at `/` is enabled if `tools/arrconf-ui/web/dist/` exists.
-Plan 15-B builds this directory; until then the mount is skipped (404 on /).
 
 Error contract:
 - 404: yml/schema file missing
@@ -23,37 +30,52 @@ Error contract:
 
 from __future__ import annotations
 
+import difflib
+import io as _io
 import json
 import logging
+import os
+import tempfile
+from pathlib import Path
 from typing import Any
 
 import structlog
 from arrconf.config import RootConfig
+from arrconf.exceptions import ConfigError
+from arrconf.generators.configarr import generate_configarr_yml
+from arrconf.generators.intent import generate_arrconf_yml
+from arrconf.intent_config import IntentConfig, load_intent
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+from ruyaml import YAML
 
 from arrconf_ui.configarr_config import ConfigarrRootConfig
 from arrconf_ui.configarr_diff import configarr_diff
 from arrconf_ui.configarr_diff import has_changes as configarr_has_changes
-from arrconf_ui.configarr_io import (
-    _tagged_to_literal,
-    count_secret_tags,
-    merge_preserving_tags,
-)
+from arrconf_ui.configarr_io import _tagged_to_literal
 from arrconf_ui.diff import diff_configs, has_changes
-from arrconf_ui.io import read_yaml, write_yaml_atomic
+from arrconf_ui.io import read_yaml
 from arrconf_ui.locator import (
     arrconf_yml_path,
     configarr_schema_json_path,
     configarr_yml_path,
+    intent_schema_json_path,
+    intent_yml_path,
     repo_root,
     schema_json_path,
     trash_metadata_dir,
 )
 
 log = structlog.get_logger()
+
+# Header prepended to intent.yml on every UI save (Pitfall 2, option 1).
+# Keeps the $schema modeline so VS Code YAML server retains autocomplete.
+_INTENT_HEADER = (
+    "# yaml-language-server: $schema=../../../schemas/intent-schema.json\n"
+    "# HAND-EDITED — source of truth for 'arrconf generate'\n"
+)
 
 
 def _read_current() -> dict[str, Any]:
@@ -77,17 +99,186 @@ def _read_current() -> dict[str, Any]:
     return json.loads(json.dumps(raw, default=str))  # type: ignore[no-any-return]
 
 
+def _write_text_atomic(path: Path, text: str) -> None:
+    """Atomically write a text string to path using tempfile + os.replace.
+
+    Same crash-safety recipe as write_yaml_atomic but for pre-serialized text
+    (plain str, not ruyaml CommentedMap). Used for intent.yml which is written
+    from a JSON payload (YAML safe dump) and for generated arrconf/configarr files.
+    """
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=str(path.parent),
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    )
+    try:
+        tmp.write(text)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+        tmp.close()
+        os.replace(tmp.name, path)
+    except Exception:
+        tmp.close()
+        try:
+            os.unlink(tmp.name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 def create_app() -> FastAPI:
     """Application factory — kept separate so tests can instantiate fresh apps."""
     app = FastAPI(
         title="arrconf-ui",
-        description="Local config editor for charts/arr-stack/files/arrconf.yml",
+        description="Local config editor — intent.yml is the only editable source (D-34-04)",
         version="0.1.0",
     )
 
+    # -----------------------------------------------------------------------
+    # Intent endpoints (UI-01 / UI-04 backend)
+    # SC#3 boundary: NONE of these handlers construct or dial a *arr URL.
+    # base_url is stored/echoed verbatim; nothing calls it.
+    # -----------------------------------------------------------------------
+
+    @app.get("/api/intent")
+    def get_intent() -> Any:
+        """Return intent.yml parsed + validated as JSON (IntentConfig.model_dump)."""
+        path = intent_yml_path()
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"intent.yml not found at {path}",
+            )
+        try:
+            cfg = load_intent(path)
+        except ConfigError as e:
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": str(e)},
+            )
+        return cfg.model_dump(mode="json")
+
+    @app.get("/api/intent/schema")
+    def get_intent_schema() -> Any:
+        """Return the committed intent JSON Schema (drives schema-driven UI)."""
+        path = intent_schema_json_path()
+        if not path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Intent schema file not found at {path}",
+            )
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @app.post("/api/intent/diff")
+    def post_intent_diff(payload: dict[str, Any]) -> Any:
+        """Stateless preview: generate + diff intent against on-disk files.
+
+        Generates arrconf.yml + configarr.yml from payload and diffs against
+        the on-disk versions, returning two unified text diffs.
+
+        SC#3 boundary: this handler never constructs or dials a *arr URL.
+        Generation is pure (no I/O beyond reading on-disk files for diff).
+        """
+        try:
+            intent_cfg = IntentConfig.model_validate(payload)
+        except ValidationError as e:
+            detail = json.loads(json.dumps(e.errors(), default=str))
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": detail},
+            )
+
+        new_arrconf = generate_arrconf_yml(intent_cfg)
+        new_configarr = generate_configarr_yml(intent_cfg)
+
+        current_arrconf = (
+            arrconf_yml_path().read_text("utf-8") if arrconf_yml_path().exists() else ""
+        )
+        current_configarr = (
+            configarr_yml_path().read_text("utf-8") if configarr_yml_path().exists() else ""
+        )
+
+        arrconf_diff_str = "\n".join(
+            difflib.unified_diff(
+                current_arrconf.splitlines(),
+                new_arrconf.splitlines(),
+                fromfile="arrconf.yml (actuel)",
+                tofile="arrconf.yml (généré)",
+                lineterm="",
+            )
+        )
+        configarr_diff_str = "\n".join(
+            difflib.unified_diff(
+                current_configarr.splitlines(),
+                new_configarr.splitlines(),
+                fromfile="configarr.yml (actuel)",
+                tofile="configarr.yml (généré)",
+                lineterm="",
+            )
+        )
+        return {
+            "arrconf_diff": arrconf_diff_str,
+            "configarr_diff": configarr_diff_str,
+            "has_changes": bool(arrconf_diff_str or configarr_diff_str),
+        }
+
+    @app.put("/api/intent")
+    def put_intent(payload: dict[str, Any]) -> Any:
+        """Validate → write intent.yml → regenerate arrconf.yml + configarr.yml (D-34-06).
+
+        SC#3 boundary: this handler never constructs or dials a *arr URL.
+        Calls only pure generate_* functions + file writes.
+
+        Write order (D-34-06): intent.yml first (source of truth), then both
+        generated files. On validation failure, no files are written.
+        """
+        try:
+            intent_cfg = IntentConfig.model_validate(payload)
+        except ValidationError as e:
+            detail = json.loads(json.dumps(e.errors(), default=str))
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": detail},
+            )
+
+        # Serialize intent.yml using YAML(typ="safe") — intent payload is a plain
+        # dict from JSON, not a ruyaml CommentedMap. Pitfall 1: do NOT use
+        # write_yaml_atomic (rt-mode) for plain dicts — safe mode gives canonical
+        # block-style output.
+        yaml = YAML(typ="safe")
+        yaml.default_flow_style = False
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        buf = _io.StringIO()
+        yaml.dump(payload, buf)
+
+        # Prepend $schema modeline (Pitfall 2, option 1) so VS Code YAML server
+        # retains autocomplete after a UI save.
+        intent_text = _INTENT_HEADER + buf.getvalue()
+        _write_text_atomic(intent_yml_path(), intent_text)
+
+        # Write generated files VERBATIM from generator return strings (Pitfall 4:
+        # do NOT re-dump; generators already prepend their own headers).
+        arrconf_yml_path().write_text(generate_arrconf_yml(intent_cfg), encoding="utf-8")
+        configarr_yml_path().write_text(generate_configarr_yml(intent_cfg), encoding="utf-8")
+
+        log.info("intent_saved")
+        return {"saved": True}
+
+    # -----------------------------------------------------------------------
+    # arrconf read-only inspector (PUT removed — D-34-04).
+    # SC#3 boundary: NONE of these handlers construct or dial a *arr URL.
+    # -----------------------------------------------------------------------
+
     @app.get("/api/config")
     def get_config() -> Any:
-        """Return arrconf.yml parsed + validated as JSON (RootConfig.model_dump)."""
+        """Return arrconf.yml parsed + validated as JSON (RootConfig.model_dump).
+
+        Read-only inspector — PUT /api/config was removed in D-34-04.
+        arrconf.yml is now 100% generated; intent.yml is the only editable source.
+        """
         raw = _read_current()
         try:
             validated = RootConfig.model_validate(raw)
@@ -101,54 +292,6 @@ def create_app() -> FastAPI:
                 content={"detail": detail, "raw": raw},
             )
         return validated.model_dump(mode="json")
-
-    @app.put("/api/config")
-    def put_config(payload: dict[str, Any]) -> Any:
-        """Validate payload → atomic write → return semantic diff (D-06 + D-05)."""
-        try:
-            RootConfig.model_validate(payload)
-        except ValidationError as e:
-            # e.errors() ctx values may contain non-JSON-serializable objects
-            # (e.g., ValueError instances from model_validator). Use json.loads
-            # + default=str to normalize before building the JSONResponse.
-            detail = json.loads(json.dumps(e.errors(), default=str))
-            return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"detail": detail},
-            )
-        before = _read_current()
-        # Compute diff BEFORE write so the response reflects what was written.
-        diff = diff_configs(before, payload)
-        # Atomic write: read the current ruyaml CommentedMap to preserve
-        # comments, then SHALLOW-MERGE the payload into it so unedited
-        # top-level keys (and their comments) are unchanged.
-        # NOTE: this is a deliberate first-pass impl. If a future phase needs
-        # per-key comment preservation on edited keys, revisit (Phase 15
-        # ships with the "comments preserved on unedited keys" baseline).
-        target = read_yaml(arrconf_yml_path())
-        for top_key in (
-            "categories",
-            "sonarr",
-            "radarr",
-            "prowlarr",
-            "qbittorrent",
-            "seerr",
-            "jellyfin",
-        ):
-            if top_key in payload:
-                target[top_key] = payload[top_key]
-        write_yaml_atomic(arrconf_yml_path(), target)
-        log.info(
-            "config_saved",
-            has_changes=has_changes(diff),
-            changed_sections=[
-                k
-                for k, v in diff.items()
-                if (k == "categories" and (v.get("added") or v.get("modified") or v.get("removed")))
-                or (k != "categories" and v.get("changed_fields"))
-            ],
-        )
-        return {"diff": diff, "has_changes": has_changes(diff)}
 
     @app.post("/api/diff")
     def post_diff(payload: dict[str, Any]) -> Any:
@@ -173,7 +316,7 @@ def create_app() -> FastAPI:
         return json.loads(path.read_text(encoding="utf-8"))
 
     # -----------------------------------------------------------------------
-    # configarr endpoints — symmetric to the arrconf ones above.
+    # configarr read-only inspector (PUT removed — D-34-04).
     # SC#3 boundary: NONE of these handlers construct or dial a *arr URL.
     # base_url is stored/echoed verbatim from the file; nothing calls it.
     # -----------------------------------------------------------------------
@@ -184,6 +327,9 @@ def create_app() -> FastAPI:
 
         Uses ``_tagged_to_literal`` — NOT ``_read_current`` which JSON-coerces
         and drops ``!env``/``!secret`` tags (Pitfall 1 / RESEARCH line 308).
+
+        Read-only inspector — PUT /api/configarr/config was removed in D-34-04.
+        configarr.yml is now 100% generated; intent.yml is the only editable source.
         """
         path = configarr_yml_path()
         if not path.exists():
@@ -206,57 +352,6 @@ def create_app() -> FastAPI:
         # Return the tag-literal dict (NOT model_dump which could coerce types).
         # literal is already a plain Python dict with !env strings preserved.
         return literal
-
-    @app.put("/api/configarr/config")
-    def put_configarr_config(payload: dict[str, Any]) -> Any:
-        """Validate payload → atomic write → D-09 anti-leak guard → diff (SC#2/D-09).
-
-        D-09: after atomic write, re-reads the file and asserts every
-        ``!env``/``!secret`` tag is byte-present. Rolls back + returns 500
-        on any tag loss.
-        """
-        try:
-            ConfigarrRootConfig.model_validate(payload)
-        except ValidationError as e:
-            detail = json.loads(json.dumps(e.errors(), default=str))
-            return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"detail": detail},
-            )
-        path = configarr_yml_path()
-        # Capture pre-write state for diff and D-09 guard
-        before_bytes = path.read_bytes()
-        before_tree = read_yaml(path)
-        expected_tags = count_secret_tags(before_tree)
-
-        # Compute diff on tag-literal snapshot BEFORE write (SC#4)
-        before_literal = _tagged_to_literal(before_tree)
-        diff = configarr_diff(before_literal, payload)
-
-        # Deep-merge editable leaves into the on-disk ruyaml tree, PRESERVING
-        # tagged secret nodes (api_key !env/!secret). Wholesale block replacement
-        # demotes TaggedScalars to quoted plain strings whose text still holds
-        # "!env" — the leak SC#4 exists to prevent (CR-01).
-        target = read_yaml(path)
-        merge_preserving_tags(target, payload)
-        write_yaml_atomic(path, target)
-
-        # D-09 runtime guard: re-read and assert secret tag NODES survived.
-        # Counts actual TaggedScalar nodes, not substrings — a demoted tag keeps
-        # its text but is no longer a node, so node-counting catches the loss.
-        after_tags = count_secret_tags(read_yaml(path))
-        if after_tags < expected_tags:
-            path.write_bytes(before_bytes)  # rollback
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="anti-leak guard: !env/!secret tag lost on write",
-            )
-
-        log.info(
-            "configarr_config_saved",
-            has_changes=configarr_has_changes(diff),
-        )
-        return {"diff": diff, "has_changes": configarr_has_changes(diff)}
 
     @app.post("/api/configarr/diff")
     def post_configarr_diff(payload: dict[str, Any]) -> Any:

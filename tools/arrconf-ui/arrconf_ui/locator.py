@@ -44,6 +44,16 @@ def configarr_schema_json_path() -> Path:
     return repo_root() / "schemas" / "configarr-schema.json"
 
 
+def intent_yml_path() -> Path:
+    """Return the canonical path to charts/arr-stack/files/intent.yml."""
+    return repo_root() / "charts" / "arr-stack" / "files" / "intent.yml"
+
+
+def intent_schema_json_path() -> Path:
+    """Return the canonical path to schemas/intent-schema.json."""
+    return repo_root() / "schemas" / "intent-schema.json"
+
+
 def trash_metadata_dir() -> Path:
     """Return path to baked TRaSH/Recyclarr metadata assets.
 
