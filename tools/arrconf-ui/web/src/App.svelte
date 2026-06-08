@@ -12,6 +12,12 @@
   import SaveToast from './lib/SaveToast.svelte';
   import ValidationBanner from './lib/ValidationBanner.svelte';
   import Spinner from './lib/Spinner.svelte';
+  import SectionDoc from './lib/SectionDoc.svelte';
+  import CategoriesEditor from './lib/CategoriesEditor.svelte';
+  import AppSection from './lib/AppSection.svelte';
+  import ProfileDefinitionsEditor from './lib/ProfileDefinitionsEditor.svelte';
+  import ConfigarrRawEditor from './lib/ConfigarrRawEditor.svelte';
+  import type { MediaCategory } from './types';
 
   // Intent tab state.
   let schema = $state<RootSchema | null>(null);
@@ -119,6 +125,11 @@
     showDiffPanel = false;
   }
 
+  // Update a single key in the intent state — drives diffCount and save button.
+  function updateIntent<K extends keyof IntentPayload>(key: K, val: IntentPayload[K]) {
+    intentState = { ...intentState!, [key]: val };
+  }
+
   // Tab switch + confirm gate (D-04).
   function requestTabChange(next: ActiveConfig) {
     if (next === activeConfig) return;
@@ -173,8 +184,78 @@
         />
       {/if}
 
-      <!-- 34-03: mount intent form sections here -->
-      <pre class="intent-preview">{JSON.stringify(intentState, null, 2)}</pre>
+      <!-- 1. categories -->
+      <SectionDoc section="intent.categories" />
+      <CategoriesEditor
+        categories={intentState.categories}
+        onChange={(c: MediaCategory[]) => updateIntent('categories', c)}
+      />
+
+      <!-- 2. sagas -->
+      <SectionDoc section="intent.sagas" />
+      {#if schema?.properties?.sagas}
+        <AppSection
+          sectionName="sagas"
+          sectionSchema={schema.properties.sagas}
+          root={schema}
+          value={Array.isArray(intentState.sagas) ? { items: intentState.sagas } : (intentState.sagas as Record<string, unknown>)}
+          onChange={(v: Record<string, unknown>) => updateIntent('sagas', (Array.isArray(v.items) ? v.items : Object.values(v)) as Record<string, unknown>[])}
+          errors={validationErrors.filter(e => e.loc[0] === 'sagas')}
+        />
+      {:else}
+        <div class="section-fallback">
+          <pre class="section-raw">{JSON.stringify(intentState.sagas, null, 2)}</pre>
+        </div>
+      {/if}
+
+      <!-- 3. apps -->
+      <SectionDoc section="intent.apps" />
+      {#if schema?.properties?.apps}
+        <AppSection
+          sectionName="apps"
+          sectionSchema={schema.properties.apps}
+          root={schema}
+          value={intentState.apps as Record<string, unknown>}
+          onChange={(v: Record<string, unknown>) => updateIntent('apps', v)}
+          errors={validationErrors.filter(e => e.loc[0] === 'apps')}
+        />
+      {:else}
+        <div class="section-fallback">
+          <pre class="section-raw">{JSON.stringify(intentState.apps, null, 2)}</pre>
+        </div>
+      {/if}
+
+      <!-- 4. tools -->
+      <SectionDoc section="intent.tools" />
+      {#if schema?.properties?.tools}
+        <AppSection
+          sectionName="tools"
+          sectionSchema={schema.properties.tools}
+          root={schema}
+          value={intentState.tools as Record<string, unknown>}
+          onChange={(v: Record<string, unknown>) => updateIntent('tools', v)}
+          errors={validationErrors.filter(e => e.loc[0] === 'tools')}
+        />
+      {:else}
+        <div class="section-fallback">
+          <pre class="section-raw">{JSON.stringify(intentState.tools, null, 2)}</pre>
+        </div>
+      {/if}
+
+      <!-- 5. profile_definitions -->
+      <SectionDoc section="intent.profile_definitions" />
+      <ProfileDefinitionsEditor
+        profiles={intentState.profile_definitions}
+        localDefinitions={[]}
+        onChange={(p) => updateIntent('profile_definitions', p)}
+      />
+
+      <!-- 6. configarr -->
+      <SectionDoc section="intent.configarr" />
+      <ConfigarrRawEditor
+        value={intentState.configarr}
+        onChange={(c) => updateIntent('configarr', c)}
+      />
     </main>
   {/if}
 {:else if activeConfig === 'arrconf'}
@@ -257,13 +338,16 @@
     border: 1px solid var(--accent);
     color: var(--accent-fg);
   }
-  .intent-preview {
+  .section-fallback {
+    margin-bottom: var(--space-md);
+  }
+  .section-raw {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     background: var(--code-bg);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: var(--space-lg);
+    padding: var(--space-md);
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-all;
