@@ -36,9 +36,20 @@ export const APP_SECTIONS = [
 
 export type AppSectionName = typeof APP_SECTIONS[number];
 
-// Config file paths shown in HeaderBar (Phase 26 D-01)
+// Config file paths shown in HeaderBar (Phase 26 D-01; intent added Phase 34)
 export const CONFIG_FILE_PATHS = {
+  intent: 'charts/arr-stack/files/intent.yml',
   arrconf: 'charts/arr-stack/files/arrconf.yml',
   configarr: 'charts/arr-stack/files/configarr.yml',
 } as const;
 export type ActiveConfig = keyof typeof CONFIG_FILE_PATHS;
+
+// Section order for the intent tab (Phase 34 UI-01)
+export const INTENT_SECTIONS = [
+  'categories',
+  'sagas',
+  'apps',
+  'tools',
+  'profile_definitions',
+  'configarr',
+] as const;

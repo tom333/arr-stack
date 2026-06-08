@@ -71,6 +71,32 @@ export type DiffResponse = {
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+// Phase 34 — intent.yml types (UI-01)
+export type CustomFormatRef = {
+  trash_ids: string[];
+  score: number | null;
+};
+
+export type ProfileDefinition = {
+  body: Record<string, unknown>;
+  custom_formats: CustomFormatRef[];
+};
+
+export type IntentPayload = {
+  categories: MediaCategory[];
+  sagas: Record<string, unknown>[];
+  apps: Record<string, unknown>;
+  tools: Record<string, unknown>;
+  profile_definitions: Record<string, ProfileDefinition>;
+  configarr: Record<string, unknown>;
+};
+
+export type MaterializationDiffResponse = {
+  arrconf_diff: string;
+  configarr_diff: string;
+  has_changes: boolean;
+};
+
 // Phase 27 — TRaSH/Recyclarr baked catalog types (CFGUI-05, CFGUI-06, CFGUI-08)
 
 export type TrashApp = "sonarr" | "radarr";
