@@ -260,7 +260,7 @@ Plans:
 **Plans**: 3 plans (3 waves)
 - [x] 34-01-PLAN.md — Backend: intent endpoints (GET/PUT/diff/schema) + locator paths + remove legacy PUT endpoints + tests
 - [x] 34-02-PLAN.md — Frontend skeleton: 3-tab state machine, ReadOnlyInspector, MaterializationDiffPanel, api/types/constants
-- [ ] 34-03-PLAN.md — Frontend intent form: ProfileDefinitionsEditor + ProfileCard (TRaSH picker), ConfigarrRawEditor, i18n, App.svelte section wiring
+- [x] 34-03-PLAN.md — Frontend intent form: ProfileDefinitionsEditor + ProfileCard (TRaSH picker), ConfigarrRawEditor, i18n, App.svelte section wiring
 **UI hint**: yes
 **Co-bump note**: Phase touche `tools/arrconf-ui/**` uniquement (FastAPI backend + Svelte frontend) — PAS de co-bump `arrconf.image.tag` (l'image cluster arrconf n'est pas modifiée).
 
@@ -270,7 +270,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 32. Categories migration (hard cut) | 2/2 | Complete    | 2026-06-04 |
 | 33. configarr.yml generation | 2/2 | Complete    | 2026-06-06 |
-| 34. UI over intent | 2/3 | In Progress|  |
+| 34. UI over intent | 3/3 | Complete   | 2026-06-08 |
 
 ## Historical Progress
 
