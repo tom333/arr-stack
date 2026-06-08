@@ -259,7 +259,7 @@ Plans:
   4. Un run `arrconf generate` (localement, depuis l'UI via appel backend, ou équivalent) appliqué après une sauvegarde intent produit les mêmes fichiers que le diff affiché — cohérence diff/génération vérifiable par l'opérateur
 **Plans**: 3 plans (3 waves)
 - [x] 34-01-PLAN.md — Backend: intent endpoints (GET/PUT/diff/schema) + locator paths + remove legacy PUT endpoints + tests
-- [ ] 34-02-PLAN.md — Frontend skeleton: 3-tab state machine, ReadOnlyInspector, MaterializationDiffPanel, api/types/constants
+- [x] 34-02-PLAN.md — Frontend skeleton: 3-tab state machine, ReadOnlyInspector, MaterializationDiffPanel, api/types/constants
 - [ ] 34-03-PLAN.md — Frontend intent form: ProfileDefinitionsEditor + ProfileCard (TRaSH picker), ConfigarrRawEditor, i18n, App.svelte section wiring
 **UI hint**: yes
 **Co-bump note**: Phase touche `tools/arrconf-ui/**` uniquement (FastAPI backend + Svelte frontend) — PAS de co-bump `arrconf.image.tag` (l'image cluster arrconf n'est pas modifiée).
@@ -270,7 +270,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 32. Categories migration (hard cut) | 2/2 | Complete    | 2026-06-04 |
 | 33. configarr.yml generation | 2/2 | Complete    | 2026-06-06 |
-| 34. UI over intent | 1/3 | In Progress|  |
+| 34. UI over intent | 2/3 | In Progress|  |
 
 ## Historical Progress
 
