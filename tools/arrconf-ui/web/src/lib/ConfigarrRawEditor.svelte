@@ -11,6 +11,9 @@
   let { value, onChange }: Props = $props();
 
   // Serialize to JSON (no YAML lib bundled — JSON.stringify is the minimal representation).
+  // Init-from-prop is safe: App.svelte remounts this component via {#key loadEpoch}
+  // whenever a fresh intent is loaded (WR-02).
+  // svelte-ignore state_referenced_locally
   let rawText = $state(JSON.stringify(value, null, 2));
   let parseError = $state<string | null>(null);
 

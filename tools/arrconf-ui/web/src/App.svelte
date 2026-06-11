@@ -41,6 +41,10 @@
   let confirmSwitchOpen = $state(false);
   let pendingSwitch = $state<ActiveConfig | null>(null);
 
+  // Bumped on each fresh intent load — {#key loadEpoch} remounts the form so
+  // init-from-prop $state in section editors resyncs (WR-02).
+  let loadEpoch = $state(0);
+
   // Derived: diff count for HeaderBar chip.
   // Only meaningful on the intent tab — shows 1 if in-memory intent differs from last-saved.
   const diffCount = $derived(
@@ -60,6 +64,7 @@
         schema = s;
         intentState = intent;
         savedIntent = JSON.parse(JSON.stringify(intent)) as IntentPayload;
+        loadEpoch += 1;
       } catch (e) {
         loadError = e instanceof Error ? e.message : String(e);
       }
@@ -192,6 +197,7 @@
         />
       {/if}
 
+      {#key loadEpoch}
       <!-- 1. categories -->
       <SectionDoc section="intent.categories" />
       <CategoriesEditor
@@ -264,6 +270,7 @@
         value={intentState.configarr}
         onChange={(c) => updateIntent('configarr', c)}
       />
+      {/key}
     </main>
   {/if}
 {:else if activeConfig === 'arrconf'}

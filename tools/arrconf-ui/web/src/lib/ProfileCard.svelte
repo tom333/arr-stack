@@ -27,6 +27,9 @@
   let confirmDelete = $state(false);
 
   // Body textarea: serialize body to JSON (no YAML lib bundled).
+  // Init-from-prop is safe: App.svelte remounts this component via {#key loadEpoch}
+  // whenever a fresh intent is loaded (WR-02).
+  // svelte-ignore state_referenced_locally
   let bodyRaw = $state(JSON.stringify(profile.body, null, 2));
   let bodyParseError = $state<string | null>(null);
 
