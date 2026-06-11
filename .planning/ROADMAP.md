@@ -142,6 +142,7 @@ Total: **4 phases, 15/15 plans complete, 115 commits, ~6.5h same-day**.
 Highlights: generalised `categories[]` into an explicit intention layer (`intent.yml` → `arrconf generate` pure fn → committed configs → apply/configarr). ADR-10 (intention layer + absorb-vs-deploy boundary, extends ADR-5). 3 absorbed blocks: sagas (Radarr Collections reconciler tmdbId-matched + Jellyfin tmdbboxsets two-run plugin + series BoxSets), cross-seed (12th Helm alias, initContainer secret-injection), qbit_manage (13th Helm CronJob alias, `cat_update:false`+`cat:{}` forced — arrconf sole owner of qBit categories). arrconf `:0.18.0`→`:0.20.0`. 14/14 requirements validated. Milestone audit `tech_debt` (no blockers). CI idempotence guard (`generate --check`).
 
 Full archived details: [`milestones/v0.10.0-ROADMAP.md`](milestones/v0.10.0-ROADMAP.md)
+Phase artifacts: [`milestones/v0.10.0-phases/`](milestones/v0.10.0-phases/)
 Audit: [`milestones/v0.10.0-MILESTONE-AUDIT.md`](milestones/v0.10.0-MILESTONE-AUDIT.md) — `tech_debt`
 
 </details>
