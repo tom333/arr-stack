@@ -62,6 +62,17 @@ def sandboxed_intent_yml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Ite
     yield target
 
 
+ROUNDTRIP_SAMPLE_YML = Path(__file__).parent / "fixtures" / "roundtrip_sample.yml"
+
+
+@pytest.fixture
+def roundtrip_sample(tmp_path: Path) -> Path:
+    """Copy the comment-rich round-trip sample to tmp_path (no locator patching needed)."""
+    target = tmp_path / "roundtrip_sample.yml"
+    shutil.copy(ROUNDTRIP_SAMPLE_YML, target)
+    return target
+
+
 @pytest.fixture
 def sandboxed_schema(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     """Copy the canonical schema to tmp_path; patch locator."""

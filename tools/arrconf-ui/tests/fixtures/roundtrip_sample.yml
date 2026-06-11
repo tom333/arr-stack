@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=../../schemas/arrconf-schema.json
+# Round-trip sample — markers used by test_io_roundtrip.py:
+# D-06-SCOPE-01 — Seerr scope decision comment block
+# D-07-INSTANCE-01 — single-instance pattern comment
+# ADR-8 — _ArrV3Client mixin reference
+categories:
+  - name: series-emilie
+    label: Séries d'Émilie
+  - name: series-garcons
+    label: Séries des Garçons
+  - name: series-zoe
+    label: Séries de Zoé
