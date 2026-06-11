@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
-status: executing
+status: milestone_complete
 last_updated: "2026-06-08T08:40:52.470Z"
 last_activity: 2026-06-08 -- Phase 34 execution started
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
   completed_plans: 4
-  percent: 57
+  percent: 100
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: 34 (ui-over-intent) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 34
-Last activity: 2026-06-08 -- Phase 34 execution started
+Phase: 34
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-06-11
 
 ```
 Progress: [          ] 0% (0/3 phases)

@@ -270,7 +270,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 32. Categories migration (hard cut) | 2/2 | Complete    | 2026-06-04 |
 | 33. configarr.yml generation | 2/2 | Complete    | 2026-06-06 |
-| 34. UI over intent | 3/3 | Complete   | 2026-06-08 |
+| 34. UI over intent | 3/3 | Complete    | 2026-06-11 |
 
 ## Historical Progress
 

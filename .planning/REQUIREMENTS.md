@@ -22,10 +22,10 @@ Requirements for milestone v0.11.0. Each maps to roadmap phases (continue from P
 
 ### UI over intent
 
-- [ ] **UI-01**: `arrconf-ui` charge et édite `intent.yml` comme **seule source éditable**.
-- [ ] **UI-02**: Les formulaires schema-mirror legacy de `arrconf.yml` + `configarr.yml` sont retirés (ou réduits à une vue read-only d'inspection/diff).
-- [ ] **UI-03**: Le picker CF/QP TRaSH/Recyclarr (construit en v0.9.0) est intégré au flux d'édition de l'intent.
-- [ ] **UI-04**: L'UI expose la sortie de `generate` (diff des configs générées) pour que l'opérateur visualise la matérialisation avant commit.
+- [x] **UI-01**: `arrconf-ui` charge et édite `intent.yml` comme **seule source éditable**.
+- [x] **UI-02**: Les formulaires schema-mirror legacy de `arrconf.yml` + `configarr.yml` sont retirés (ou réduits à une vue read-only d'inspection/diff).
+- [x] **UI-03**: Le picker CF/QP TRaSH/Recyclarr (construit en v0.9.0) est intégré au flux d'édition de l'intent.
+- [x] **UI-04**: L'UI expose la sortie de `generate` (diff des configs générées) pour que l'opérateur visualise la matérialisation avant commit.
 
 ## v2 Requirements
 
@@ -65,10 +65,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CFGARR-02 | Phase 33 | Complete |
 | CFGARR-03 | Phase 33 | Complete |
 | CFGARR-04 | Phase 33 | Complete |
-| UI-01 | Phase 34 | Pending |
-| UI-02 | Phase 34 | Pending |
-| UI-03 | Phase 34 | Pending |
-| UI-04 | Phase 34 | Pending |
+| UI-01 | Phase 34 | Complete |
+| UI-02 | Phase 34 | Complete |
+| UI-03 | Phase 34 | Complete |
+| UI-04 | Phase 34 | Complete |
 
 **Coverage:**
 - v1 requirements: 11 total
