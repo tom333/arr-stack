@@ -181,3 +181,34 @@ def test_put_config_endpoint_removed(client: TestClient) -> None:
     assert resp.status_code in (404, 405), (
         f"Expected 404 or 405 (endpoint removed), got {resp.status_code}: {resp.text}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Test 9: PUT /api/intent writes all 3 files atomically (WR-01)
+# ---------------------------------------------------------------------------
+
+
+def test_put_intent_writes_all_files_atomically(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """All three files written by PUT /api/intent go through _write_text_atomic (WR-01)."""
+    import arrconf_ui.app as app_module
+
+    written_paths: list[Path] = []
+    real_atomic = app_module._write_text_atomic
+
+    def recording_atomic(path: Path, text: str) -> None:
+        written_paths.append(path)
+        real_atomic(path, text)
+
+    monkeypatch.setattr(app_module, "_write_text_atomic", recording_atomic)
+
+    intent = client.get("/api/intent").json()
+    resp = client.put("/api/intent", json=intent)
+    assert resp.status_code == 200, resp.text
+
+    names = sorted(p.name for p in written_paths)
+    assert names == ["arrconf.yml", "configarr.yml", "intent.yml"], (
+        f"expected all 3 files via _write_text_atomic, got {names}"
+    )

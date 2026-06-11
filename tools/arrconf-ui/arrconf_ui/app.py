@@ -261,8 +261,8 @@ def create_app() -> FastAPI:
 
         # Write generated files VERBATIM from generator return strings (Pitfall 4:
         # do NOT re-dump; generators already prepend their own headers).
-        arrconf_yml_path().write_text(generate_arrconf_yml(intent_cfg), encoding="utf-8")
-        configarr_yml_path().write_text(generate_configarr_yml(intent_cfg), encoding="utf-8")
+        _write_text_atomic(arrconf_yml_path(), generate_arrconf_yml(intent_cfg))
+        _write_text_atomic(configarr_yml_path(), generate_configarr_yml(intent_cfg))
 
         log.info("intent_saved")
         return {"saved": True}
