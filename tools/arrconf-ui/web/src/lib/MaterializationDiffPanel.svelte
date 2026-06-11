@@ -33,7 +33,7 @@
   const configarrLines = $derived(parseLines(configarrDiff));
 </script>
 
-<div class="panel" role="dialog" aria-labelledby="mat-diff-heading" aria-modal="true">
+<div class="panel" role="dialog" aria-labelledby="mat-diff-heading">
   <h2 id="mat-diff-heading">Matérialisation — vérifier avant d'enregistrer</h2>
 
   <div class="file-section">
