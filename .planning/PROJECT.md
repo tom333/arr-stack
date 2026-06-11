@@ -331,6 +331,8 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-06-11 — Phase 34 (UI over intent) complete: arrconf-ui pivoted to intent.yml as sole editable source (4 `/api/intent/*` endpoints, legacy PUT removed), 3-tab Svelte UI (intent editable | arrconf/configarr read-only inspectors), MaterializationDiffPanel calling real generators (SC4 diff==generate verified live), per-profile TRaSH CF/QP picker. UI-01..04 validated, HUMAN-UAT 3/3 passed. v0.11.0 milestone fully complete (3/3 phases: 32 CATMIG, 33 CFGARR, 34 UI). Next: complete-milestone v0.11.0.*
+
 *Last updated: 2026-06-04 — Phase 32 (CATMIG hard cut) complete: categories[] migrated to intent.yml, arrconf.yml now 100% generated read-only, arrconf :0.23.0. CATMIG-01..03 validated. Next: Phase 33 (CFGARR).*
 
 *Last updated: 2026-06-03 — v0.11.0 milestone started (Couche d'intention tranche 2). Current Milestone section rewritten for v0.11.0 (3 features: INTENT-UI-01 / INTENT-CFGARR-01 / INTENT-CATMIG-01), v0.10.0 demoted to Last Milestone + Current State details collapsed, Active section populated with 3 tranche-2 requirements. Scoping decisions: UI replaces mirror, CFGARR = CF/QP par catégorie, CATMIG = hard cut. Phase numbering continues from Phase 31 → Phase 32. Next: requirements → roadmap.*
