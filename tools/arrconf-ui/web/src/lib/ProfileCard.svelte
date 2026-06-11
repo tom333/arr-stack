@@ -60,7 +60,8 @@
 
   // Update score for a ref by index.
   function updateScore(idx: number, raw: string) {
-    const parsed = raw === '' ? null : Number(raw);
+    const n = Number(raw);
+    const parsed = raw === '' || Number.isNaN(n) ? null : n;
     const next = profile.custom_formats.map((r, i) =>
       i === idx ? { ...r, score: parsed } : r
     );
