@@ -159,3 +159,11 @@ def test_get_configarr_schema_404_when_missing(
     client = TestClient(create_app())
     resp = client.get("/api/configarr/schema")
     assert resp.status_code == 404, f"Expected 404, got {resp.status_code}: {resp.text}"
+
+
+def test_put_configarr_endpoint_removed(client: TestClient) -> None:
+    """PUT /api/configarr/config must not be routable (D-34-04) — returns 405 or 404."""
+    resp = client.put("/api/configarr/config", json={})
+    assert resp.status_code in (404, 405), (
+        f"Expected 404 or 405 (endpoint removed), got {resp.status_code}: {resp.text}"
+    )
