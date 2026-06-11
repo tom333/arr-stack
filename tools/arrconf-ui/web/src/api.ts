@@ -1,6 +1,4 @@
 import type {
-  ConfigPayload,
-  DiffResponse,
   IntentPayload,
   MaterializationDiffResponse,
   PydanticErrorEntry,
@@ -37,39 +35,17 @@ async function _fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return (await resp.json()) as T;
 }
 
-export async function getConfig(): Promise<ConfigPayload> {
-  return _fetchJson<ConfigPayload>(`${API_BASE}/config`);
-}
-
-export async function getSchema(): Promise<RootSchema> {
-  return _fetchJson<RootSchema>(`${API_BASE}/schema`);
+export async function getConfig(): Promise<Record<string, unknown>> {
+  return _fetchJson<Record<string, unknown>>(`${API_BASE}/config`);
 }
 
 // D-34-04: direct write to arrconf.yml removed; arrconf.yml is 100% generated via intent.
-
-export async function postDiff(payload: ConfigPayload): Promise<DiffResponse> {
-  return _fetchJson<DiffResponse>(`${API_BASE}/diff`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
 
 // configarr endpoints — Phase 26 (D-03); PUT removed (D-34-04)
 export async function getConfigarrConfig(): Promise<Record<string, unknown>> {
   return _fetchJson<Record<string, unknown>>(`${API_BASE}/configarr/config`);
 }
-export async function getConfigarrSchema(): Promise<RootSchema> {
-  return _fetchJson<RootSchema>(`${API_BASE}/configarr/schema`);
-}
 // D-34-04: direct write to configarr.yml removed; configarr.yml is 100% generated via intent.
-export async function postConfigarrDiff(payload: Record<string, unknown>): Promise<DiffResponse> {
-  return _fetchJson<DiffResponse>(`${API_BASE}/configarr/diff`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
 
 // Phase 34 — intent endpoints (UI-01)
 export async function getIntent(): Promise<IntentPayload> {

@@ -13,16 +13,6 @@ export type MediaCategory = {
   base_path: string;
 };
 
-export type ConfigPayload = {
-  categories: MediaCategory[];
-  sonarr: Record<string, unknown>;
-  radarr: Record<string, unknown>;
-  prowlarr: Record<string, unknown>;
-  qbittorrent: Record<string, unknown>;
-  seerr: Record<string, unknown>;
-  jellyfin: Record<string, unknown>;
-};
-
 export type JsonSchemaNode = {
   type?: "string" | "integer" | "boolean" | "array" | "object" | "null";
   enum?: string[];
@@ -56,17 +46,6 @@ export type PydanticErrorEntry = {
   msg: string;
   type: string;
   input?: unknown;
-};
-
-export type SemanticDiff = Record<
-  string,
-  | { added: string[]; modified: string[]; removed: string[] }
-  | { changed_fields: string[] }
->;
-
-export type DiffResponse = {
-  diff: SemanticDiff;
-  has_changes: boolean;
 };
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";

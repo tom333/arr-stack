@@ -71,7 +71,7 @@
     } else if (cfg === 'arrconf') {
       inspectorContent = null;
       try {
-        // getConfig returns ConfigPayload (object); stringify for inspector display.
+        // getConfig returns the parsed YAML as a plain object; stringify for inspector display.
         const raw = await api.getConfig();
         inspectorContent = typeof raw === 'string' ? raw : JSON.stringify(raw, null, 2);
       } catch (e) {
