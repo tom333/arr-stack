@@ -43,7 +43,7 @@ jobs:
             type=ref,event=branch,prefix=branch-
             type=semver,pattern={{version}},value=${{ github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref_name }}
             type=raw,value=latest,enable=${{ startsWith(github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref_name, 'v') }}
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v7
         with:
           context: tools/arrconf
           file: tools/arrconf/Dockerfile
