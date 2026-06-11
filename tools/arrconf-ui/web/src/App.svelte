@@ -33,6 +33,7 @@
   // Materialization diff panel state.
   let showDiffPanel = $state(false);
   let pendingMatDiff = $state<MaterializationDiffResponse | null>(null);
+  let pendingSaveSnapshot = $state<IntentPayload | null>(null);
   let showSaveToast = $state(false);
 
   // Active config selector state (Phase 34 three-tab).
@@ -89,25 +90,29 @@
 
   async function openDiffPanel() {
     if (!intentState) return;
+    // WR-04: snapshot what the operator will review — confirmSave saves THIS,
+    // not whatever intentState becomes while the panel is open.
+    const snapshot = JSON.parse(JSON.stringify(intentState)) as IntentPayload;
     try {
-      const r = await api.postIntentDiff(intentState);
+      const r = await api.postIntentDiff(snapshot);
+      pendingSaveSnapshot = snapshot;
       pendingMatDiff = r;
       showDiffPanel = true;
     } catch (e) {
+      // IN-04: do NOT show an empty diff on failure — surface the error instead.
       console.error('diff preview failed', e);
-      // Fall back: show panel with empty diffs so operator can still confirm.
-      pendingMatDiff = { arrconf_diff: '', configarr_diff: '', has_changes: false };
-      showDiffPanel = true;
+      loadError = e instanceof Error ? e.message : String(e);
     }
   }
 
   async function confirmSave() {
-    if (!intentState) return;
+    if (!pendingSaveSnapshot) return;
+    const toSave = pendingSaveSnapshot;
     saveStatus = 'saving';
     showDiffPanel = false;
     try {
-      await api.putIntent(intentState);
-      savedIntent = JSON.parse(JSON.stringify(intentState)) as IntentPayload;
+      await api.putIntent(toSave);
+      savedIntent = JSON.parse(JSON.stringify(toSave)) as IntentPayload;
       validationErrors = [];
       saveStatus = 'saved';
       showSaveToast = true;
@@ -118,11 +123,14 @@
       } else {
         console.error('save failed', e);
       }
+    } finally {
+      pendingSaveSnapshot = null;
     }
   }
 
   function cancelDiffPanel() {
     showDiffPanel = false;
+    pendingSaveSnapshot = null;
   }
 
   // Update a single key in the intent state — drives diffCount and save button.
