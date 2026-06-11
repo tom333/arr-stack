@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: Couche d'intention (tranche 2)
 status: milestone_complete
-last_updated: "2026-06-08T08:40:52.470Z"
-last_activity: 2026-06-08 -- Phase 34 execution started
+last_updated: "2026-06-11T09:30:00.000Z"
+last_activity: 2026-06-11 -- v0.11.0 milestone shipped (chart v0.24.0) + archived
 progress:
   total_phases: 3
   completed_phases: 3
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 7
   percent: 100
 ---
 
@@ -21,17 +21,17 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Aucune intervention UI nécessaire pour configurer Sonarr/Radarr/Prowlarr/qBittorrent/Seerr/Jellyfin après bootstrap — tout passe par PR et se matérialise en cluster en < 1 h.
 
-**Current focus:** Phase 34 — ui-over-intent
+**Current focus:** v0.11.0 shipped + archived — awaiting next milestone (run a new milestone cycle to define v0.12.0)
 
 ## Current Position
 
-Phase: 34
-Plan: Not started
-Status: Milestone complete
+Phase: — (between milestones)
+Plan: —
+Status: Milestone complete — v0.11.0 archived to `milestones/v0.11.0-*`
 Last activity: 2026-06-11
 
 ```
-Progress: [          ] 0% (0/3 phases)
+Progress: [██████████] 100% (3/3 phases, 7/7 plans) — v0.11.0 shipped as chart v0.24.0
 ```
 
 ## Accumulated Context

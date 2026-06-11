@@ -1,5 +1,29 @@
 # Milestones
 
+## v0.11.0 Couche d'intention (tranche 2) (Shipped: 2026-06-11)
+
+**Phases completed:** 3 phases (32-34), 7 plans
+**Release:** chart tag `v0.24.0`, arrconf image `:0.22.0` → `:0.24.0`.
+
+**Delivered:** Closed the intention layer — `intent.yml` is now the **single hand-edited source** for the entire stack. Hard-cut migration of `categories[]` into intent (arrconf.yml fully generated + read-only), per-category configarr generation (quality_profiles + custom_formats from TRaSH), and an `arrconf-ui` rebuilt to edit intent.yml only with read-only inspectors + materialization diff. 11/11 requirements validated (CATMIG-01..03, CFGARR-01..04, UI-01..04).
+
+**Key accomplishments:**
+
+- **Categories migration hard cut (Phase 32, arrconf `:0.23.0`)** — `IntentConfig` gains `categories` + `apps`; `RootConfig` drops `categories` (guard rejects hand-edited `categories:` in arrconf.yml); generators retargeted to `list[MediaCategory]`; `generate_arrconf_yml` emits 100% of arrconf.yml deterministically (categories-derived resources materialized at apply-time, not inlined); qbit_manage coupling inverted; CI `generate-idempotence` guard extended to arrconf.yml; `# GENERATED — do not edit` header. CATMIG-01..03 validated.
+- **configarr.yml generation (Phase 33, arrconf `:0.24.0`)** — `generate_configarr_yml` emits `quality_profiles` per unique category `profile` + `custom_formats` from the v0.9.0-baked TRaSH catalogue; non-generated sections (`templates`, `includes`, Recyclarr refs) pass through verbatim from a dedicated intent block; ADR-5 preserved by construction (writes a file only, `ScopeViolationError` intact, configarr stays sole TRaSH applier); CI guard extended to configarr.yml. CFGARR-01..04 validated.
+- **UI over intent (Phase 34, arrconf-ui only — no image co-bump)** — backend pivoted to `intent.yml` as sole editable source (4 `/api/intent/*` endpoints, legacy PUT removed, atomic writes for all 3 generated files); Svelte 5 three-tab UI (intent editable | arrconf.yml + configarr.yml read-only inspectors); `MaterializationDiffPanel` calling the **real** generators (diff == generate verified live by operator); per-profile TRaSH CF/QP picker re-mounted from v0.9.0. UI-01..04 validated, HUMAN-UAT 3/3 passed.
+
+**Post-milestone review fixes (superpowers plan, 9 commits):** WR-01 atomic generated-file writes, WR-02 form remount-on-reload (stale textarea), WR-03 false aria-modal removed, WR-04 diff-time intent snapshot, WR-05 configarr PUT-removal regression test, IN-01/02 dead API + stale types purged, IN-03 NaN score guard, IN-04 no silent empty-diff fallback; 3 stale `test_io_roundtrip.py` tests retargeted to a dedicated fixture (arrconf.yml is now generated). Backend 77 passed, frontend svelte-check 0/0.
+
+**Patterns established:**
+
+- **Single-source intent (closure of ADR-10):** `intent.yml` is the only hand-edited file for the whole stack; arrconf.yml + configarr.yml join qbit_manage/cross-seed as 100% generated read-only artifacts.
+- **Generated-file inspector UI:** the editing surface edits intent only; generated files are surfaced read-only with a pre-commit materialization diff produced by the real generator (no mock), so the operator reviews exactly what will be written.
+
+**Known deferred items at close:** Phase 34 HUMAN-UAT persisted (3/3 passed). Code-review residue resolved by the post-milestone fix plan. No blockers.
+
+---
+
 ## v0.10.0 Couche d'intention (tranche 1) (Shipped: 2026-05-31)
 
 **Phases completed:** 4 phases (28-31), 15 plans
