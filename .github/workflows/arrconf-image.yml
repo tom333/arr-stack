@@ -23,7 +23,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref }}
       - uses: docker/setup-buildx-action@v3
