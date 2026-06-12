@@ -200,19 +200,21 @@ qbittorrent:
             PGID: "1000"
             WEBUI_PORT: "8080"
   service:
+    # SINGLE service named `qbittorrent` — a second service makes app-template
+    # suffix ALL service names (qbittorrent → qbittorrent-main), breaking every
+    # consumer that dials qbittorrent.selfhost.svc.cluster.local:8080 (Sonarr/
+    # Radarr download clients, arrconf). Keep one service to preserve the name.
+    # Type NodePort exposes BitTorrent 6881 (TCP+UDP) on the node for the MikroTik
+    # dst-nat WAN:6881 → node:6881; http:8080 stays reachable via the ClusterIP
+    # (NodePort services keep a ClusterIP) so the ingress + in-cluster DNS are
+    # unaffected. nodePort=6881 requires microk8s --service-node-port-range to
+    # include 6881 (default 30000-32767 excludes it).
     main:
-      controller: main
-      ports:
-        http:
-          port: 8080
-    # BitTorrent incoming peer port (TCP+UDP) exposed on the node so the
-    # MikroTik dst-nat WAN:6881 → node:6881 reaches qBit. NodePort=6881 requires
-    # microk8s --service-node-port-range lowered to include 6881 (default
-    # 30000-32767 excludes it). qBit listen_port is 6881 (random_port off).
-    bittorrent:
       controller: main
       type: NodePort
       ports:
+        http:
+          port: 8080
         bt-tcp:
           port: 6881
           protocol: TCP
