@@ -8,3 +8,5 @@ metadata:
 data:
   arrconf.yml: |
     {{- .Files.Get "files/arrconf.yml" | nindent 4 }}
+  intent.yml: |
+    {{- .Files.Get "files/intent.yml" | nindent 4 }}

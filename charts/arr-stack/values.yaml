@@ -453,6 +453,8 @@ arrconf:
           args:
             - "--config"
             - "/app/config/arrconf.yml"
+            - "--intent"
+            - "/app/config/intent.yml"   # D-32: categories vivent dans intent.yml ; apply le REQUIERT pour les apps categories-driven (sonarr/radarr/qbittorrent/jellyfin)
             - "apply"
             - "--apps"
             - "sonarr,radarr,prowlarr,qbittorrent,seerr,jellyfin"   # D-05-ARGS-01: Phase 5 adds qbittorrent ; Phase 6 adds seerr (D-06-SCOPE-01) ; Phase 7 adds jellyfin (D-07-INSTANCE-01)
@@ -477,6 +479,9 @@ arrconf:
       globalMounts:
         - path: /app/config/arrconf.yml
           subPath: arrconf.yml
+          readOnly: true
+        - path: /app/config/intent.yml
+          subPath: intent.yml
           readOnly: true
 configarr:
   global:
