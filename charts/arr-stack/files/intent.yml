@@ -111,6 +111,15 @@ categories:
     display: Films - Zoé
     base_path: /media/films-zoe
 
+# Maps each category's profile keyword → the configarr quality-profile NAME that
+# `arrconf apply` assigns to that category's movies/series. arrconf resolves the
+# name → id via read-only GET /qualityprofile (ADR-5 safe) and only re-profiles
+# items currently on a non-managed (stock) profile.
+category_quality_profiles:
+  general: MULTi.VF
+  anime: Anime
+  family: Family
+
 apps:
   sonarr:
     main:
