@@ -105,3 +105,23 @@ def test_intent_config_empty_default_values() -> None:
     cfg = IntentConfig()
     assert cfg.tools.cross_seed is None
     assert cfg.sagas == []
+
+
+def test_category_quality_profiles_defaults():
+    from arrconf.intent_config import IntentConfig
+
+    cfg = IntentConfig()
+    assert cfg.category_quality_profiles == {
+        "general": "MULTi.VF",
+        "anime": "Anime",
+        "family": "Family",
+    }
+
+
+def test_category_quality_profiles_override():
+    from arrconf.intent_config import IntentConfig
+
+    cfg = IntentConfig.model_validate(
+        {"category_quality_profiles": {"general": "Custom", "anime": "Anime", "family": "Family"}}
+    )
+    assert cfg.category_quality_profiles["general"] == "Custom"

@@ -94,6 +94,57 @@
       "title": "CrossSeedConfig",
       "type": "object"
     },
+    "CustomFormatRef": {
+      "additionalProperties": false,
+      "description": "One custom_format reference inside a profile_definition (D-33-06).\n\ntrash_id references a TRaSH-Guides id OR a local CF defined in the configarr\npass-through block's customFormatDefinitions. score is optional; when omitted\nthe CF's own default score (from its definition) applies at configarr apply time.",
+      "properties": {
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-profile score override. None \u2192 use CF default score.",
+          "title": "Score"
+        },
+        "trash_ids": {
+          "description": "CF ids (TRaSH or local) sharing the same per-profile score.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Trash Ids",
+          "type": "array"
+        }
+      },
+      "title": "CustomFormatRef",
+      "type": "object"
+    },
+    "ProfileDefinition": {
+      "additionalProperties": false,
+      "description": "A reusable quality-profile body, written once per profile name (D-33-01/02).\n\nbody: the QP fields emitted verbatim into configarr quality_profiles\n(language, reset_unmatched_scores, upgrade, min_format_score, quality_sort,\nqualities). Carried as dict[str, Any] \u2014 configarr validates at apply time,\narrconf does NOT (ADR-5: arrconf-ui models must not be imported here).\ncustom_formats: structured so generate emits assign_scores_to per profile.",
+      "properties": {
+        "body": {
+          "additionalProperties": true,
+          "description": "QP body fields (language/upgrade/qualities/...) emitted verbatim.",
+          "title": "Body",
+          "type": "object"
+        },
+        "custom_formats": {
+          "description": "CF refs + per-profile scores (D-33-06).",
+          "items": {
+            "$ref": "#/$defs/CustomFormatRef"
+          },
+          "title": "Custom Formats",
+          "type": "array"
+        }
+      },
+      "title": "ProfileDefinition",
+      "type": "object"
+    },
     "QbitManageConfig": {
       "additionalProperties": false,
       "description": "tools.qbit_manage block in intent.yml (QBM-01).",
@@ -318,7 +369,7 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Root schema for intent.yml (INTENT-01, Phase 28).\n\nTop-level layout: ``tools:`` mapping + ``sagas:`` list + ``categories:`` list + ``apps:`` dict.\nPhase 32 (CATMIG-01 / D-32-01): ``categories`` and ``apps`` absorbed from arrconf.yml.\n``categories`` is now the single hand-edited owner of the media category list.\n``apps`` is an untyped pass-through dict emitted verbatim into generated arrconf.yml.",
+  "description": "Root schema for intent.yml (INTENT-01, Phase 28).\n\nTop-level layout: ``tools:`` mapping + ``sagas:`` list + ``categories:`` list + ``apps:`` dict.\nPhase 32 (CATMIG-01 / D-32-01): ``categories`` and ``apps`` absorbed from arrconf.yml.\n``categories`` is now the single hand-edited owner of the media category list.\n``apps`` is an untyped pass-through dict emitted verbatim into generated arrconf.yml.\nPhase 33 (CFGARR-01..04): ``profile_definitions`` + ``configarr`` carry the\nconfigarr.yml generator inputs. ``configarr`` holds the pass-through skeleton\n(trashGuideUrl, customFormatDefinitions, per-instance base_url/api_key/media_naming/\nquality_definition). ``profile_definitions`` holds QP bodies + CF refs keyed by\nconfigarr profile name (MULTi.VF/Anime/Family).",
   "properties": {
     "apps": {
       "additionalProperties": true,
@@ -333,6 +384,28 @@
       },
       "title": "Categories",
       "type": "array"
+    },
+    "category_quality_profiles": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Maps a category's `profile` keyword (general/anime/family) to the configarr quality-profile NAME assigned to that category's movies/series by `arrconf apply`. Read-only name->id resolution at reconcile time (ADR-5 safe -- no quality-profile definition writes).",
+      "title": "Category Quality Profiles",
+      "type": "object"
+    },
+    "configarr": {
+      "additionalProperties": true,
+      "description": "configarr.yml pass-through skeleton (trashGuideUrl, customFormatDefinitions, base_url/api_key/media_naming/quality_definition per instance). Emitted verbatim; generate injects quality_profiles + custom_formats (D-33-07/08).",
+      "title": "Configarr",
+      "type": "object"
+    },
+    "profile_definitions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ProfileDefinition"
+      },
+      "description": "Reusable QP bodies keyed by configarr profile name (MULTi.VF/Anime/Family). Expanded into configarr.yml quality_profiles by 'arrconf generate' (D-33-01).",
+      "title": "Profile Definitions",
+      "type": "object"
     },
     "sagas": {
       "description": "Saga declarations. Schema present-but-unexercised in P28 (D-05).",

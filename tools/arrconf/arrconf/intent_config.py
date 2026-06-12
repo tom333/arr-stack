@@ -254,6 +254,19 @@ class IntentConfig(BaseModel):
             "verbatim; generate injects quality_profiles + custom_formats (D-33-07/08)."
         ),
     )
+    category_quality_profiles: dict[str, str] = Field(
+        default_factory=lambda: {
+            "general": "MULTi.VF",
+            "anime": "Anime",
+            "family": "Family",
+        },
+        description=(
+            "Maps a category's `profile` keyword (general/anime/family) to the "
+            "configarr quality-profile NAME assigned to that category's movies/series "
+            "by `arrconf apply`. Read-only name->id resolution at reconcile time "
+            "(ADR-5 safe -- no quality-profile definition writes)."
+        ),
+    )
 
 
 def load_intent(path: Path) -> IntentConfig:
