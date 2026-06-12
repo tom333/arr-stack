@@ -332,6 +332,21 @@ def apply(
                 log.info("no-op", app="sonarr", count=len(result.plan))
             else:
                 log.info("apply_complete", app="sonarr", actions=result.actions_taken)
+            if cats and intent_cfg is not None:
+                from arrconf.reconcilers._category_profiles import (  # noqa: PLC0415
+                    reconcile_category_profiles,
+                )
+
+                for cp_action in reconcile_category_profiles(
+                    client,
+                    cats,
+                    intent_cfg.category_quality_profiles,
+                    item_path="/series",
+                    editor_path="/series/editor",
+                    ids_key="seriesIds",
+                    dry_run=dry_run or settings.arrconf_dry_run,
+                ):
+                    log.info("sonarr_category_profile_action", action=cp_action)
         except ConfigError as e:
             # Phase 18 (CR-01 defense-in-depth): the helper raises ConfigError
             # when YAML+env credentials are both empty. The pre-flight gate
@@ -371,6 +386,21 @@ def apply(
                 log.info("no-op", app="radarr", count=len(radarr_result.plan))
             else:
                 log.info("apply_complete", app="radarr", actions=radarr_result.actions_taken)
+            if cats and intent_cfg is not None:
+                from arrconf.reconcilers._category_profiles import (  # noqa: PLC0415
+                    reconcile_category_profiles,
+                )
+
+                for cp_action in reconcile_category_profiles(
+                    radarr_client,
+                    cats,
+                    intent_cfg.category_quality_profiles,
+                    item_path="/movie",
+                    editor_path="/movie/editor",
+                    ids_key="movieIds",
+                    dry_run=dry_run or settings.arrconf_dry_run,
+                ):
+                    log.info("radarr_category_profile_action", action=cp_action)
         except ConfigError as e:
             # Phase 18 (CR-01 defense-in-depth): mirror of Sonarr branch.
             log.error("config_error", app="radarr", error=str(e))
