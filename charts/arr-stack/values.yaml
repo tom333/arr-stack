@@ -762,7 +762,7 @@ qbit-manage:
           image:
             # renovate: image=ghcr.io/stuffanthings/qbit_manage
             repository: ghcr.io/stuffanthings/qbit_manage
-            tag: "v4.8.0"
+            tag: "v4.8.1"
             pullPolicy: IfNotPresent
           command:
             - sh
@@ -773,7 +773,7 @@ qbit-manage:
           image:
             # renovate: image=ghcr.io/stuffanthings/qbit_manage
             repository: ghcr.io/stuffanthings/qbit_manage
-            tag: "v4.8.0"
+            tag: "v4.8.1"
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
