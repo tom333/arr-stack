@@ -54,7 +54,7 @@ share_limits:
       - beyond-hd
     max_ratio: -1.0
     max_seeding_time: -1
-    min_seeding_time: 10080
+    min_seeding_time: 0
     cleanup: false
   group-c411:
     priority: 2
@@ -62,7 +62,7 @@ share_limits:
       - c411
     max_ratio: -1.0
     max_seeding_time: -1
-    min_seeding_time: 10080
+    min_seeding_time: 0
     cleanup: false
   group-torr9:
     priority: 3
@@ -70,7 +70,7 @@ share_limits:
       - torr9
     max_ratio: -1.0
     max_seeding_time: -1
-    min_seeding_time: 10080
+    min_seeding_time: 0
     cleanup: false
   default:
     priority: 999
