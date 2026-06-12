@@ -205,6 +205,22 @@ qbittorrent:
       ports:
         http:
           port: 8080
+    # BitTorrent incoming peer port (TCP+UDP) exposed on the node so the
+    # MikroTik dst-nat WAN:6881 → node:6881 reaches qBit. NodePort=6881 requires
+    # microk8s --service-node-port-range lowered to include 6881 (default
+    # 30000-32767 excludes it). qBit listen_port is 6881 (random_port off).
+    bittorrent:
+      controller: main
+      type: NodePort
+      ports:
+        bt-tcp:
+          port: 6881
+          protocol: TCP
+          nodePort: 6881
+        bt-udp:
+          port: 6881
+          protocol: UDP
+          nodePort: 6881
   ingress:
     main:
       className: nginx
