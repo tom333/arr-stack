@@ -40,6 +40,10 @@ cat:
 tracker:
   beyond-hd:
     tag: beyond-hd
+  c411.org:
+    tag: c411
+  torr9.net:
+    tag: torr9
   other:
     tag: public
 
@@ -48,9 +52,25 @@ share_limits:
     priority: 1
     include_all_tags:
       - beyond-hd
-    max_ratio: 3.0
+    max_ratio: -1.0
     max_seeding_time: -1
-    min_seeding_time: 4320
+    min_seeding_time: 10080
+    cleanup: false
+  group-c411:
+    priority: 2
+    include_all_tags:
+      - c411
+    max_ratio: -1.0
+    max_seeding_time: -1
+    min_seeding_time: 10080
+    cleanup: false
+  group-torr9:
+    priority: 3
+    include_all_tags:
+      - torr9
+    max_ratio: -1.0
+    max_seeding_time: -1
+    min_seeding_time: 10080
     cleanup: false
   default:
     priority: 999

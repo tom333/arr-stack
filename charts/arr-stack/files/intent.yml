@@ -23,14 +23,36 @@ tools:
     tracker_tags:
       - keyword: "beyond-hd"
         tag: "beyond-hd"
+      - keyword: "c411.org"
+        tag: "c411"
+      - keyword: "torr9.net"
+        tag: "torr9"
+    # Ratio (private) trackers: max_ratio -1 = never stop seeding → ratio keeps
+    # climbing ; cleanup false = never auto-removed. min_seeding_time is a floor
+    # (moot while cleanup:false). Public trackers (Torrent9, World-torrent) get no
+    # group → qBit's no-limit default (seed until manually removed), ratio N/A.
     share_limits:
       - name: "group-beyond-hd"
         tracker_tag: "beyond-hd"
-        max_ratio: 3.0
+        max_ratio: -1
         max_seeding_time: -1
-        min_seeding_time: 4320
+        min_seeding_time: 10080
         cleanup: false
         priority: 1
+      - name: "group-c411"
+        tracker_tag: "c411"
+        max_ratio: -1
+        max_seeding_time: -1
+        min_seeding_time: 10080
+        cleanup: false
+        priority: 2
+      - name: "group-torr9"
+        tracker_tag: "torr9"
+        max_ratio: -1
+        max_seeding_time: -1
+        min_seeding_time: 10080
+        cleanup: false
+        priority: 3
     recyclebin_days: 30
     rem_orphaned: false
     rem_unregistered: false
