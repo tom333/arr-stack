@@ -68,6 +68,32 @@
           "title": "Data Dirs",
           "type": "array"
         },
+        "exclude_older": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Skip searchees first seen longer ago than this (must be 2-5x exclude_recent_search).",
+          "title": "Exclude Older"
+        },
+        "exclude_recent_search": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Skip searchees searched more recently than this. Required when search_cadence set.",
+          "title": "Exclude Recent Search"
+        },
         "link_dirs": {
           "description": "Hardlink destination dirs.",
           "items": {
@@ -105,7 +131,7 @@
             }
           ],
           "default": null,
-          "description": "Scheduled daemon search interval (e.g. '1day'). None = no scheduled search.",
+          "description": "Scheduled daemon search interval (e.g. '1 day'). None = no scheduled search.",
           "title": "Search Cadence"
         },
         "skip_recheck": {

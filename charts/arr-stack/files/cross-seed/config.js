@@ -13,12 +13,14 @@ module.exports = {
 		"/media/series-thomas",
 		"/media/series-zoe"
 	],
+	"excludeOlder": "2 weeks",
+	"excludeRecentSearch": "3 days",
 	"linkDirs": [
 		"/media/.cross-seed"
 	],
 	"linkType": "hardlink",
 	"maxDataDepth": 3,
-	"searchCadence": "1day",
+	"searchCadence": "1 day",
 	"skipRecheck": false,
 	"torrentClients": [
 		"qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"

@@ -56,7 +56,15 @@ class CrossSeedConfig(BaseModel):
     )
     search_cadence: str | None = Field(
         default=None,
-        description="Scheduled daemon search interval (e.g. '1day'). None = no scheduled search.",
+        description="Scheduled daemon search interval (e.g. '1 day'). None = no scheduled search.",
+    )
+    exclude_recent_search: str | None = Field(
+        default=None,
+        description="Skip searchees searched more recently than this; required w/ search_cadence.",
+    )
+    exclude_older: str | None = Field(
+        default=None,
+        description="Skip searchees first seen older than this (2-5x exclude_recent_search).",
     )
     skip_recheck: bool | None = Field(
         default=None,

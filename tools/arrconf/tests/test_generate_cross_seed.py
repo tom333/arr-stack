@@ -73,7 +73,9 @@ def test_generate_cross_seed_data_based_fields() -> None:
     cfg = CrossSeedConfig(
         torznab=["http://a"],
         data_dirs=["/media/films", "/media/series"],
-        search_cadence="1day",
+        search_cadence="1 day",
+        exclude_recent_search="3 days",
+        exclude_older="2 weeks",
         skip_recheck=False,
         max_data_depth=3,
     )
@@ -82,7 +84,9 @@ def test_generate_cross_seed_data_based_fields() -> None:
     assert body is not None
     data = json.loads(body.group(1))
     assert data["dataDirs"] == ["/media/films", "/media/series"]
-    assert data["searchCadence"] == "1day"
+    assert data["searchCadence"] == "1 day"
+    assert data["excludeRecentSearch"] == "3 days"
+    assert data["excludeOlder"] == "2 weeks"
     assert data["skipRecheck"] is False
     assert data["maxDataDepth"] == 3
     # snake_case keys never leak
@@ -98,5 +102,7 @@ def test_generate_cross_seed_data_fields_omitted_when_unset() -> None:
     )
     assert "dataDirs" not in data
     assert "searchCadence" not in data
+    assert "excludeRecentSearch" not in data
+    assert "excludeOlder" not in data
     assert "skipRecheck" not in data
     assert "maxDataDepth" not in data

@@ -51,6 +51,10 @@ def generate_cross_seed(cfg: CrossSeedConfig) -> str:
         data["dataDirs"] = cfg.data_dirs
     if cfg.search_cadence is not None:
         data["searchCadence"] = cfg.search_cadence
+    if cfg.exclude_recent_search is not None:
+        data["excludeRecentSearch"] = cfg.exclude_recent_search
+    if cfg.exclude_older is not None:
+        data["excludeOlder"] = cfg.exclude_older
     if cfg.skip_recheck is not None:
         data["skipRecheck"] = cfg.skip_recheck
     if cfg.max_data_depth is not None:

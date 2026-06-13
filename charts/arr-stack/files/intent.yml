@@ -37,7 +37,13 @@ tools:
       - "/media/series-garcons"
       - "/media/series-thomas"
       - "/media/series-zoe"
-    search_cadence: "1day"     # daemon scans the library once/day, rate-limited
+    search_cadence: "1 day"            # daemon scans once/day, rate-limited
+    # searchCadence REQUIRES both excludes; excludeOlder must be 2-5x excludeRecentSearch.
+    # NB: the periodic search skips library items first-seen > excludeOlder ago — the
+    # initial full backfill of the existing library is done via a one-shot manual
+    # `cross-seed search --data-dirs ... --no-exclude-older` (mtime-independent).
+    exclude_recent_search: "3 days"
+    exclude_older: "2 weeks"           # 2w / 3d ≈ 4.7x (within 2-5x)
     skip_recheck: false        # recheck before seeding — avoids sending bad data to ratio trackers
     max_data_depth: 3
   qbit_manage:
