@@ -60,6 +60,14 @@
           "title": "Action",
           "type": "string"
         },
+        "data_dirs": {
+          "description": "Dirs scanned for data-based matching (library re-seed, no client torrent).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Data Dirs",
+          "type": "array"
+        },
         "link_dirs": {
           "description": "Hardlink destination dirs.",
           "items": {
@@ -73,6 +81,45 @@
           "description": "symlink|hardlink|reflink.",
           "title": "Link Type",
           "type": "string"
+        },
+        "max_data_depth": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Max directory depth when scanning data_dirs. None = cross-seed default.",
+          "title": "Max Data Depth"
+        },
+        "search_cadence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scheduled daemon search interval (e.g. '1day'). None = no scheduled search.",
+          "title": "Search Cadence"
+        },
+        "skip_recheck": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Skip recheck before seeding matches. None = cross-seed default (true).",
+          "title": "Skip Recheck"
         },
         "torrent_clients": {
           "description": "Client connection strings (e.g. qbittorrent:http://user:pass@host:port).",

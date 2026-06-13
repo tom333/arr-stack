@@ -14,10 +14,32 @@ tools:
       - "http://prowlarr.selfhost.svc.cluster.local:9696/7/api?apikey=${PROWLARR_API_KEY}"
     torrent_clients:
       - "qbittorrent:http://${QBT_USER}:${QBT_PASS}@qbittorrent.selfhost.svc.cluster.local:8080"
+    # link_dirs MUST be on the same filesystem as data_dirs to hardlink. The library
+    # lives on media-nas-pvc (NFS, mounted /media); qBit's download path is a node
+    # hostPath (/media/data/torrents → /data) — a DIFFERENT fs. So the cross-seed link
+    # dir sits on the NFS library mount, NOT under /data (else cross-fs hardlink fails).
     link_dirs:
-      - "/data/torrents/cross-seed"
+      - "/media/.cross-seed"
     link_type: hardlink
     action: inject
+    # Data-based re-seed of the imported library (B): scan the NAS library, match
+    # releases on the FR trackers, inject torrents pointing at existing files → seed
+    # → builds ratio on Torr9/C411 (upload allowed even when download is gated).
+    # Paths are the media-nas-pvc category dirs (mounted /media in qBit + cross-seed).
+    data_dirs:
+      - "/media/films"
+      - "/media/films-enfants"
+      - "/media/films-animation-enfants"
+      - "/media/films-zoe"
+      - "/media/nouveaux-films"
+      - "/media/series"
+      - "/media/series-emilie"
+      - "/media/series-garcons"
+      - "/media/series-thomas"
+      - "/media/series-zoe"
+    search_cadence: "1day"     # daemon scans the library once/day, rate-limited
+    skip_recheck: false        # recheck before seeding — avoids sending bad data to ratio trackers
+    max_data_depth: 3
   qbit_manage:
     qbt_host: "http://qbittorrent.selfhost.svc.cluster.local:8080"
     tracker_tags:

@@ -47,6 +47,14 @@ def generate_cross_seed(cfg: CrossSeedConfig) -> str:
         data["torrentClients"] = cfg.torrent_clients
     if cfg.link_dirs:
         data["linkDirs"] = cfg.link_dirs
+    if cfg.data_dirs:
+        data["dataDirs"] = cfg.data_dirs
+    if cfg.search_cadence is not None:
+        data["searchCadence"] = cfg.search_cadence
+    if cfg.skip_recheck is not None:
+        data["skipRecheck"] = cfg.skip_recheck
+    if cfg.max_data_depth is not None:
+        data["maxDataDepth"] = cfg.max_data_depth
     data["linkType"] = cfg.link_type
     data["action"] = cfg.action
     body = json.dumps(data, indent="\t", sort_keys=True, ensure_ascii=False)

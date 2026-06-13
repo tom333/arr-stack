@@ -66,3 +66,37 @@ def test_generate_cross_seed_camelcase() -> None:
     assert "linkDirs" in data
     assert "torrent_clients" not in data
     assert "link_dirs" not in data
+
+
+def test_generate_cross_seed_data_based_fields() -> None:
+    """data_dirs/search_cadence/skip_recheck/max_data_depth render in camelCase."""
+    cfg = CrossSeedConfig(
+        torznab=["http://a"],
+        data_dirs=["/media/films", "/media/series"],
+        search_cadence="1day",
+        skip_recheck=False,
+        max_data_depth=3,
+    )
+    result = generate_cross_seed(cfg)
+    body = re.search(r"module\.exports = (\{.*\});", result, re.DOTALL)
+    assert body is not None
+    data = json.loads(body.group(1))
+    assert data["dataDirs"] == ["/media/films", "/media/series"]
+    assert data["searchCadence"] == "1day"
+    assert data["skipRecheck"] is False
+    assert data["maxDataDepth"] == 3
+    # snake_case keys never leak
+    assert "data_dirs" not in data
+    assert "search_cadence" not in data
+
+
+def test_generate_cross_seed_data_fields_omitted_when_unset() -> None:
+    """Unset data-based fields are omitted (unset ≠ default)."""
+    cfg = CrossSeedConfig(torznab=["http://a"])
+    data = json.loads(
+        re.search(r"module\.exports = (\{.*\});", generate_cross_seed(cfg), re.DOTALL).group(1)
+    )
+    assert "dataDirs" not in data
+    assert "searchCadence" not in data
+    assert "skipRecheck" not in data
+    assert "maxDataDepth" not in data

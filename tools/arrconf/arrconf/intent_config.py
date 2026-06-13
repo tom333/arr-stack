@@ -50,6 +50,22 @@ class CrossSeedConfig(BaseModel):
         default="inject",
         description="inject|save.",
     )
+    data_dirs: list[str] = Field(
+        default_factory=list,
+        description="Dirs scanned for data-based matching (library re-seed, no client torrent).",
+    )
+    search_cadence: str | None = Field(
+        default=None,
+        description="Scheduled daemon search interval (e.g. '1day'). None = no scheduled search.",
+    )
+    skip_recheck: bool | None = Field(
+        default=None,
+        description="Skip recheck before seeding matches. None = cross-seed default (true).",
+    )
+    max_data_depth: int | None = Field(
+        default=None,
+        description="Max directory depth when scanning data_dirs. None = cross-seed default.",
+    )
 
 
 class ShareLimitGroup(BaseModel):
