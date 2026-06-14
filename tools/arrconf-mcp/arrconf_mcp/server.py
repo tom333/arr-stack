@@ -10,9 +10,11 @@ from mcp.server.fastmcp import FastMCP
 
 from arrconf_mcp import clients, formatting
 from arrconf_mcp.guardrails import require_confirm
+from arrconf_mcp.settings import McpSettings
 
 log = structlog.get_logger()
 mcp = FastMCP("arrconf-mcp")
+settings = McpSettings()
 
 # Candidate locations for the hand-edited intent.yml (chart source of truth).
 _INTENT_PATHS = (
@@ -180,7 +182,6 @@ def trigger_search_missing(app: str) -> dict[str, Any]:
     return {"triggered": command}
 
 
-@mcp.tool()
 def remove_torrent(
     torrent_hash: str, delete_files: bool = False, confirm: bool = False
 ) -> dict[str, Any]:
@@ -196,7 +197,6 @@ def remove_torrent(
     return {"status": "removed", "torrent_hash": torrent_hash, "deleted_files": delete_files}
 
 
-@mcp.tool()
 def blocklist_and_research(app: str, queue_id: int, confirm: bool = False) -> dict[str, Any]:
     """Remove a Sonarr/Radarr queue item, blocklist its release, and re-search. Gated."""
     if app == "sonarr":
@@ -218,7 +218,6 @@ def blocklist_and_research(app: str, queue_id: int, confirm: bool = False) -> di
     return {"status": "blocklisted_and_researching", "app": app, "command": command}
 
 
-@mcp.tool()
 def delete_movie(
     movie_id: int, delete_files: bool = False, confirm: bool = False
 ) -> dict[str, Any]:
@@ -235,7 +234,6 @@ def delete_movie(
     return {"status": "deleted", "movie_id": movie_id, "deleted_files": delete_files}
 
 
-@mcp.tool()
 def delete_series(
     series_id: int, delete_files: bool = False, confirm: bool = False
 ) -> dict[str, Any]:
@@ -252,7 +250,6 @@ def delete_series(
     return {"status": "deleted", "series_id": series_id, "deleted_files": delete_files}
 
 
-@mcp.tool()
 def set_quality_profile(
     app: str, item_id: int, profile_name: str, confirm: bool = False
 ) -> dict[str, Any]:
@@ -277,3 +274,18 @@ def set_quality_profile(
         "item_id": item_id,
         "qualityProfileId": profile_id,
     }
+
+
+# Destructive tools are registered only outside read-only mode. They self-guard
+# with ``confirm``; not exposing them at all is a second layer (MCP_READONLY=true).
+_DESTRUCTIVE_TOOLS = (
+    remove_torrent,
+    blocklist_and_research,
+    delete_movie,
+    delete_series,
+    set_quality_profile,
+)
+
+if not settings.mcp_readonly:
+    for _tool in _DESTRUCTIVE_TOOLS:
+        mcp.add_tool(_tool)

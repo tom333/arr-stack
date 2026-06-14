@@ -23,6 +23,9 @@ class McpSettings(BaseSettings):
     mcp_auth_token: SecretStr = SecretStr("")
     mcp_transport: str = "stdio"
     mcp_bind: str = "0.0.0.0:8080"
+    # When true, the 5 destructive tools are not registered at all (second layer
+    # on top of each tool's confirm gate). Default false: stdio/local keeps all 15.
+    mcp_readonly: bool = False
 
     sonarr_url: str = "http://sonarr.selfhost.svc.cluster.local:8989"
     radarr_url: str = "http://radarr.selfhost.svc.cluster.local:7878"
