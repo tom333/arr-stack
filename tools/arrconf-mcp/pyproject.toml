@@ -1,0 +1,24 @@
+[project]
+name = "arrconf-mcp"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+  "mcp>=1.2,<2",
+  "arrconf",
+]
+
+[tool.uv.sources]
+arrconf = { path = "../arrconf", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest>=9", "respx>=0.23", "anyio>=4"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+addopts = "-q"
