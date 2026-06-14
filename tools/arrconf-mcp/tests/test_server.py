@@ -18,6 +18,11 @@ EXPECTED_TOOLS = {
     "add_series",
     "request_media",
     "trigger_search_missing",
+    "remove_torrent",
+    "blocklist_and_research",
+    "delete_movie",
+    "delete_series",
+    "set_quality_profile",
 }
 
 

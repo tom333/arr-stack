@@ -9,6 +9,7 @@ from arrconf.intent_config import IntentConfig, load_intent
 from mcp.server.fastmcp import FastMCP
 
 from arrconf_mcp import clients, formatting
+from arrconf_mcp.guardrails import require_confirm
 
 log = structlog.get_logger()
 mcp = FastMCP("arrconf-mcp")
@@ -177,3 +178,102 @@ def trigger_search_missing(app: str) -> dict[str, Any]:
         raise ValueError(f"app must be 'sonarr' or 'radarr', got {app!r}")
     client.post("/command", json={"name": command})
     return {"triggered": command}
+
+
+@mcp.tool()
+def remove_torrent(
+    torrent_hash: str, delete_files: bool = False, confirm: bool = False
+) -> dict[str, Any]:
+    """Remove a torrent from qBittorrent. Gated: pass confirm=true to actually delete."""
+    args = {"torrent_hash": torrent_hash, "delete_files": delete_files}
+    if not confirm:
+        return require_confirm("remove_torrent", args)
+    log.info("mcp_mutation", tool="remove_torrent", args=args, confirmed=True)
+    clients.qbit().post_form(
+        "/torrents/delete",
+        {"hashes": torrent_hash, "deleteFiles": "true" if delete_files else "false"},
+    )
+    return {"status": "removed", "torrent_hash": torrent_hash, "deleted_files": delete_files}
+
+
+@mcp.tool()
+def blocklist_and_research(app: str, queue_id: int, confirm: bool = False) -> dict[str, Any]:
+    """Remove a Sonarr/Radarr queue item, blocklist its release, and re-search. Gated."""
+    if app == "sonarr":
+        client, command = clients.sonarr(), "MissingEpisodeSearch"
+    elif app == "radarr":
+        client, command = clients.radarr(), "MissingMoviesSearch"
+    else:
+        raise ValueError(f"app must be 'sonarr' or 'radarr', got {app!r}")
+    args = {"app": app, "queue_id": queue_id}
+    if not confirm:
+        return require_confirm("blocklist_and_research", args)
+    log.info("mcp_mutation", tool="blocklist_and_research", args=args, confirmed=True)
+    client._request(
+        "DELETE",
+        f"/queue/{queue_id}",
+        params={"removeFromClient": "true", "blocklist": "true"},
+    )
+    client.post("/command", json={"name": command})
+    return {"status": "blocklisted_and_researching", "app": app, "command": command}
+
+
+@mcp.tool()
+def delete_movie(
+    movie_id: int, delete_files: bool = False, confirm: bool = False
+) -> dict[str, Any]:
+    """Delete a movie from Radarr (optionally its files). Gated: pass confirm=true."""
+    args = {"movie_id": movie_id, "delete_files": delete_files}
+    if not confirm:
+        return require_confirm("delete_movie", args)
+    log.info("mcp_mutation", tool="delete_movie", args=args, confirmed=True)
+    clients.radarr()._request(
+        "DELETE",
+        f"/movie/{movie_id}",
+        params={"deleteFiles": "true" if delete_files else "false"},
+    )
+    return {"status": "deleted", "movie_id": movie_id, "deleted_files": delete_files}
+
+
+@mcp.tool()
+def delete_series(
+    series_id: int, delete_files: bool = False, confirm: bool = False
+) -> dict[str, Any]:
+    """Delete a series from Sonarr (optionally its files). Gated: pass confirm=true."""
+    args = {"series_id": series_id, "delete_files": delete_files}
+    if not confirm:
+        return require_confirm("delete_series", args)
+    log.info("mcp_mutation", tool="delete_series", args=args, confirmed=True)
+    clients.sonarr()._request(
+        "DELETE",
+        f"/series/{series_id}",
+        params={"deleteFiles": "true" if delete_files else "false"},
+    )
+    return {"status": "deleted", "series_id": series_id, "deleted_files": delete_files}
+
+
+@mcp.tool()
+def set_quality_profile(
+    app: str, item_id: int, profile_name: str, confirm: bool = False
+) -> dict[str, Any]:
+    """Re-profile a Sonarr series / Radarr movie to a named quality profile. Gated."""
+    if app == "sonarr":
+        client, item_path = clients.sonarr(), "/series"
+    elif app == "radarr":
+        client, item_path = clients.radarr(), "/movie"
+    else:
+        raise ValueError(f"app must be 'sonarr' or 'radarr', got {app!r}")
+    args = {"app": app, "item_id": item_id, "profile_name": profile_name}
+    if not confirm:
+        return require_confirm("set_quality_profile", args)
+    log.info("mcp_mutation", tool="set_quality_profile", args=args, confirmed=True)
+    profile_id = _resolve_profile_id(client.get("/qualityprofile"), profile_name)
+    item = client.get(f"{item_path}/{item_id}")
+    item["qualityProfileId"] = profile_id
+    client.put(item_path, item_id, json=item)
+    return {
+        "status": "reprofiled",
+        "app": app,
+        "item_id": item_id,
+        "qualityProfileId": profile_id,
+    }
