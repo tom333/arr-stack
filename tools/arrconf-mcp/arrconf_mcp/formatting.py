@@ -47,3 +47,13 @@ def transfer_brief(info: dict[str, Any]) -> dict[str, Any]:
         "dht_nodes": info.get("dht_nodes"),
         "connection_status": info.get("connection_status"),
     }
+
+
+def lookup_result_brief(item: dict[str, Any], id_field: str) -> dict[str, Any]:
+    """Reduce a Radarr/Sonarr lookup result to {title, year, <id_field>, overview[:200]}."""
+    return {
+        "title": item.get("title"),
+        "year": item.get("year"),
+        id_field: item.get(id_field),
+        "overview": (item.get("overview") or "")[:200],
+    }
