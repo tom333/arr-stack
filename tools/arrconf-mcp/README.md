@@ -35,6 +35,29 @@ uv run python -m arrconf_mcp   # starts the MCP server on stdio, waits for a cli
 The server speaks MCP over **stdio**, so it does nothing visible on its own — a
 client (Claude Code) launches and drives it. Ctrl-C to exit.
 
+### HTTP transport (in-cluster, Phase 3)
+
+For the in-cluster deploy (consumed by the Hermes Agent over svc DNS), the server
+runs over streamable-HTTP with in-server bearer-token auth:
+
+```bash
+MCP_TRANSPORT=http MCP_BIND=0.0.0.0:8080 MCP_AUTH_TOKEN=<token> \
+  uv run python -m arrconf_mcp
+```
+
+- MCP is served at `/mcp` (FastMCP `streamable_http_app()` default path) and
+  requires `Authorization: Bearer <MCP_AUTH_TOKEN>`; a mismatch returns `401`.
+- `GET /healthz` returns `200` with no token (k8s liveness/readiness probe).
+- `MCP_AUTH_TOKEN` is **required** when `MCP_TRANSPORT=http` (the server refuses to
+  start without it). It is injected in-cluster via the `arrconf-env` secret.
+
+The container image (`tools/arrconf-mcp/Dockerfile`) defaults to `MCP_TRANSPORT=http`.
+Build context is the **repo root** (the image bundles the `../arrconf` path dep):
+
+```bash
+docker build -f tools/arrconf-mcp/Dockerfile -t arr-stack-arrconf-mcp .
+```
+
 ## Environment variables
 
 The server holds **all** stack API keys. Each app needs an API key **and** a base

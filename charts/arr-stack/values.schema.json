@@ -1705,6 +1705,10 @@
             "type": "object",
             "additionalProperties": true
         },
+        "arrconf-mcp": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "sonarr": {
             "type": "object",
             "properties": {

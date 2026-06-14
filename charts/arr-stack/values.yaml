@@ -856,3 +856,67 @@ qbit-manage:
         main:
           main:
             - path: /data
+
+# arrconf-mcp — Model Context Protocol server driving the media stack (Phase 3).
+# Consumed by the in-cluster Hermes Agent over svc DNS
+# (arrconf-mcp.selfhost.svc.cluster.local:8080/mcp). ClusterIP only, NO ingress:
+# Hermes runs IN-cluster. Bearer-token auth is enforced IN the server (MCP_AUTH_TOKEN
+# from arrconf-env) as the only auth layer — no oauth2/TLS needed for cluster-internal.
+arrconf-mcp:
+  global:
+    nameOverride: arrconf-mcp
+    fullnameOverride: arrconf-mcp
+  serviceAccount:
+    arrconf-mcp: {}
+  controllers:
+    main:
+      type: deployment   # long-running HTTP server
+      replicas: 1
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/tom333/arr-stack-arrconf-mcp
+            repository: ghcr.io/tom333/arr-stack-arrconf-mcp
+            tag: "0.1.0"  # co-bump lockstep with chart tag when the image changes
+            pullPolicy: IfNotPresent
+          env:
+            TZ: "Europe/Paris"
+            MCP_TRANSPORT: "http"
+            MCP_BIND: "0.0.0.0:8080"
+            # in-cluster stack URLs are the McpSettings svc-DNS defaults — no override.
+          envFrom:
+            - secretRef:
+                name: arrconf-env   # stack API keys + MCP_AUTH_TOKEN
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 30
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 30
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 8080
+  # NO ingress block — ClusterIP only. Hermes reaches this via svc DNS.
