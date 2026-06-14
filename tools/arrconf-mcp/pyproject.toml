@@ -15,10 +15,20 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = ["pytest>=9", "respx>=0.23", "anyio>=4"]
+dev = ["pytest>=9", "respx>=0.23", "anyio>=4", "ruff>=0.8", "mypy>=1.13"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.mypy]
+python_version = "3.13"
+
+# arrconf (sibling path dep) ships no py.typed marker, so mypy can't resolve its
+# types. We reuse its clients/exceptions/intent_config as a library; treat them as
+# untyped imports rather than scattering per-line `# type: ignore`.
+[[tool.mypy.overrides]]
+module = ["arrconf.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-q"
