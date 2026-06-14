@@ -19,6 +19,11 @@ class McpSettings(BaseSettings):
     qbt_user: str = ""
     qbt_pass: SecretStr = SecretStr("")
 
+    # Phase 3 HTTP transport (in-cluster ClusterIP, bearer-token authed in-server).
+    mcp_auth_token: SecretStr = SecretStr("")
+    mcp_transport: str = "stdio"
+    mcp_bind: str = "0.0.0.0:8080"
+
     sonarr_url: str = "http://sonarr.selfhost.svc.cluster.local:8989"
     radarr_url: str = "http://radarr.selfhost.svc.cluster.local:7878"
     prowlarr_url: str = "http://prowlarr.selfhost.svc.cluster.local:9696"

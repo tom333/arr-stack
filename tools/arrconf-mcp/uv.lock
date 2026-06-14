@@ -79,11 +79,14 @@ source = { editable = "." }
 dependencies = [
     { name = "arrconf" },
     { name = "mcp" },
+    { name = "starlette" },
+    { name = "uvicorn" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "anyio" },
+    { name = "httpx" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "respx" },
@@ -94,11 +97,14 @@ dev = [
 requires-dist = [
     { name = "arrconf", editable = "../arrconf" },
     { name = "mcp", specifier = ">=1.2,<2" },
+    { name = "starlette", specifier = ">=0.26" },
+    { name = "uvicorn", specifier = ">=0.30" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "anyio", specifier = ">=4" },
+    { name = "httpx", specifier = ">=0.23" },
     { name = "mypy", specifier = ">=1.13" },
     { name = "pytest", specifier = ">=9" },
     { name = "respx", specifier = ">=0.23" },
