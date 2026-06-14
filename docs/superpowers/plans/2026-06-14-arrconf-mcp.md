@@ -453,13 +453,13 @@ Each: failing respx test → impl → pass → commit.
 
 ## Phase 3 — Deploy + remote HTTP transport + bearer auth (for Hermes Agent)
 
-**Target consumer: Hermes Agent** (NousResearch self-improving agent, self-hosted, runs OUTSIDE the cluster). It connects to a REMOTE MCP server over HTTP with a bearer token header — it is HEADLESS, so the interactive oauth2-proxy/forwardAuth middleware used by the *arr UIs WILL NOT WORK. Auth must be a static bearer token validated IN the MCP server (machine-to-machine).
+**Target consumer: Hermes Agent** (NousResearch self-improving agent) running **INSIDE the cluster**. It reaches the MCP server over the in-cluster service DNS — NO public ingress, NO TLS/cert-manager, NO oauth2 forwardAuth. The MCP server is a **ClusterIP-only** Deployment. Bearer-token auth is still applied IN the server (defense-in-depth: without it, ANY pod could drive the whole media stack) but it is the only auth layer and need not be internet-grade.
 
-Hermes config it must satisfy (`~/.hermes/config.yaml`):
+Hermes config it must satisfy (`~/.hermes/config.yaml`), using the internal service URL:
 ```yaml
 mcp_servers:
   arrconf:
-    url: "https://mcp-arr.tgu.ovh/mcp"
+    url: "http://arrconf-mcp.selfhost.svc.cluster.local:8080/mcp"
     headers:
       Authorization: "Bearer <MCP_AUTH_TOKEN>"
     timeout: 60
@@ -550,21 +550,8 @@ arrconf-mcp:
       ports:
         http:
           port: 8080
-  ingress:
-    main:
-      className: nginx
-      annotations:
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        # NO oauth2 forwardAuth — Hermes is headless. Auth is the in-server bearer token.
-      hosts:
-        - host: mcp-arr.tgu.ovh
-          paths:
-            - path: /
-              pathType: Prefix
-              service: { identifier: main, port: http }
-      tls:
-        - secretName: arrconf-mcp-tls
-          hosts: [ mcp-arr.tgu.ovh ]
+  # NO ingress — Hermes runs IN-cluster and reaches this via svc DNS
+  # (arrconf-mcp.selfhost.svc.cluster.local:8080). ClusterIP only.
   probes:
     liveness:  { enabled: true, custom: true, spec: { httpGet: { path: /mcp, port: 8080 }, initialDelaySeconds: 15 } }
     readiness: { enabled: true, custom: true, spec: { httpGet: { path: /mcp, port: 8080 }, initialDelaySeconds: 15 } }
@@ -578,11 +565,11 @@ arrconf-mcp:
 ### Task 3.5: Deploy + verify + wire Hermes
 
 - [ ] my-kluster: targetRevision bump → ArgoCD sync. Respect the auto-tag race (push main → wait for chart-lint `tag` job → then the image build).
-- [ ] **Verify (Healthy ≠ works):** from outside, `curl -H "Authorization: Bearer <token>" https://mcp-arr.tgu.ovh/mcp` → MCP handshake; `curl` without token → 401; `/healthz` → 200.
-- [ ] Add the `mcp_servers.arrconf` block to Hermes `~/.hermes/config.yaml`, restart Hermes, confirm it lists the 10 arrconf tools.
+- [ ] **Verify (Healthy ≠ works):** from a throwaway in-cluster curl pod: `curl -H "Authorization: Bearer <token>" http://arrconf-mcp.selfhost.svc.cluster.local:8080/mcp` → MCP handshake; without token → 401; `/healthz` → 200.
+- [ ] Add the `mcp_servers.arrconf` block to Hermes `~/.hermes/config.yaml` (internal svc URL), restart Hermes, confirm it lists the 10 arrconf tools.
 
 ### Security checklist (Phase 3)
-- Bearer token only (no interactive auth path); token in sealed-secret; TLS enforced; rotation documented.
+- Bearer token in-server (defense-in-depth so not any pod can drive the stack); token in sealed-secret; rotation documented. No public exposure (ClusterIP only) → no TLS/ingress needed.
 - Phase 1 ships zero destructive tools; do Phase 2 (guardrails) BEFORE exposing write tools to an autonomous agent like Hermes — an auto-agent with unguarded delete/blocklist is a real risk. Recommended order: Phase 1 → **Phase 2 (guardrails)** → Phase 3 (expose to Hermes).
 - Consider a read-only token tier vs a write token (two `MCP_AUTH_TOKEN`s mapping to tool subsets) if Hermes should only observe.
 
