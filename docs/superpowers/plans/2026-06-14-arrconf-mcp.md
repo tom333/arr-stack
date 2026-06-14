@@ -451,14 +451,140 @@ Each: failing respx test → impl → pass → commit.
 - [ ] Guardrail helper: `require_confirm()` returning a structured "would do X — pass confirm=true" payload. Tests assert no HTTP call happens without confirm.
 - [ ] Audit log: every mutating tool logs (structlog) actor + action + args.
 
-## Phase 3 — Deploy + remote transport + auth (outline)
+## Phase 3 — Deploy + remote HTTP transport + bearer auth (for Hermes Agent)
 
-- [ ] Dockerfile (multi-stage, USER 1000, mirrors `tools/arrconf/Dockerfile`); GHCR build workflow.
-- [ ] Switch transport to **streamable HTTP/SSE** (`mcp.run(transport="streamable-http")`), bind port.
-- [ ] Chart: new `app-template` alias `arrconf-mcp` in `Chart.yaml` + `values.yaml` (Deployment, `envFrom: secretRef arrconf-env`, service, probes). Co-bump pattern if it ships an image.
-- [ ] Ingress + `traefik.ingress.kubernetes.io/router.middlewares: selfhost-oauth2-forwardauth@kubernetescrd` (same auth as the *arr UIs — the server holds all keys, MUST be authed).
-- [ ] my-kluster targetRevision bump → ArgoCD sync → verify (Healthy ≠ works: hit the MCP endpoint, list tools).
-- [ ] Connect a remote chatbot (Claude via the hosted MCP, or claude.ai custom connector) to the authed HTTPS endpoint.
+**Target consumer: Hermes Agent** (NousResearch self-improving agent, self-hosted, runs OUTSIDE the cluster). It connects to a REMOTE MCP server over HTTP with a bearer token header — it is HEADLESS, so the interactive oauth2-proxy/forwardAuth middleware used by the *arr UIs WILL NOT WORK. Auth must be a static bearer token validated IN the MCP server (machine-to-machine).
+
+Hermes config it must satisfy (`~/.hermes/config.yaml`):
+```yaml
+mcp_servers:
+  arrconf:
+    url: "https://mcp-arr.tgu.ovh/mcp"
+    headers:
+      Authorization: "Bearer <MCP_AUTH_TOKEN>"
+    timeout: 60
+    connect_timeout: 10
+    enabled: true
+```
+
+### Task 3.1: HTTP transport + bearer auth in the server
+
+**Files:** modify `arrconf_mcp/__main__.py`, `arrconf_mcp/server.py`; add `arrconf_mcp/http.py`; tests.
+
+- [ ] Add `MCP_AUTH_TOKEN: SecretStr` + `MCP_BIND: str = "0.0.0.0:8080"` to `McpSettings`.
+- [ ] `http.py` — build the streamable-HTTP ASGI app + a portable bearer middleware (avoids coupling to a specific `mcp` auth API across versions):
+
+```python
+"""HTTP transport: wrap FastMCP's streamable-http ASGI app with bearer-token auth."""
+
+from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+from arrconf_mcp.server import mcp
+from arrconf_mcp.settings import McpSettings
+
+
+class BearerAuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, token: str) -> None:
+        super().__init__(app)
+        self._expected = f"Bearer {token}"
+
+    async def dispatch(self, request: Request, call_next):
+        if request.headers.get("authorization") != self._expected:
+            return JSONResponse({"error": "unauthorized"}, status_code=401)
+        return await call_next(request)
+
+
+def build_app() -> Starlette:
+    s = McpSettings()
+    token = s.mcp_auth_token.get_secret_value()
+    if not token:
+        raise RuntimeError("MCP_AUTH_TOKEN is required for HTTP transport")
+    inner = mcp.streamable_http_app()  # serves at /mcp
+    return Starlette(middleware=[Middleware(BearerAuthMiddleware, token=token)], routes=inner.routes, lifespan=inner.router.lifespan_context)
+```
+
+> Verify the exact FastMCP ASGI accessor for the installed `mcp` version (`streamable_http_app()` vs `sse_app()` vs `http_app()`); adapt. Confirm the mounted path is `/mcp` (matches the Hermes `url`).
+
+- [ ] `__main__.py`: if `MCP_TRANSPORT=http` (or `MCP_BIND` set) → `uvicorn.run(build_app(), host, port)`, else stdio (`mcp.run()`).
+- [ ] Tests: 401 without/with-wrong token; 200 + tool-list with correct token (Starlette `TestClient`). Add `uvicorn`, `starlette` (transitively via mcp), `httpx` test client to deps.
+- [ ] Triade + pytest green. Commit.
+
+### Task 3.2: Dockerfile + GHCR build
+
+- [ ] `tools/arrconf-mcp/Dockerfile` — multi-stage, `uv` install, `USER 1000:1000`, `CMD ["python","-m","arrconf_mcp"]` with `MCP_TRANSPORT=http`. Mirror `tools/arrconf/Dockerfile`. Note it must install the `arrconf` path dep (copy both packages or build a wheel).
+- [ ] New workflow `arrconf-mcp-image.yml` (mirror `arrconf-image.yml`): build + push `ghcr.io/tom333/arr-stack-arrconf-mcp` on push to main (paths `tools/arrconf-mcp/**`) + on `v*` tags. Commit.
+
+### Task 3.3: Secret — MCP_AUTH_TOKEN
+
+- [ ] Generate a strong random token. Store in cluster via **sealed-secrets** (my-kluster baseline) — add `MCP_AUTH_TOKEN` to a sealed secret (either extend `arrconf-env` or a dedicated `arrconf-mcp-env`). NEVER in the repo. Document the rotation procedure.
+
+### Task 3.4: Chart — alias + values + ingress (NO oauth2)
+
+- [ ] `Chart.yaml`: add `app-template@5.0.0` dep aliased `arrconf-mcp`. Run the multi-alias unpack workaround (README + chart-lint codify it).
+- [ ] `values.yaml` new `arrconf-mcp:` block:
+
+```yaml
+arrconf-mcp:
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/tom333/arr-stack-arrconf-mcp
+            repository: ghcr.io/tom333/arr-stack-arrconf-mcp
+            tag: "0.1.0"            # co-bump lockstep with chart tag when image changes
+          env:
+            TZ: "Europe/Paris"
+            MCP_TRANSPORT: "http"
+            MCP_BIND: "0.0.0.0:8080"
+            # in-cluster stack URLs are the McpSettings defaults (svc DNS) — no override needed
+          envFrom:
+            - secretRef:
+                name: arrconf-env        # stack API keys + MCP_AUTH_TOKEN
+  service:
+    main:
+      ports:
+        http:
+          port: 8080
+  ingress:
+    main:
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # NO oauth2 forwardAuth — Hermes is headless. Auth is the in-server bearer token.
+      hosts:
+        - host: mcp-arr.tgu.ovh
+          paths:
+            - path: /
+              pathType: Prefix
+              service: { identifier: main, port: http }
+      tls:
+        - secretName: arrconf-mcp-tls
+          hosts: [ mcp-arr.tgu.ovh ]
+  probes:
+    liveness:  { enabled: true, custom: true, spec: { httpGet: { path: /mcp, port: 8080 }, initialDelaySeconds: 15 } }
+    readiness: { enabled: true, custom: true, spec: { httpGet: { path: /mcp, port: 8080 }, initialDelaySeconds: 15 } }
+```
+
+> Probe note: `/mcp` returns 401 (no token) → a 401 still proves the server is up; set probe success to treat 401 as healthy, OR add a tiny unauthenticated `/healthz` route in `build_app()`. Prefer `/healthz` (cleaner).
+
+- [ ] Reuse the in-cluster stack: the MCP pod talks to sonarr/radarr/qbit/etc. via the svc-DNS defaults in `McpSettings` — same `arrconf-env` creds. No port-forward (unlike local stdio).
+- [ ] `helm lint` + `helm template | kubeconform`. Commit (chart-only co-bump rules: bump `arrconf-mcp` image tag in lockstep when the image changes).
+
+### Task 3.5: Deploy + verify + wire Hermes
+
+- [ ] my-kluster: targetRevision bump → ArgoCD sync. Respect the auto-tag race (push main → wait for chart-lint `tag` job → then the image build).
+- [ ] **Verify (Healthy ≠ works):** from outside, `curl -H "Authorization: Bearer <token>" https://mcp-arr.tgu.ovh/mcp` → MCP handshake; `curl` without token → 401; `/healthz` → 200.
+- [ ] Add the `mcp_servers.arrconf` block to Hermes `~/.hermes/config.yaml`, restart Hermes, confirm it lists the 10 arrconf tools.
+
+### Security checklist (Phase 3)
+- Bearer token only (no interactive auth path); token in sealed-secret; TLS enforced; rotation documented.
+- Phase 1 ships zero destructive tools; do Phase 2 (guardrails) BEFORE exposing write tools to an autonomous agent like Hermes — an auto-agent with unguarded delete/blocklist is a real risk. Recommended order: Phase 1 → **Phase 2 (guardrails)** → Phase 3 (expose to Hermes).
+- Consider a read-only token tier vs a write token (two `MCP_AUTH_TOKEN`s mapping to tool subsets) if Hermes should only observe.
 
 ---
 
