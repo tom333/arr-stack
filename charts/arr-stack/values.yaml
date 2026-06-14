@@ -877,12 +877,13 @@ arrconf-mcp:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf-mcp
             repository: ghcr.io/tom333/arr-stack-arrconf-mcp
-            tag: "0.1.0"  # co-bump lockstep with chart tag when the image changes
+            tag: "0.29.0"  # lockstep with the chart auto-tag (feat → minor from v0.28.1)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
             MCP_TRANSPORT: "http"
             MCP_BIND: "0.0.0.0:8080"
+            MCP_READONLY: "true"   # Hermes (autonomous) gets the 10 read/safe tools only — no destructive
             # in-cluster stack URLs are the McpSettings svc-DNS defaults — no override.
           envFrom:
             - secretRef:
