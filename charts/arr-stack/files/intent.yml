@@ -83,7 +83,12 @@ tools:
         priority: 3
     recyclebin_days: 30
     rem_orphaned: false
-    rem_unregistered: false
+    # Auto-remove torrents the tracker reports as unregistered/dead (qbit_manage
+    # matches specific msgs: "unregistered torrent", "not found", "trumped"…) →
+    # kills the dead-grab loop without manual cleanup. NB: tracker "Forbidden" /
+    # "no download permission" (account-gated) may NOT be classified unregistered,
+    # so this is best-effort; share_limits cleanup:false keeps good seeds safe.
+    rem_unregistered: true
 
 sagas: []
 
@@ -714,6 +719,14 @@ configarr:
       quality_definition:
         type: movie
         qualities:
+          # Remux-1080p was UNCAPPED (Radarr/TRaSH default ~187GB) → the "30GB Les Tuche 2"
+          # bloat. max 25 makes Radarr reject any Remux-1080p > 25GB. Defense-in-depth:
+          # the managed profiles (MULTi.VF/Anime/Family, v0.27.0) don't allow Remux anyway —
+          # this also bounds the stock-profile / manual-grab edge case. Per-INSTANCE cap.
+          - quality: Remux-1080p
+            min: 2
+            preferred: 20
+            max: 25
           - quality: WEBDL-1080p
             min: 2
             preferred: 25

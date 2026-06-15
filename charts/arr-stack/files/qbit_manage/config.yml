@@ -5,7 +5,7 @@ commands:
   recheck: false
   cat_update: false            # QBM-02: arrconf is sole category owner
   tag_update: true
-  rem_unregistered: false
+  rem_unregistered: true
   tag_tracker_error: true
   rem_orphaned: false
   tag_nohardlinks: false       # nohardlinks not configured in intent

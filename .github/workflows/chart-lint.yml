@@ -180,3 +180,14 @@ jobs:
             -f event_type=arrconf-image-build \
             -f client_payload[tag]="${{ steps.tag.outputs.new_tag }}"
           echo "Dispatched arrconf-image build for tag ${{ steps.tag.outputs.new_tag }}"
+
+      - name: Dispatch arrconf-mcp-image build for new tag
+        if: steps.tag.outputs.new_tag != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/dispatches" \
+            -f event_type=arrconf-mcp-image-build \
+            -f client_payload[tag]="${{ steps.tag.outputs.new_tag }}"
+          echo "Dispatched arrconf-mcp-image build for tag ${{ steps.tag.outputs.new_tag }}"

@@ -129,6 +129,10 @@ radarr:
         standard: default
     quality_definition:
       qualities:
+      - max: 25
+        min: 2
+        preferred: 20
+        quality: Remux-1080p
       - max: 50
         min: 2
         preferred: 25
