@@ -877,7 +877,7 @@ arrconf-mcp:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf-mcp
             repository: ghcr.io/tom333/arr-stack-arrconf-mcp
-            tag: "0.29.0"  # lockstep with the chart auto-tag (feat → minor from v0.28.1)
+            tag: "0.29.1"  # lockstep with the chart auto-tag (feat → minor from v0.28.1)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"

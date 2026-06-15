@@ -7,13 +7,20 @@ import structlog
 from arrconf.exceptions import ConfigError
 from arrconf.intent_config import IntentConfig, load_intent
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from arrconf_mcp import clients, formatting
 from arrconf_mcp.guardrails import require_confirm
 from arrconf_mcp.settings import McpSettings
 
 log = structlog.get_logger()
-mcp = FastMCP("arrconf-mcp")
+# DNS-rebinding protection defaults to localhost-only → rejects the in-cluster svc
+# Host (arrconf-mcp.selfhost.svc...) with HTTP 421. Disable it: the server is
+# ClusterIP-only and already gated by the bearer middleware (http.py).
+mcp = FastMCP(
+    "arrconf-mcp",
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+)
 settings = McpSettings()
 
 # Candidate locations for the hand-edited intent.yml (chart source of truth).
