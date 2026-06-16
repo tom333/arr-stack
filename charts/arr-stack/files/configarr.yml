@@ -187,7 +187,7 @@ radarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -211,7 +211,7 @@ radarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -235,7 +235,7 @@ radarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -334,7 +334,7 @@ sonarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -358,7 +358,7 @@ sonarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -382,7 +382,7 @@ sonarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000

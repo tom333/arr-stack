@@ -442,7 +442,7 @@ profile_definitions:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false   # policy: once downloaded, never grab a new version (no quality/score upgrade hunt → no dead-release re-grab loops on FR trackers)
         until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
@@ -475,7 +475,7 @@ profile_definitions:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false   # policy: once downloaded, never grab a new version (no quality/score upgrade hunt → no dead-release re-grab loops on FR trackers)
         until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
@@ -508,7 +508,7 @@ profile_definitions:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: true
+        allowed: false   # policy: once downloaded, never grab a new version (no quality/score upgrade hunt → no dead-release re-grab loops on FR trackers)
         until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
