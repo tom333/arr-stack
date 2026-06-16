@@ -443,7 +443,7 @@ profile_definitions:
         enabled: true
       upgrade:
         allowed: true
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
       min_format_score: 0
@@ -476,7 +476,7 @@ profile_definitions:
         enabled: true
       upgrade:
         allowed: true
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
       min_format_score: 0
@@ -509,7 +509,7 @@ profile_definitions:
         enabled: true
       upgrade:
         allowed: true
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
       min_format_score: 0

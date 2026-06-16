@@ -189,7 +189,7 @@ radarr:
       upgrade:
         allowed: true
         min_format_score: 50
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
     - language: Any
       min_format_score: 0
@@ -213,7 +213,7 @@ radarr:
       upgrade:
         allowed: true
         min_format_score: 50
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
     - language: Any
       min_format_score: 0
@@ -237,7 +237,7 @@ radarr:
       upgrade:
         allowed: true
         min_format_score: 50
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
 recyclarrConfigUrl: https://github.com/recyclarr/config-templates
 sonarr:
@@ -336,7 +336,7 @@ sonarr:
       upgrade:
         allowed: true
         min_format_score: 50
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
     - language: Any
       min_format_score: 0
@@ -360,7 +360,7 @@ sonarr:
       upgrade:
         allowed: true
         min_format_score: 50
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
     - language: Any
       min_format_score: 0
@@ -384,6 +384,6 @@ sonarr:
       upgrade:
         allowed: true
         min_format_score: 50
-        until_quality: Bluray-1080p
+        until_quality: WEB 1080p
         until_score: 2000
 trashGuideUrl: https://github.com/TRaSH-Guides/Guides
