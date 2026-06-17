@@ -45,3 +45,37 @@ def test_sonarr_series_becomes_row():
     assert row.type == "series"
     assert row.has_file is True  # all episodes present
     assert row.chain.imported is True
+
+
+def test_download_linked_via_queue_sets_chain():
+    src = sources(
+        radarr_movies=[
+            {
+                "id": 1,
+                "title": "M",
+                "tmdbId": 42,
+                "hasFile": False,
+                "monitored": True,
+            }
+        ],
+        radarr_queue=[
+            {"movieId": 1, "downloadId": "ABCDEF", "trackedDownloadStatus": "ok"}
+        ],
+        qbit_torrents=[
+            {
+                "hash": "abcdef",
+                "name": "M.2025.mkv",
+                "state": "downloading",
+                "progress": 0.5,
+                "category": "radarr-movies",
+                "save_path": "/data/x",
+                "tracker": "http://t/announce",
+            }
+        ],
+    )
+    snap = correlate(src, "t", [])
+    row = snap.rows[0]
+    assert len(row.downloads) == 1
+    assert row.downloads[0].infohash == "abcdef"
+    assert row.chain.grabbed is True
+    assert row.chain.downloaded is False  # progress 0.5
