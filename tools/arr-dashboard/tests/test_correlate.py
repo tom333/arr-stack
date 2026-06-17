@@ -120,3 +120,25 @@ def test_seerr_request_with_no_arr_item_creates_pending_row():
     assert row.chain.requested is True
     assert row.chain.grabbed is False
     assert row.request_status == "pending"
+
+
+def test_jellyfin_presence_sets_in_jellyfin():
+    src = sources(
+        radarr_movies=[
+            {
+                "id": 1,
+                "title": "Ratatouille",
+                "tmdbId": 2062,
+                "hasFile": True,
+                "monitored": True,
+                "movieFile": {"path": "/media/films/Ratatouille.mkv"},
+            }
+        ],
+        jellyfin_items=[
+            {"Name": "Ratatouille", "Type": "Movie", "ProviderIds": {"Tmdb": "2062"}}
+        ],
+    )
+    snap = correlate(src, "t", [])
+    row = snap.rows[0]
+    assert row.in_jellyfin is True
+    assert row.chain.in_jellyfin is True

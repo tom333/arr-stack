@@ -54,6 +54,19 @@ def _seerr_key(req: dict) -> str | None:
     return None
 
 
+def _jellyfin_keys(items: list[dict]) -> set[str]:
+    keys = set()
+    for it in items:
+        pid = it.get("ProviderIds") or {}
+        tmdb = pid.get("Tmdb") or pid.get("tmdb")
+        tvdb = pid.get("Tvdb") or pid.get("tvdb")
+        if tmdb:
+            keys.add(f"tmdb:{tmdb}")
+        if tvdb:
+            keys.add(f"tvdb:{tvdb}")
+    return keys
+
+
 def _torrent_index(qbit: list[dict]) -> dict[str, dict]:
     return {t["hash"].lower(): t for t in qbit if t.get("hash")}
 
@@ -126,6 +139,12 @@ def correlate(sources: dict, generated_at: str, stale_sources: list[str]) -> Sna
         row.chain.requested = True
         row.requested_by = (req.get("requestedBy") or {}).get("displayName")
         row.request_status = _SEERR_STATUS.get(req.get("status"), str(req.get("status")))
+
+    jf_keys = _jellyfin_keys(sources.get("jellyfin_items", []))
+    for row in rows.values():
+        if row.key in jf_keys:
+            row.in_jellyfin = True
+            row.chain.in_jellyfin = True
 
     return Snapshot(
         rows=list(rows.values()),
