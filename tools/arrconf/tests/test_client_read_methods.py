@@ -57,3 +57,29 @@ def test_radarr_list_queue():
     client = RadarrClient("http://r:7878", "key")
     out = client.list_queue()
     assert out[0]["downloadId"] == "ABCDEF"
+
+
+from arrconf.client_base import SeerrClient
+
+
+@respx.mock
+def test_seerr_list_requests():
+    respx.get("http://s:5055/api/v1/request").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "results": [
+                    {
+                        "id": 7,
+                        "type": "movie",
+                        "status": 2,
+                        "media": {"tmdbId": 42, "tvdbId": None},
+                        "requestedBy": {"displayName": "Thomas"},
+                    }
+                ]
+            },
+        )
+    )
+    client = SeerrClient("http://s:5055", "key")
+    out = client.list_requests()
+    assert out[0]["media"]["tmdbId"] == 42

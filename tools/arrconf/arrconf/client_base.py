@@ -195,6 +195,11 @@ class SeerrClient(ArrApiClient):
     api_path = "/api/v1"
     name = "seerr"
 
+    def list_requests(self) -> list[dict[str, Any]]:
+        """User requests (GET /request). Returns the results list."""
+        data = self.get("/request?take=200&sort=added")
+        return data.get("results", []) if isinstance(data, dict) else data
+
 
 class JellyfinClient(ArrApiClient):
     """Jellyfin 10.11.8 REST client — Phase 7 (D-07-AUTH-01).
