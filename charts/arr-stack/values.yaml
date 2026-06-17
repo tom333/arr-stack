@@ -921,3 +921,62 @@ arrconf-mcp:
         http:
           port: 8080
   # NO ingress block — ClusterIP only. Hermes reaches this via svc DNS.
+
+arr-dashboard:
+  global:
+    nameOverride: arr-dashboard
+    fullnameOverride: arr-dashboard
+  serviceAccount:
+    arr-dashboard: {}
+  controllers:
+    main:
+      type: deployment   # long-running HTTP server
+      replicas: 1
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
+            repository: ghcr.io/tom333/arr-stack-arr-dashboard
+            tag: "0.1.0"
+            pullPolicy: IfNotPresent
+          env:
+            TZ: "Europe/Paris"
+            DASHBOARD_REFRESH_SECONDS: "30"
+            DASHBOARD_BIND: "0.0.0.0:8080"
+            # in-cluster stack URLs are the Settings svc-DNS defaults — no override.
+          envFrom:
+            - secretRef:
+                name: arrconf-env   # stack API keys (read-only consumer)
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 30
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 30
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 8080
+  # NO ingress block — ClusterIP only.

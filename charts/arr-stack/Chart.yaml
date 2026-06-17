@@ -63,3 +63,7 @@ dependencies:
     alias: arrconf-mcp
     version: 5.0.0
     repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: arr-dashboard
+    version: 5.0.0
+    repository: https://bjw-s-labs.github.io/helm-charts

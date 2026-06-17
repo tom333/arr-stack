@@ -1709,6 +1709,10 @@
             "type": "object",
             "additionalProperties": true
         },
+        "arr-dashboard": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "sonarr": {
             "type": "object",
             "properties": {
