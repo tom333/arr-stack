@@ -1,7 +1,11 @@
+from typing import Any
+
 from arr_dashboard.models import ChainHealth, Download, Row, Snapshot
 
+Raw = dict[str, Any]
 
-def _movie_row(m: dict) -> Row:
+
+def _movie_row(m: Raw) -> Row:
     path = (m.get("movieFile") or {}).get("path")
     has_file = bool(m.get("hasFile"))
     return Row(
@@ -17,7 +21,7 @@ def _movie_row(m: dict) -> Row:
     )
 
 
-def _series_row(s: dict) -> Row:
+def _series_row(s: Raw) -> Row:
     st = s.get("statistics") or {}
     total = st.get("episodeCount", 0)
     have = st.get("episodeFileCount", 0)
@@ -43,7 +47,7 @@ _SEERR_STATUS = {
 }
 
 
-def _seerr_key(req: dict) -> str | None:
+def _seerr_key(req: Raw) -> str | None:
     media = req.get("media") or {}
     if req.get("type") == "movie" and media.get("tmdbId"):
         return f"tmdb:{media['tmdbId']}"
@@ -54,7 +58,7 @@ def _seerr_key(req: dict) -> str | None:
     return None
 
 
-def _jellyfin_keys(items: list[dict]) -> set[str]:
+def _jellyfin_keys(items: list[Raw]) -> set[str]:
     keys = set()
     for it in items:
         pid = it.get("ProviderIds") or {}
@@ -67,11 +71,11 @@ def _jellyfin_keys(items: list[dict]) -> set[str]:
     return keys
 
 
-def _torrent_index(qbit: list[dict]) -> dict[str, dict]:
+def _torrent_index(qbit: list[Raw]) -> dict[str, Raw]:
     return {t["hash"].lower(): t for t in qbit if t.get("hash")}
 
 
-def _to_download(t: dict) -> Download:
+def _to_download(t: Raw) -> Download:
     return Download(
         infohash=t["hash"].lower(),
         name=t.get("name", "?"),
@@ -83,7 +87,32 @@ def _to_download(t: dict) -> Download:
     )
 
 
-def correlate(sources: dict, generated_at: str, stale_sources: list[str]) -> Snapshot:
+def _compute_flags(row: Row) -> list[str]:
+    flags: list[str] = []
+    owned_evidence = bool(row.downloads) or bool(row.disk_paths)
+    if len(row.downloads) > 1:
+        flags.append("doublon")
+    if row.has_file is False and owned_evidence:
+        flags.append("deja-possede-regrab")
+    if row.has_file is False and any(d.progress >= 1.0 for d in row.downloads):
+        flags.append("non-importe")
+    if any(d.state in ("stalledDL", "missingFiles", "error") for d in row.downloads):
+        flags.append("bloque")
+    if row.chain.imported and not row.chain.in_jellyfin:
+        flags.append("pas-dans-jellyfin")
+    if not flags and row.chain.imported and row.chain.in_jellyfin:
+        flags.append("ok")
+    return flags
+
+
+def _sort_key(row: Row) -> tuple[bool, int, str]:
+    is_ok = row.flags == ["ok"]
+    return (is_ok, -len(row.flags), row.title.lower())
+
+
+def correlate(
+    sources: dict[str, list[Raw]], generated_at: str, stale_sources: list[str]
+) -> Snapshot:
     rows: dict[str, Row] = {}
     for m in sources.get("radarr_movies", []):
         if m.get("tmdbId"):
@@ -93,7 +122,7 @@ def correlate(sources: dict, generated_at: str, stale_sources: list[str]) -> Sna
         if s.get("tvdbId"):
             r = _series_row(s)
             rows[r.key] = r
-    by_arr_id: dict[tuple[str, int], Row] = {
+    by_arr_id: dict[tuple[str, Any], Row] = {
         ("radarr", m["id"]): rows[f"tmdb:{m['tmdbId']}"]
         for m in sources.get("radarr_movies", [])
         if m.get("tmdbId")
@@ -138,7 +167,8 @@ def correlate(sources: dict, generated_at: str, stale_sources: list[str]) -> Sna
             rows[key] = row
         row.chain.requested = True
         row.requested_by = (req.get("requestedBy") or {}).get("displayName")
-        row.request_status = _SEERR_STATUS.get(req.get("status"), str(req.get("status")))
+        status: Any = req.get("status")
+        row.request_status = _SEERR_STATUS.get(status, str(status))
 
     jf_keys = _jellyfin_keys(sources.get("jellyfin_items", []))
     for row in rows.values():
@@ -146,8 +176,11 @@ def correlate(sources: dict, generated_at: str, stale_sources: list[str]) -> Sna
             row.in_jellyfin = True
             row.chain.in_jellyfin = True
 
+    for row in rows.values():
+        row.flags = _compute_flags(row)
+    ordered = sorted(rows.values(), key=_sort_key)
     return Snapshot(
-        rows=list(rows.values()),
+        rows=ordered,
         generated_at=generated_at,
         stale_sources=stale_sources,
     )

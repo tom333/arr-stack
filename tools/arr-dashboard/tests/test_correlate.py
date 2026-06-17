@@ -58,9 +58,7 @@ def test_download_linked_via_queue_sets_chain():
                 "monitored": True,
             }
         ],
-        radarr_queue=[
-            {"movieId": 1, "downloadId": "ABCDEF", "trackedDownloadStatus": "ok"}
-        ],
+        radarr_queue=[{"movieId": 1, "downloadId": "ABCDEF", "trackedDownloadStatus": "ok"}],
         qbit_torrents=[
             {
                 "hash": "abcdef",
@@ -83,9 +81,7 @@ def test_download_linked_via_queue_sets_chain():
 
 def test_seerr_request_sets_requested_and_requester():
     src = sources(
-        radarr_movies=[
-            {"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}
-        ],
+        radarr_movies=[{"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}],
         seerr_requests=[
             {
                 "id": 7,
@@ -134,11 +130,139 @@ def test_jellyfin_presence_sets_in_jellyfin():
                 "movieFile": {"path": "/media/films/Ratatouille.mkv"},
             }
         ],
-        jellyfin_items=[
-            {"Name": "Ratatouille", "Type": "Movie", "ProviderIds": {"Tmdb": "2062"}}
-        ],
+        jellyfin_items=[{"Name": "Ratatouille", "Type": "Movie", "ProviderIds": {"Tmdb": "2062"}}],
     )
     snap = correlate(src, "t", [])
     row = snap.rows[0]
     assert row.in_jellyfin is True
     assert row.chain.in_jellyfin is True
+
+
+def _row_by_key(snap, key):
+    return [r for r in snap.rows if r.key == key][0]
+
+
+def test_flag_duplicate_two_downloads():
+    src = sources(
+        radarr_movies=[{"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}],
+        radarr_queue=[
+            {"movieId": 1, "downloadId": "AAA"},
+            {"movieId": 1, "downloadId": "BBB"},
+        ],
+        qbit_torrents=[
+            {"hash": "aaa", "name": "v1", "state": "downloading", "progress": 0.3},
+            {"hash": "bbb", "name": "v2", "state": "downloading", "progress": 0.1},
+        ],
+    )
+    snap = correlate(src, "t", [])
+    assert "doublon" in _row_by_key(snap, "tmdb:42").flags
+
+
+def test_flag_owned_but_regrab():
+    src = sources(
+        radarr_movies=[{"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}],
+        radarr_queue=[{"movieId": 1, "downloadId": "AAA"}],
+        qbit_torrents=[{"hash": "aaa", "name": "v", "state": "downloading", "progress": 0.3}],
+    )
+    snap = correlate(src, "t", [])
+    assert "deja-possede-regrab" in _row_by_key(snap, "tmdb:42").flags
+
+
+def test_flag_non_importe():
+    src = sources(
+        radarr_movies=[{"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}],
+        radarr_queue=[{"movieId": 1, "downloadId": "AAA"}],
+        qbit_torrents=[
+            {
+                "hash": "aaa",
+                "name": "v",
+                "state": "stalledUP",
+                "progress": 1.0,
+                "save_path": "/data/x",
+            }
+        ],
+    )
+    snap = correlate(src, "t", [])
+    flags = _row_by_key(snap, "tmdb:42").flags
+    assert "non-importe" in flags
+
+
+def test_flag_bloque():
+    src = sources(
+        radarr_movies=[{"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}],
+        radarr_queue=[{"movieId": 1, "downloadId": "AAA"}],
+        qbit_torrents=[{"hash": "aaa", "name": "v", "state": "missingFiles", "progress": 0.9}],
+    )
+    snap = correlate(src, "t", [])
+    assert "bloque" in _row_by_key(snap, "tmdb:42").flags
+
+
+def test_flag_pas_dans_jellyfin():
+    src = sources(
+        radarr_movies=[
+            {
+                "id": 1,
+                "title": "M",
+                "tmdbId": 42,
+                "hasFile": True,
+                "monitored": True,
+                "movieFile": {"path": "/media/x.mkv"},
+            }
+        ]
+    )
+    snap = correlate(src, "t", [])
+    assert "pas-dans-jellyfin" in _row_by_key(snap, "tmdb:42").flags
+
+
+def test_flag_ok_full_chain():
+    src = sources(
+        radarr_movies=[
+            {
+                "id": 1,
+                "title": "M",
+                "tmdbId": 42,
+                "hasFile": True,
+                "monitored": True,
+                "movieFile": {"path": "/media/x.mkv"},
+            }
+        ],
+        seerr_requests=[
+            {
+                "type": "movie",
+                "status": 5,
+                "media": {"tmdbId": 42},
+                "requestedBy": {"displayName": "T"},
+            }
+        ],
+        jellyfin_items=[{"Type": "Movie", "ProviderIds": {"Tmdb": "42"}}],
+    )
+    snap = correlate(src, "t", [])
+    row = _row_by_key(snap, "tmdb:42")
+    assert row.flags == ["ok"]
+
+
+def test_problem_rows_sorted_first():
+    src = sources(
+        radarr_movies=[
+            {
+                "id": 1,
+                "title": "Good",
+                "tmdbId": 1,
+                "hasFile": True,
+                "monitored": True,
+                "movieFile": {"path": "/media/g.mkv"},
+            },
+            {"id": 2, "title": "Dup", "tmdbId": 2, "hasFile": False, "monitored": True},
+        ],
+        radarr_queue=[
+            {"movieId": 2, "downloadId": "AAA"},
+            {"movieId": 2, "downloadId": "BBB"},
+        ],
+        qbit_torrents=[
+            {"hash": "aaa", "name": "a", "state": "downloading", "progress": 0.1},
+            {"hash": "bbb", "name": "b", "state": "downloading", "progress": 0.1},
+        ],
+        jellyfin_items=[{"Type": "Movie", "ProviderIds": {"Tmdb": "1"}}],
+    )
+    snap = correlate(src, "t", [])
+    assert snap.rows[0].key == "tmdb:2"  # problem first
