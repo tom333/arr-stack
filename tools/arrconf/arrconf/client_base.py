@@ -123,7 +123,9 @@ class _ArrV3Client(ArrApiClient):
     def list_queue(self) -> list[dict[str, Any]]:
         """Active download queue (GET /queue). Returns the records list."""
         data = self.get("/queue?pageSize=1000")
-        records: list[dict[str, Any]] = data.get("records", []) if isinstance(data, dict) else data
+        records: list[dict[str, Any]] = (
+            data.get("records", []) if isinstance(data, dict) else (data or [])
+        )
         return records
 
     def put(self, path: str, id: int, json: Any, **kwargs: Any) -> Any:
@@ -199,7 +201,9 @@ class SeerrClient(ArrApiClient):
     def list_requests(self) -> list[dict[str, Any]]:
         """User requests (GET /request). Returns the results list."""
         data = self.get("/request?take=200&sort=added")
-        results: list[dict[str, Any]] = data.get("results", []) if isinstance(data, dict) else data
+        results: list[dict[str, Any]] = (
+            data.get("results", []) if isinstance(data, dict) else (data or [])
+        )
         return results
 
 
@@ -248,7 +252,9 @@ class JellyfinClient(ArrApiClient):
     def list_items(self) -> list[dict[str, Any]]:
         """Library items with provider IDs (GET /Items). Returns the Items list."""
         data = self.get("/Items?Recursive=true&IncludeItemTypes=Movie,Series&Fields=ProviderIds")
-        items: list[dict[str, Any]] = data.get("Items", []) if isinstance(data, dict) else data
+        items: list[dict[str, Any]] = (
+            data.get("Items", []) if isinstance(data, dict) else (data or [])
+        )
         return items
 
 
