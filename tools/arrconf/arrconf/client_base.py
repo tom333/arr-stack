@@ -338,6 +338,10 @@ class QbittorrentClient:
         ctype = r.headers.get("content-type", "")
         return r.json() if "application/json" in ctype else r.text
 
+    def list_torrents(self) -> list[dict[str, Any]]:
+        """All torrents with state/progress/category/save_path (GET /torrents/info)."""
+        return self.get("/torrents/info")
+
     def post_form(self, path: str, data: dict[str, str]) -> None:
         """POST form-encoded — qBit's categories + preferences API style.
 
