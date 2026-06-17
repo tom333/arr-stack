@@ -470,7 +470,7 @@ arrconf:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf
             repository: ghcr.io/tom333/arr-stack-arrconf
-            tag: "0.28.1"
+            tag: "0.32.0"
             pullPolicy: IfNotPresent
           args:
             - "--config"
@@ -937,7 +937,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.1.0"
+            tag: "0.32.0"
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
