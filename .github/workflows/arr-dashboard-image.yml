@@ -1,0 +1,57 @@
+name: arr-dashboard-image
+
+on:
+  push:
+    branches: [main]
+    paths: ['tools/arr-dashboard/**', 'tools/arrconf/**']
+    tags: ['v*']
+  pull_request:
+    paths: ['tools/arr-dashboard/**', 'tools/arrconf/**']
+  repository_dispatch:
+    types: [arr-dashboard-image-build]
+  workflow_dispatch:
+    inputs:
+      tag_ref:
+        description: 'Tag ref to build (e.g. v0.3.1). Defaults to current ref.'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref }}
+      - uses: docker/setup-buildx-action@v4
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/tom333/arr-stack-arr-dashboard
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=ref,event=branch,prefix=branch-
+            type=semver,pattern={{version}},value=${{ github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref_name }}
+            type=raw,value=latest,enable=${{ startsWith(github.event.client_payload.tag || github.event.inputs.tag_ref || github.ref_name, 'v') }}
+      - uses: docker/build-push-action@v7
+        with:
+          # Build context is the repo root: the Dockerfile copies BOTH
+          # tools/arr-dashboard and the tools/arrconf path-dep sibling.
+          context: .
+          file: tools/arr-dashboard/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
