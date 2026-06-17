@@ -30,3 +30,30 @@ def test_qbit_list_torrents_returns_list():
     out = client.list_torrents()
     assert isinstance(out, list)
     assert out[0]["hash"] == "AB"
+
+
+from arrconf.client_base import RadarrClient
+
+
+@respx.mock
+def test_radarr_list_queue():
+    respx.get("http://r:7878/api/v3/queue").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "records": [
+                    {
+                        "id": 1,
+                        "movieId": 42,
+                        "title": "M",
+                        "status": "downloading",
+                        "downloadId": "ABCDEF",
+                        "trackedDownloadStatus": "ok",
+                    }
+                ]
+            },
+        )
+    )
+    client = RadarrClient("http://r:7878", "key")
+    out = client.list_queue()
+    assert out[0]["downloadId"] == "ABCDEF"

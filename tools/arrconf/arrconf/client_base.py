@@ -120,6 +120,11 @@ class _ArrV3Client(ArrApiClient):
     discipline burden — D-02.2-02).
     """
 
+    def list_queue(self) -> list[dict[str, Any]]:
+        """Active download queue (GET /queue). Returns the records list."""
+        data = self.get("/queue?pageSize=1000")
+        return data.get("records", data) if isinstance(data, dict) else data
+
     def put(self, path: str, id: int, json: Any, **kwargs: Any) -> Any:
         """HTTP PUT /{path}/{id} with ``forceSave=true`` always set.
 
