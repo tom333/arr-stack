@@ -6,6 +6,7 @@ on:
       - 'tools/arrconf/**'
       - 'tools/arrconf-ui/**'
       - 'tools/arrconf-mcp/**'
+      - 'tools/arr-dashboard/**'
       - 'schemas/**'
       - 'examples/**'
       - 'charts/arr-stack/files/**'
@@ -16,6 +17,7 @@ on:
       - 'tools/arrconf/**'
       - 'tools/arrconf-ui/**'
       - 'tools/arrconf-mcp/**'
+      - 'tools/arr-dashboard/**'
       - 'schemas/**'
       - 'examples/**'
       - 'charts/arr-stack/files/**'
@@ -172,6 +174,64 @@ jobs:
 
       - name: Run tests
         run: uv run pytest -q
+
+  arr-dashboard:
+    # arr-dashboard read-only service (Phase 7). Python triad + pytest with coverage gate.
+    # Reuses arrconf as a sibling editable path dep (uv.sources).
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/arr-dashboard
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          version: "0.11.x"
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies (frozen, includes sibling editable arrconf)
+        run: uv sync --frozen
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check .
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Type check (mypy)
+        run: uv run mypy arr_dashboard
+
+      - name: Run tests with coverage
+        run: uv run pytest --cov=arr_dashboard --cov-report=term-missing --cov-fail-under=70
+
+  arr-dashboard-frontend:
+    # arr-dashboard Svelte/Vite frontend (Phase 7). Mirrors arrconf-ui-frontend.
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/arr-dashboard/web
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 22 (D-17-NODE-01 — hardcoded LTS active)
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tools/arr-dashboard/web/package-lock.json
+
+      - name: Install dependencies (npm ci — deterministic from package-lock.json)
+        run: npm ci
+
+      - name: Build (Vite)
+        run: npm run build
 
   arrconf-ui-frontend:
     # Phase 17 — REQ-arrconf-ui-ci. Full Svelte/Vite quad.
