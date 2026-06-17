@@ -79,3 +79,44 @@ def test_download_linked_via_queue_sets_chain():
     assert row.downloads[0].infohash == "abcdef"
     assert row.chain.grabbed is True
     assert row.chain.downloaded is False  # progress 0.5
+
+
+def test_seerr_request_sets_requested_and_requester():
+    src = sources(
+        radarr_movies=[
+            {"id": 1, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}
+        ],
+        seerr_requests=[
+            {
+                "id": 7,
+                "type": "movie",
+                "status": 2,
+                "media": {"tmdbId": 42},
+                "requestedBy": {"displayName": "Thomas"},
+            }
+        ],
+    )
+    snap = correlate(src, "t", [])
+    row = snap.rows[0]
+    assert row.chain.requested is True
+    assert row.requested_by == "Thomas"
+    assert row.request_status == "approved"
+
+
+def test_seerr_request_with_no_arr_item_creates_pending_row():
+    src = sources(
+        seerr_requests=[
+            {
+                "id": 8,
+                "type": "movie",
+                "status": 1,
+                "media": {"tmdbId": 99},
+                "requestedBy": {"displayName": "Emilie"},
+            }
+        ]
+    )
+    snap = correlate(src, "t", [])
+    row = [r for r in snap.rows if r.key == "tmdb:99"][0]
+    assert row.chain.requested is True
+    assert row.chain.grabbed is False
+    assert row.request_status == "pending"

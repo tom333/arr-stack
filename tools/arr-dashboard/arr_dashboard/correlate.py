@@ -34,6 +34,26 @@ def _series_row(s: dict) -> Row:
     )
 
 
+_SEERR_STATUS = {
+    1: "pending",
+    2: "approved",
+    3: "declined",
+    4: "partially-available",
+    5: "available",
+}
+
+
+def _seerr_key(req: dict) -> str | None:
+    media = req.get("media") or {}
+    if req.get("type") == "movie" and media.get("tmdbId"):
+        return f"tmdb:{media['tmdbId']}"
+    if req.get("type") in ("tv", "series") and media.get("tvdbId"):
+        return f"tvdb:{media['tvdbId']}"
+    if media.get("tmdbId"):
+        return f"tmdb:{media['tmdbId']}"
+    return None
+
+
 def _torrent_index(qbit: list[dict]) -> dict[str, dict]:
     return {t["hash"].lower(): t for t in qbit if t.get("hash")}
 
@@ -90,6 +110,22 @@ def correlate(sources: dict, generated_at: str, stale_sources: list[str]) -> Sna
                 row.downloads.append(d)
                 if d.progress >= 1.0:
                     row.chain.downloaded = True
+
+    for req in sources.get("seerr_requests", []):
+        key = _seerr_key(req)
+        if not key:
+            continue
+        row = rows.get(key)
+        if row is None:
+            row = Row(
+                key=key,
+                title=(req.get("media") or {}).get("title", key),
+                type="movie" if key.startswith("tmdb:") else "series",
+            )
+            rows[key] = row
+        row.chain.requested = True
+        row.requested_by = (req.get("requestedBy") or {}).get("displayName")
+        row.request_status = _SEERR_STATUS.get(req.get("status"), str(req.get("status")))
 
     return Snapshot(
         rows=list(rows.values()),
