@@ -1,7 +1,12 @@
 import httpx
 import respx
 
-from arrconf.client_base import QbittorrentClient
+from arrconf.client_base import (
+    JellyfinClient,
+    QbittorrentClient,
+    RadarrClient,
+    SeerrClient,
+)
 
 
 @respx.mock
@@ -32,9 +37,6 @@ def test_qbit_list_torrents_returns_list():
     assert out[0]["hash"] == "AB"
 
 
-from arrconf.client_base import RadarrClient
-
-
 @respx.mock
 def test_radarr_list_queue():
     respx.get("http://r:7878/api/v3/queue").mock(
@@ -59,9 +61,6 @@ def test_radarr_list_queue():
     assert out[0]["downloadId"] == "ABCDEF"
 
 
-from arrconf.client_base import SeerrClient
-
-
 @respx.mock
 def test_seerr_list_requests():
     respx.get("http://s:5055/api/v1/request").mock(
@@ -83,3 +82,18 @@ def test_seerr_list_requests():
     client = SeerrClient("http://s:5055", "key")
     out = client.list_requests()
     assert out[0]["media"]["tmdbId"] == 42
+
+
+@respx.mock
+def test_jellyfin_list_items():
+    respx.get("http://j:8096/Items").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "Items": [{"Name": "Ratatouille", "Type": "Movie", "ProviderIds": {"Tmdb": "2062"}}]
+            },
+        )
+    )
+    client = JellyfinClient("http://j:8096", "key")
+    out = client.list_items()
+    assert out[0]["ProviderIds"]["Tmdb"] == "2062"

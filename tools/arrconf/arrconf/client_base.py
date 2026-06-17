@@ -123,7 +123,8 @@ class _ArrV3Client(ArrApiClient):
     def list_queue(self) -> list[dict[str, Any]]:
         """Active download queue (GET /queue). Returns the records list."""
         data = self.get("/queue?pageSize=1000")
-        return data.get("records", data) if isinstance(data, dict) else data
+        records: list[dict[str, Any]] = data.get("records", []) if isinstance(data, dict) else data
+        return records
 
     def put(self, path: str, id: int, json: Any, **kwargs: Any) -> Any:
         """HTTP PUT /{path}/{id} with ``forceSave=true`` always set.
@@ -198,7 +199,8 @@ class SeerrClient(ArrApiClient):
     def list_requests(self) -> list[dict[str, Any]]:
         """User requests (GET /request). Returns the results list."""
         data = self.get("/request?take=200&sort=added")
-        return data.get("results", []) if isinstance(data, dict) else data
+        results: list[dict[str, Any]] = data.get("results", []) if isinstance(data, dict) else data
+        return results
 
 
 class JellyfinClient(ArrApiClient):
@@ -242,6 +244,12 @@ class JellyfinClient(ArrApiClient):
                 f'Version="0.5.0"'
             )
         }
+
+    def list_items(self) -> list[dict[str, Any]]:
+        """Library items with provider IDs (GET /Items). Returns the Items list."""
+        data = self.get("/Items?Recursive=true&IncludeItemTypes=Movie,Series&Fields=ProviderIds")
+        items: list[dict[str, Any]] = data.get("Items", []) if isinstance(data, dict) else data
+        return items
 
 
 class QbittorrentClient:
@@ -350,7 +358,8 @@ class QbittorrentClient:
 
     def list_torrents(self) -> list[dict[str, Any]]:
         """All torrents with state/progress/category/save_path (GET /torrents/info)."""
-        return self.get("/torrents/info")
+        torrents: list[dict[str, Any]] = self.get("/torrents/info")
+        return torrents
 
     def post_form(self, path: str, data: dict[str, str]) -> None:
         """POST form-encoded — qBit's categories + preferences API style.
