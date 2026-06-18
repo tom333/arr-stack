@@ -29,7 +29,9 @@
   async function doRemove() { const r = removing; removing = null; if (r) await removeStuck(r.key); }
   async function doScan(r: Row) { await jellyfinScan(r.key); }
   const isStuck = (r: Row) => r.flags.includes("bloque");
-  const notInJf = (r: Row) => r.flags.includes("pas-dans-jellyfin");
+  // disk_paths is only populated for movie rows (correlate.py) → a scan needs a path,
+  // so series rows (always empty disk_paths) would 409. Gate the button on having a path.
+  const notInJf = (r: Row) => r.flags.includes("pas-dans-jellyfin") && r.disk_paths.length > 0;
 </script>
 
 <header>
