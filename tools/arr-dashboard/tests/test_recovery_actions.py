@@ -55,6 +55,13 @@ def test_delete_download_calls_qbit_delete_with_files():
     assert qb.deleted == [{"path": "/torrents/delete", "hashes": "HASH1", "deleteFiles": "true"}]
 
 
+def test_delete_download_rejects_empty_infohash():
+    qb = FakeQbit()
+    with pytest.raises(RecoveryActionError):
+        delete_download("", qb)
+    assert qb.deleted == []  # nothing sent to qBit
+
+
 def test_remove_stuck_deletes_only_stuck_and_cleans_queue():
     row = _row(
         arr_app="sonarr",

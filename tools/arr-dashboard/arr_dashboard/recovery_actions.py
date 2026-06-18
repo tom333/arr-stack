@@ -12,6 +12,8 @@ class RecoveryActionError(Exception):
 
 def delete_download(infohash: str, qbit: Any) -> None:
     """Remove a single torrent + its files from qBit (the operator's chosen duplicate)."""
+    if not infohash:
+        raise RecoveryActionError("delete_download: empty infohash")
     qbit.post_form("/torrents/delete", {"hashes": infohash, "deleteFiles": "true"})
 
 
