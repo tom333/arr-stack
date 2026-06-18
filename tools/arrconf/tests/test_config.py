@@ -174,6 +174,17 @@ def test_load_config_qbittorrent_preferences_extra_forbid_rejects_unknown_key(
     assert "max_active_downloads" in str(exc_info.value)
 
 
+def test_load_config_qbittorrent_preferences_allows_temp_path_enabled(tmp_path: Path) -> None:
+    """temp_path_enabled is in the allowlist (2026-06-18 decision) — load must accept it."""
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text(
+        "qbittorrent:\n  main:\n    base_url: http://qbit:8080\n"
+        "    preferences:\n      enable: true\n      values:\n        temp_path_enabled: false\n"
+    )
+    result = load_config(cfg)
+    assert result.qbittorrent["main"].preferences.values.temp_path_enabled is False
+
+
 def test_load_config_qbittorrent_preferences_enable_defaults_to_false(tmp_path: Path) -> None:
     """Phase 5 D-03-04 mirror: preferences.enable is False by default (opt-in)."""
     cfg = tmp_path / "cfg.yml"

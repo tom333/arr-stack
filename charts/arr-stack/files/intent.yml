@@ -241,6 +241,14 @@ apps:
         values:
           auto_tmm_enabled: true
           category_changed_tmm_enabled: true
+          # temp_path off (2026-06-18): download straight into the category save_path,
+          # no separate /data/incomplete dir. Kills qBit's completion-move step, which
+          # only fires on the live completion event + is NOT retried on restart — a qBit
+          # restart at the wrong moment stranded completed torrents in /data/incomplete
+          # (no remote-path-mapping there → Sonarr/Radarr couldn't import). No move = no
+          # stranding. Partial downloads live in the download area (NOT the Jellyfin
+          # /media library); arr still imports only completed torrents.
+          temp_path_enabled: false
 
   # Phase 6 (D-06-SCOPE-01): Seerr reconciler — single-instance per ADR-7.
   # 4 resources managed:

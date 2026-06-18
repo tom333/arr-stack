@@ -101,6 +101,7 @@ qbittorrent:
       values:
         auto_tmm_enabled: true
         category_changed_tmm_enabled: true
+        temp_path_enabled: false
 radarr:
   main:
     base_url: http://radarr.selfhost.svc.cluster.local:7878

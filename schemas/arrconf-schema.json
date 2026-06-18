@@ -1218,7 +1218,7 @@
     },
     "QbitPreferences": {
       "additionalProperties": false,
-      "description": "4-key allowlist for qBit setPreferences (D-05-QBT-02 + Q2).\n\nqBit's /api/v2/app/preferences returns ~80 keys. Most are operator-\ncontrolled (UI theme, port, bandwidth limits). arrconf manages\nONLY the 4 keys below \u2014 adding more requires an explicit decision.\n\nextra=\"forbid\" enforces this at the YAML layer: an operator who\ndrops a stray `max_active_downloads:` in YAML gets a clear\nValidationError pointing at the unknown key.\n\nPitfall 4 (RESEARCH.md line 858): the reconciler MUST serialize\nbooleans as JSON-typed `true`/`false`, NOT as quoted strings.",
+      "description": "5-key allowlist for qBit setPreferences (D-05-QBT-02 + Q2).\n\nqBit's /api/v2/app/preferences returns ~80 keys. Most are operator-\ncontrolled (UI theme, port, bandwidth limits). arrconf manages\nONLY the keys below \u2014 adding more requires an explicit decision.\n\nextra=\"forbid\" enforces this at the YAML layer: an operator who\ndrops a stray `max_active_downloads:` in YAML gets a clear\nValidationError pointing at the unknown key.\n\n``temp_path_enabled`` added 2026-06-18 (explicit decision): set False so\ndownloads land directly in the category save_path instead of a separate\nincomplete dir. Removes qBit's completion-move step \u2014 the move only fires\non the live completion event and is NOT retried on restart, so a qBit\nrestart at the wrong moment stranded completed torrents in /data/incomplete\n(no remote-path-mapping there \u2192 arr could not import). No move = no stranding.\n\nPitfall 4 (RESEARCH.md line 858): the reconciler MUST serialize\nbooleans as JSON-typed `true`/`false`, NOT as quoted strings.",
       "properties": {
         "auto_tmm_enabled": {
           "anyOf": [
@@ -1255,6 +1255,18 @@
           ],
           "default": null,
           "title": "Save Path"
+        },
+        "temp_path_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temp Path Enabled"
         },
         "torrent_changed_tmm_enabled": {
           "anyOf": [
