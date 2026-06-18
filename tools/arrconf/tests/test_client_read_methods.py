@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import respx
 
@@ -110,3 +112,19 @@ def test_radarr_manual_import_candidates():
     client = RadarrClient("http://r:7878", "key")
     out = client.manual_import_candidates("/data/x")
     assert out[0]["movie"]["id"] == 42
+
+
+@respx.mock
+def test_radarr_manual_import_posts_copy_command():
+    route = respx.post("http://r:7878/api/v3/command").mock(
+        return_value=httpx.Response(
+            201, json={"id": 99, "name": "ManualImport", "status": "started"}
+        )
+    )
+    client = RadarrClient("http://r:7878", "key")
+    out = client.manual_import([{"path": "/data/x/M.mkv", "movieId": 42}], mode="Copy")
+    assert out["id"] == 99
+    body = json.loads(route.calls.last.request.content)
+    assert body["name"] == "ManualImport"
+    assert body["importMode"] == "Copy"
+    assert body["files"][0]["movieId"] == 42

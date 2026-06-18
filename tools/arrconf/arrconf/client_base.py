@@ -129,7 +129,7 @@ class _ArrV3Client(ArrApiClient):
         return records
 
     def manual_import_candidates(self, folder: str) -> list[dict[str, Any]]:
-        """Importable file candidates under a download folder (GET /manualimport)."""
+        """Return importable file candidates under a download folder (GET /manualimport)."""
         import urllib.parse
 
         q = urllib.parse.quote(folder)
