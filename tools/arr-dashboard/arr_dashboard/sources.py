@@ -36,16 +36,26 @@ def _safe(
         return None
 
 
+def build_clients(settings: Settings) -> dict[str, object]:
+    clients: dict[str, object] = {}
+    if settings.radarr_api_key:
+        clients["radarr"] = RadarrClient(settings.radarr_url, settings.radarr_api_key)
+    if settings.sonarr_api_key:
+        clients["sonarr"] = SonarrClient(settings.sonarr_url, settings.sonarr_api_key)
+    return clients
+
+
 def fetch_all(settings: Settings) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
     src: dict[str, list[dict[str, Any]]] = {k: [] for k in EMPTY}
     stale: list[str] = []
+    clients = build_clients(settings)
 
-    if settings.radarr_api_key:
-        radarr = RadarrClient(settings.radarr_url, settings.radarr_api_key)
+    radarr = clients.get("radarr")
+    if isinstance(radarr, RadarrClient):
         src["radarr_movies"] = _safe("radarr", lambda: radarr.get("/movie"), stale) or []
         src["radarr_queue"] = _safe("radarr_queue", radarr.list_queue, stale) or []
-    if settings.sonarr_api_key:
-        sonarr = SonarrClient(settings.sonarr_url, settings.sonarr_api_key)
+    sonarr = clients.get("sonarr")
+    if isinstance(sonarr, SonarrClient):
         src["sonarr_series"] = _safe("sonarr", lambda: sonarr.get("/series"), stale) or []
         src["sonarr_queue"] = _safe("sonarr_queue", sonarr.list_queue, stale) or []
     if settings.qbt_user and settings.qbt_pass:
