@@ -11,6 +11,7 @@ class Download(BaseModel):
     category: str | None = None
     tracker: str | None = None
     save_path: str | None = None
+    size: int | None = None
 
 
 class ChainHealth(BaseModel):
@@ -29,6 +30,7 @@ class Row(BaseModel):
     requested_by: str | None = None
     request_status: str | None = None
     arr_app: Literal["sonarr", "radarr"] | None = None
+    arr_id: int | None = None
     monitored: bool | None = None
     has_file: bool | None = None
     quality: str | None = None
@@ -37,6 +39,15 @@ class Row(BaseModel):
     in_jellyfin: bool = False
     chain: ChainHealth = Field(default_factory=ChainHealth)
     flags: list[str] = Field(default_factory=list)
+
+
+class ActionJob(BaseModel):
+    key: str
+    title: str
+    app: Literal["radarr", "sonarr"]
+    state: Literal["queued", "running", "done", "failed"] = "queued"
+    message: str | None = None
+    enqueued_at: str | None = None
 
 
 class Snapshot(BaseModel):

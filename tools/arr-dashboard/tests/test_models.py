@@ -1,4 +1,4 @@
-from arr_dashboard.models import ChainHealth, Download, Row, Snapshot
+from arr_dashboard.models import ActionJob, ChainHealth, Download, Row, Snapshot
 
 
 def test_row_defaults_and_serialization():
@@ -28,3 +28,19 @@ def test_snapshot_holds_rows():
 def test_download_model():
     d = Download(infohash="ab", name="x", state="downloading", progress=0.5)
     assert d.category is None
+
+
+def test_download_has_size():
+    d = Download(infohash="a", name="x", state="downloading", progress=0.5, size=123)
+    assert d.size == 123
+
+
+def test_row_has_arr_id():
+    r = Row(key="tmdb:1", title="M", type="movie", arr_id=42, chain=ChainHealth())
+    assert r.arr_id == 42
+
+
+def test_action_job_defaults():
+    j = ActionJob(key="tmdb:1", title="M", app="radarr")
+    assert j.state == "queued"
+    assert j.message is None
