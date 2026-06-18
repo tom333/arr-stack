@@ -193,7 +193,7 @@ qbittorrent:
           image:
             # renovate: image=lscr.io/linuxserver/qbittorrent
             repository: lscr.io/linuxserver/qbittorrent
-            tag: "5.2.0"  # pinned per D-04-PIN-01 from evidence/current-image-tags.txt digest sha256:2e0148... (was: latest)
+            tag: "5.2.2"  # pinned per D-04-PIN-01 from evidence/current-image-tags.txt digest sha256:2e0148... (was: latest)
           env:
             TZ: "Europe/Paris"
             PUID: "1000"
