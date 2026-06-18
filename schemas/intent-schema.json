@@ -78,7 +78,7 @@
             }
           ],
           "default": null,
-          "description": "Skip searchees first seen longer ago than this (must be 2-5x exclude_recent_search).",
+          "description": "Skip searchees first seen older than this (2-5x exclude_recent_search).",
           "title": "Exclude Older"
         },
         "exclude_recent_search": {
@@ -91,7 +91,7 @@
             }
           ],
           "default": null,
-          "description": "Skip searchees searched more recently than this. Required when search_cadence set.",
+          "description": "Skip searchees searched more recently than this; required w/ search_cadence.",
           "title": "Exclude Recent Search"
         },
         "link_dirs": {
