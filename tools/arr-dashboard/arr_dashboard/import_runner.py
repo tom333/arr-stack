@@ -46,9 +46,12 @@ def perform_import(row: Row, client: Any) -> None:
     Raises ``ImportActionError`` on no matching candidate, command failure,
     or timeout.
     """
-    dl = row.downloads[0] if row.downloads else None
+    # Only a completed download has a file on disk to import. An in-progress
+    # download (progress < 1.0) has nothing to scan — refuse up front with a clear
+    # message instead of fruitlessly scanning the save-root ("no matching file").
+    dl = next((d for d in row.downloads if (d.progress or 0.0) >= 1.0), None)
     if dl is None or not dl.content_path or row.arr_id is None:
-        raise ImportActionError(f"{row.key}: no importable download")
+        raise ImportActionError(f"{row.key}: no completed download to import")
     try:
         mappings = client.get("/remotepathmapping") or []
     except Exception:

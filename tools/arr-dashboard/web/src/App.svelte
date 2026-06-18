@@ -24,7 +24,12 @@
 
   const visible = $derived(
     !snap ? [] : snap.rows.filter((r: Row) => !problemsOnly || !(r.flags.length === 1 && r.flags[0] === "ok")));
-  const importable = (r: Row) => r.flags.includes("non-importe") || r.flags.includes("deja-possede-regrab");
+  // Import needs a file on disk: a completed download (progress 1.0) or an existing
+  // disk path. Without this, a 0%-progress download trips deja-possede-regrab and the
+  // button is offered, but perform_import has nothing to scan ("no matching file").
+  const hasReadyFile = (r: Row) => r.disk_paths.length > 0 || r.downloads.some((d) => d.progress >= 1);
+  const importable = (r: Row) =>
+    (r.flags.includes("non-importe") || r.flags.includes("deja-possede-regrab")) && hasReadyFile(r);
   let removing = $state<Row | null>(null);
   async function doRemove() { const r = removing; removing = null; if (r) await removeStuck(r.key); }
   async function doScan(r: Row) { await jellyfinScan(r.key); }

@@ -1,6 +1,7 @@
 import httpx
+import pytest
 import respx
-from arr_dashboard.import_runner import perform_import
+from arr_dashboard.import_runner import ImportActionError, perform_import
 from arr_dashboard.models import ChainHealth, Download, Row
 from arrconf.client_base import RadarrClient
 
@@ -72,6 +73,18 @@ def test_perform_import_copies_matching_file():
     body = json.loads(cmd.calls.last.request.content)
     assert body["importMode"] == "Copy"
     assert [f["movieId"] for f in body["files"]] == [7]  # only the matching file
+
+
+@respx.mock
+def test_perform_import_raises_on_incomplete_download():
+    # A 0%-progress download has no file on disk yet → perform_import must refuse
+    # up front (clear error), NOT scan a folder for a file that isn't there.
+    # No respx mocks here: if it raises ImportActionError it short-circuited before
+    # any HTTP call (an HTTP attempt would raise a respx/httpx error instead).
+    row = _row()
+    row.downloads[0].progress = 0.0
+    with pytest.raises(ImportActionError):
+        perform_import(row, RadarrClient("http://r:7878", "key"))
 
 
 @respx.mock
