@@ -21,14 +21,22 @@ def _row():
                 state="stalledUP",
                 progress=1.0,
                 save_path="/data/x",
+                content_path="/data/x/M.mkv",
                 size=4096,
             )
         ],
     )
 
 
+def _mock_no_mappings():
+    respx.get("http://r:7878/api/v3/remotepathmapping").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+
+
 @respx.mock
 def test_perform_import_copies_matching_file():
+    _mock_no_mappings()
     respx.get("http://r:7878/api/v3/manualimport").mock(
         return_value=httpx.Response(
             200,
@@ -68,6 +76,7 @@ def test_perform_import_copies_matching_file():
 
 @respx.mock
 def test_perform_import_raises_when_no_match():
+    _mock_no_mappings()
     respx.get("http://r:7878/api/v3/manualimport").mock(
         return_value=httpx.Response(
             200,
@@ -82,6 +91,7 @@ def test_perform_import_raises_when_no_match():
 
 @respx.mock
 def test_perform_import_skips_candidate_without_path():
+    _mock_no_mappings()
     respx.get("http://r:7878/api/v3/manualimport").mock(
         return_value=httpx.Response(
             200,
@@ -92,3 +102,54 @@ def test_perform_import_skips_candidate_without_path():
 
     with pytest.raises(Exception):
         perform_import(_row(), RadarrClient("http://r:7878", "key"))
+
+
+@respx.mock
+def test_perform_import_raises_when_no_content_path():
+    _mock_no_mappings()
+    import pytest
+
+    row = _row()
+    row.downloads[0].content_path = None
+    with pytest.raises(Exception):
+        perform_import(row, RadarrClient("http://r:7878", "key"))
+
+
+@respx.mock
+def test_perform_import_translates_content_path_to_arr_view():
+    # qBit reports the stranded file under the unmapped /data/incomplete; the mapping
+    # encodes the volume root (/data/ -> /data/torrents/). Import must scan the
+    # TRANSLATED folder, not qBit's raw path. This is the Snow-White/Mermaid fix.
+    respx.get("http://r:7878/api/v3/remotepathmapping").mock(
+        return_value=httpx.Response(
+            200,
+            json=[{"remotePath": "/data/films/", "localPath": "/data/torrents/films/"}],
+        )
+    )
+    mi = respx.get("http://r:7878/api/v3/manualimport").mock(
+        return_value=httpx.Response(
+            200,
+            json=[
+                {
+                    "path": "/data/torrents/incomplete/radarr/M.mkv",
+                    "movie": {"id": 7},
+                    "quality": {},
+                    "languages": [],
+                    "rejections": [],
+                }
+            ],
+        )
+    )
+    respx.post("http://r:7878/api/v3/command").mock(
+        return_value=httpx.Response(201, json={"id": 5, "status": "started"})
+    )
+    respx.get("http://r:7878/api/v3/command/5").mock(
+        return_value=httpx.Response(200, json={"id": 5, "status": "completed"})
+    )
+
+    row = _row()
+    row.downloads[0].content_path = "/data/incomplete/radarr/M.mkv"
+    perform_import(row, RadarrClient("http://r:7878", "key"))
+
+    folder = dict(mi.calls.last.request.url.params)["folder"]
+    assert folder == "/data/torrents/incomplete/radarr"  # translated + file -> dirname

@@ -99,6 +99,7 @@ def _to_download(t: Raw) -> Download:
         category=t.get("category"),
         tracker=(t.get("tracker") or None),
         save_path=t.get("save_path"),
+        content_path=t.get("content_path"),
         size=t.get("size"),
     )
 

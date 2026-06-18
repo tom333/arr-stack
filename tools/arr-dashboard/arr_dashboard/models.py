@@ -11,6 +11,7 @@ class Download(BaseModel):
     category: str | None = None
     tracker: str | None = None
     save_path: str | None = None
+    content_path: str | None = None
     size: int | None = None
 
 

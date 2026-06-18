@@ -1,11 +1,39 @@
+import os.path
 import time
 from typing import Any
 
 from arr_dashboard.models import Row
 
+VIDEO_EXTS = (".mkv", ".mp4", ".avi", ".m4v", ".ts", ".mov", ".wmv")
+
 
 class ImportActionError(Exception):
     """Raised when a manual import cannot be resolved or fails to complete."""
+
+
+def _to_local(remote_path: str, mappings: list[dict[str, Any]]) -> str:
+    """Translate a qBit-reported path to the *arr's local filesystem view.
+
+    Uses the arr's remote path mappings. Longest exact prefix wins; if none match
+    (e.g. qBit's incomplete dir has no explicit mapping), derive the volume-root
+    transform from any mapping (the segment where remotePath/localPath diverge,
+    e.g. ``/data/`` -> ``/data/torrents/``) and apply it. Returns the path
+    unchanged when nothing applies (caller surfaces an explicit error)."""
+    for m in sorted(mappings, key=lambda m: len(m.get("remotePath") or ""), reverse=True):
+        rp, lp = m.get("remotePath") or "", m.get("localPath") or ""
+        if rp and remote_path.startswith(rp):
+            return lp + remote_path[len(rp) :]
+    for m in mappings:
+        rp, lp = m.get("remotePath") or "", m.get("localPath") or ""
+        if not rp or not lp:
+            continue
+        i = 0
+        while i < len(rp) and i < len(lp) and rp[-1 - i] == lp[-1 - i]:
+            i += 1
+        rbase, lbase = rp[: len(rp) - i], lp[: len(lp) - i]
+        if rbase and remote_path.startswith(rbase):
+            return lbase + remote_path[len(rbase) :]
+    return remote_path
 
 
 def perform_import(row: Row, client: Any) -> None:
@@ -18,9 +46,16 @@ def perform_import(row: Row, client: Any) -> None:
     Raises ``ImportActionError`` on no matching candidate, command failure,
     or timeout.
     """
-    if not row.downloads or not row.downloads[0].save_path or row.arr_id is None:
+    dl = row.downloads[0] if row.downloads else None
+    if dl is None or not dl.content_path or row.arr_id is None:
         raise ImportActionError(f"{row.key}: no importable download")
-    folder = row.downloads[0].save_path
+    try:
+        mappings = client.get("/remotepathmapping") or []
+    except Exception:
+        mappings = []
+    folder = _to_local(dl.content_path, mappings)
+    if folder.endswith(VIDEO_EXTS):
+        folder = os.path.dirname(folder)
     candidates = client.manual_import_candidates(folder)
 
     files: list[dict[str, Any]] = []
