@@ -8,8 +8,9 @@
   $effect(() => { const f = async () => { try { jobs = await getActions(); } catch {} }; f(); const id = setInterval(f, 3000); return () => clearInterval(id); });
   $effect(() => { const id = setInterval(() => (now = Date.now()), 1000); return () => clearInterval(id); });
 
-  const active = $derived(jobs.filter((j) => j.state === "queued" || j.state === "running"));
-  const failed = $derived(jobs.filter((j) => j.state === "failed"));
+  const byKey = (list: ActionJob[]) => [...new Map(list.map((j) => [j.key, j])).values()];
+  const active = $derived(byKey(jobs.filter((j) => j.state === "queued" || j.state === "running")));
+  const failed = $derived(byKey(jobs.filter((j) => j.state === "failed")));
 
   function pct(j: ActionJob): number | null {
     if (j.state !== "running" || !j.started_at || !j.size_bytes) return null;
@@ -40,7 +41,11 @@
       </div>
     {/each}
     {#each failed as j (j.key)}
-      <span class="f" title={j.message ?? ""} onclick={() => retry(j.key)}>✗ {j.title} (réessayer)</span>
+      <div class="job failed">
+        <span class="t">✗ {j.title}</span>
+        <span class="msg">{j.message ?? "échec de l'import"}</span>
+        <button class="retry" onclick={() => retry(j.key)}>réessayer</button>
+      </div>
     {/each}
   </div>
 {/if}
@@ -52,5 +57,8 @@
   .bar { flex: 1; max-width: 14rem; height: 8px; background: #0f1115; border-radius: 4px; overflow: hidden; }
   .fill { display: block; height: 100%; background: #4ade80; transition: width 1s linear; }
   .eta { color: #9ca3af; font-family: "IBM Plex Mono", monospace; min-width: 8rem; }
-  .f { color: #f87171; cursor: pointer; }
+  .failed .t { color: #f87171; min-width: auto; }
+  .msg { color: #fbbf24; font-family: "IBM Plex Mono", monospace; font-size: .8rem; flex: 1; }
+  .retry { background: #1f2430; color: #e5e7eb; border: 1px solid #374151; border-radius: 4px; padding: .15rem .5rem; cursor: pointer; font-size: .8rem; }
+  .retry:hover { background: #374151; }
 </style>
