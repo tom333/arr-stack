@@ -979,4 +979,21 @@ arr-dashboard:
       ports:
         http:
           port: 8080
-  # NO ingress block — ClusterIP only.
+  ingress:
+    main:
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        traefik.ingress.kubernetes.io/router.middlewares: "selfhost-oauth2-forwardauth@kubernetescrd"
+      hosts:
+        - host: arr-dashboard.tgu.ovh
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - secretName: arr-dashboard-tls
+          hosts:
+            - arr-dashboard.tgu.ovh
