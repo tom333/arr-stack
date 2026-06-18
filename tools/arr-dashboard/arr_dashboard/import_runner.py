@@ -27,6 +27,8 @@ def perform_import(row: Row, client: Any) -> None:
     for c in candidates:
         if c.get("rejections"):
             continue
+        if not c.get("path"):
+            continue
         if row.type == "movie":
             if (c.get("movie") or {}).get("id") == row.arr_id:
                 files.append(
@@ -40,11 +42,14 @@ def perform_import(row: Row, client: Any) -> None:
                 )
         else:
             if (c.get("series") or {}).get("id") == row.arr_id and c.get("episodes"):
+                episode_ids = [e["id"] for e in c["episodes"] if e.get("id")]
+                if not episode_ids:
+                    continue
                 files.append(
                     {
                         "path": c["path"],
                         "seriesId": row.arr_id,
-                        "episodeIds": [e["id"] for e in c["episodes"]],
+                        "episodeIds": episode_ids,
                         "quality": c.get("quality"),
                         "languages": c.get("languages", []),
                         "releaseGroup": c.get("releaseGroup", ""),

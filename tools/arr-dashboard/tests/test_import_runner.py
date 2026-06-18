@@ -78,3 +78,17 @@ def test_perform_import_raises_when_no_match():
 
     with pytest.raises(Exception):
         perform_import(_row(), RadarrClient("http://r:7878", "key"))
+
+
+@respx.mock
+def test_perform_import_skips_candidate_without_path():
+    respx.get("http://r:7878/api/v3/manualimport").mock(
+        return_value=httpx.Response(
+            200,
+            json=[{"movie": {"id": 7}, "rejections": []}],  # matches arr_id but no path
+        )
+    )
+    import pytest
+
+    with pytest.raises(Exception):
+        perform_import(_row(), RadarrClient("http://r:7878", "key"))
