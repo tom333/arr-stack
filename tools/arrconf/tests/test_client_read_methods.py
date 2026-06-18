@@ -97,3 +97,16 @@ def test_jellyfin_list_items():
     client = JellyfinClient("http://j:8096", "key")
     out = client.list_items()
     assert out[0]["ProviderIds"]["Tmdb"] == "2062"
+
+
+@respx.mock
+def test_radarr_manual_import_candidates():
+    respx.get("http://r:7878/api/v3/manualimport").mock(
+        return_value=httpx.Response(
+            200,
+            json=[{"path": "/data/x/M.mkv", "movie": {"id": 42}, "quality": {}, "rejections": []}],
+        )
+    )
+    client = RadarrClient("http://r:7878", "key")
+    out = client.manual_import_candidates("/data/x")
+    assert out[0]["movie"]["id"] == 42

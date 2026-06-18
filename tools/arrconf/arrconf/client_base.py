@@ -128,6 +128,21 @@ class _ArrV3Client(ArrApiClient):
         )
         return records
 
+    def manual_import_candidates(self, folder: str) -> list[dict[str, Any]]:
+        """Importable file candidates under a download folder (GET /manualimport)."""
+        import urllib.parse
+
+        q = urllib.parse.quote(folder)
+        data: list[dict[str, Any]] = self.get(f"/manualimport?folder={q}&filterExistingFiles=true")
+        return data or []
+
+    def manual_import(self, files: list[dict[str, Any]], mode: str = "Copy") -> dict[str, Any]:
+        """Trigger a ManualImport command (Copy by default — never Move; preserves seeds)."""
+        result: dict[str, Any] = self.post(
+            "/command", {"name": "ManualImport", "importMode": mode, "files": files}
+        )
+        return result
+
     def put(self, path: str, id: int, json: Any, **kwargs: Any) -> Any:
         """HTTP PUT /{path}/{id} with ``forceSave=true`` always set.
 
