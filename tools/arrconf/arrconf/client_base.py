@@ -265,8 +265,14 @@ class JellyfinClient(ArrApiClient):
         }
 
     def list_items(self) -> list[dict[str, Any]]:
-        """Library items with provider IDs (GET /Items). Returns the Items list."""
-        data = self.get("/Items?Recursive=true&IncludeItemTypes=Movie,Series&Fields=ProviderIds")
+        """Library items with provider IDs + file Path (GET /Items). Returns the Items list.
+
+        Path enables file-based correlation when Jellyfin and the *arr disagree on the
+        TMDB/TVDB id for the same physical file (real-world metadata mismatch).
+        """
+        data = self.get(
+            "/Items?Recursive=true&IncludeItemTypes=Movie,Series&Fields=ProviderIds,Path"
+        )
         items: list[dict[str, Any]] = (
             data.get("Items", []) if isinstance(data, dict) else (data or [])
         )

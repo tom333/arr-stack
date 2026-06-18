@@ -1,3 +1,4 @@
+import os.path
 from typing import Any
 
 from arr_dashboard.models import ChainHealth, Download, Row, Snapshot
@@ -71,6 +72,18 @@ def _jellyfin_keys(items: list[Raw]) -> set[str]:
         if tvdb:
             keys.add(f"tvdb:{tvdb}")
     return keys
+
+
+def _jellyfin_paths(items: list[Raw]) -> set[str]:
+    """File paths (and their parent dirs) of Jellyfin items, for path-based matching
+    when the TMDB/TVDB id differs between Jellyfin and the *arr for the same file."""
+    paths: set[str] = set()
+    for it in items:
+        p = it.get("Path")
+        if p:
+            paths.add(p)
+            paths.add(os.path.dirname(p))
+    return paths
 
 
 def _torrent_index(qbit: list[Raw]) -> dict[str, Raw]:
@@ -174,8 +187,12 @@ def correlate(
         row.request_status = _SEERR_STATUS.get(status, str(status))
 
     jf_keys = _jellyfin_keys(sources.get("jellyfin_items", []))
+    jf_paths = _jellyfin_paths(sources.get("jellyfin_items", []))
     for row in rows.values():
-        if row.key in jf_keys:
+        matched = row.key in jf_keys or any(
+            d in jf_paths or os.path.dirname(d) in jf_paths for d in row.disk_paths
+        )
+        if matched:
             row.in_jellyfin = True
             row.chain.in_jellyfin = True
 

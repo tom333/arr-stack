@@ -138,6 +138,32 @@ def test_jellyfin_presence_sets_in_jellyfin():
     assert row.chain.in_jellyfin is True
 
 
+def test_jellyfin_path_match_when_tmdbid_differs():
+    # Real case: Radarr and Jellyfin identified the same physical file to DIFFERENT
+    # TMDB ids (Snow White 2025). Key-match fails; path-match must rescue in_jellyfin.
+    f = "/media/films-zoe/Snow White (2025)/Snow.White.2025-SUPPLY.mkv"
+    src = sources(
+        radarr_movies=[
+            {
+                "id": 1,
+                "title": "Snow White",
+                "tmdbId": 1449951,
+                "hasFile": True,
+                "monitored": True,
+                "movieFile": {"path": f},
+            }
+        ],
+        jellyfin_items=[
+            {"Name": "Blanche Neige", "Type": "Movie", "ProviderIds": {"Tmdb": "447273"}, "Path": f}
+        ],
+    )
+    snap = correlate(src, "t", [])
+    row = [r for r in snap.rows if r.key == "tmdb:1449951"][0]
+    assert row.in_jellyfin is True  # matched by path despite tmdbId mismatch
+    assert row.chain.in_jellyfin is True
+    assert "pas-dans-jellyfin" not in row.flags
+
+
 def _row_by_key(snap, key):
     return [r for r in snap.rows if r.key == key][0]
 
