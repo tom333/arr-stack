@@ -30,3 +30,27 @@ export async function getActions(): Promise<ActionJob[]> {
   if (!res.ok) throw new Error(`actions ${res.status}`);
   return res.json();
 }
+
+export async function deleteDownload(key: string, infohash: string): Promise<void> {
+  const res = await fetch("/api/actions/delete-download", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, infohash, confirm: true }),
+  });
+  if (!res.ok) throw new Error(`delete-download ${res.status}`);
+}
+
+export async function removeStuck(key: string): Promise<void> {
+  const res = await fetch("/api/actions/remove", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, confirm: true }),
+  });
+  if (!res.ok) throw new Error(`remove ${res.status}`);
+}
+
+export async function jellyfinScan(key: string): Promise<void> {
+  const res = await fetch("/api/actions/jellyfin-scan", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key }),
+  });
+  if (!res.ok) throw new Error(`jellyfin-scan ${res.status}`);
+}

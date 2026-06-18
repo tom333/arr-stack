@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { getDashboard, getActions, type Snapshot, type Row } from "./api";
+  import { getDashboard, getActions, removeStuck, jellyfinScan, type Snapshot, type Row } from "./api";
   import ChainPastilles from "./lib/ChainPastilles.svelte";
   import RowDetail from "./lib/RowDetail.svelte";
   import ImportButton from "./lib/ImportButton.svelte";
   import ActionsPanel from "./lib/ActionsPanel.svelte";
+  import ConfirmDialog from "./lib/ConfirmDialog.svelte";
 
   let snap = $state<Snapshot | null>(null);
   let error = $state<string | null>(null);
@@ -24,6 +25,11 @@
   const visible = $derived(
     !snap ? [] : snap.rows.filter((r: Row) => !problemsOnly || !(r.flags.length === 1 && r.flags[0] === "ok")));
   const importable = (r: Row) => r.flags.includes("non-importe") || r.flags.includes("deja-possede-regrab");
+  let removing = $state<Row | null>(null);
+  async function doRemove() { const r = removing; removing = null; if (r) await removeStuck(r.key); }
+  async function doScan(r: Row) { await jellyfinScan(r.key); }
+  const isStuck = (r: Row) => r.flags.includes("bloque");
+  const notInJf = (r: Row) => r.flags.includes("pas-dans-jellyfin");
 </script>
 
 <header>
@@ -49,12 +55,22 @@
         <td>{row.disk_paths.length ? (row.disk_paths[0].startsWith("/media") ? "/media" : "/data") : "✗"}</td>
         <td>{row.in_jellyfin ? "✓" : "✗"}</td>
         <td class="flags">{row.flags.join(", ")}</td>
-        <td onclick={(e) => e.stopPropagation()}>{#if importable(row)}<ImportButton {row} pending={activeKeys.has(row.key)} />{/if}</td>
+        <td onclick={(e) => e.stopPropagation()}>
+          {#if importable(row)}<ImportButton {row} pending={activeKeys.has(row.key)} />{/if}
+          {#if isStuck(row)}<button class="act warn" onclick={() => (removing = row)}>Suppr bloqué</button>{/if}
+          {#if notInJf(row)}<button class="act" onclick={() => doScan(row)}>Scan JF</button>{/if}
+        </td>
       </tr>
       {#if expanded === row.key}<tr><td colspan="8"><RowDetail {row} /></td></tr>{/if}
     {/each}
   </tbody>
 </table>
+
+{#if removing}
+  <ConfirmDialog title={`Supprimer le téléchargement bloqué`} detail={`${removing.title}`}
+    warn="⚠ supprime le(s) torrent(s) bloqué(s) ET leurs fichiers"
+    onConfirm={doRemove} onCancel={() => (removing = null)} />
+{/if}
 
 <style>
   :global(body) { background: #0f1115; color: #e5e7eb; font-family: "IBM Plex Sans", sans-serif; }
@@ -66,4 +82,6 @@
   .flags { color: #fbbf24; }
   .stale { color: #f87171; }
   .err { color: #f87171; padding: 0 1rem; }
+  .act { background: #374151; color: #e5e7eb; border: 0; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; margin-left: .3rem; font-size: .75rem; }
+  .act.warn { background: #b91c1c; color: #fff; }
 </style>
