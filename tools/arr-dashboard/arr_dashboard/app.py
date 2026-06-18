@@ -98,7 +98,7 @@ def create_app(
     def delete_one_download(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
         if payload.get("confirm") is not True:
             raise HTTPException(status_code=400, detail="confirm:true required")
-        _row_or_404(payload.get("key"))
+        _row_or_404(payload.get("key"))  # validate key exists; infohash comes from payload
         infohash = payload.get("infohash")
         if not infohash:
             raise HTTPException(status_code=400, detail="infohash required")
@@ -116,10 +116,11 @@ def create_app(
         if payload.get("confirm") is not True:
             raise HTTPException(status_code=400, detail="confirm:true required")
         row = _row_or_404(payload.get("key"))
-        qbit = build_qbit(settings or load_settings())
+        s = settings or load_settings()
+        qbit = build_qbit(s)
         if qbit is None:
             raise HTTPException(status_code=400, detail="no qbit client")
-        clients = build_clients(settings or load_settings())
+        clients = build_clients(s)
         arr = clients.get(row.arr_app) if row.arr_app else None
         if arr is None:
             raise HTTPException(status_code=400, detail=f"no client for {row.arr_app}")
