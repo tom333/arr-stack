@@ -27,8 +27,42 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
+import structlog
 
 FIXTURE_ROOT = Path(__file__).parent / "fixtures"
+
+
+def _clear_structlog_caches() -> None:
+    """Drop the cached bound logger on arrconf's module-level lazy proxies.
+
+    ``reset_defaults`` resets global config but does not touch a proxy that already
+    cached its bound logger (the cache lives on the proxy instance as ``_logger``)."""
+    import arrconf.client_base as _cb
+    import arrconf.reconcilers.jellyfin as _jf
+
+    for mod in (_cb, _jf):
+        proxy = getattr(mod, "log", None)
+        if proxy is not None and hasattr(proxy, "_logger"):
+            proxy._logger = None
+
+
+@pytest.fixture(autouse=True)
+def _isolate_structlog() -> Any:
+    """Reset structlog config + clear cached module loggers between tests.
+
+    ``arrconf.logging.configure_logging`` sets ``cache_logger_on_first_use=True``.
+    A CLI-invoking test (e.g. test_generate_cmd) therefore caches the module-level
+    ``log`` proxies (client_base, reconcilers) bound to JSON processors + a level
+    filter. ``structlog.testing.capture_logs`` reconfigures the processor chain but
+    a *cached* proxy never re-reads config → captures 0 events. That makes the
+    structlog-asserting tests pass alone but fail after a CLI test (order-dependent).
+    Resetting defaults AND dropping the proxies' cached bound logger isolates each test.
+    """
+    structlog.reset_defaults()
+    _clear_structlog_caches()
+    yield
+    structlog.reset_defaults()
+    _clear_structlog_caches()
 
 
 def _load_fixture(relative_path: str) -> Any:

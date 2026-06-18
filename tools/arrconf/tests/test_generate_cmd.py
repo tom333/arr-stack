@@ -10,6 +10,7 @@ Coverage:
 
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 
@@ -18,6 +19,11 @@ from typer.testing import CliRunner
 from arrconf.__main__ import app
 
 runner = CliRunner()
+
+# Typer/Rich colorizes --help in CI (TTY-independent), splitting option names with
+# ANSI escapes (e.g. "-\x1b[1;36m-intent"). Strip them so substring checks see the
+# literal flag. No-op when output is uncolored (local non-TTY run).
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 # Real committed arrconf.yml — source of the categories the qbit_manage generator
 # mirrors into its cat: section. tests/ → arrconf/ → tools/ → repo root.
@@ -40,9 +46,10 @@ def test_generate_help_shows_flags() -> None:
     """generate --help must list --intent, --output-dir, --check."""
     result = runner.invoke(app, ["generate", "--help"])
     assert result.exit_code == 0
-    assert "--intent" in result.stdout
-    assert "--output-dir" in result.stdout
-    assert "--check" in result.stdout
+    out = _ANSI.sub("", result.stdout)
+    assert "--intent" in out
+    assert "--output-dir" in out
+    assert "--check" in out
 
 
 def test_generate_writes_config_js(tmp_path: Path) -> None:
