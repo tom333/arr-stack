@@ -8,7 +8,7 @@ export interface Row {
 }
 export interface Snapshot { rows: Row[]; generated_at: string | null; stale_sources: string[]; initializing: boolean; }
 
-export interface ActionJob { key: string; title: string; app: string; state: "queued" | "running" | "done" | "failed"; message: string | null; }
+export interface ActionJob { key: string; title: string; app: string; state: "queued" | "running" | "done" | "failed"; message: string | null; started_at: string | null; size_bytes: number | null; }
 
 export async function getDashboard(): Promise<Snapshot> {
   const res = await fetch("/api/dashboard");

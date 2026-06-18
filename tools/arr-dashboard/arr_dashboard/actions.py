@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
 
 from arr_dashboard.models import ActionJob
 
@@ -12,8 +13,14 @@ class ImportQueue:
         self._queue: asyncio.Queue[ActionJob] = asyncio.Queue()
         self._jobs: list[ActionJob] = []
 
-    def enqueue(self, key: str, title: str, app: str) -> ActionJob:
-        job = ActionJob(key=key, title=title, app=app)  # type: ignore[arg-type]
+    def enqueue(self, key: str, title: str, app: str, size_bytes: int | None = None) -> ActionJob:
+        job = ActionJob(
+            key=key,
+            title=title,
+            app=app,  # type: ignore[arg-type]
+            enqueued_at=datetime.now(UTC).isoformat(),
+            size_bytes=size_bytes,
+        )
         self._jobs.append(job)
         self._queue.put_nowait(job)
         return job
@@ -25,6 +32,7 @@ class ImportQueue:
         while True:
             job = await self._queue.get()
             job.state = "running"
+            job.started_at = datetime.now(UTC).isoformat()
             try:
                 await self._perform(job)
                 job.state = "done"

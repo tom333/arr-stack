@@ -75,7 +75,7 @@ def create_app(
             raise HTTPException(status_code=404, detail="row not found")
         if not row.downloads or row.arr_id is None or row.arr_app is None:
             raise HTTPException(status_code=400, detail="row has no importable download")
-        job = queue.enqueue(row.key, row.title, row.arr_app)
+        job = queue.enqueue(row.key, row.title, row.arr_app, size_bytes=row.downloads[0].size)
         return job.model_dump(mode="json")
 
     @app.get("/api/actions")

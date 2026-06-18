@@ -48,6 +48,8 @@ class ActionJob(BaseModel):
     state: Literal["queued", "running", "done", "failed"] = "queued"
     message: str | None = None
     enqueued_at: str | None = None
+    started_at: str | None = None
+    size_bytes: int | None = None
 
 
 class Snapshot(BaseModel):
