@@ -11,8 +11,14 @@ from arr_dashboard.actions import ImportQueue
 from arr_dashboard.cache import SnapshotCache, refresher_loop
 from arr_dashboard.import_runner import perform_import
 from arr_dashboard.models import ActionJob
+from arr_dashboard.recovery_actions import (
+    RecoveryActionError,
+    delete_download,
+    jellyfin_scan,
+    remove_stuck,
+)
 from arr_dashboard.settings import Settings, load_settings
-from arr_dashboard.sources import build_clients
+from arr_dashboard.sources import build_clients, build_jellyfin, build_qbit
 
 _DIST = Path(__file__).parent.parent / "web" / "dist"
 
@@ -37,6 +43,12 @@ def create_app(
         await asyncio.to_thread(perform_import, row, client)
 
     queue = ImportQueue(_perform)
+
+    def _row_or_404(key: Any) -> Any:
+        row = next((r for r in cache.get().rows if r.key == key), None)
+        if row is None:
+            raise HTTPException(status_code=404, detail="row not found")
+        return row
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -81,6 +93,54 @@ def create_app(
     @app.get("/api/actions")
     def list_actions() -> list[dict[str, Any]]:
         return [j.model_dump(mode="json") for j in queue.jobs()]
+
+    @app.post("/api/actions/delete-download")
+    def delete_one_download(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
+        if payload.get("confirm") is not True:
+            raise HTTPException(status_code=400, detail="confirm:true required")
+        _row_or_404(payload.get("key"))  # validate key exists; infohash comes from payload
+        infohash = payload.get("infohash")
+        if not infohash:
+            raise HTTPException(status_code=400, detail="infohash required")
+        qbit = build_qbit(settings or load_settings())
+        if qbit is None:
+            raise HTTPException(status_code=400, detail="no qbit client")
+        try:
+            delete_download(infohash, qbit)
+        except RecoveryActionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return {"status": "deleted", "infohash": infohash}
+
+    @app.post("/api/actions/remove")
+    def remove_stuck_download(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
+        if payload.get("confirm") is not True:
+            raise HTTPException(status_code=400, detail="confirm:true required")
+        row = _row_or_404(payload.get("key"))
+        s = settings or load_settings()
+        qbit = build_qbit(s)
+        if qbit is None:
+            raise HTTPException(status_code=400, detail="no qbit client")
+        clients = build_clients(s)
+        arr = clients.get(row.arr_app) if row.arr_app else None
+        if arr is None:
+            raise HTTPException(status_code=400, detail=f"no client for {row.arr_app}")
+        try:
+            remove_stuck(row, qbit, arr)
+        except RecoveryActionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return {"status": "removed", "key": row.key}
+
+    @app.post("/api/actions/jellyfin-scan")
+    def trigger_jellyfin_scan(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
+        row = _row_or_404(payload.get("key"))
+        jf = build_jellyfin(settings or load_settings())
+        if jf is None:
+            raise HTTPException(status_code=400, detail="no jellyfin client")
+        try:
+            jellyfin_scan(row, jf)
+        except RecoveryActionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return {"status": "scanning", "key": row.key}
 
     if _DIST.is_dir():
         app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="web")

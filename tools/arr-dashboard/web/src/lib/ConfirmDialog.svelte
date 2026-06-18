@@ -1,12 +1,13 @@
 <script lang="ts">
-  let { title, detail, onConfirm, onCancel }: { title: string; detail: string; onConfirm: () => void; onCancel: () => void } = $props();
+  let { title, detail, warn = "⚠ copie NFS — peut ralentir Jellyfin", onConfirm, onCancel }:
+    { title: string; detail: string; warn?: string; onConfirm: () => void; onCancel: () => void } = $props();
 </script>
 
 <div class="overlay" onclick={onCancel}>
   <div class="box" onclick={(e) => e.stopPropagation()}>
     <h3>{title}</h3>
     <p class="detail">{detail}</p>
-    <p class="warn">⚠ copie NFS — peut ralentir Jellyfin</p>
+    <p class="warn">{warn}</p>
     <div class="btns"><button onclick={onCancel}>Annuler</button><button class="go" onclick={onConfirm}>Confirmer</button></div>
   </div>
 </div>

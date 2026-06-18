@@ -45,6 +45,20 @@ def build_clients(settings: Settings) -> dict[str, object]:
     return clients
 
 
+def build_qbit(settings: Settings) -> QbittorrentClient | None:
+    """Build a logged-in qBit client, or None when creds are absent."""
+    if settings.qbt_user and settings.qbt_pass:
+        return QbittorrentClient(settings.qbittorrent_url, settings.qbt_user, settings.qbt_pass)
+    return None
+
+
+def build_jellyfin(settings: Settings) -> JellyfinClient | None:
+    """Build a Jellyfin client, or None when the API key is absent."""
+    if settings.jellyfin_api_key:
+        return JellyfinClient(settings.jellyfin_url, settings.jellyfin_api_key)
+    return None
+
+
 def fetch_all(settings: Settings) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
     src: dict[str, list[dict[str, Any]]] = {k: [] for k in EMPTY}
     stale: list[str] = []
