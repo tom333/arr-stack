@@ -241,6 +241,25 @@ def test_flag_ok_full_chain():
     assert row.flags == ["ok"]
 
 
+def test_correlate_sets_arr_id_and_download_size():
+    src = sources(
+        radarr_movies=[{"id": 7, "title": "M", "tmdbId": 42, "hasFile": False, "monitored": True}],
+        radarr_queue=[{"movieId": 7, "downloadId": "ABC"}],
+        qbit_torrents=[
+            {
+                "hash": "abc",
+                "name": "M.mkv",
+                "state": "downloading",
+                "progress": 0.5,
+                "size": 4096,
+            }
+        ],
+    )
+    row = [r for r in correlate(src, "t", []).rows if r.key == "tmdb:42"][0]
+    assert row.arr_id == 7
+    assert row.downloads[0].size == 4096
+
+
 def test_problem_rows_sorted_first():
     src = sources(
         radarr_movies=[

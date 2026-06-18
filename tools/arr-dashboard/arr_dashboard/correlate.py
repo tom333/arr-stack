@@ -14,6 +14,7 @@ def _movie_row(m: Raw) -> Row:
         year=m.get("year"),
         type="movie",
         arr_app="radarr",
+        arr_id=m["id"],
         monitored=m.get("monitored"),
         has_file=has_file,
         disk_paths=[path] if path else [],
@@ -32,6 +33,7 @@ def _series_row(s: Raw) -> Row:
         year=s.get("year"),
         type="series",
         arr_app="sonarr",
+        arr_id=s["id"],
         monitored=s.get("monitored"),
         has_file=has_file,
         chain=ChainHealth(imported=has_file),
@@ -84,6 +86,7 @@ def _to_download(t: Raw) -> Download:
         category=t.get("category"),
         tracker=(t.get("tracker") or None),
         save_path=t.get("save_path"),
+        size=t.get("size"),
     )
 
 
