@@ -42,12 +42,13 @@ jobs:
           # All 15 aliases depend on the same chart (app-template 5.0.0); helm needs a
           # copy under charts/<alias>/ for each (issue #12748: without it, helm template
           # fails "found in Chart.yaml, but missing in charts/").
-          # `helm dependency build` + tar-the-.tgz was flaky — with N aliases of one chart
-          # it sometimes leaves no app-template-5.0.0.tgz (deletes it as "outdated"),
-          # making the tar step fail intermittently. `helm pull --untar` is deterministic.
-          helm pull bjw-s-labs/app-template --version 5.0.0 --untar \
-            --untardir charts/arr-stack/charts/
-          test -f charts/arr-stack/charts/app-template/Chart.yaml || { echo "Vendor failed"; exit 1; }
+          # charts/arr-stack/charts/app-template/ is COMMITTED (see .gitignore note; only
+          # the .tgz is ignored), so it is the source of truth — no fetch needed. The old
+          # `helm dependency build` + tar-the-.tgz was flaky (the .tgz is gitignored, so
+          # build had to recreate it but with 15 aliases sometimes deleted it as
+          # "outdated" → tar failed intermittently). Just fan the committed dir out.
+          test -f charts/arr-stack/charts/app-template/Chart.yaml \
+            || { echo "Vendor failed: committed charts/arr-stack/charts/app-template/ missing"; exit 1; }
           for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr cross-seed qbit-manage arrconf-mcp arr-dashboard; do
             [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
           done
