@@ -937,7 +937,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.38.0"
+            tag: "0.39.0"
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
