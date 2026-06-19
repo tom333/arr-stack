@@ -65,3 +65,19 @@ export async function jellyfinScan(key: string): Promise<void> {
   });
   if (!res.ok) throw new Error(`jellyfin-scan ${res.status}`);
 }
+
+export async function reannounce(key: string, infohash: string): Promise<void> {
+  const res = await fetch("/api/actions/reannounce", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, infohash }),
+  });
+  if (!res.ok) throw new Error(`reannounce ${res.status}`);
+}
+
+export async function recheck(key: string, infohash: string): Promise<void> {
+  const res = await fetch("/api/actions/recheck", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, infohash, confirm: true }),
+  });
+  if (!res.ok) throw new Error(`recheck ${res.status}`);
+}
