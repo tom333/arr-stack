@@ -37,6 +37,11 @@
   // disk_paths is only populated for movie rows (correlate.py) → a scan needs a path,
   // so series rows (always empty disk_paths) would 409. Gate the button on having a path.
   const notInJf = (r: Row) => r.flags.includes("pas-dans-jellyfin") && r.disk_paths.length > 0;
+  const worstDiag = (r: Row) => {
+    const diags = r.downloads.map((d) => d.diagnosis).filter((x): x is NonNullable<typeof x> => !!x);
+    if (!diags.length) return null;
+    return diags.find((d) => !d.recoverable) ?? diags[0];
+  };
 </script>
 
 <header>
@@ -61,7 +66,15 @@
         <td>{#if row.downloads.length}{row.downloads.length > 1 ? `${row.downloads.length} torrents` : `${Math.round(row.downloads[0].progress * 100)}% ${row.downloads[0].tracker ?? ""}`}{:else}—{/if}</td>
         <td>{row.disk_paths.length ? (row.disk_paths[0].startsWith("/media") ? "/media" : "/data") : "✗"}</td>
         <td>{row.in_jellyfin ? "✓" : "✗"}</td>
-        <td class="flags">{row.flags.join(", ")}</td>
+        <td class="flags">
+          {row.flags.join(", ")}
+          {#if worstDiag(row)}
+            {@const wd = worstDiag(row)}
+            <span class="diag" class:dead={!wd!.recoverable}>
+              {wd!.label}{#if wd!.host} ({wd!.host}){/if}
+            </span>
+          {/if}
+        </td>
         <td onclick={(e) => e.stopPropagation()}>
           {#if importable(row)}<ImportButton {row} pending={activeKeys.has(row.key)} />{/if}
           {#if isStuck(row)}<button class="act warn" onclick={() => (removing = row)}>Suppr bloqué</button>{/if}
@@ -91,4 +104,7 @@
   .err { color: #f87171; padding: 0 1rem; }
   .act { background: #374151; color: #e5e7eb; border: 0; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; margin-left: .3rem; font-size: .75rem; }
   .act.warn { background: #b91c1c; color: #fff; }
+  .diag { display: inline-block; margin-left: .4rem; padding: .05rem .4rem; border-radius: 3px;
+    font-size: .72rem; background: #78350f; color: #fde68a; }
+  .diag.dead { background: #7f1d1d; color: #fecaca; }
 </style>

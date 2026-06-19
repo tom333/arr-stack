@@ -1,5 +1,16 @@
 export interface ChainHealth { requested: boolean; grabbed: boolean; downloaded: boolean; imported: boolean; in_jellyfin: boolean; }
-export interface Download { infohash: string; name: string; state: string; progress: number; category: string | null; tracker: string | null; save_path: string | null; size: number | null; }
+export interface StallDiagnosis { cause: string; label: string; host: string | null; recoverable: boolean; }
+export interface Download {
+  infohash: string; name: string; state: string; progress: number;
+  category: string | null; tracker: string | null; save_path: string | null;
+  content_path: string | null; size: number | null;
+  dl_speed: number | null; eta: number | null;
+  num_seeds: number | null; num_complete: number | null;
+  num_leechs: number | null; num_incomplete: number | null;
+  ratio: number | null; added_on: number | null;
+  tracker_status: number | null; tracker_msg: string | null; tracker_host: string | null;
+  diagnosis: StallDiagnosis | null;
+}
 export interface Row {
   key: string; title: string; year: number | null; type: "movie" | "series";
   requested_by: string | null; request_status: string | null;
