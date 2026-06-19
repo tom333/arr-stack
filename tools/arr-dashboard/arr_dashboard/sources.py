@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
 from typing import Any
+from urllib.parse import urlsplit
 
 from arrconf.client_base import (
     JellyfinClient,
@@ -59,6 +60,41 @@ def build_jellyfin(settings: Settings) -> JellyfinClient | None:
     return None
 
 
+def _worst_tracker(trackers: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Pick the most informative real tracker entry. A not-working entry (status 4)
+    with a message wins (e.g. C411 'Forbidden'); else the first real entry. Pseudo-rows
+    (** [DHT] **, ** [PeX] **, ** [LSD] **) are ignored. Returns {status, msg, host}."""
+    real = [t for t in trackers if not str(t.get("url", "")).startswith("**")]
+    if not real:
+        return None
+    refused = [t for t in real if t.get("status") == 4 and (t.get("msg") or "")]
+    chosen = refused[0] if refused else real[0]
+    return {
+        "status": chosen.get("status"),
+        "msg": (chosen.get("msg") or None),
+        "host": urlsplit(str(chosen.get("url", ""))).hostname,
+    }
+
+
+def _fetch_qbit_torrents(settings: Settings) -> list[dict[str, Any]]:
+    """List torrents, then probe trackers for STALLED ones (dlspeed==0 & progress<1)
+    and attach the worst tracker entry as t['_tracker']. One qBit login reused."""
+    qb = QbittorrentClient(
+        settings.qbittorrent_url, settings.qbt_user or "", settings.qbt_pass or ""
+    )
+    torrents: list[dict[str, Any]] = qb.list_torrents()
+    for t in torrents:
+        if t.get("dlspeed", 0) == 0 and float(t.get("progress", 0.0)) < 1.0:
+            try:
+                trackers = qb.get(f"/torrents/trackers?hash={t['hash']}")
+            except Exception:  # tracker probe must never break the refresh
+                continue
+            worst = _worst_tracker(trackers or [])
+            if worst:
+                t["_tracker"] = worst
+    return torrents
+
+
 def fetch_all(settings: Settings) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
     src: dict[str, list[dict[str, Any]]] = {k: [] for k in EMPTY}
     stale: list[str] = []
@@ -74,14 +110,7 @@ def fetch_all(settings: Settings) -> tuple[dict[str, list[dict[str, Any]]], list
         src["sonarr_queue"] = _safe("sonarr_queue", sonarr.list_queue, stale) or []
     if settings.qbt_user and settings.qbt_pass:
         src["qbit_torrents"] = (
-            _safe(
-                "qbittorrent",
-                lambda: QbittorrentClient(
-                    settings.qbittorrent_url, settings.qbt_user or "", settings.qbt_pass or ""
-                ).list_torrents(),
-                stale,
-            )
-            or []
+            _safe("qbittorrent", lambda: _fetch_qbit_torrents(settings), stale) or []
         )
     if settings.seerr_api_key:
         seerr = SeerrClient(settings.seerr_url, settings.seerr_api_key)
