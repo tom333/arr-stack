@@ -311,3 +311,43 @@ def test_problem_rows_sorted_first():
     )
     snap = correlate(src, "t", [])
     assert snap.rows[0].key == "tmdb:2"  # problem first
+
+
+def test_to_download_maps_stats_and_sets_diagnosis():
+    from arr_dashboard.correlate import _to_download
+
+    t = {
+        "hash": "AABB",
+        "name": "Project.Hail.Mary.mkv",
+        "state": "forcedDL",
+        "progress": 0.0,
+        "category": "radarr-movies",
+        "save_path": "/data/films",
+        "content_path": "/data/films/Project.Hail.Mary.mkv",
+        "size": 3632583990,
+        "dlspeed": 0,
+        "eta": 8640000,
+        "num_seeds": 0,
+        "num_complete": 0,
+        "num_leechs": 0,
+        "num_incomplete": 0,
+        "ratio": 0,
+        "added_on": 1781576055,
+        "_tracker": {"status": 4, "msg": "Forbidden", "host": "c411.org"},
+    }
+    d = _to_download(t)
+    assert d.dl_speed == 0 and d.eta == 8640000 and d.added_on == 1781576055
+    assert d.num_complete == 0 and d.ratio == 0.0
+    assert d.tracker_status == 4 and d.tracker_msg == "Forbidden" and d.tracker_host == "c411.org"
+    assert d.diagnosis is not None
+    assert d.diagnosis.cause == "tracker-refused"
+    assert d.diagnosis.host == "c411.org"
+
+
+def test_to_download_no_diagnosis_when_progressing():
+    from arr_dashboard.correlate import _to_download
+
+    t = {"hash": "CC", "name": "x", "state": "downloading", "progress": 0.5, "dlspeed": 900000}
+    d = _to_download(t)
+    assert d.dl_speed == 900000
+    assert d.diagnosis is None

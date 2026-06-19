@@ -1,6 +1,7 @@
 import os.path
 from typing import Any
 
+from arr_dashboard.diagnostics import diagnose_stall
 from arr_dashboard.models import ChainHealth, Download, Row, Snapshot
 
 Raw = dict[str, Any]
@@ -91,7 +92,8 @@ def _torrent_index(qbit: list[Raw]) -> dict[str, Raw]:
 
 
 def _to_download(t: Raw) -> Download:
-    return Download(
+    tr = t.get("_tracker") or {}
+    d = Download(
         infohash=t["hash"].lower(),
         name=t.get("name", "?"),
         state=t.get("state", "?"),
@@ -101,7 +103,20 @@ def _to_download(t: Raw) -> Download:
         save_path=t.get("save_path"),
         content_path=t.get("content_path"),
         size=t.get("size"),
+        dl_speed=t.get("dlspeed"),
+        eta=t.get("eta"),
+        num_seeds=t.get("num_seeds"),
+        num_complete=t.get("num_complete"),
+        num_leechs=t.get("num_leechs"),
+        num_incomplete=t.get("num_incomplete"),
+        ratio=(float(t["ratio"]) if t.get("ratio") is not None else None),
+        added_on=t.get("added_on"),
+        tracker_status=tr.get("status"),
+        tracker_msg=(tr.get("msg") or None),
+        tracker_host=tr.get("host"),
     )
+    d.diagnosis = diagnose_stall(d)
+    return d
 
 
 def _compute_flags(row: Row) -> list[str]:
