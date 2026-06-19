@@ -29,7 +29,7 @@
       <ul>{#each row.downloads as d}
         <li>{d.name} — {d.state} {Math.round(d.progress * 100)}% [{d.category ?? "?"}] {d.infohash}
           <button class="del" onclick={() => (confirming = d)}>Supprimer</button>
-          <button class="act2" onclick={() => reannounce(row.key, d.infohash)}>Re-announce</button>
+          <button class="act2" onclick={async () => { try { await reannounce(row.key, d.infohash); } catch { /* refresh reflects outcome */ } }}>Re-announce</button>
           <button class="act2" onclick={() => (rechecking = d)}>Re-check</button>
           {#if d.diagnosis?.cause === "tracker-refused"}<span class="hint">ne débloque qu'après remontée du ratio</span>{/if}
           {#if d.dl_speed != null}
