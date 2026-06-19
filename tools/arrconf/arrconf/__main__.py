@@ -347,6 +347,15 @@ def apply(
                     dry_run=dry_run or settings.arrconf_dry_run,
                 ):
                     log.info("sonarr_category_profile_action", action=cp_action)
+            if intent_cfg is not None and intent_cfg.unmonitor_imported:
+                from arrconf.reconcilers._unmonitor import (  # noqa: PLC0415
+                    unmonitor_downloaded_episodes,
+                )
+
+                for act in unmonitor_downloaded_episodes(
+                    client, dry_run=dry_run or settings.arrconf_dry_run
+                ):
+                    log.info("sonarr_unmonitor_action", action=act)
         except ConfigError as e:
             # Phase 18 (CR-01 defense-in-depth): the helper raises ConfigError
             # when YAML+env credentials are both empty. The pre-flight gate
@@ -401,6 +410,15 @@ def apply(
                     dry_run=dry_run or settings.arrconf_dry_run,
                 ):
                     log.info("radarr_category_profile_action", action=cp_action)
+            if intent_cfg is not None and intent_cfg.unmonitor_imported:
+                from arrconf.reconcilers._unmonitor import (  # noqa: PLC0415
+                    unmonitor_imported_movies,
+                )
+
+                for act in unmonitor_imported_movies(
+                    radarr_client, dry_run=dry_run or settings.arrconf_dry_run
+                ):
+                    log.info("radarr_unmonitor_action", action=act)
         except ConfigError as e:
             # Phase 18 (CR-01 defense-in-depth): mirror of Sonarr branch.
             log.error("config_error", app="radarr", error=str(e))

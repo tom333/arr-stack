@@ -291,6 +291,15 @@ class IntentConfig(BaseModel):
             "(ADR-5 safe -- no quality-profile definition writes)."
         ),
     )
+    unmonitor_imported: bool = Field(
+        default=False,
+        description=(
+            "When true, `arrconf apply` unmonitors Radarr movies that have a file and "
+            "Sonarr episodes that have a file (the series stays monitored so new episodes "
+            "still grab). Enforced every apply (re-unmonitors manual re-monitors). "
+            "Item-state only — never touches quality-profile definitions (ADR-5 safe)."
+        ),
+    )
 
 
 def load_intent(path: Path) -> IntentConfig:

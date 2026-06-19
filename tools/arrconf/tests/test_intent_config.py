@@ -125,3 +125,10 @@ def test_category_quality_profiles_override():
         {"category_quality_profiles": {"general": "Custom", "anime": "Anime", "family": "Family"}}
     )
     assert cfg.category_quality_profiles["general"] == "Custom"
+
+
+def test_unmonitor_imported_defaults_false_and_parses():
+    from arrconf.intent_config import IntentConfig
+
+    assert IntentConfig().unmonitor_imported is False
+    assert IntentConfig(unmonitor_imported=True).unmonitor_imported is True

@@ -490,6 +490,12 @@
     },
     "tools": {
       "$ref": "#/$defs/ToolsConfig"
+    },
+    "unmonitor_imported": {
+      "default": false,
+      "description": "When true, `arrconf apply` unmonitors Radarr movies that have a file and Sonarr episodes that have a file (the series stays monitored so new episodes still grab). Enforced every apply (re-unmonitors manual re-monitors). Item-state only \u2014 never touches quality-profile definitions (ADR-5 safe).",
+      "title": "Unmonitor Imported",
+      "type": "boolean"
     }
   },
   "title": "IntentConfig",

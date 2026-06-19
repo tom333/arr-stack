@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=../../../schemas/intent-schema.json
 # HAND-EDITED — source of truth for 'arrconf generate'
 
+unmonitor_imported: true
+
 tools:
   cross_seed:
     torznab:
