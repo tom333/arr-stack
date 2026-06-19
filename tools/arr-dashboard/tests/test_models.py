@@ -44,3 +44,25 @@ def test_action_job_defaults():
     j = ActionJob(key="tmdb:1", title="M", app="radarr")
     assert j.state == "queued"
     assert j.message is None
+
+
+def test_download_new_fields_default_none_and_diagnosis():
+    from arr_dashboard.models import Download, StallDiagnosis
+
+    d = Download(infohash="a", name="n", state="forcedDL", progress=0.0)
+    # all new qBit/tracker fields default to None
+    assert d.dl_speed is None and d.eta is None and d.num_seeds is None
+    assert d.num_complete is None and d.num_leechs is None and d.num_incomplete is None
+    assert d.ratio is None and d.added_on is None
+    assert d.tracker_status is None and d.tracker_msg is None and d.tracker_host is None
+    assert d.diagnosis is None
+
+    diag = StallDiagnosis(
+        cause="tracker-refused",
+        label="tracker refuse: Forbidden",
+        host="c411.org",
+        recoverable=True,
+    )
+    d2 = Download(infohash="b", name="n", state="forcedDL", progress=0.0, diagnosis=diag)
+    assert d2.diagnosis.cause == "tracker-refused"
+    assert d2.diagnosis.host == "c411.org"

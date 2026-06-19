@@ -3,6 +3,13 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+class StallDiagnosis(BaseModel):
+    cause: str  # "metadata" | "queued" | "tracker-refused" | "no-source" | "stalled"
+    label: str
+    host: str | None = None
+    recoverable: bool = True
+
+
 class Download(BaseModel):
     infohash: str
     name: str
@@ -13,6 +20,20 @@ class Download(BaseModel):
     save_path: str | None = None
     content_path: str | None = None
     size: int | None = None
+    # qBit /torrents/info stats (populated for qBit-backed downloads)
+    dl_speed: int | None = None
+    eta: int | None = None
+    num_seeds: int | None = None  # connected seeds
+    num_complete: int | None = None  # seeders in swarm
+    num_leechs: int | None = None  # connected peers
+    num_incomplete: int | None = None  # leechers in swarm
+    ratio: float | None = None
+    added_on: int | None = None  # epoch seconds
+    # worst tracker entry (from /torrents/trackers), set for stalled torrents
+    tracker_status: int | None = None
+    tracker_msg: str | None = None
+    tracker_host: str | None = None
+    diagnosis: StallDiagnosis | None = None
 
 
 class ChainHealth(BaseModel):
