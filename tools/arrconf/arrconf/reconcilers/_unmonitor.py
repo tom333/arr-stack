@@ -10,14 +10,14 @@ by construction (only /movie/editor and /episode/monitor item endpoints are call
 
 from __future__ import annotations
 
-from typing import Any
-
 import structlog
+
+from arrconf.client_base import ArrApiClient
 
 log = structlog.get_logger()
 
 
-def unmonitor_imported_movies(client: Any, *, dry_run: bool) -> list[str]:
+def unmonitor_imported_movies(client: ArrApiClient, *, dry_run: bool) -> list[str]:
     """Unmonitor Radarr movies that already have a file."""
     movies = client.get("/movie")
     ids = [m["id"] for m in movies if m.get("hasFile") and m.get("monitored")]
@@ -32,11 +32,13 @@ def unmonitor_imported_movies(client: Any, *, dry_run: bool) -> list[str]:
     return [f"unmonitor_movies:applied:{len(ids)}"]
 
 
-def unmonitor_downloaded_episodes(client: Any, *, dry_run: bool) -> list[str]:
+def unmonitor_downloaded_episodes(client: ArrApiClient, *, dry_run: bool) -> list[str]:
     """Unmonitor Sonarr episodes that already have a file; the series stays monitored."""
     series = client.get("/series")
     ep_ids: list[int] = []
     for s in series:
+        # Sonarr returns ALL episodes for a series in one call (no pagination for the
+        # seriesId-scoped GET) — one GET per series, then a single bulk PUT below.
         episodes = client.get(f"/episode?seriesId={s['id']}")
         ep_ids.extend(e["id"] for e in episodes if e.get("hasFile") and e.get("monitored"))
     if not ep_ids:

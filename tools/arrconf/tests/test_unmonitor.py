@@ -101,3 +101,19 @@ def test_unmonitor_episodes_noop_when_none():
     acts = unmonitor_downloaded_episodes(SonarrClient("http://s:8989", "k"), dry_run=False)
     assert acts == ["unmonitor_episodes:no-op"]
     assert not mon.calls
+
+
+@respx.mock
+def test_unmonitor_episodes_dry_run_no_put():
+    respx.get("http://s:8989/api/v3/series").mock(
+        return_value=httpx.Response(200, json=[{"id": 10}])
+    )
+    respx.get("http://s:8989/api/v3/episode?seriesId=10").mock(
+        return_value=httpx.Response(200, json=[{"id": 101, "hasFile": True, "monitored": True}])
+    )
+    mon = respx.put("http://s:8989/api/v3/episode/monitor").mock(
+        return_value=httpx.Response(200, json={})
+    )
+    acts = unmonitor_downloaded_episodes(SonarrClient("http://s:8989", "k"), dry_run=True)
+    assert acts == ["unmonitor_episodes:dry_run:1"]
+    assert not mon.calls
