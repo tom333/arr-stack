@@ -113,3 +113,37 @@ def test_jellyfin_scan_tolerates_204_no_content():
 def test_jellyfin_scan_raises_when_no_disk_path():
     with pytest.raises(RecoveryActionError):
         jellyfin_scan(_row(disk_paths=[]), FakeJellyfin())
+
+
+def test_reannounce_calls_qbit():
+    qb = FakeQbit()
+    from arr_dashboard.recovery_actions import reannounce
+
+    reannounce("HASH1", qb)
+    assert qb.deleted == [{"path": "/torrents/reannounce", "hashes": "HASH1"}]
+
+
+def test_reannounce_rejects_empty_infohash():
+    qb = FakeQbit()
+    from arr_dashboard.recovery_actions import reannounce
+
+    with pytest.raises(RecoveryActionError):
+        reannounce("", qb)
+    assert qb.deleted == []
+
+
+def test_recheck_calls_qbit():
+    qb = FakeQbit()
+    from arr_dashboard.recovery_actions import recheck
+
+    recheck("HASH1", qb)
+    assert qb.deleted == [{"path": "/torrents/recheck", "hashes": "HASH1"}]
+
+
+def test_recheck_rejects_empty_infohash():
+    qb = FakeQbit()
+    from arr_dashboard.recovery_actions import recheck
+
+    with pytest.raises(RecoveryActionError):
+        recheck("", qb)
+    assert qb.deleted == []
