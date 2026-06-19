@@ -15,6 +15,8 @@ from arr_dashboard.recovery_actions import (
     RecoveryActionError,
     delete_download,
     jellyfin_scan,
+    reannounce,
+    recheck,
     remove_stuck,
 )
 from arr_dashboard.settings import Settings, load_settings
@@ -141,6 +143,38 @@ def create_app(
         except RecoveryActionError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return {"status": "scanning", "key": row.key}
+
+    @app.post("/api/actions/reannounce")
+    def reannounce_download(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
+        _row_or_404(payload.get("key"))
+        infohash = payload.get("infohash")
+        if not infohash:
+            raise HTTPException(status_code=400, detail="infohash required")
+        qbit = build_qbit(settings or load_settings())
+        if qbit is None:
+            raise HTTPException(status_code=400, detail="no qbit client")
+        try:
+            reannounce(infohash, qbit)
+        except RecoveryActionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return {"status": "reannounced", "infohash": infohash}
+
+    @app.post("/api/actions/recheck")
+    def recheck_download(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
+        if payload.get("confirm") is not True:
+            raise HTTPException(status_code=400, detail="confirm:true required")
+        _row_or_404(payload.get("key"))
+        infohash = payload.get("infohash")
+        if not infohash:
+            raise HTTPException(status_code=400, detail="infohash required")
+        qbit = build_qbit(settings or load_settings())
+        if qbit is None:
+            raise HTTPException(status_code=400, detail="no qbit client")
+        try:
+            recheck(infohash, qbit)
+        except RecoveryActionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return {"status": "rechecking", "infohash": infohash}
 
     if _DIST.is_dir():
         app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="web")

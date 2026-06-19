@@ -256,3 +256,66 @@ def test_jellyfin_scan_recovery_error_409(monkeypatch):
     client = TestClient(create_app(cache=cache, settings=_settings_full(), start_refresher=False))
     r = client.post("/api/actions/jellyfin-scan", json={"key": "tmdb:42"})
     assert r.status_code == 409
+
+
+def test_reannounce_dispatches_no_confirm(monkeypatch):
+    from arr_dashboard.models import Download
+
+    cache = _row_snapshot(
+        key="tmdb:42",
+        title="M",
+        type="movie",
+        downloads=[Download(infohash="aaa", name="a", state="forcedDL", progress=0.0)],
+    )
+    got = {}
+    monkeypatch.setattr(
+        "arr_dashboard.app.reannounce", lambda infohash, qbit: got.update(h=infohash)
+    )
+    monkeypatch.setattr("arr_dashboard.app.build_qbit", lambda s: object())
+    client = TestClient(create_app(cache=cache, settings=_settings_full(), start_refresher=False))
+    r = client.post("/api/actions/reannounce", json={"key": "tmdb:42", "infohash": "aaa"})
+    assert r.status_code == 200
+    assert got["h"] == "aaa"
+    assert (
+        client.post("/api/actions/reannounce", json={"key": "nope", "infohash": "aaa"}).status_code
+        == 404
+    )
+
+
+def test_reannounce_no_qbit_client_400(monkeypatch):
+    from arr_dashboard.models import Download
+
+    cache = _row_snapshot(
+        key="tmdb:42",
+        title="M",
+        type="movie",
+        downloads=[Download(infohash="aaa", name="a", state="forcedDL", progress=0.0)],
+    )
+    monkeypatch.setattr("arr_dashboard.app.build_qbit", lambda s: None)
+    client = TestClient(create_app(cache=cache, settings=_settings_full(), start_refresher=False))
+    r = client.post("/api/actions/reannounce", json={"key": "tmdb:42", "infohash": "aaa"})
+    assert r.status_code == 400
+
+
+def test_recheck_requires_confirm_and_dispatches(monkeypatch):
+    from arr_dashboard.models import Download
+
+    cache = _row_snapshot(
+        key="tmdb:42",
+        title="M",
+        type="movie",
+        downloads=[Download(infohash="aaa", name="a", state="forcedDL", progress=0.0)],
+    )
+    got = {}
+    monkeypatch.setattr("arr_dashboard.app.recheck", lambda infohash, qbit: got.update(h=infohash))
+    monkeypatch.setattr("arr_dashboard.app.build_qbit", lambda s: object())
+    client = TestClient(create_app(cache=cache, settings=_settings_full(), start_refresher=False))
+    assert (
+        client.post("/api/actions/recheck", json={"key": "tmdb:42", "infohash": "aaa"}).status_code
+        == 400
+    )
+    r = client.post(
+        "/api/actions/recheck", json={"key": "tmdb:42", "infohash": "aaa", "confirm": True}
+    )
+    assert r.status_code == 200
+    assert got["h"] == "aaa"

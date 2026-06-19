@@ -17,6 +17,20 @@ def delete_download(infohash: str, qbit: Any) -> None:
     qbit.post_form("/torrents/delete", {"hashes": infohash, "deleteFiles": "true"})
 
 
+def reannounce(infohash: str, qbit: Any) -> None:
+    """Force a fresh tracker announce for one torrent (qBit /torrents/reannounce)."""
+    if not infohash:
+        raise RecoveryActionError("reannounce: empty infohash")
+    qbit.post_form("/torrents/reannounce", {"hashes": infohash})
+
+
+def recheck(infohash: str, qbit: Any) -> None:
+    """Force qBit to re-verify a torrent's downloaded pieces (/torrents/recheck)."""
+    if not infohash:
+        raise RecoveryActionError("recheck: empty infohash")
+    qbit.post_form("/torrents/recheck", {"hashes": infohash})
+
+
 def remove_stuck(row: Row, qbit: Any, arr: Any) -> None:
     """Delete the row's stuck downloads (+ files) from qBit, then drop the matching
     *arr queue records. Raises RecoveryActionError if the row has no stuck download."""
