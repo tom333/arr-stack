@@ -78,20 +78,22 @@ def _worst_tracker(trackers: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 def _fetch_qbit_torrents(settings: Settings) -> list[dict[str, Any]]:
     """List torrents, then probe trackers for STALLED ones (dlspeed==0 & progress<1)
-    and attach the worst tracker entry as t['_tracker']. One qBit login reused."""
-    qb = QbittorrentClient(
+    and annotate each in place with the worst tracker entry as t['_tracker']
+    (a dashboard-private key, not part of the qBit API response). One qBit login reused."""
+    with QbittorrentClient(
         settings.qbittorrent_url, settings.qbt_user or "", settings.qbt_pass or ""
-    )
-    torrents: list[dict[str, Any]] = qb.list_torrents()
-    for t in torrents:
-        if t.get("dlspeed", 0) == 0 and float(t.get("progress", 0.0)) < 1.0:
-            try:
-                trackers = qb.get(f"/torrents/trackers?hash={t['hash']}")
-            except Exception:  # tracker probe must never break the refresh
-                continue
-            worst = _worst_tracker(trackers or [])
-            if worst:
-                t["_tracker"] = worst
+    ) as qb:
+        torrents: list[dict[str, Any]] = qb.list_torrents()
+        for t in torrents:
+            if t.get("dlspeed", 0) == 0 and float(t.get("progress", 0.0)) < 1.0:
+                try:
+                    trackers = qb.get(f"/torrents/trackers?hash={t['hash']}")
+                except Exception as exc:  # tracker probe must never break the refresh
+                    log.debug("tracker probe skipped for %s: %s", t.get("hash", "?"), exc)
+                    continue
+                worst = _worst_tracker(trackers or [])
+                if worst:
+                    t["_tracker"] = worst
     return torrents
 
 
