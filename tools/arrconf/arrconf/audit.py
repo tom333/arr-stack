@@ -342,7 +342,7 @@ def audit_qbittorrent(
     for cat_name, obj in raw_cats.items():
         if cat_name not in category_names:
             continue  # not a managed category — skip
-        expected = f"/data/torrents/{cat_name}"
+        expected = f"/data/{cat_name}"
         actual = _norm_path(obj.get("savePath", "") if isinstance(obj, dict) else "")
         if actual != expected:
             drift.append(
@@ -698,7 +698,7 @@ def _render_markdown(state: dict[str, Any], root: RootConfig) -> str:
         ]
         lines.append(
             _render_table(
-                ["name", "current_savePath", "expected_savePath (/data/torrents/<name>)"],
+                ["name", "current_savePath", "expected_savePath (/data/<name>)"],
                 drift_rows,
             )
         )

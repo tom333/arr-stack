@@ -94,7 +94,7 @@ def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) 
 
     The categories are sourced from arrconf.yml (the hand-edited owner), passed in
     by the `generate` CLI — keeps this function pure (no I/O) while mirroring the
-    same `<name> → /data/torrents/<name>` mapping as generate_qbit_categories.
+    same `<name> → /data/<name>` mapping as generate_qbit_categories.
 
     Security: !ENV tags emitted as YAML literal strings via string construction —
     ruyaml.dump() cannot produce '!ENV VAR_NAME' tagged scalars without a custom
@@ -134,12 +134,13 @@ def generate_qbit_manage(cfg: QbitManageConfig, categories: list[QbitCategory]) 
         "",
     ]
     # MANDATORY: directory.root_dir (qbit_manage errors "directory attribute not
-    # found" without it). root_dir is the qBit-side torrents root — matches the
-    # cat save_paths (/data/torrents/<name>). recycle_bin lives under it.
+    # found" without it). root_dir is the qBit-side save root — qBit mounts the
+    # shared volume at /data, so the cat save_paths are /data/<name> and root_dir
+    # is /data. recycle_bin lives under it.
     lines += [
         "directory:",
-        "  root_dir: /data/torrents",
-        "  recycle_bin: /data/torrents/.RecycleBin",
+        "  root_dir: /data",
+        "  recycle_bin: /data/.RecycleBin",
         "",
     ]
     # MANDATORY: cat populated (cat_update:false above keeps arrconf the owner).

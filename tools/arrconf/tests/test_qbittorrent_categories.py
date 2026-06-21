@@ -96,8 +96,14 @@ def test_categories_wiring_10_entries() -> None:
 
 
 def test_savepath_format() -> None:
-    """Generated qBit savePath uses /data/torrents/<name> not <c.base_path>."""
+    """Generated qBit savePath uses /data/<name> (qBit-side), not <c.base_path>.
+
+    qBit mounts the shared torrents volume at /data, so /data/<name> is the same
+    bytes as Sonarr/Radarr's /data/torrents/<name> (they mount it at /data/torrents).
+    The Sonarr/Radarr RPM /data/<name>/ -> /data/torrents/<name>/ bridges the offset.
+    Anchored by audit.py valid_qbit_save_paths = /data/<name>.
+    """
     cats = [MediaCategory.model_validate(c) for c in PRODUCTION_CATEGORIES]
     generated = generate_qbit_categories(cats)
     zoe = next(c for c in generated if c.name == "series-zoe")
-    assert zoe.savePath == "/data/torrents/series-zoe"
+    assert zoe.savePath == "/data/series-zoe"

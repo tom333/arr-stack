@@ -90,7 +90,7 @@ def test_generate_qbit_manage_directory_root_dir() -> None:
     """directory.root_dir is mandatory (qbit_manage errors without it)."""
     result = generate_qbit_manage(QbitManageConfig(), _cats())
     assert "\ndirectory:\n" in result
-    assert "  root_dir: /data/torrents" in result
+    assert "  root_dir: /data\n" in result
 
 
 def test_generate_qbit_manage_recyclebin_top_level() -> None:

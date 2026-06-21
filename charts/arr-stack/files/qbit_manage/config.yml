@@ -22,20 +22,20 @@ settings:
   force_auto_tmm: false
 
 directory:
-  root_dir: /data/torrents
-  recycle_bin: /data/torrents/.RecycleBin
+  root_dir: /data
+  recycle_bin: /data/.RecycleBin
 
 cat:
-  films: /data/torrents/films
-  films-animation-enfants: /data/torrents/films-animation-enfants
-  films-enfants: /data/torrents/films-enfants
-  films-zoe: /data/torrents/films-zoe
-  nouveaux-films: /data/torrents/nouveaux-films
-  series: /data/torrents/series
-  series-emilie: /data/torrents/series-emilie
-  series-garcons: /data/torrents/series-garcons
-  series-thomas: /data/torrents/series-thomas
-  series-zoe: /data/torrents/series-zoe
+  films: /data/films
+  films-animation-enfants: /data/films-animation-enfants
+  films-enfants: /data/films-enfants
+  films-zoe: /data/films-zoe
+  nouveaux-films: /data/nouveaux-films
+  series: /data/series
+  series-emilie: /data/series-emilie
+  series-garcons: /data/series-garcons
+  series-thomas: /data/series-thomas
+  series-zoe: /data/series-zoe
 
 tracker:
   beyond-hd:

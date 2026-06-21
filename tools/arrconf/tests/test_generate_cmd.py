@@ -168,7 +168,10 @@ def test_generate_writes_qbit_manage_config_yml(tmp_path: Path) -> None:
     assert "cat_update: false" in content
     # cat is now POPULATED from arrconf.yml categories (qbit_manage rejects empty cat).
     assert "cat: {}" not in content
-    assert "/data/torrents/" in content
+    # qBit-side save paths are /data/<name> (qBit mounts the shared volume at /data) —
+    # NO /data/torrents/ anywhere (that path is Sonarr/Radarr-side only).
+    assert "  root_dir: /data\n" in content
+    assert "/data/torrents/" not in content
 
 
 def test_generate_check_exits_1_when_file_absent(tmp_path: Path) -> None:

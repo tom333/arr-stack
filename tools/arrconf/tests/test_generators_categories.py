@@ -139,10 +139,14 @@ def test_generate_qbit_categories_bare_names(cfg_production: list[MediaCategory]
 
 
 def test_generate_qbit_categories_savepath_format(cfg_production: list[MediaCategory]) -> None:
-    """Pitfall 3: savePath uses /data/torrents/<name>, NOT base_path (/media/<name>)."""
+    """savePath uses /data/<name> (qBit-side), NOT base_path (/media/<name>).
+
+    qBit mounts the shared volume at /data, so /data/<name> is the same bytes as
+    Sonarr/Radarr's /data/torrents/<name>; the RPM bridges the mount offset.
+    """
     result = generate_qbit_categories(cfg_production)
     for c in result:
-        assert c.savePath == f"/data/torrents/{c.name}"
+        assert c.savePath == f"/data/{c.name}"
 
 
 def test_generate_qbit_categories_empty(cfg_empty: list[MediaCategory]) -> None:

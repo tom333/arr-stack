@@ -132,14 +132,15 @@ def test_arrconf_yml_all_remote_path_mappings_end_with_slash() -> None:
         )
 
 
-def test_arrconf_yml_films_category_uses_data_torrents_films() -> None:
-    """D-05-PATHS-01 spirit: the canonical movies-bucket category ('films') maps
-    to /data/torrents/films. CATMIG-02: categories sourced from intent.yml."""
+def test_arrconf_yml_films_category_uses_data_films() -> None:
+    """The canonical movies-bucket category ('films') maps to /data/films (qBit-side).
+    qBit mounts the shared volume at /data, so /data/films == Sonarr/Radarr's
+    /data/torrents/films via the RPM. CATMIG-02: categories sourced from intent.yml."""
     cats = _load_production_categories()
     cat_map = {c.name: c.savePath for c in generate_qbit_categories(cats)}
     assert "films" in cat_map, "films category not declared"
-    assert cat_map["films"] == "/data/torrents/films", (
-        f"films savePath is {cat_map['films']!r}, expected '/data/torrents/films'"
+    assert cat_map["films"] == "/data/films", (
+        f"films savePath is {cat_map['films']!r}, expected '/data/films'"
     )
 
 

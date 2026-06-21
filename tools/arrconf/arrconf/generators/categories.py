@@ -10,7 +10,8 @@ are now config-type-agnostic (pure list input).
 
 Key invariants (from PATTERNS.md + RESEARCH.md):
 - D-03a: qBit category names are bare slugs (<name>), NOT <kind>-<name>.
-- Pitfall 3: qBit savePath = /data/torrents/<name>, NOT /media/<name>.
+- qBit savePath = /data/<name> (qBit mounts the shared volume at /data; same bytes as
+  Sonarr/Radarr's /data/torrents/<name>). NOT /data/torrents/<name>, NOT /media/<name>.
 - Pitfall 6: RPM remotePath + localPath MUST end with '/'.
 - TagItem vs Tag: generator produces TagItem(label=), NOT Tag (which carries a server id).
 - No I/O, no httpx, no client calls. mypy --strict-compliant signatures throughout.
@@ -131,10 +132,16 @@ def _qbit_dc_fields_radarr(category_name: str) -> list[FieldKV]:
 def generate_qbit_categories(categories: list[MediaCategory]) -> list[QbitCategory]:
     """D-03a: each Category → 1 QbitCategory with bare ``<name>`` (NOT ``<kind>-<name>``).
 
-    ``savePath`` = ``/data/torrents/<name>`` per Pitfall 3 — qBit-side mount path differs
-    from ``c.base_path`` (``/media/<name>`` is where Jellyfin/Sonarr/Radarr read).
+    ``savePath`` = ``/data/<name>`` (qBit-side). qBit mounts the shared torrents volume
+    at ``/data``, so ``/data/<name>`` is the SAME bytes as Sonarr/Radarr's
+    ``/data/torrents/<name>`` (they mount the same volume at ``/data/torrents``). The
+    Sonarr/Radarr RPM ``/data/<name>/`` → ``/data/torrents/<name>/`` bridges that mount
+    offset so imports resolve. NOT ``/data/torrents/<name>`` (that would land at
+    ``HOSTDIR/torrents/<name>``, which Sonarr cannot reach → import fails) and NOT
+    ``c.base_path`` (``/media/<name>`` is where Jellyfin/Sonarr/Radarr read post-import).
+    Anchored by ``audit.py`` ``valid_qbit_save_paths = /data/<name>``.
     """
-    return [QbitCategory(name=c.name, savePath=f"/data/torrents/{c.name}") for c in categories]
+    return [QbitCategory(name=c.name, savePath=f"/data/{c.name}") for c in categories]
 
 
 def generate_sonarr_resources(categories: list[MediaCategory]) -> SonarrDerived:
