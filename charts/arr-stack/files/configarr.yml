@@ -54,9 +54,9 @@ customFormatDefinitions:
   name: 'FR: VOSTFR (subs only)'
   specifications:
   - fields:
-      value: \bVOSTFR\b
+      value: \b(VOSTFR|SUBFRENCH|FASTSUB|VOSTA|VOST)\b
     implementation: ReleaseTitleSpecification
-    name: VOSTFR in release title
+    name: VOSTFR/SUBFRENCH/FASTSUB in release title
     negate: false
     required: false
   trash_id: fr-vostfr

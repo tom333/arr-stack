@@ -620,12 +620,16 @@ configarr:
       name: "FR: VOSTFR (subs only)"
       includeCustomFormatWhenRenaming: false
       specifications:
-        - name: VOSTFR in release title
+        - name: VOSTFR/SUBFRENCH/FASTSUB in release title
           implementation: ReleaseTitleSpecification
           negate: false
           required: false
           fields:
-            value: "\\bVOSTFR\\b"
+            # Broadened beyond \bVOSTFR\b: French trackers tag subbed releases
+            # as SUBFRENCH/FASTSUB/VOST/VOSTA too. The Prowlarr per-indexer
+            # `vostfr` field (now False) no longer rewrites these to ENGLISH,
+            # so the tags reach Sonarr/Radarr and this CF rejects them (-10000).
+            value: "\\b(VOSTFR|SUBFRENCH|FASTSUB|VOSTA|VOST)\\b"
 
     # ---------------------------------------------------------------------------
     # mHD / MHD — encodes HD efficaces, fichiers les plus petits (priorité).
