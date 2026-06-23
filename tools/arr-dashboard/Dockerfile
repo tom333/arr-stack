@@ -12,7 +12,7 @@
 # (The GHCR workflow sets context: . and file: tools/arr-dashboard/Dockerfile.)
 
 # ─── Stage 1: web (Svelte build) ────────────────────────────────────────────
-FROM node:22-slim AS web
+FROM node:24-slim AS web
 
 WORKDIR /web
 COPY tools/arr-dashboard/web/package.json tools/arr-dashboard/web/package-lock.json ./
