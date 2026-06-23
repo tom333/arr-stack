@@ -167,22 +167,10 @@ apps:
         prune: false
       remote_path_mappings:
         prune: false
-      series_tags:
-        enable: true
-        default_tag: tv
-
-      # Phase 6 (D-06-RETAG-01): genre-keyword-driven post-import retagger.
-      # Runs as step 10, AFTER series_tags (Phase 5 step 9 D-05-MIG-01 baseline tag).
-      # Pitfall 5 (research): keyword lists are conservative.
-      #   family: NEVER include "Animation" — catches anime
-      #   anime:  ["Anime"] — TVDB has a first-class "Anime" genre
-      content_routing:
-        enable: true
-        rules:
-          - tag: family
-            keywords: ["Family", "Kids", "Children"]
-          - tag: anime
-            keywords: ["Anime"]
+      # series_tags (D-05-MIG-01) and content_routing (D-06-RETAG-01) REMOVED:
+      # title tagging is now owned exclusively by reconcile_category_tags
+      # (final apply step, applyTags="set" by root-folder → Category). Their
+      # default tv/anime/family tags polluted titles and broke routing.
 
   radarr:
     main:
@@ -195,21 +183,10 @@ apps:
         prune: false
       remote_path_mappings:
         prune: false
-      movie_tags:
-        enable: true
-        default_tag: movies
-
-      # Phase 6 (D-06-RETAG-01): family-only on Radarr.
-      # Pitfall 5: NO anime rule on Radarr.
-      #   - TMDB has no "Anime" first-class genre
-      #   - "Animation" would catch Pixar/Disney (false-positive)
-      #   Anime films stay manual-tag until a future phase ships an
-      #   originalLanguage-based filter (deferred — D-06+1).
-      content_routing:
-        enable: true
-        rules:
-          - tag: family
-            keywords: ["Family"]
+      # movie_tags (D-05-SPLIT-02) and content_routing (D-06-RETAG-01) REMOVED:
+      # title tagging is now owned exclusively by reconcile_category_tags
+      # (final apply step, applyTags="set" by root-folder → Category). Their
+      # default movies/family tags polluted titles and broke routing.
 
   prowlarr:
     main:
@@ -276,7 +253,9 @@ apps:
         activeDirectory: /media/series
         activeAnimeProfileId: 8
         activeAnimeDirectory: /media/anime
-        tags: [2]
+        # No routing tag on new Seerr requests: reconcile_category_tags assigns
+        # each title's Category tag by root folder on the next apply.
+        tags: []
         animeTags: [3]
         is4k: false
         isDefault: true
@@ -293,7 +272,9 @@ apps:
         activeDirectory: /media/films
         is4k: false
         minimumAvailability: released
-        tags: [2]
+        # No routing tag on new Seerr requests: reconcile_category_tags assigns
+        # each title's Category tag by root folder on the next apply.
+        tags: []
         isDefault: true
         externalUrl: https://radarr.tgu.ovh
         syncEnabled: true

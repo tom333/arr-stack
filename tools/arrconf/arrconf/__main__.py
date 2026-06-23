@@ -643,83 +643,12 @@ def apply(
                 log.error("app_failed", app="jellyfin_sagas", error=str(e))
                 failures.append("jellyfin_sagas")
 
-        # SAGAS-04 (Sonarr tagging sub-step): tag member series arrconf-managed in Sonarr.
-        # Runs AFTER BoxSet creation so the BoxSet is the primary deliverable.
-        # _ensure_managed_tag ONLY creates/gets the tag record — must ALSO PUT /series/editor
-        # to actually apply the tag (mirrors _reconcile_series_tags — R-02 applyTags="add"
-        # so operator-assigned tags are never removed).
-        if "sonarr" in targets and "main" in root.sonarr and settings.sonarr_api_key:
-            try:
-                from arrconf.reconcilers.sonarr import (  # noqa: PLC0415
-                    SERIES_EDITOR_PATH,
-                    _ensure_managed_tag,
-                )
-
-                sonarr_saga_client = SonarrClient(
-                    base_url=root.sonarr["main"].base_url,
-                    api_key=settings.sonarr_api_key.get_secret_value(),
-                )
-                _dry = dry_run or settings.arrconf_dry_run
-
-                # Step 1: ensure the arrconf-managed tag exists (create if absent)
-                managed_tag = _ensure_managed_tag(sonarr_saga_client, dry_run=_dry)
-
-                # Step 2: collect all member titles from kind=series sagas
-                series_titles: set[str] = {
-                    title
-                    for s in intent_cfg.sagas
-                    if s.kind == "series"
-                    for title in (s.items or [])
-                }
-
-                if series_titles:
-                    # Step 3: GET /series, resolve titles → Sonarr series ids
-                    raw_series = sonarr_saga_client.get("/series")
-                    series_ids = [
-                        s["id"]
-                        for s in raw_series
-                        if s.get("title") in series_titles and s.get("id") is not None
-                    ]
-                    unmatched = series_titles - {
-                        s.get("title") for s in raw_series if s.get("title") in series_titles
-                    }
-                    for title in unmatched:
-                        log.warning(
-                            "sonarr_saga_series_unresolved",
-                            title=title,
-                            hint="Check that the title in intent.yml matches Sonarr exactly",
-                        )
-
-                    # Step 4: apply tag via PUT /series/editor with applyTags="add"
-                    # (applyTags="add" preserves operator-assigned tags — R-02)
-                    if series_ids and not _dry:
-                        sonarr_saga_client._request(
-                            "PUT",
-                            SERIES_EDITOR_PATH,
-                            json={
-                                "seriesIds": series_ids,
-                                "tags": [managed_tag.id],
-                                "applyTags": "add",
-                                "moveFiles": False,
-                            },
-                        )
-                        log.info(
-                            "sonarr_saga_tags_applied",
-                            count=len(series_ids),
-                            tag_id=managed_tag.id,
-                        )
-                    elif series_ids and _dry:
-                        log.info(
-                            "dry_run_skip",
-                            resource="sonarr_saga_tags",
-                            count=len(series_ids),
-                        )
-
-                log.info("apply_complete", app="sonarr_saga_tags")
-            except (ApiClientError, ReconcileError) as e:
-                # Tagging is secondary (BoxSet is primary); best-effort: log + continue
-                log.warning("app_failed", app="sonarr_saga_tags", error=str(e))
-                failures.append("jellyfin_sagas")
+        # SAGAS-04 (Sonarr tagging sub-step) REMOVED: previously applied the
+        # arrconf-managed tag to saga-member series (PUT /series/editor,
+        # applyTags="add"). That title-tagging side-effect broke deterministic
+        # download-client routing (match-all). Title tags are now owned
+        # exclusively by reconcile_category_tags below (applyTags="set"). The
+        # BoxSet/saga deliverable (SAGAS-04 Jellyfin block above) is unaffected.
 
     # Category-tag enforcement (FINAL tagging step): set each title's tags to
     # exactly its Category tag (applyTags="set"). Runs AFTER all existing tag

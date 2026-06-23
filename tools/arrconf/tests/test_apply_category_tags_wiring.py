@@ -1,8 +1,9 @@
 """Task 2 wiring + ordering test for category-tag enforcement.
 
 Proves that ``apply`` calls ``reconcile_category_tags`` for BOTH Sonarr and
-Radarr as the FINAL tagging step — after the SAGAS-04 Sonarr series-tagging
-sub-step (``_ensure_managed_tag``) and after the per-app reconcile/profile steps.
+Radarr as the FINAL tagging step — after the per-app reconcile/profile steps.
+(The legacy SAGAS-04 Sonarr series-tagging sub-step was removed in Task 3;
+title tags are now owned exclusively by ``reconcile_category_tags``.)
 
 Approach (lightest reliable): monkeypatch the lazily-imported call-site
 functions on their source modules so they record an ordered call log instead of
@@ -24,7 +25,6 @@ import arrconf.reconcilers._category_tags as ct_mod
 import arrconf.reconcilers.radarr as radarr_mod
 import arrconf.reconcilers.sonarr as sonarr_mod
 from arrconf.__main__ import app
-from arrconf.resources.sonarr.tag import Tag
 
 runner = CliRunner()
 
@@ -86,11 +86,6 @@ def test_category_tags_runs_for_both_apps_after_sagas(
         order.append("category_profiles")
         return []
 
-    def fake_ensure_managed_tag(client: Any, dry_run: bool) -> Tag:
-        # SAGAS-04 Sonarr series-tagging sub-step entry point.
-        order.append("sagas04_sonarr_tagging")
-        return Tag(id=1, label="arrconf-managed")
-
     def fake_category_tags(
         client: Any,
         categories: Any,
@@ -109,7 +104,6 @@ def test_category_tags_runs_for_both_apps_after_sagas(
     monkeypatch.setattr(main_mod, "reconcile_sonarr", fake_reconcile_sonarr)
     monkeypatch.setattr(main_mod, "reconcile_radarr", fake_reconcile_radarr)
     monkeypatch.setattr(cp_mod, "reconcile_category_profiles", fake_profiles)
-    monkeypatch.setattr(sonarr_mod, "_ensure_managed_tag", fake_ensure_managed_tag)
     monkeypatch.setattr(ct_mod, "reconcile_category_tags", fake_category_tags)
 
     result = runner.invoke(
@@ -138,9 +132,6 @@ def test_category_tags_runs_for_both_apps_after_sagas(
     assert "category_tags:/series" in order, order
     assert "category_tags:/movie" in order, order
 
-    # Sonarr category-tags runs AFTER the SAGAS-04 Sonarr series-tagging step.
-    assert order.index("category_tags:/series") > order.index("sagas04_sonarr_tagging"), order
-
-    # ...and after the per-app reconcile + profile steps (FINAL tagging step).
+    # Category-tags runs after the per-app reconcile + profile steps (FINAL tagging step).
     assert order.index("category_tags:/series") > order.index("sonarr_reconcile"), order
     assert order.index("category_tags:/movie") > order.index("radarr_reconcile"), order

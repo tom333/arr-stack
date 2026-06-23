@@ -678,15 +678,12 @@ def reconcile_radarr(
     log.info("step_begin", step="host_config", step_index=8)
     _reconcile_host_config(client, instance.host_config, dry_run)
 
-    # Step 9: Movie tags — MUST run AFTER download_clients (D-05-ORDER-01).
-    # Tagged movies route to already-configured download clients.
-    log.info("step_begin", step="movie_tags", step_index=9)
-    actions_taken += _reconcile_movie_tags(client, instance.movie_tags, all_tags, dry_run)
-
-    # Step 10: Content tags — MUST run AFTER movie_tags (D-05-ORDER-01 mirror).
-    # Genre-keyword-driven post-import retagger (D-06-RETAG-01).
-    log.info("step_begin", step="content_tags", step_index=10)
-    actions_taken += _reconcile_content_tags(client, instance.content_routing, all_tags, dry_run)
+    # Legacy steps 9 (movie_tags, D-05-SPLIT-02) and 10 (content_tags, D-06-RETAG-01)
+    # are DISABLED: title tagging is now owned exclusively by reconcile_category_tags
+    # (the final apply step, applyTags="set"). Applying default movies/family tags
+    # here polluted title tags and broke deterministic download-client routing.
+    # The _reconcile_movie_tags / _reconcile_content_tags helpers are retained but
+    # no longer invoked.
 
     return RadarrResult(
         plan=dc_plan,

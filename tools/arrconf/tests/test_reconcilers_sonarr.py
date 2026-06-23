@@ -1188,8 +1188,9 @@ def test_reconcile_order(
         "download_clients",
         "notifications",
         "host_config",
-        "series_tags",
-        "content_tags",  # Phase 6 D-06-RETAG-01 — LAST step (step_index=10)
+        # series_tags + content_tags REMOVED: title tagging is now owned by
+        # reconcile_category_tags (final apply step). host_config is the last
+        # reconcile_sonarr step.
     ]
     assert step_names == canonical_order, (
         f"D-05-ORDER-01 violated! Expected step order:\n  {canonical_order}\nGot:\n  {step_names}"
