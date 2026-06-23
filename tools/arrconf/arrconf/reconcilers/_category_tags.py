@@ -6,7 +6,7 @@ against the item's root folder. Read-only tag resolution (GET /tag); only
 /series and /movie item resources are written (PUT editor). Frontier-safe: no
 quality-profile/custom-format DEFINITION is ever touched.
 
-Decision D-1 (applyTags="set"): the editor write REPLACES all tags with exactly
+Decision D-1 (applyTags="replace"): the editor write REPLACES all tags with exactly
 ``[category_tag_id]``. This is deliberate — a title then shares a routing tag
 only with its own Category's download client, so routing is deterministic.
 Consequence: any other tag on the item is stripped, including the Seerr
@@ -87,7 +87,7 @@ def reconcile_category_tags(
             client._request(
                 "PUT",
                 editor_path,
-                json={ids_key: ids, "tags": [tag_id], "applyTags": "set"},
+                json={ids_key: ids, "tags": [tag_id], "applyTags": "replace"},
             )
             log.info("category_tag_assigned", tag_id=tag_id, count=len(ids))
 

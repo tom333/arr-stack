@@ -470,7 +470,7 @@ arrconf:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf
             repository: ghcr.io/tom333/arr-stack-arrconf
-            tag: "0.41.1"
+            tag: "0.41.2"
             pullPolicy: IfNotPresent
           args:
             - "--config"

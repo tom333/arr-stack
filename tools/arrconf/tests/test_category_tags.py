@@ -67,7 +67,7 @@ def test_retags_series_with_stray_tags() -> None:
     body = _json.loads(editor.calls.last.request.content)
     assert body["seriesIds"] == [1]
     assert body["tags"] == [20]
-    assert body["applyTags"] == "set"
+    assert body["applyTags"] == "replace"
     assert actions
 
 
@@ -97,7 +97,7 @@ def test_retags_series_under_zoe_bucket() -> None:
     body = _json.loads(editor.calls.last.request.content)
     assert body["seriesIds"] == [2]
     assert body["tags"] == [21]
-    assert body["applyTags"] == "set"
+    assert body["applyTags"] == "replace"
 
 
 @respx.mock
