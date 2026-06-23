@@ -164,7 +164,11 @@ apps:
       root_folders:
         prune: false
       download_clients:
-        prune: false
+        # prune ON: arrconf generates exactly one client per Category; legacy
+        # v0.2.0 clients (TV/Movies/Anime/Family) carry arrconf-managed but are
+        # not in the generated set → differ deletes them (closes the tag-2 etc.
+        # mis-routing path). Category clients are in desired → kept.
+        prune: true
       remote_path_mappings:
         prune: false
       # series_tags (D-05-MIG-01) and content_routing (D-06-RETAG-01) REMOVED:
@@ -180,7 +184,9 @@ apps:
       root_folders:
         prune: false
       download_clients:
-        prune: false
+        # prune ON: see sonarr note — legacy v0.2.0 clients (Movies/Anime/Family)
+        # are managed-but-absent → pruned; Category clients kept.
+        prune: true
       remote_path_mappings:
         prune: false
       # movie_tags (D-05-SPLIT-02) and content_routing (D-06-RETAG-01) REMOVED:
