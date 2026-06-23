@@ -669,7 +669,7 @@ def apply(
             )
             for ct_action in reconcile_category_tags(
                 sonarr_tag_client,
-                cats,
+                [c for c in cats if c.kind == "series"],
                 item_path="/series",
                 editor_path="/series/editor",
                 ids_key="seriesIds",
@@ -695,7 +695,7 @@ def apply(
             )
             for ct_action in reconcile_category_tags(
                 radarr_tag_client,
-                cats,
+                [c for c in cats if c.kind == "movies"],
                 item_path="/movie",
                 editor_path="/movie/editor",
                 ids_key="movieIds",

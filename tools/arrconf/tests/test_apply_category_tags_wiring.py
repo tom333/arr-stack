@@ -73,6 +73,7 @@ def test_category_tags_runs_for_both_apps_after_sagas(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     order: list[str] = []
+    kinds_seen: dict[str, set[str]] = {}
 
     def fake_reconcile_sonarr(client: Any, *a: Any, **kw: Any) -> sonarr_mod.SonarrResult:
         order.append("sonarr_reconcile")
@@ -96,6 +97,7 @@ def test_category_tags_runs_for_both_apps_after_sagas(
         dry_run: bool,
     ) -> list[str]:
         order.append(f"category_tags:{item_path}")
+        kinds_seen[item_path] = {c.kind for c in categories}
         return []
 
     # reconcile_sonarr/reconcile_radarr are imported at __main__ top level ->
@@ -135,3 +137,9 @@ def test_category_tags_runs_for_both_apps_after_sagas(
     # Category-tags runs after the per-app reconcile + profile steps (FINAL tagging step).
     assert order.index("category_tags:/series") > order.index("sonarr_reconcile"), order
     assert order.index("category_tags:/movie") > order.index("radarr_reconcile"), order
+
+    # Each app receives ONLY its own kind of category (kind-filter at call site):
+    # mixed cats must NOT leak movie tags into Sonarr (regression: a Radarr-only
+    # 'films' tag is absent from Sonarr's /tag → ConfigError on apply).
+    assert kinds_seen["/series"] == {"series"}, kinds_seen
+    assert kinds_seen["/movie"] == {"movies"}, kinds_seen

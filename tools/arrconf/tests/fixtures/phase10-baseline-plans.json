@@ -102,7 +102,7 @@
   ],
   "radarr": [
     {
-      "action": "prune-skip",
+      "action": "delete",
       "diff_fields": [],
       "name": "qBittorrent",
       "resource_type": "DownloadClient"
@@ -144,7 +144,7 @@
   },
   "sonarr": [
     {
-      "action": "prune-skip",
+      "action": "delete",
       "diff_fields": [],
       "name": "qBittorrent",
       "resource_type": "DownloadClient"

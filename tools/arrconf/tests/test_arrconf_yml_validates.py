@@ -196,47 +196,10 @@ def test_arrconf_yml_has_seerr_main_block() -> None:
     )
 
 
-def test_arrconf_yml_sonarr_content_routing_has_family_and_anime() -> None:
-    """Sonarr content_routing wires both family + anime rules (D-06-RETAG-01)."""
-    cfg = load_config(ARRCONF_YML)
-    rules = cfg.sonarr["main"].content_routing.rules
-    rule_tags = {r.tag for r in rules}
-    assert "family" in rule_tags, "Sonarr Phase 6 must have a family rule"
-    assert "anime" in rule_tags, (
-        "Sonarr Phase 6 must have an anime rule (gap-fill for items Seerr missed)"
-    )
-    # Pitfall 5: family keywords must NOT include "Animation"
-    family_rule = next(r for r in rules if r.tag == "family")
-    assert "Animation" not in family_rule.keywords, (
-        "Pitfall 5: 'Animation' must NEVER appear in Sonarr family keywords"
-    )
-    assert family_rule.keywords == ["Family", "Kids", "Children"], (
-        "Sonarr family keywords must be the conservative trio per Pitfall 5"
-    )
-
-
-def test_arrconf_yml_radarr_content_routing_has_NO_anime_rule() -> None:
-    """Pitfall 5 enforced at the chart layer: Radarr MUST NOT have an anime rule.
-
-    TMDB has no 'Anime' first-class genre; 'Animation' would catch Pixar/Disney
-    (false-positive). Anime films stay manual-tag until a future phase ships an
-    originalLanguage-based filter (deferred — D-06+1).
-    """
-    cfg = load_config(ARRCONF_YML)
-    rules = cfg.radarr["main"].content_routing.rules
-    rule_tags = {r.tag for r in rules}
-    assert "anime" not in rule_tags, (
-        "Pitfall 5: Radarr MUST NOT have an anime rule (TMDB Animation catches Pixar/Disney)"
-    )
-    # Family rule MUST exist:
-    assert "family" in rule_tags, (
-        "Radarr Phase 6 must have the family rule (operator's stated need)"
-    )
-    family_rule = next(r for r in rules if r.tag == "family")
-    # Pitfall 5: family keywords on Radarr are JUST ["Family"] — TMDB doesn't use Kids/Children
-    assert family_rule.keywords == ["Family"], (
-        "Radarr family keywords MUST be ['Family'] only (TMDB taxonomy)"
-    )
+# NOTE: content_routing tests (Sonarr family+anime / Radarr no-anime) were removed
+# when the genre-keyword retagger (D-06-RETAG-01, content_routing) was deleted from
+# intent.yml + the generated arrconf.yml. Title tagging now lives solely in
+# reconcile_category_tags. The feature those tests covered no longer exists.
 
 
 # -- Phase 7 assertions (D-07-INSTANCE-01 + D-07-LIB-01 + D-07-USERS-01
