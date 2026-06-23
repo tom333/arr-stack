@@ -82,12 +82,12 @@ prowlarr:
       - api_key_env: SONARR_API_KEY
         base_url: http://sonarr.selfhost.svc.cluster.local:8989
         name: Sonarr
-        sync_level: fullSync
+        sync_level: addOnly
         type: sonarr
       - api_key_env: RADARR_API_KEY
         base_url: http://radarr.selfhost.svc.cluster.local:7878
         name: Radarr
-        sync_level: fullSync
+        sync_level: addOnly
         type: radarr
       prune: false
     base_url: http://prowlarr.selfhost.svc.cluster.local:9696

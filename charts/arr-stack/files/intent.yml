@@ -204,12 +204,17 @@ apps:
             type: sonarr
             base_url: http://sonarr.selfhost.svc.cluster.local:8989
             api_key_env: SONARR_API_KEY
-            sync_level: fullSync
+            # addOnly (Add and Remove Only): Prowlarr adds/removes indexers but does
+            # NOT overwrite per-indexer settings on each sync — preserves the
+            # "Reject Blocklisted Torrent Hashes While Grabbing" flag set on the
+            # Sonarr/Radarr indexers (cleanuparr prerequisite: stops Sonarr re-grabbing
+            # a release cleanuparr just blocklisted → breaks the dead-grab loop).
+            sync_level: addOnly
           - name: Radarr
             type: radarr
             base_url: http://radarr.selfhost.svc.cluster.local:7878
             api_key_env: RADARR_API_KEY
-            sync_level: fullSync
+            sync_level: addOnly
 
   qbittorrent:
     main:
