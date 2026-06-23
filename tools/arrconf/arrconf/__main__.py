@@ -721,6 +721,65 @@ def apply(
                 log.warning("app_failed", app="sonarr_saga_tags", error=str(e))
                 failures.append("jellyfin_sagas")
 
+    # Category-tag enforcement (FINAL tagging step): set each title's tags to
+    # exactly its Category tag (applyTags="set"). Runs AFTER all existing tag
+    # reconciliation (lines 310-428) AND after the SAGAS-04 Sonarr series-tagging
+    # block above, so it strips the stray tv/anime/family/arrconf-managed/manual
+    # tags that break deterministic download-client routing. Mirrors the
+    # reconcile_category_profiles wiring (same client, same `cats` source,
+    # same dry_run handling, same failure pattern).
+    if "sonarr" in targets and "main" in root.sonarr and cats and settings.sonarr_api_key:
+        try:
+            from arrconf.reconcilers._category_tags import (  # noqa: PLC0415
+                reconcile_category_tags,
+            )
+
+            sonarr_tag_client = SonarrClient(
+                base_url=root.sonarr["main"].base_url,
+                api_key=settings.sonarr_api_key.get_secret_value(),
+            )
+            for ct_action in reconcile_category_tags(
+                sonarr_tag_client,
+                cats,
+                item_path="/series",
+                editor_path="/series/editor",
+                ids_key="seriesIds",
+                dry_run=dry_run or settings.arrconf_dry_run,
+            ):
+                log.info("sonarr_category_tag_action", action=ct_action)
+        except ConfigError as e:
+            log.error("config_error", app="sonarr_category_tags", error=str(e))
+            raise typer.Exit(code=2) from e
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="sonarr_category_tags", error=str(e))
+            failures.append("sonarr_category_tags")
+
+    if "radarr" in targets and "main" in root.radarr and cats and settings.radarr_api_key:
+        try:
+            from arrconf.reconcilers._category_tags import (  # noqa: PLC0415
+                reconcile_category_tags,
+            )
+
+            radarr_tag_client = RadarrClient(
+                base_url=root.radarr["main"].base_url,
+                api_key=settings.radarr_api_key.get_secret_value(),
+            )
+            for ct_action in reconcile_category_tags(
+                radarr_tag_client,
+                cats,
+                item_path="/movie",
+                editor_path="/movie/editor",
+                ids_key="movieIds",
+                dry_run=dry_run or settings.arrconf_dry_run,
+            ):
+                log.info("radarr_category_tag_action", action=ct_action)
+        except ConfigError as e:
+            log.error("config_error", app="radarr_category_tags", error=str(e))
+            raise typer.Exit(code=2) from e
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="radarr_category_tags", error=str(e))
+            failures.append("radarr_category_tags")
+
     if failures:
         raise typer.Exit(code=1)
     raise typer.Exit(code=0)
