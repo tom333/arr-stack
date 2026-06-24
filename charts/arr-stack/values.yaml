@@ -572,7 +572,7 @@ suggestarr:
           image:
             # renovate: image=docker.io/ciuse99/suggestarr
             repository: ciuse99/suggestarr
-            tag: "v2.7.3"  # Re-pin if Phase 14 kickoff is after 2026-06-22 per 13-RESEARCH §Metadata "Valid until"
+            tag: "v2.9.1"  # Re-pin if Phase 14 kickoff is after 2026-06-22 per 13-RESEARCH §Metadata "Valid until"
             pullPolicy: IfNotPresent
           env:
             - name: TZ
