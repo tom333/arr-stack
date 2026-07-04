@@ -361,3 +361,64 @@ def test_no_api_calls_adr5(monkeypatch: pytest.MonkeyPatch) -> None:
     result = generate_configarr_yml(cfg)
     assert isinstance(result, str), "generate_configarr_yml did not return a string"
     assert result.startswith("# GENERATED"), "Expected GENERATED header in result"
+
+
+def test_body_overrides_per_instance() -> None:
+    """body_overrides.radarr replaces the overridden key for radarr only.
+
+    upgrade.allowed stays False in sonarr (body verbatim) and becomes True in
+    radarr (override wins, key-level replace).
+    """
+    cfg = _make_full_cfg()
+    override_upgrade = {
+        "allowed": True,
+        "until_quality": "Bluray-1080p",
+        "until_score": 2000,
+        "min_format_score": 50,
+    }
+    base = _QP_BODY | {"upgrade": {**_QP_BODY["upgrade"], "allowed": False}}
+    cfg = cfg.model_copy(
+        update={
+            "profile_definitions": {
+                name: pdef.model_copy(
+                    update={
+                        "body": base,
+                        "body_overrides": {"radarr": {"upgrade": override_upgrade}},
+                    }
+                )
+                for name, pdef in cfg.profile_definitions.items()
+            }
+        }
+    )
+    doc = _parse_generated(generate_configarr_yml(cfg))
+
+    for profile in doc["sonarr"]["main"]["quality_profiles"]:
+        assert profile["upgrade"]["allowed"] is False, (
+            f"sonarr {profile['name']}: override leaked into sonarr"
+        )
+    for profile in doc["radarr"]["main"]["quality_profiles"]:
+        assert profile["upgrade"]["allowed"] is True, (
+            f"radarr {profile['name']}: radarr override not applied"
+        )
+        assert profile["upgrade"] == override_upgrade, (
+            f"radarr {profile['name']}: override must replace the key wholesale"
+        )
+
+
+def test_body_overrides_rejects_unknown_instance() -> None:
+    """body_overrides keyed by anything other than sonarr/radarr is a config error."""
+    from pydantic import ValidationError as PydanticValidationError
+
+    with pytest.raises(PydanticValidationError, match="sonarr.*radarr"):
+        IntentConfig.model_validate(
+            {
+                "categories": [],
+                "profile_definitions": {
+                    "MULTi.VF": {
+                        "body": {"language": "Any"},
+                        "body_overrides": {"radar": {"upgrade": {"allowed": True}}},
+                    }
+                },
+                "configarr": {},
+            }
+        )

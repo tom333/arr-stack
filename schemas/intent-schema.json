@@ -206,6 +206,15 @@
           "title": "Body",
           "type": "object"
         },
+        "body_overrides": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "Per-instance (sonarr/radarr) key-level overrides merged over body at emit time. An override value replaces the body key wholesale (no deep merge) \u2014 carry the full nested block in the override.",
+          "title": "Body Overrides",
+          "type": "object"
+        },
         "custom_formats": {
           "description": "CF refs + per-profile scores (D-33-06).",
           "items": {

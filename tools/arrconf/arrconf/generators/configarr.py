@@ -109,6 +109,8 @@ def generate_configarr_yml(intent_cfg: IntentConfig) -> str:
                 continue
             pdef = intent_cfg.profile_definitions[profile_name]
             entry: dict[str, Any] = {"name": profile_name, **pdef.body}
+            # Key-level per-instance override (e.g. radarr-only upgrade.allowed).
+            entry.update(copy.deepcopy(pdef.body_overrides.get(instance, {})))
             quality_profiles.append(entry)
         doc[instance]["main"]["quality_profiles"] = quality_profiles
 

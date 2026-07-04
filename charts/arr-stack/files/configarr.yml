@@ -73,7 +73,7 @@ customFormatDefinitions:
     required: false
   trash_id: fr-mhd
   trash_scores:
-    default: 1000
+    default: -100
 - includeCustomFormatWhenRenaming: false
   name: x265 / HEVC (HD)
   specifications:
@@ -91,7 +91,19 @@ customFormatDefinitions:
     required: true
   trash_id: fr-x265-hd
   trash_scores:
-    default: 500
+    default: 800
+- includeCustomFormatWhenRenaming: false
+  name: LQ (release groups)
+  specifications:
+  - fields:
+      value: \b(aXXo|CrEwSaDe|DNL|FaNGDiNG0|FRDS|HDTime|iPlanet|KiNGDOM|mSD|nHD|nikt0|nSD|NhaNc3|PRODJi|RDN|SANTi|STUTTERSHIT|ViSION|WAF|x0r|YIFY|YTS)\b
+    implementation: ReleaseTitleSpecification
+    name: Known low-quality release group in title
+    negate: false
+    required: false
+  trash_id: fr-lq-groups
+  trash_scores:
+    default: -10000
 radarr:
   main:
     api_key: !env RADARR_API_KEY
@@ -122,6 +134,12 @@ radarr:
       trash_ids:
       - fr-mhd
       - fr-x265-hd
+    - assign_scores_to:
+      - name: Anime
+      - name: Family
+      - name: MULTi.VF
+      trash_ids:
+      - fr-lq-groups
     media_naming:
       folder: default
       movie:
@@ -135,35 +153,35 @@ radarr:
         quality: Remux-1080p
       - max: 50
         min: 2
-        preferred: 25
+        preferred: 45
         quality: WEBDL-1080p
       - max: 50
         min: 2
-        preferred: 25
+        preferred: 45
         quality: WEBRip-1080p
       - max: 70
         min: 2
-        preferred: 40
+        preferred: 65
         quality: Bluray-1080p
       - max: 40
         min: 2
-        preferred: 20
+        preferred: 35
         quality: HDTV-1080p
       - max: 30
         min: 2
-        preferred: 15
+        preferred: 25
         quality: WEBDL-720p
       - max: 30
         min: 2
-        preferred: 15
+        preferred: 25
         quality: WEBRip-720p
       - max: 40
         min: 2
-        preferred: 25
+        preferred: 35
         quality: Bluray-720p
       - max: 25
         min: 2
-        preferred: 12
+        preferred: 20
         quality: HDTV-720p
       type: movie
     quality_profiles:
@@ -187,7 +205,7 @@ radarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: false
+        allowed: true
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -211,7 +229,7 @@ radarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: false
+        allowed: true
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -235,7 +253,7 @@ radarr:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: false
+        allowed: true
         min_format_score: 50
         until_quality: WEB 1080p
         until_score: 2000
@@ -270,6 +288,12 @@ sonarr:
       trash_ids:
       - fr-mhd
       - fr-x265-hd
+    - assign_scores_to:
+      - name: Anime
+      - name: Family
+      - name: MULTi.VF
+      trash_ids:
+      - fr-lq-groups
     media_naming:
       episodes:
         anime: default
@@ -282,35 +306,35 @@ sonarr:
       qualities:
       - max: 60
         min: 2
-        preferred: 30
+        preferred: 55
         quality: WEBDL-1080p
       - max: 60
         min: 2
-        preferred: 30
+        preferred: 55
         quality: WEBRip-1080p
       - max: 80
         min: 2
-        preferred: 50
+        preferred: 70
         quality: Bluray-1080p
       - max: 45
         min: 2
-        preferred: 25
+        preferred: 40
         quality: HDTV-1080p
       - max: 40
         min: 2
-        preferred: 20
+        preferred: 35
         quality: WEBDL-720p
       - max: 40
         min: 2
-        preferred: 20
+        preferred: 35
         quality: WEBRip-720p
       - max: 50
         min: 2
-        preferred: 30
+        preferred: 45
         quality: Bluray-720p
       - max: 30
         min: 2
-        preferred: 15
+        preferred: 25
         quality: HDTV-720p
       type: series
     quality_profiles:

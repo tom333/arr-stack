@@ -221,10 +221,27 @@ class ProfileDefinition(BaseModel):
         default_factory=dict,
         description="QP body fields (language/upgrade/qualities/...) emitted verbatim.",
     )
+    body_overrides: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+        description=(
+            "Per-instance (sonarr/radarr) key-level overrides merged over body at"
+            " emit time. An override value replaces the body key wholesale (no deep"
+            " merge) — carry the full nested block in the override."
+        ),
+    )
     custom_formats: list[CustomFormatRef] = Field(
         default_factory=list,
         description="CF refs + per-profile scores (D-33-06).",
     )
+
+    @model_validator(mode="after")
+    def _check_override_instances(self) -> ProfileDefinition:
+        unknown = set(self.body_overrides) - {"sonarr", "radarr"}
+        if unknown:
+            raise ValueError(
+                f"body_overrides keys must be 'sonarr' or 'radarr', got: {sorted(unknown)}"
+            )
+        return self
 
 
 class IntentConfig(BaseModel):

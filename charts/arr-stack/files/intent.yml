@@ -444,7 +444,7 @@ profile_definitions:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: false   # policy: once downloaded, never grab a new version (no quality/score upgrade hunt → no dead-release re-grab loops on FR trackers)
+        allowed: false   # policy SÉRIES : pas de re-grab (volumétrie épisodes). FILMS : override radarr ci-dessous (body_overrides) — upgrades ON depuis que Reject-Blocklisted-Hashes (v0.42.0) ferme le dead-grab loop
         until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
@@ -468,6 +468,16 @@ profile_definitions:
       - trash_ids: [fr-vostfr]
         score: -10000
       - trash_ids: [fr-mhd, fr-x265-hd]
+      - trash_ids: [fr-lq-groups]
+    body_overrides:
+      # Films uniquement : remplace un grab pixelisé dès qu'un release mieux
+      # scoré (x265, VFF…) sort. Override clé-niveau : bloc upgrade COMPLET requis.
+      radarr:
+        upgrade:
+          allowed: true
+          until_quality: WEB 1080p
+          until_score: 2000
+          min_format_score: 50
 
   Anime:
     body:
@@ -477,7 +487,7 @@ profile_definitions:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: false   # policy: once downloaded, never grab a new version (no quality/score upgrade hunt → no dead-release re-grab loops on FR trackers)
+        allowed: false   # policy SÉRIES : pas de re-grab (volumétrie épisodes). FILMS : override radarr ci-dessous (body_overrides) — upgrades ON depuis que Reject-Blocklisted-Hashes (v0.42.0) ferme le dead-grab loop
         until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
@@ -501,6 +511,16 @@ profile_definitions:
       - trash_ids: [fr-vostfr]
         score: 50
       - trash_ids: [fr-mhd, fr-x265-hd]
+      - trash_ids: [fr-lq-groups]
+    body_overrides:
+      # Films uniquement : remplace un grab pixelisé dès qu'un release mieux
+      # scoré (x265, VFF…) sort. Override clé-niveau : bloc upgrade COMPLET requis.
+      radarr:
+        upgrade:
+          allowed: true
+          until_quality: WEB 1080p
+          until_score: 2000
+          min_format_score: 50
 
   Family:
     body:
@@ -510,7 +530,7 @@ profile_definitions:
       reset_unmatched_scores:
         enabled: true
       upgrade:
-        allowed: false   # policy: once downloaded, never grab a new version (no quality/score upgrade hunt → no dead-release re-grab loops on FR trackers)
+        allowed: false   # policy SÉRIES : pas de re-grab (volumétrie épisodes). FILMS : override radarr ci-dessous (body_overrides) — upgrades ON depuis que Reject-Blocklisted-Hashes (v0.42.0) ferme le dead-grab loop
         until_quality: WEB 1080p
         until_score: 2000
         min_format_score: 50
@@ -534,6 +554,16 @@ profile_definitions:
       - trash_ids: [fr-vostfr]
         score: -10000
       - trash_ids: [fr-mhd, fr-x265-hd]
+      - trash_ids: [fr-lq-groups]
+    body_overrides:
+      # Films uniquement : remplace un grab pixelisé dès qu'un release mieux
+      # scoré (x265, VFF…) sort. Override clé-niveau : bloc upgrade COMPLET requis.
+      radarr:
+        upgrade:
+          allowed: true
+          until_quality: WEB 1080p
+          until_score: 2000
+          min_format_score: 50
 
 # ============================================================================
 # Configarr pass-through skeleton — content emitted verbatim into configarr.yml
@@ -624,11 +654,13 @@ configarr:
             value: "\\b(VOSTFR|SUBFRENCH|FASTSUB|VOSTA|VOST)\\b"
 
     # ---------------------------------------------------------------------------
-    # mHD / MHD — encodes HD efficaces, fichiers les plus petits (priorité).
+    # mHD / MHD — encodes ultra-compressés : pixelisation à bitrate famélique.
+    # Pénalisé (était +1000 : sélectionnait le pire rapport qualité/octet).
+    # Le plafond de taille est déjà géré par quality_definition.max.
     # ---------------------------------------------------------------------------
     - trash_id: fr-mhd
       trash_scores:
-        default: 1000
+        default: -100
       name: "mHD / MHD (small encode)"
       includeCustomFormatWhenRenaming: false
       specifications:
@@ -641,10 +673,12 @@ configarr:
 
     # ---------------------------------------------------------------------------
     # x265 / HEVC en HD (720p / 1080p) — bonus codec efficace.
+    # +800 : levier qualité principal à taille égale (~30-50% de qualité en plus
+    # vs x264 au même bitrate). Doit dominer tous les CF langue (150).
     # ---------------------------------------------------------------------------
     - trash_id: fr-x265-hd
       trash_scores:
-        default: 500
+        default: 800
       name: "x265 / HEVC (HD)"
       includeCustomFormatWhenRenaming: false
       specifications:
@@ -660,6 +694,23 @@ configarr:
           required: true
           fields:
             value: 2160
+
+    # ---------------------------------------------------------------------------
+    # Groupes low-quality (liste TRaSH LQ) — encodes poubelle, score rédhibitoire
+    # quel que soit le codec affiché.
+    # ---------------------------------------------------------------------------
+    - trash_id: fr-lq-groups
+      trash_scores:
+        default: -10000
+      name: "LQ (release groups)"
+      includeCustomFormatWhenRenaming: false
+      specifications:
+        - name: Known low-quality release group in title
+          implementation: ReleaseTitleSpecification
+          negate: false
+          required: false
+          fields:
+            value: "\\b(aXXo|CrEwSaDe|DNL|FaNGDiNG0|FRDS|HDTime|iPlanet|KiNGDOM|mSD|nHD|nikt0|nSD|NhaNc3|PRODJi|RDN|SANTi|STUTTERSHIT|ViSION|WAF|x0r|YIFY|YTS)\\b"
 
   sonarr:
     main:
@@ -680,35 +731,35 @@ configarr:
         qualities:
           - quality: WEBDL-1080p
             min: 2
-            preferred: 30
+            preferred: 55
             max: 60
           - quality: WEBRip-1080p
             min: 2
-            preferred: 30
+            preferred: 55
             max: 60
           - quality: Bluray-1080p
             min: 2
-            preferred: 50
+            preferred: 70
             max: 80
           - quality: HDTV-1080p
             min: 2
-            preferred: 25
+            preferred: 40
             max: 45
           - quality: WEBDL-720p
             min: 2
-            preferred: 20
+            preferred: 35
             max: 40
           - quality: WEBRip-720p
             min: 2
-            preferred: 20
+            preferred: 35
             max: 40
           - quality: Bluray-720p
             min: 2
-            preferred: 30
+            preferred: 45
             max: 50
           - quality: HDTV-720p
             min: 2
-            preferred: 15
+            preferred: 25
             max: 30
 
   radarr:
@@ -735,33 +786,33 @@ configarr:
             max: 25
           - quality: WEBDL-1080p
             min: 2
-            preferred: 25
+            preferred: 45
             max: 50
           - quality: WEBRip-1080p
             min: 2
-            preferred: 25
+            preferred: 45
             max: 50
           - quality: Bluray-1080p
             min: 2
-            preferred: 40
+            preferred: 65
             max: 70
           - quality: HDTV-1080p
             min: 2
-            preferred: 20
+            preferred: 35
             max: 40
           - quality: WEBDL-720p
             min: 2
-            preferred: 15
+            preferred: 25
             max: 30
           - quality: WEBRip-720p
             min: 2
-            preferred: 15
+            preferred: 25
             max: 30
           - quality: Bluray-720p
             min: 2
-            preferred: 25
+            preferred: 35
             max: 40
           - quality: HDTV-720p
             min: 2
-            preferred: 12
+            preferred: 20
             max: 25
