@@ -403,6 +403,47 @@ jellyfin:
             TZ: "Europe/Paris"
             PUID: "1000"
             PGID: "1000"
+          # Durcissement 2026-07-12 : 94 restarts/50j observés (crashs sous scan +
+          # stalls NFS). /health ne touche pas /media : un stall NFS seul ne doit
+          # pas déclencher la liveness (seuils tolérants, 3 min avant restart).
+          probes:
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /health
+                  port: 8096
+                periodSeconds: 5
+                failureThreshold: 60   # 5 min max pour un boot post-crash (DB volumineuse)
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /health
+                  port: 8096
+                periodSeconds: 30
+                timeoutSeconds: 10
+                failureThreshold: 6    # 3 min de hang avant restart — pas de flap
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /health
+                  port: 8096
+                periodSeconds: 15
+                timeoutSeconds: 10
+                failureThreshold: 4
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              # Pas de limite CPU : throttler ffmpeg = stutter de lecture.
+              # 8Gi couvre les pics ffmpeg (extraction chapitres + transcodes).
+              memory: 8Gi
   service:
     main:
       controller: main
