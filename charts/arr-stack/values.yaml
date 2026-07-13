@@ -17,7 +17,7 @@ sonarr:
           image:
             # renovate: image=lscr.io/linuxserver/sonarr
             repository: lscr.io/linuxserver/sonarr
-            tag: "4.0.17"
+            tag: "4.0.19"
           env:
             TZ: "Europe/Paris"
             PUID: "1000"
