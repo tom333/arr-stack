@@ -51,6 +51,13 @@
         "major"
       ],
       "automerge": false
+    },
+    {
+      "description": "TEMP cap: qbit_manage 4.9.1 max qBittorrent 5.2.2 — remove when qbit_manage supports 5.2.3",
+      "matchPackageNames": [
+        "lscr.io/linuxserver/qbittorrent"
+      ],
+      "allowedVersions": "<=5.2.2"
     }
   ]
 }

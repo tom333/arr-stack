@@ -193,7 +193,9 @@ qbittorrent:
           image:
             # renovate: image=lscr.io/linuxserver/qbittorrent
             repository: lscr.io/linuxserver/qbittorrent
-            tag: "5.2.3"  # pinned per D-04-PIN-01 from evidence/current-image-tags.txt digest sha256:2e0148... (was: latest)
+            # 5.2.2 cap: qbit_manage 4.9.1 refuse >5.2.2 (jobs Error). Lever le cap
+            # renovate.json (allowedVersions) quand qbit_manage supporte 5.2.3.
+            tag: "5.2.2"  # pinned per D-04-PIN-01 from evidence/current-image-tags.txt digest sha256:2e0148... (was: latest)
           env:
             TZ: "Europe/Paris"
             PUID: "1000"
