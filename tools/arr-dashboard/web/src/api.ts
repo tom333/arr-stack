@@ -97,6 +97,10 @@ export interface Release {
   codec: string | null;
   language: string | null;
   in_library: boolean;
+  seeders: number | null;
+  leechers: number | null;
+  genres: string[];
+  poster_url: string | null;
 }
 
 export interface ScoredRelease {

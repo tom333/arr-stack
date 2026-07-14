@@ -7,8 +7,21 @@
   let profile = $state("MULTi.VF");
   let hideInLibrary = $state(true);
   let acceptedOnly = $state(true);
+  let tracker = $state("");
+  let genre = $state("");
 
   const PROFILES = ["MULTi.VF", "Anime", "Family"];
+
+  function ageLabel(iso: string): string {
+    const d = Date.parse(iso);
+    if (Number.isNaN(d)) return "—";
+    const h = (Date.now() - d) / 3.6e6;
+    if (h < 24) return `${Math.round(h)}h`;
+    return `${Math.round(h / 24)}j`;
+  }
+  function gb(bytes: number): string {
+    return bytes ? `${(bytes / 1e9).toFixed(1)} Go` : "—";
+  }
 
   async function load() {
     loading = true;
@@ -43,10 +56,20 @@
     }
   }
 
+  const trackers = $derived(
+    [...new Set(items.map((sr) => sr.release.indexer_name))].sort()
+  );
+
+  const genres = $derived(
+    [...new Set(items.flatMap((sr) => sr.release.genres))].sort()
+  );
+
   const visible = $derived(
     items.filter((sr) => {
       if (hideInLibrary && sr.release.in_library) return false;
       if (acceptedOnly && !sr.accepted) return false;
+      if (tracker && sr.release.indexer_name !== tracker) return false;
+      if (genre && !sr.release.genres.includes(genre)) return false;
       return true;
     })
   );
@@ -63,6 +86,18 @@
     </label>
     <label><input type="checkbox" bind:checked={hideInLibrary} /> Masquer déjà en biblio</label>
     <label><input type="checkbox" bind:checked={acceptedOnly} /> Accepté par le profil</label>
+    <label>Tracker
+      <select bind:value={tracker}>
+        <option value="">Tous les trackers</option>
+        {#each trackers as t}<option value={t}>{t}</option>{/each}
+      </select>
+    </label>
+    <label>Genre
+      <select bind:value={genre}>
+        <option value="">Tous genres</option>
+        {#each genres as g}<option value={g}>{g}</option>{/each}
+      </select>
+    </label>
     <button onclick={forceRefresh}>Rafraîchir</button>
   </div>
 
@@ -71,14 +106,26 @@
     <p>Chargement…</p>
   {:else}
     <table>
-      <thead><tr><th>Titre</th><th>Année</th><th>Qualité</th><th>Score</th><th>Tracker</th><th>Langue</th><th></th></tr></thead>
+      <thead><tr><th>Poster</th><th>Titre</th><th>Année</th><th>Genre</th><th>Qualité</th><th>Score</th><th>Seed/Leech</th><th>Âge · Taille</th><th>Tracker</th><th>Langue</th><th></th></tr></thead>
       <tbody>
         {#each visible as sr (sr.release.info_hash)}
           <tr class:in-library={sr.release.in_library} class:rejected={!sr.accepted}>
+            <td>
+              {#if sr.release.poster_url}<img src={sr.release.poster_url} alt="" class="poster" loading="lazy" />{/if}
+            </td>
             <td>{sr.release.title}</td>
             <td>{sr.release.year ?? "—"}</td>
+            <td>
+              {#if sr.release.genres.includes("Animation")}
+                <span class="anim">🧸 {sr.release.genres.join(", ") || "—"}</span>
+              {:else}
+                {sr.release.genres.join(", ") || "—"}
+              {/if}
+            </td>
             <td>{sr.release.resolution ?? "?"} {sr.release.source ?? ""} {sr.release.codec ?? ""}</td>
             <td title={sr.reasons.join(", ")}>{sr.score}</td>
+            <td class:dead={sr.release.seeders === 0}>{sr.release.seeders ?? "?"}/{sr.release.leechers ?? "?"}</td>
+            <td>{ageLabel(sr.release.publish_date)} · {gb(sr.release.size)}</td>
             <td>{sr.release.indexer_name}</td>
             <td>{sr.release.language ?? "—"}</td>
             <td>
@@ -101,5 +148,8 @@
   tr.rejected { opacity: 0.4; }
   .badge { font-size: 0.8em; padding: 0.1rem 0.4rem; border: 1px solid #4ade80; border-radius: 4px; color: #4ade80; }
   .error { color: #f87171; padding: 0 1rem; }
+  .poster { width: 34px; height: 51px; object-fit: cover; border-radius: 3px; display: block; }
+  .anim { color: #a78bfa; }
+  td.dead { color: #f87171; }
   button { background: #374151; color: #e5e7eb; border: 0; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; font-size: .8rem; }
 </style>
