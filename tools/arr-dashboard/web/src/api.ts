@@ -122,12 +122,25 @@ export async function refreshReleases(): Promise<void> {
   if (!res.ok) throw new Error(`refreshReleases ${res.status}`);
 }
 
+export interface MovieCategory {
+  name: string;
+  display: string;
+  root_path: string;
+  profile: string;
+}
+
+export async function getCategories(): Promise<MovieCategory[]> {
+  const res = await fetch("/api/categories");
+  if (!res.ok) throw new Error(`getCategories ${res.status}`);
+  return res.json();
+}
+
 export async function grabRelease(body: {
   info_hash: string;
   tmdb_id: number;
   title: string;
   year: number | null;
-  profile: string;
+  category: string;
 }): Promise<void> {
   const res = await fetch("/api/releases/grab", {
     method: "POST",
