@@ -19,6 +19,7 @@
   let grabbing = $state<Release | null>(null);   // release awaiting category choice
   let grabCategory = $state("");                  // selected category name
   let grabBusy = $state(false);
+  let grabError = $state<string | null>(null);
 
   const PROFILES = ["MULTi.VF", "Anime", "Family"];
   const DEFAULT_CATEGORY = "nouveaux-films";      // new downloads default here (not "films")
@@ -56,6 +57,7 @@
       error = `Pas de TMDB résolu pour ${r.title}`;
       return;
     }
+    grabError = null;
     const names = categories.map((c) => c.name);
     grabCategory = names.includes(DEFAULT_CATEGORY) ? DEFAULT_CATEGORY : (names[0] ?? "");
     grabbing = r;
@@ -65,6 +67,7 @@
     const r = grabbing;
     if (!r || r.tmdb_id == null || !grabCategory) return;
     grabBusy = true;
+    grabError = null;
     try {
       await grabRelease({
         info_hash: r.info_hash, tmdb_id: r.tmdb_id, title: r.title,
@@ -73,7 +76,7 @@
       grabbing = null;
       await load();
     } catch (e) {
-      error = e instanceof Error ? e.message : String(e);
+      grabError = e instanceof Error ? e.message : String(e);
     } finally {
       grabBusy = false;
     }
@@ -178,6 +181,7 @@
         </select>
       </label>
       {#if categories.length === 0}<p class="error">Catégories indisponibles (intent non monté)</p>{/if}
+      {#if grabError}<p class="error">{grabError}</p>{/if}
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick={() => (grabbing = null)} disabled={grabBusy}>Annuler</button>
         <button class="btn btn-primary" onclick={confirmGrab} disabled={grabBusy || !grabCategory}>
