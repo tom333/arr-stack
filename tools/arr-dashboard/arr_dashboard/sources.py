@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 
 from arrconf.client_base import (
     JellyfinClient,
+    ProwlarrClient,
     QbittorrentClient,
     RadarrClient,
     SeerrClient,
@@ -57,6 +58,20 @@ def build_jellyfin(settings: Settings) -> JellyfinClient | None:
     """Build a Jellyfin client, or None when the API key is absent."""
     if settings.jellyfin_api_key:
         return JellyfinClient(settings.jellyfin_url, settings.jellyfin_api_key)
+    return None
+
+
+def build_prowlarr(settings: Settings) -> ProwlarrClient | None:
+    """Build a Prowlarr client, or None when the API key is absent."""
+    if settings.prowlarr_api_key:
+        return ProwlarrClient(settings.prowlarr_url, settings.prowlarr_api_key)
+    return None
+
+
+def build_radarr(settings: Settings) -> RadarrClient | None:
+    """Build a Radarr client, or None when the API key is absent."""
+    if settings.radarr_api_key:
+        return RadarrClient(settings.radarr_url, settings.radarr_api_key)
     return None
 
 
