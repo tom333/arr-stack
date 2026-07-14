@@ -91,6 +91,9 @@ def test_grab_adds_missing_movie_first():
     respx.get("http://radarr/api/v3/rootfolder").mock(
         return_value=httpx.Response(200, json=[{"id": 1, "path": "/media/films"}])
     )
+    respx.get("http://radarr/api/v3/tag").mock(
+        return_value=httpx.Response(200, json=[{"id": 5, "label": "films"}])
+    )
     add = respx.post("http://radarr/api/v3/movie").mock(
         return_value=httpx.Response(201, json={"id": 99, "tmdbId": 550})
     )
@@ -110,6 +113,41 @@ def test_grab_adds_missing_movie_first():
     assert body["qualityProfileId"] == 1
     assert body["rootFolderPath"] == "/media/films"
     assert body["addOptions"] == {"searchForMovie": False}
+    # category tag ("films" → id 5) must be on the movie so the grab routes to the
+    # matching download client (all clients tagged, no catch-all)
+    assert body["tags"] == [5]
+
+
+@respx.mock
+def test_grab_creates_category_tag_when_absent():
+    respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+    respx.get(url__regex=r"http://radarr/api/v3/movie/lookup\?term=tmdb:550").mock(
+        return_value=httpx.Response(
+            200, json=[{"tmdbId": 550, "title": "X", "titleSlug": "x-550", "year": 2020}]
+        )
+    )
+    respx.get("http://radarr/api/v3/qualityprofile").mock(
+        return_value=httpx.Response(200, json=[{"id": 1, "name": "MULTi.VF"}])
+    )
+    respx.get("http://radarr/api/v3/rootfolder").mock(
+        return_value=httpx.Response(200, json=[{"id": 1, "path": "/media/films"}])
+    )
+    respx.get("http://radarr/api/v3/tag").mock(return_value=httpx.Response(200, json=[]))
+    create_tag = respx.post("http://radarr/api/v3/tag").mock(
+        return_value=httpx.Response(201, json={"id": 12, "label": "films"})
+    )
+    respx.post("http://radarr/api/v3/movie").mock(
+        return_value=httpx.Response(201, json={"id": 77, "tmdbId": 550})
+    )
+    respx.get(url__regex=r"http://radarr/api/v3/release\?movieId=77").mock(
+        return_value=httpx.Response(200, json=[{"guid": "g", "infoHash": "AAA", "indexerId": 7}])
+    )
+    respx.post("http://radarr/api/v3/release").mock(return_value=httpx.Response(201, json={}))
+    out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="X", year=2020)
+    assert out["status"] == "grabbed"
+    assert create_tag.called  # tag "films" created on the fly
 
 
 @respx.mock

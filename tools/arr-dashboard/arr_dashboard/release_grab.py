@@ -8,6 +8,7 @@ Bridge: Prowlarr and Radarr assign different release GUIDs, so we add the movie
 from __future__ import annotations
 
 import logging
+from pathlib import PurePosixPath
 from typing import Any
 
 from arr_dashboard.settings import Settings
@@ -25,6 +26,22 @@ _PROFILE_ROOT = {
 
 class ReleaseGrabError(Exception):
     """Raised when the release cannot be grabbed cleanly (surfaced as HTTP 409)."""
+
+
+def _category_tag_id(radarr: Any, label: str) -> int:
+    """Resolve (or create) the Radarr tag id for a category label.
+
+    Each category (films / films-zoe / films-enfants / …) is a Radarr tag whose
+    matching download client routes the grab to the right qBit category → /media
+    bucket. A freshly-added movie MUST carry this tag or Radarr's client selection
+    finds no eligible (all-tagged, no catch-all) download client and the grab 500s
+    with DownloadClientUnavailableException. arrconf normally sets it at apply time;
+    we set it at add time so the immediate grab routes correctly."""
+    for t in radarr.get("/tag"):
+        if t.get("label") == label:
+            return int(t["id"])
+    created = radarr.post("/tag", json={"label": label})
+    return int(created["id"])
 
 
 def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
@@ -48,11 +65,16 @@ def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
     root = next((r for r in roots if r["path"] == want), roots[0] if roots else None)
     if root is None:
         raise ReleaseGrabError("aucun root folder Radarr")
+    # Category tag = the root folder's basename (films / films-zoe / …). Required so
+    # Radarr routes the immediate grab to the matching (tagged) download client.
+    category = PurePosixPath(root["path"]).name
+    tag_id = _category_tag_id(radarr, category)
     movie.update(
         {
             "qualityProfileId": prof["id"],
             "rootFolderPath": root["path"],
             "monitored": True,
+            "tags": [tag_id],
             "addOptions": {"searchForMovie": False},
         }
     )
