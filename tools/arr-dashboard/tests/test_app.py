@@ -386,3 +386,51 @@ def test_grab_requires_confirm():
     with TestClient(app) as client:
         r = client.post("/api/releases/grab", json={"info_hash": "x", "tmdb_id": 1})
         assert r.status_code == 400
+
+
+_MINI_INTENT = """
+categories:
+  - {name: nouveaux-films, kind: movies, profile: general, display: Nouveaux Films, base_path: /media/nouveaux-films}
+  - {name: films-zoe, kind: movies, profile: anime, display: Films - Zoé, base_path: /media/films-zoe}
+  - {name: series, kind: series, profile: general, display: Séries, base_path: /media/series}
+category_quality_profiles: {general: MULTi.VF, anime: Anime, family: Family}
+profile_definitions: {}
+configarr: {}
+"""
+
+
+def _settings_with_intent(tmp_path):
+    p = tmp_path / "intent.yml"
+    p.write_text(_MINI_INTENT)
+    s = _rel_settings()
+    return s.model_copy(update={"intent_path": str(p)})
+
+
+def test_categories_endpoint_lists_movie_categories(tmp_path):
+    app = create_app(settings=_settings_with_intent(tmp_path), start_refresher=False)
+    with TestClient(app) as client:
+        r = client.get("/api/categories")
+        assert r.status_code == 200
+        cats = r.json()
+        names = [c["name"] for c in cats]
+        assert names == ["nouveaux-films", "films-zoe"]  # series excluded
+        assert cats[0]["profile"] == "MULTi.VF"
+        assert cats[0]["root_path"] == "/media/nouveaux-films"
+        assert cats[1]["profile"] == "Anime"
+
+
+def test_categories_empty_when_intent_absent():
+    app = create_app(settings=_rel_settings(), start_refresher=False)  # intent_path="/x"
+    with TestClient(app) as client:
+        assert client.get("/api/categories").json() == []
+
+
+def test_grab_rejects_unknown_category(tmp_path):
+    app = create_app(settings=_settings_with_intent(tmp_path), start_refresher=False)
+    with TestClient(app) as client:
+        r = client.post(
+            "/api/releases/grab",
+            json={"confirm": True, "info_hash": "h", "tmdb_id": 1, "category": "bogus"},
+        )
+        assert r.status_code == 400
+        assert "unknown category" in r.json()["detail"]

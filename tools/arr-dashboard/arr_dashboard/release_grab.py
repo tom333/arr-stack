@@ -16,13 +16,6 @@ from arr_dashboard.sources import build_radarr
 
 log = logging.getLogger("arr_dashboard.release_grab")
 
-# category-profile keyword -> default root folder path (matches intent.categories movies roots)
-_PROFILE_ROOT = {
-    "MULTi.VF": "/media/films",
-    "Anime": "/media/films-zoe",
-    "Family": "/media/films-enfants",
-}
-
 
 class ReleaseGrabError(Exception):
     """Raised when the release cannot be grabbed cleanly (surfaced as HTTP 409)."""
@@ -44,16 +37,21 @@ def _category_tag_id(radarr: Any, label: str) -> int:
     return int(created["id"])
 
 
-def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
+def _ensure_movie(radarr: Any, tmdb_id: int, root_path: str, profile_name: str) -> int:
+    """Ensure the movie exists in Radarr, in the chosen category (root_path), with
+    the category tag so the grab routes to the matching download client.
+
+    root_path = the category's root folder (e.g. /media/nouveaux-films); the tag
+    label is its basename. profile_name = the configarr quality-profile name."""
+    tag_label = PurePosixPath(root_path).name
     existing = radarr.get(f"/movie?tmdbId={tmdb_id}")
     if existing:
         movie = existing[0]
         mid = int(movie["id"])
         # A movie added elsewhere (e.g. Seerr) but not yet tagged by arrconf's
         # 4-hourly apply carries no category tag → the grab would find no eligible
-        # download client. Ensure the tag from the movie's own root folder.
-        want = movie.get("rootFolderPath") or _PROFILE_ROOT.get(profile_name, "/media/films")
-        tag_id = _category_tag_id(radarr, PurePosixPath(want).name)
+        # download client. Ensure the chosen category tag is present.
+        tag_id = _category_tag_id(radarr, tag_label)
         if tag_id not in (movie.get("tags") or []):
             radarr._request(
                 "PUT",
@@ -74,14 +72,12 @@ def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
     if prof is None:
         raise ReleaseGrabError(f"quality profile {profile_name} absent de Radarr")
     roots = radarr.get("/rootfolder")
-    want = _PROFILE_ROOT.get(profile_name, "/media/films")
-    root = next((r for r in roots if r["path"] == want), roots[0] if roots else None)
+    root = next((r for r in roots if r["path"] == root_path), roots[0] if roots else None)
     if root is None:
         raise ReleaseGrabError("aucun root folder Radarr")
-    # Category tag = the root folder's basename (films / films-zoe / …). Required so
-    # Radarr routes the immediate grab to the matching (tagged) download client.
-    category = PurePosixPath(root["path"]).name
-    tag_id = _category_tag_id(radarr, category)
+    # Category tag = the root folder's basename → routes the grab to the matching
+    # (tagged) download client → correct qBit category → correct /media bucket.
+    tag_id = _category_tag_id(radarr, PurePosixPath(root["path"]).name)
     movie.update(
         {
             "qualityProfileId": prof["id"],
@@ -102,13 +98,14 @@ def grab_release(
     tmdb_id: int,
     title: str,
     year: int | None,
-    profile_name: str = "MULTi.VF",
+    root_path: str,
+    profile_name: str,
 ) -> dict[str, str]:
     radarr = build_radarr(settings)
     if radarr is None:
         raise ReleaseGrabError("no radarr client")
 
-    movie_id = _ensure_movie(radarr, tmdb_id, profile_name)
+    movie_id = _ensure_movie(radarr, tmdb_id, root_path, profile_name)
 
     candidates = radarr.get(f"/release?movieId={movie_id}")
     target_hash = info_hash.upper()

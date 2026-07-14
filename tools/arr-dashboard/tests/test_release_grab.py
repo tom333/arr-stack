@@ -52,7 +52,15 @@ def test_grab_existing_untagged_movie_gets_tagged_then_grabs():
     grab = respx.post("http://radarr/api/v3/release").mock(
         return_value=httpx.Response(201, json={})
     )
-    out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="Fight Club", year=1999)
+    out = grab_release(
+        _settings(),
+        info_hash="aaa",
+        tmdb_id=550,
+        title="Fight Club",
+        year=1999,
+        root_path="/media/films",
+        profile_name="MULTi.VF",
+    )
     assert out["status"] == "grabbed"
     assert editor.called  # tag applied to the existing untagged movie
     assert json.loads(editor.calls.last.request.content)["tags"] == [5]
@@ -77,7 +85,15 @@ def test_grab_existing_tagged_movie_skips_editor():
         return_value=httpx.Response(200, json=[{"guid": "gg", "infoHash": "AAA", "indexerId": 7}])
     )
     respx.post("http://radarr/api/v3/release").mock(return_value=httpx.Response(201, json={}))
-    out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="X", year=1999)
+    out = grab_release(
+        _settings(),
+        info_hash="aaa",
+        tmdb_id=550,
+        title="X",
+        year=1999,
+        root_path="/media/films",
+        profile_name="MULTi.VF",
+    )
     assert out["status"] == "grabbed"
     assert not editor.called  # already tagged → no edit
 
@@ -98,7 +114,15 @@ def test_grab_fallback_when_infohash_absent_in_radarr():
         )
     )
     with pytest.raises(ReleaseGrabError, match="introuvable"):
-        grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="Fight Club", year=1999)
+        grab_release(
+            _settings(),
+            info_hash="aaa",
+            tmdb_id=550,
+            title="Fight Club",
+            year=1999,
+            root_path="/media/films",
+            profile_name="MULTi.VF",
+        )
 
 
 @respx.mock
@@ -138,7 +162,15 @@ def test_grab_adds_missing_movie_first():
         return_value=httpx.Response(200, json=[{"guid": "gg", "infoHash": "AAA", "indexerId": 7}])
     )
     respx.post("http://radarr/api/v3/release").mock(return_value=httpx.Response(201, json={}))
-    out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="Fight Club", year=1999)
+    out = grab_release(
+        _settings(),
+        info_hash="aaa",
+        tmdb_id=550,
+        title="Fight Club",
+        year=1999,
+        root_path="/media/films",
+        profile_name="MULTi.VF",
+    )
     assert out["status"] == "grabbed"
     assert lookup.called
     assert add.called
@@ -180,7 +212,15 @@ def test_grab_creates_category_tag_when_absent():
         return_value=httpx.Response(200, json=[{"guid": "g", "infoHash": "AAA", "indexerId": 7}])
     )
     respx.post("http://radarr/api/v3/release").mock(return_value=httpx.Response(201, json={}))
-    out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="X", year=2020)
+    out = grab_release(
+        _settings(),
+        info_hash="aaa",
+        tmdb_id=550,
+        title="X",
+        year=2020,
+        root_path="/media/films",
+        profile_name="MULTi.VF",
+    )
     assert out["status"] == "grabbed"
     assert create_tag.called  # tag "films" created on the fly
 
@@ -194,4 +234,12 @@ def test_grab_raises_when_lookup_empty():
         return_value=httpx.Response(200, json=[])
     )
     with pytest.raises(ReleaseGrabError, match="introuvable dans le lookup"):
-        grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="X", year=2020)
+        grab_release(
+            _settings(),
+            info_hash="aaa",
+            tmdb_id=550,
+            title="X",
+            year=2020,
+            root_path="/media/films",
+            profile_name="MULTi.VF",
+        )

@@ -21,6 +21,7 @@ from arr_dashboard.recovery_actions import (
     remove_stuck,
 )
 from arr_dashboard.release_cache import ReleaseCache
+from arr_dashboard.categories import load_movie_categories
 from arr_dashboard.release_grab import ReleaseGrabError, grab_release
 from arr_dashboard.releases import fetch_releases
 from arr_dashboard.scoring import ScoringIntent, load_scoring_intent, score_release
@@ -236,15 +237,27 @@ def create_app(
         release_cache.invalidate()
         return {"status": "refreshed"}
 
+    @app.get("/api/categories")
+    def get_categories() -> list[dict[str, Any]]:
+        s = settings or load_settings()
+        return [
+            {"name": c.name, "display": c.display, "root_path": c.root_path, "profile": c.profile}
+            for c in load_movie_categories(s.intent_path)
+        ]
+
     @app.post("/api/releases/grab")
     def grab(payload: dict[str, Any] = Body(...)) -> dict[str, str]:
         if payload.get("confirm") is not True:
             raise HTTPException(status_code=400, detail="confirm:true required")
         info_hash = payload.get("info_hash")
         tmdb_id = payload.get("tmdb_id")
-        if not info_hash or not tmdb_id:
-            raise HTTPException(status_code=400, detail="info_hash and tmdb_id required")
+        category = payload.get("category")
+        if not info_hash or not tmdb_id or not category:
+            raise HTTPException(status_code=400, detail="info_hash, tmdb_id and category required")
         s = settings or load_settings()
+        cat = next((c for c in load_movie_categories(s.intent_path) if c.name == category), None)
+        if cat is None:
+            raise HTTPException(status_code=400, detail=f"unknown category: {category}")
         try:
             return grab_release(
                 s,
@@ -252,7 +265,8 @@ def create_app(
                 tmdb_id=int(tmdb_id),
                 title=str(payload.get("title") or ""),
                 year=payload.get("year"),
-                profile_name=str(payload.get("profile") or "MULTi.VF"),
+                root_path=cat.root_path,
+                profile_name=cat.profile,
             )
         except ReleaseGrabError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
