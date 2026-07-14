@@ -5,7 +5,7 @@ requires-python = ">=3.13"
 dependencies = [
   "arrconf",                         # editable install of sibling package — provides RootConfig + load_config
   "fastapi>=0.115,<0.116",
-  "uvicorn[standard]>=0.32,<0.33",
+  "uvicorn[standard]>=0.51,<0.52",
   "typer>=0.25.0,<0.26",
   "pydantic>=2.13,<3",
   "ruyaml>=0.91,<0.92",
