@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import quote
@@ -59,22 +60,46 @@ def _lookup_term(title: str, year: int) -> str:
     return quote(f"{clean} {year}")
 
 
-def _resolve_tmdb(rel: dict[str, Any], parsed: dict[str, Any], radarr: Any) -> int:
-    """FR trackers report tmdbId=0 -> resolve via Radarr movie/lookup (primary path)."""
-    tmdb = int(rel.get("tmdbId") or 0)
-    if tmdb:
-        return tmdb
-    if radarr is None or not parsed["year"]:
-        return 0
+@dataclass(frozen=True)
+class _Enrichment:
+    tmdb_id: int
+    genres: list[str]
+    poster_url: str | None
+
+
+def _poster_from(hit: dict[str, Any]) -> str | None:
+    for img in hit.get("images", []):
+        if img.get("coverType") == "poster":
+            url = img.get("remoteUrl") or img.get("url")
+            return str(url) if url else None
+    return None
+
+
+def _enrich(rel: dict[str, Any], parsed: dict[str, Any], radarr: Any) -> _Enrichment:
+    """Resolve tmdb + genres + poster via Radarr movie/lookup. FR trackers report
+    tmdbId=0 -> lookup by title/year term. When Prowlarr already gives a tmdbId,
+    look up by tmdb:<id> to still get genres/poster."""
+    pro_tmdb = int(rel.get("tmdbId") or 0)
+    if radarr is None:
+        return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
+    term = (
+        f"tmdb:{pro_tmdb}"
+        if pro_tmdb
+        else (_lookup_term(rel.get("title", ""), parsed["year"]) if parsed["year"] else None)
+    )
+    if term is None:
+        return _Enrichment(tmdb_id=0, genres=[], poster_url=None)
     try:
-        hits = radarr.get(
-            f"/movie/lookup?term={_lookup_term(rel.get('title', ''), parsed['year'])}"
-        )
-        if hits and hits[0].get("tmdbId"):
-            return int(hits[0]["tmdbId"])
+        hits = radarr.get(f"/movie/lookup?term={term}")
     except Exception as exc:
-        log.debug("tmdb lookup failed for %s: %s", rel.get("title"), exc)
-    return 0
+        log.debug("lookup failed for %s: %s", rel.get("title"), exc)
+        return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
+    if not hits:
+        return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
+    hit = hits[0]
+    tmdb = int(hit.get("tmdbId") or pro_tmdb or 0)
+    genres: list[str] = list(hit.get("genres") or [])
+    return _Enrichment(tmdb_id=tmdb, genres=genres, poster_url=_poster_from(hit))
 
 
 def fetch_releases(settings: Settings) -> list[Release]:
@@ -124,7 +149,7 @@ def fetch_releases(settings: Settings) -> list[Release]:
             if not _within_window(rel.get("publishDate", ""), cutoff):
                 continue
             parsed = parse_release_title(rel.get("title", ""))
-            tmdb = _resolve_tmdb(rel, parsed, radarr)
+            enr = _enrich(rel, parsed, radarr)
             by_hash[ih] = Release(
                 title=rel.get("title", ""),
                 info_hash=ih,
@@ -134,12 +159,16 @@ def fetch_releases(settings: Settings) -> list[Release]:
                 size=int(rel.get("size") or 0),
                 publish_date=rel.get("publishDate", ""),
                 year=parsed["year"],
-                tmdb_id=(tmdb or None),
+                tmdb_id=(enr.tmdb_id or None),
+                seeders=rel.get("seeders"),
+                leechers=rel.get("leechers"),
+                genres=enr.genres,
+                poster_url=enr.poster_url,
                 resolution=parsed["resolution"],
                 source=parsed["source"],
                 codec=parsed["codec"],
                 language=parsed["language"],
-                in_library=(tmdb in radarr_tmdb) if tmdb else False,
+                in_library=(enr.tmdb_id in radarr_tmdb) if enr.tmdb_id else False,
             )
             kept += 1
     return list(by_hash.values())

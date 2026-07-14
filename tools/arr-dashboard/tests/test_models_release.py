@@ -12,6 +12,10 @@ def test_release_roundtrip():
         publish_date="2026-07-14T00:00:00Z",
         year=2022,
         tmdb_id=550,
+        seeders=10,
+        leechers=2,
+        genres=["Animation"],
+        poster_url="http://x/p.jpg",
         resolution="1080p",
         source="WEB",
         codec="x265",
@@ -20,6 +24,7 @@ def test_release_roundtrip():
     )
     assert r.model_dump()["info_hash"] == "ABC123"
     assert r.model_dump()["tmdb_id"] == 550
+    assert r.model_dump()["genres"] == ["Animation"]
 
 
 def test_scored_release_wraps_release():
@@ -33,6 +38,10 @@ def test_scored_release_wraps_release():
         publish_date="2026-07-14T00:00:00Z",
         year=None,
         tmdb_id=None,
+        seeders=None,
+        leechers=None,
+        genres=[],
+        poster_url=None,
         resolution=None,
         source=None,
         codec=None,
