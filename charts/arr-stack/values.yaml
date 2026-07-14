@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.45.2"  # co-bump: grab add-movie fix (fix → patch auto-tag from v0.45.1)
+            tag: "0.45.3"  # co-bump: grab category-tag routing (fix → patch auto-tag from v0.45.2)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
