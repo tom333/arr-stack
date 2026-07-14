@@ -66,13 +66,26 @@ def test_fetch_dedups_by_infohash_and_flags_library():
         "size": 100,
         "publishDate": "2026-07-14T00:00:00Z",
         "tmdbId": 0,
+        "seeders": 12,
+        "leechers": 3,
     }
     respx.get(url__regex=r"http://prowlarr/api/v1/search.*").mock(
         return_value=httpx.Response(200, json=[rel, rel])
     )  # same infohash twice
     respx.get("http://radarr/api/v3/movie").mock(return_value=httpx.Response(200, json=[]))
     respx.get(url__regex=r"http://radarr/api/v3/movie/lookup.*").mock(
-        return_value=httpx.Response(200, json=[{"title": "Film", "year": 2022, "tmdbId": 550}])
+        return_value=httpx.Response(
+            200,
+            json=[
+                {
+                    "title": "Film",
+                    "year": 2022,
+                    "tmdbId": 550,
+                    "genres": ["Action", "Animation"],
+                    "images": [{"coverType": "poster", "remoteUrl": "http://img/p.jpg"}],
+                }
+            ],
+        )
     )
 
     releases = fetch_releases(_settings())
@@ -81,6 +94,9 @@ def test_fetch_dedups_by_infohash_and_flags_library():
     assert releases[0].indexer_name == "Torr9"
     assert releases[0].tmdb_id == 550
     assert releases[0].in_library is False
+    assert releases[0].seeders == 12
+    assert releases[0].genres == ["Action", "Animation"]
+    assert releases[0].poster_url == "http://img/p.jpg"
 
 
 @respx.mock

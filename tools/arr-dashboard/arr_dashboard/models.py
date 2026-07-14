@@ -91,6 +91,10 @@ class Release(BaseModel):
     publish_date: str
     year: int | None
     tmdb_id: int | None
+    seeders: int | None
+    leechers: int | None
+    genres: list[str]
+    poster_url: str | None
     resolution: str | None
     source: str | None
     codec: str | None
