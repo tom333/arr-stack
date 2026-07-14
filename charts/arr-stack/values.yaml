@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.43.9"
+            tag: "0.44.0"  # co-bump: releases browser (feat → minor auto-tag from v0.43.21)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
@@ -1040,3 +1040,14 @@ arr-dashboard:
         - secretName: arr-dashboard-tls
           hosts:
             - arr-dashboard.tgu.ovh
+  persistence:
+    # Read-only intent.yml (same ConfigMap as arrconf) → the Sorties tab scorer
+    # reads profile_definitions + customFormatDefinitions from it (single source
+    # of truth with configarr.yml). Absent mount → releases shown unscored.
+    intent:
+      type: configMap
+      name: arrconf-config
+      globalMounts:
+        - path: /app/config/intent.yml
+          subPath: intent.yml
+          readOnly: true
