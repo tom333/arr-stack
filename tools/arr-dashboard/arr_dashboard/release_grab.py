@@ -110,10 +110,23 @@ def grab_release(
     candidates = radarr.get(f"/release?movieId={movie_id}")
     target_hash = info_hash.upper()
     match = next((c for c in candidates if str(c.get("infoHash", "")).upper() == target_hash), None)
+    matched = "exact"
+    if match is None:
+        # FR trackers return a different result set for Radarr's name-search than for
+        # the latest-releases feed the dashboard shows, so the exact torrent is often
+        # not re-listed. Fall back to the best APPROVED release (not rejected by the
+        # quality profile), ranked by custom-format score then seeders — an
+        # equivalent-or-better version of the same movie.
+        approved = [c for c in candidates if not c.get("rejected")]
+        approved.sort(
+            key=lambda c: (c.get("customFormatScore", 0), c.get("seeders") or 0), reverse=True
+        )
+        match = approved[0] if approved else None
+        matched = "best-approved"
     if match is None:
         raise ReleaseGrabError(
-            "release introuvable côté Radarr (timing/re-catégorisation) — réessaie ou grab manuel"
+            "aucun release acceptable côté Radarr (tous rejetés par le profil) — réessaie ou grab manuel"
         )
     radarr.post("/release", json={"guid": match["guid"], "indexerId": match["indexerId"]})
-    log.info("grabbed release %s for movie %s", target_hash, movie_id)
-    return {"status": "grabbed", "movie_id": str(movie_id)}
+    log.info("grabbed release (%s) for movie %s: %s", matched, movie_id, match.get("title", ""))
+    return {"status": "grabbed", "movie_id": str(movie_id), "match": matched}

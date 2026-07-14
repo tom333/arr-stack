@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.47.0"  # co-bump: Arrkestra UI identity (feat → minor auto-tag from v0.46.0)
+            tag: "0.47.1"  # co-bump: grab best-approved fallback + modal error (fix → patch from v0.47.0)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"

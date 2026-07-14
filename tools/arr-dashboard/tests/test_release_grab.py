@@ -99,7 +99,9 @@ def test_grab_existing_tagged_movie_skips_editor():
 
 
 @respx.mock
-def test_grab_fallback_when_infohash_absent_in_radarr():
+def test_grab_falls_back_to_best_approved_when_exact_absent():
+    # exact infoHash not re-listed → grab the best APPROVED release (highest CF score,
+    # then seeders) instead of failing.
     respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
         return_value=httpx.Response(
             200, json=[{"id": 42, "tmdbId": 550, "rootFolderPath": "/media/films", "tags": [5]}]
@@ -110,10 +112,68 @@ def test_grab_fallback_when_infohash_absent_in_radarr():
     )
     respx.get(url__regex=r"http://radarr/api/v3/release\?movieId=42").mock(
         return_value=httpx.Response(
-            200, json=[{"guid": "other", "infoHash": "ZZZ", "indexerId": 7}]
+            200,
+            json=[
+                {
+                    "guid": "rejected-one",
+                    "infoHash": "ZZZ",
+                    "indexerId": 7,
+                    "rejected": True,
+                    "customFormatScore": 900,
+                },
+                {
+                    "guid": "best",
+                    "infoHash": "BBB",
+                    "indexerId": 7,
+                    "rejected": False,
+                    "customFormatScore": 800,
+                    "seeders": 40,
+                },
+                {
+                    "guid": "weaker",
+                    "infoHash": "CCC",
+                    "indexerId": 7,
+                    "rejected": False,
+                    "customFormatScore": 800,
+                    "seeders": 5,
+                },
+            ],
         )
     )
-    with pytest.raises(ReleaseGrabError, match="introuvable"):
+    grab = respx.post("http://radarr/api/v3/release").mock(
+        return_value=httpx.Response(201, json={})
+    )
+    out = grab_release(
+        _settings(),
+        info_hash="aaa",  # not present among candidates
+        tmdb_id=550,
+        title="Fight Club",
+        year=1999,
+        root_path="/media/films",
+        profile_name="MULTi.VF",
+    )
+    assert out["status"] == "grabbed"
+    assert out["match"] == "best-approved"
+    # best-approved = not rejected, top CF score, then most seeders → "best" (40 seeders)
+    assert b'"best"' in grab.calls.last.request.content
+
+
+@respx.mock
+def test_grab_raises_when_all_releases_rejected():
+    respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
+        return_value=httpx.Response(
+            200, json=[{"id": 42, "tmdbId": 550, "rootFolderPath": "/media/films", "tags": [5]}]
+        )
+    )
+    respx.get("http://radarr/api/v3/tag").mock(
+        return_value=httpx.Response(200, json=[{"id": 5, "label": "films"}])
+    )
+    respx.get(url__regex=r"http://radarr/api/v3/release\?movieId=42").mock(
+        return_value=httpx.Response(
+            200, json=[{"guid": "x", "infoHash": "ZZZ", "indexerId": 7, "rejected": True}]
+        )
+    )
+    with pytest.raises(ReleaseGrabError, match="aucun release acceptable"):
         grab_release(
             _settings(),
             info_hash="aaa",
