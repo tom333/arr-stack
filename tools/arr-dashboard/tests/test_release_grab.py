@@ -69,6 +69,22 @@ def test_grab_adds_missing_movie_first():
     respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
         return_value=httpx.Response(200, json=[])
     )
+    # Radarr POST /movie needs the full looked-up object (title/titleSlug/...) —
+    # a bare {tmdbId} payload 500s. The add flow must fetch this first.
+    lookup = respx.get(url__regex=r"http://radarr/api/v3/movie/lookup\?term=tmdb:550").mock(
+        return_value=httpx.Response(
+            200,
+            json=[
+                {
+                    "tmdbId": 550,
+                    "title": "Fight Club",
+                    "titleSlug": "fight-club-550",
+                    "year": 1999,
+                    "images": [{"coverType": "poster", "remoteUrl": "http://x/p.jpg"}],
+                }
+            ],
+        )
+    )
     respx.get("http://radarr/api/v3/qualityprofile").mock(
         return_value=httpx.Response(200, json=[{"id": 1, "name": "MULTi.VF"}])
     )
@@ -84,4 +100,25 @@ def test_grab_adds_missing_movie_first():
     respx.post("http://radarr/api/v3/release").mock(return_value=httpx.Response(201, json={}))
     out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="Fight Club", year=1999)
     assert out["status"] == "grabbed"
+    assert lookup.called
     assert add.called
+    # the POST body must be the full looked-up object, not a bare {tmdbId}
+    import json as _json
+
+    body = _json.loads(add.calls.last.request.content)
+    assert body["titleSlug"] == "fight-club-550"
+    assert body["qualityProfileId"] == 1
+    assert body["rootFolderPath"] == "/media/films"
+    assert body["addOptions"] == {"searchForMovie": False}
+
+
+@respx.mock
+def test_grab_raises_when_lookup_empty():
+    respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+    respx.get(url__regex=r"http://radarr/api/v3/movie/lookup\?term=tmdb:550").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+    with pytest.raises(ReleaseGrabError, match="introuvable dans le lookup"):
+        grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="X", year=2020)
