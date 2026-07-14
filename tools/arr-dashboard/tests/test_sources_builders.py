@@ -18,6 +18,8 @@ def _settings(**kw):
         jellyfin_api_key=None,
         qbt_user=None,
         qbt_pass=None,
+        prowlarr_url="http://prowlarr:9696",
+        prowlarr_api_key=None,
     )
     base.update(kw)
     return Settings(**base)

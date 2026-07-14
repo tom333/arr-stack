@@ -110,6 +110,8 @@ def _settings_full():
         jellyfin_api_key="k",
         qbt_user="u",
         qbt_pass="p",
+        prowlarr_url="http://prowlarr:9696",
+        prowlarr_api_key="k",
     )
 
 
