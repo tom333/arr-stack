@@ -79,3 +79,28 @@ class Snapshot(BaseModel):
     generated_at: str | None = None
     stale_sources: list[str] = Field(default_factory=list)
     initializing: bool = False
+
+
+class Release(BaseModel):
+    title: str
+    info_hash: str
+    guid: str
+    indexer_id: int
+    indexer_name: str
+    size: int
+    publish_date: str
+    year: int | None
+    tmdb_id: int | None
+    resolution: str | None
+    source: str | None
+    codec: str | None
+    language: str | None
+    in_library: bool
+
+
+class ScoredRelease(BaseModel):
+    release: Release
+    score: int
+    accepted: bool
+    quality: str | None
+    reasons: list[str]
