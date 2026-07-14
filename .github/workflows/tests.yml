@@ -225,7 +225,7 @@ jobs:
       - name: Setup Node 22 (D-17-NODE-01 — hardcoded LTS active)
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: tools/arr-dashboard/web/package-lock.json
 
@@ -251,7 +251,7 @@ jobs:
       - name: Setup Node 22 (D-17-NODE-01 — hardcoded LTS active)
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: tools/arrconf-ui/web/package-lock.json
 
