@@ -47,7 +47,20 @@ def _category_tag_id(radarr: Any, label: str) -> int:
 def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
     existing = radarr.get(f"/movie?tmdbId={tmdb_id}")
     if existing:
-        return int(existing[0]["id"])
+        movie = existing[0]
+        mid = int(movie["id"])
+        # A movie added elsewhere (e.g. Seerr) but not yet tagged by arrconf's
+        # 4-hourly apply carries no category tag → the grab would find no eligible
+        # download client. Ensure the tag from the movie's own root folder.
+        want = movie.get("rootFolderPath") or _PROFILE_ROOT.get(profile_name, "/media/films")
+        tag_id = _category_tag_id(radarr, PurePosixPath(want).name)
+        if tag_id not in (movie.get("tags") or []):
+            radarr._request(
+                "PUT",
+                "/movie/editor",
+                json={"movieIds": [mid], "tags": [tag_id], "applyTags": "add"},
+            )
+        return mid
     # Radarr's POST /movie needs the FULL looked-up movie object (title/titleSlug/
     # images/…). A bare {tmdbId,...} payload makes its folder Organizer throw a
     # NullReferenceException (HTTP 500). So fetch the lookup object and merge the

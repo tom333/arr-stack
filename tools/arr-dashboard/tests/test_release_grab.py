@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 import respx
@@ -28,16 +30,23 @@ def _settings() -> Settings:
 
 
 @respx.mock
-def test_grab_existing_movie_matches_infohash_and_grabs():
+def test_grab_existing_untagged_movie_gets_tagged_then_grabs():
+    # existing movie in /media/films but no category tag yet (arrconf not run) →
+    # must be tagged before the grab so the download client resolves.
     respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
-        return_value=httpx.Response(200, json=[{"id": 42, "tmdbId": 550}])
+        return_value=httpx.Response(
+            200, json=[{"id": 42, "tmdbId": 550, "rootFolderPath": "/media/films", "tags": []}]
+        )
+    )
+    respx.get("http://radarr/api/v3/tag").mock(
+        return_value=httpx.Response(200, json=[{"id": 5, "label": "films"}])
+    )
+    editor = respx.put("http://radarr/api/v3/movie/editor").mock(
+        return_value=httpx.Response(202, json={})
     )
     respx.get(url__regex=r"http://radarr/api/v3/release\?movieId=42").mock(
         return_value=httpx.Response(
-            200,
-            json=[
-                {"guid": "radarr-guid", "infoHash": "AAA", "indexerId": 7, "title": "T"},
-            ],
+            200, json=[{"guid": "radarr-guid", "infoHash": "AAA", "indexerId": 7, "title": "T"}]
         )
     )
     grab = respx.post("http://radarr/api/v3/release").mock(
@@ -45,15 +54,43 @@ def test_grab_existing_movie_matches_infohash_and_grabs():
     )
     out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="Fight Club", year=1999)
     assert out["status"] == "grabbed"
+    assert editor.called  # tag applied to the existing untagged movie
+    assert json.loads(editor.calls.last.request.content)["tags"] == [5]
     assert grab.called
-    body = grab.calls.last.request.content
-    assert b"radarr-guid" in body
+    assert b"radarr-guid" in grab.calls.last.request.content
+
+
+@respx.mock
+def test_grab_existing_tagged_movie_skips_editor():
+    respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
+        return_value=httpx.Response(
+            200, json=[{"id": 42, "tmdbId": 550, "rootFolderPath": "/media/films", "tags": [5]}]
+        )
+    )
+    respx.get("http://radarr/api/v3/tag").mock(
+        return_value=httpx.Response(200, json=[{"id": 5, "label": "films"}])
+    )
+    editor = respx.put("http://radarr/api/v3/movie/editor").mock(
+        return_value=httpx.Response(202, json={})
+    )
+    respx.get(url__regex=r"http://radarr/api/v3/release\?movieId=42").mock(
+        return_value=httpx.Response(200, json=[{"guid": "gg", "infoHash": "AAA", "indexerId": 7}])
+    )
+    respx.post("http://radarr/api/v3/release").mock(return_value=httpx.Response(201, json={}))
+    out = grab_release(_settings(), info_hash="aaa", tmdb_id=550, title="X", year=1999)
+    assert out["status"] == "grabbed"
+    assert not editor.called  # already tagged → no edit
 
 
 @respx.mock
 def test_grab_fallback_when_infohash_absent_in_radarr():
     respx.get(url__regex=r"http://radarr/api/v3/movie\?tmdbId=550").mock(
-        return_value=httpx.Response(200, json=[{"id": 42, "tmdbId": 550}])
+        return_value=httpx.Response(
+            200, json=[{"id": 42, "tmdbId": 550, "rootFolderPath": "/media/films", "tags": [5]}]
+        )
+    )
+    respx.get("http://radarr/api/v3/tag").mock(
+        return_value=httpx.Response(200, json=[{"id": 5, "label": "films"}])
     )
     respx.get(url__regex=r"http://radarr/api/v3/release\?movieId=42").mock(
         return_value=httpx.Response(
@@ -106,9 +143,7 @@ def test_grab_adds_missing_movie_first():
     assert lookup.called
     assert add.called
     # the POST body must be the full looked-up object, not a bare {tmdbId}
-    import json as _json
-
-    body = _json.loads(add.calls.last.request.content)
+    body = json.loads(add.calls.last.request.content)
     assert body["titleSlug"] == "fight-club-550"
     assert body["qualityProfileId"] == 1
     assert body["rootFolderPath"] == "/media/films"
