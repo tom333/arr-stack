@@ -1,8 +1,11 @@
+import httpx
+import respx
 from fastapi.testclient import TestClient
 
 from arr_dashboard.app import create_app
 from arr_dashboard.cache import SnapshotCache
 from arr_dashboard.models import ChainHealth, Row, Snapshot
+from arr_dashboard.settings import Settings
 
 
 def test_dashboard_endpoint_serves_cache():
@@ -110,6 +113,8 @@ def _settings_full():
         jellyfin_api_key="k",
         qbt_user="u",
         qbt_pass="p",
+        prowlarr_url="http://prowlarr:9696",
+        prowlarr_api_key="k",
     )
 
 
@@ -319,3 +324,65 @@ def test_recheck_requires_confirm_and_dispatches(monkeypatch):
     )
     assert r.status_code == 200
     assert got["h"] == "aaa"
+
+
+def _rel_settings() -> Settings:
+    return Settings(
+        sonarr_url="http://s",
+        radarr_url="http://radarr",
+        qbittorrent_url="http://q",
+        seerr_url="http://se",
+        jellyfin_url="http://j",
+        prowlarr_url="http://prowlarr",
+        sonarr_api_key=None,
+        radarr_api_key="rk",
+        seerr_api_key=None,
+        jellyfin_api_key=None,
+        qbt_user=None,
+        qbt_pass=None,
+        prowlarr_api_key="pk",
+        intent_path="/x",
+        releases_window_hours=100000,
+        releases_cap_per_indexer=60,
+    )
+
+
+@respx.mock
+def test_get_releases_endpoint():
+    respx.get("http://prowlarr/api/v1/indexer").mock(
+        return_value=httpx.Response(200, json=[{"id": 7, "name": "Torr9", "enable": True}])
+    )
+    respx.get(url__regex=r"http://prowlarr/api/v1/search.*").mock(
+        return_value=httpx.Response(
+            200,
+            json=[
+                {
+                    "title": "Film.2022.VFF.1080p.BluRay.x265",
+                    "infoHash": "AAA",
+                    "guid": "g",
+                    "indexerId": 7,
+                    "size": 1,
+                    "publishDate": "2026-07-14T00:00:00Z",
+                    "tmdbId": 0,
+                }
+            ],
+        )
+    )
+    respx.get("http://radarr/api/v3/movie").mock(return_value=httpx.Response(200, json=[]))
+    respx.get(url__regex=r"http://radarr/api/v3/movie/lookup.*").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+    app = create_app(settings=_rel_settings(), start_refresher=False)
+    with TestClient(app) as client:
+        r = client.get("/api/releases?profile=MULTi.VF")
+        assert r.status_code == 200
+        body = r.json()
+        assert body[0]["release"]["info_hash"] == "AAA"
+        assert "score" in body[0] and "accepted" in body[0]
+
+
+def test_grab_requires_confirm():
+    app = create_app(settings=_rel_settings(), start_refresher=False)
+    with TestClient(app) as client:
+        r = client.post("/api/releases/grab", json={"info_hash": "x", "tmdb_id": 1})
+        assert r.status_code == 400

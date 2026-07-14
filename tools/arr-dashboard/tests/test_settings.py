@@ -20,3 +20,15 @@ def test_load_settings_overrides(monkeypatch):
     s = load_settings()
     assert s.refresh_seconds == 10
     assert s.sonarr_url == "http://custom:1234"
+
+
+def test_prowlarr_and_intent_defaults(monkeypatch):
+    for k in ("PROWLARR_URL", "PROWLARR_API_KEY", "INTENT_PATH"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("PROWLARR_API_KEY", "abc")
+    s = load_settings()
+    assert s.prowlarr_url == "http://prowlarr.selfhost.svc.cluster.local:9696"
+    assert s.prowlarr_api_key == "abc"
+    assert s.intent_path == "/app/config/intent.yml"
+    assert s.releases_window_hours == 72
+    assert s.releases_cap_per_indexer == 60

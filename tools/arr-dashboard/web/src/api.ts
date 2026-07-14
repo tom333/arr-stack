@@ -81,3 +81,57 @@ export async function recheck(key: string, infohash: string): Promise<void> {
   });
   if (!res.ok) throw new Error(`recheck ${res.status}`);
 }
+
+export interface Release {
+  title: string;
+  info_hash: string;
+  guid: string;
+  indexer_id: number;
+  indexer_name: string;
+  size: number;
+  publish_date: string;
+  year: number | null;
+  tmdb_id: number | null;
+  resolution: string | null;
+  source: string | null;
+  codec: string | null;
+  language: string | null;
+  in_library: boolean;
+}
+
+export interface ScoredRelease {
+  release: Release;
+  score: number;
+  accepted: boolean;
+  quality: string | null;
+  reasons: string[];
+}
+
+export async function getReleases(profile: string): Promise<ScoredRelease[]> {
+  const res = await fetch(`/api/releases?profile=${encodeURIComponent(profile)}`);
+  if (!res.ok) throw new Error(`getReleases ${res.status}`);
+  return res.json();
+}
+
+export async function refreshReleases(): Promise<void> {
+  const res = await fetch("/api/releases/refresh", { method: "POST" });
+  if (!res.ok) throw new Error(`refreshReleases ${res.status}`);
+}
+
+export async function grabRelease(body: {
+  info_hash: string;
+  tmdb_id: number;
+  title: string;
+  year: number | null;
+  profile: string;
+}): Promise<void> {
+  const res = await fetch("/api/releases/grab", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...body, confirm: true }),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.detail || `grabRelease ${res.status}`);
+  }
+}

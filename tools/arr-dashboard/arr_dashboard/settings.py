@@ -17,6 +17,11 @@ class Settings(BaseModel):
     jellyfin_api_key: str | None
     qbt_user: str | None
     qbt_pass: str | None
+    prowlarr_url: str
+    prowlarr_api_key: str | None
+    intent_path: str = "/app/config/intent.yml"
+    releases_window_hours: int = 72
+    releases_cap_per_indexer: int = 60
     refresh_seconds: int = 30
     bind: str = "0.0.0.0:8080"
 
@@ -35,6 +40,11 @@ def load_settings() -> Settings:
         jellyfin_api_key=e("JELLYFIN_API_KEY"),
         qbt_user=e("QBT_USER"),
         qbt_pass=e("QBT_PASS"),
+        prowlarr_url=e("PROWLARR_URL", f"http://prowlarr.{_SVC}:9696"),
+        prowlarr_api_key=e("PROWLARR_API_KEY"),
+        intent_path=e("INTENT_PATH", "/app/config/intent.yml"),
+        releases_window_hours=int(e("RELEASES_WINDOW_HOURS", "72")),
+        releases_cap_per_indexer=int(e("RELEASES_CAP_PER_INDEXER", "60")),
         refresh_seconds=int(e("DASHBOARD_REFRESH_SECONDS", "30")),
         bind=e("DASHBOARD_BIND", "0.0.0.0:8080"),
     )

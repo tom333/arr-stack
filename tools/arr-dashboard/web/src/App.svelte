@@ -5,7 +5,9 @@
   import ImportButton from "./lib/ImportButton.svelte";
   import ActionsPanel from "./lib/ActionsPanel.svelte";
   import ConfirmDialog from "./lib/ConfirmDialog.svelte";
+  import ReleasesTab from "./lib/ReleasesTab.svelte";
 
+  let tab = $state<"dashboard" | "releases">("dashboard");
   let snap = $state<Snapshot | null>(null);
   let error = $state<string | null>(null);
   let problemsOnly = $state(true);
@@ -50,51 +52,63 @@
   {#if snap?.stale_sources?.length}<span class="stale">⚠ sources indisponibles: {snap.stale_sources.join(", ")}</span>{/if}
 </header>
 
-<ActionsPanel />
+<nav class="tabs">
+  <button class:active={tab === "dashboard"} onclick={() => (tab = "dashboard")}>Suivi</button>
+  <button class:active={tab === "releases"} onclick={() => (tab = "releases")}>Sorties</button>
+</nav>
 
-{#if error}<p class="err">{error}</p>{/if}
-{#if snap?.initializing}<p>Initialisation…</p>{/if}
+{#if tab === "dashboard"}
+  <ActionsPanel />
 
-<table>
-  <thead><tr><th>Chaîne</th><th>Titre</th><th>Demandé</th><th>Download</th><th>Disque</th><th>Jellyfin</th><th>Flags</th><th>Action</th></tr></thead>
-  <tbody>
-    {#each visible as row (row.key)}
-      <tr onclick={() => expanded = expanded === row.key ? null : row.key}>
-        <td><ChainPastilles chain={row.chain} flags={row.flags} /></td>
-        <td>{row.title}{#if row.year} ({row.year}){/if}</td>
-        <td>{row.requested_by ?? "—"}</td>
-        <td>{#if row.downloads.length}{row.downloads.length > 1 ? `${row.downloads.length} torrents` : `${Math.round(row.downloads[0].progress * 100)}% ${row.downloads[0].tracker ?? ""}`}{:else}—{/if}</td>
-        <td>{row.disk_paths.length ? (row.disk_paths[0].startsWith("/media") ? "/media" : "/data") : "✗"}</td>
-        <td>{row.in_jellyfin ? "✓" : "✗"}</td>
-        <td class="flags">
-          {row.flags.join(", ")}
-          {#if worstDiag(row)}
-            {@const wd = worstDiag(row)}
-            <span class="diag" class:dead={!wd!.recoverable}>
-              {wd!.label}{#if wd!.host} ({wd!.host}){/if}
-            </span>
-          {/if}
-        </td>
-        <td onclick={(e) => e.stopPropagation()}>
-          {#if importable(row)}<ImportButton {row} pending={activeKeys.has(row.key)} />{/if}
-          {#if isStuck(row)}<button class="act warn" onclick={() => (removing = row)}>Suppr bloqué</button>{/if}
-          {#if notInJf(row)}<button class="act" onclick={() => doScan(row)}>Scan JF</button>{/if}
-        </td>
-      </tr>
-      {#if expanded === row.key}<tr><td colspan="8"><RowDetail {row} /></td></tr>{/if}
-    {/each}
-  </tbody>
-</table>
+  {#if error}<p class="err">{error}</p>{/if}
+  {#if snap?.initializing}<p>Initialisation…</p>{/if}
 
-{#if removing}
-  <ConfirmDialog title={`Supprimer le téléchargement bloqué`} detail={`${removing.title}`}
-    warn="⚠ supprime le(s) torrent(s) bloqué(s) ET leurs fichiers"
-    onConfirm={doRemove} onCancel={() => (removing = null)} />
+  <table>
+    <thead><tr><th>Chaîne</th><th>Titre</th><th>Demandé</th><th>Download</th><th>Disque</th><th>Jellyfin</th><th>Flags</th><th>Action</th></tr></thead>
+    <tbody>
+      {#each visible as row (row.key)}
+        <tr onclick={() => expanded = expanded === row.key ? null : row.key}>
+          <td><ChainPastilles chain={row.chain} flags={row.flags} /></td>
+          <td>{row.title}{#if row.year} ({row.year}){/if}</td>
+          <td>{row.requested_by ?? "—"}</td>
+          <td>{#if row.downloads.length}{row.downloads.length > 1 ? `${row.downloads.length} torrents` : `${Math.round(row.downloads[0].progress * 100)}% ${row.downloads[0].tracker ?? ""}`}{:else}—{/if}</td>
+          <td>{row.disk_paths.length ? (row.disk_paths[0].startsWith("/media") ? "/media" : "/data") : "✗"}</td>
+          <td>{row.in_jellyfin ? "✓" : "✗"}</td>
+          <td class="flags">
+            {row.flags.join(", ")}
+            {#if worstDiag(row)}
+              {@const wd = worstDiag(row)}
+              <span class="diag" class:dead={!wd!.recoverable}>
+                {wd!.label}{#if wd!.host} ({wd!.host}){/if}
+              </span>
+            {/if}
+          </td>
+          <td onclick={(e) => e.stopPropagation()}>
+            {#if importable(row)}<ImportButton {row} pending={activeKeys.has(row.key)} />{/if}
+            {#if isStuck(row)}<button class="act warn" onclick={() => (removing = row)}>Suppr bloqué</button>{/if}
+            {#if notInJf(row)}<button class="act" onclick={() => doScan(row)}>Scan JF</button>{/if}
+          </td>
+        </tr>
+        {#if expanded === row.key}<tr><td colspan="8"><RowDetail {row} /></td></tr>{/if}
+      {/each}
+    </tbody>
+  </table>
+
+  {#if removing}
+    <ConfirmDialog title={`Supprimer le téléchargement bloqué`} detail={`${removing.title}`}
+      warn="⚠ supprime le(s) torrent(s) bloqué(s) ET leurs fichiers"
+      onConfirm={doRemove} onCancel={() => (removing = null)} />
+  {/if}
+{:else}
+  <ReleasesTab />
 {/if}
 
 <style>
   :global(body) { background: #0f1115; color: #e5e7eb; font-family: "IBM Plex Sans", sans-serif; }
   header { display: flex; gap: 1.5rem; align-items: center; padding: 1rem; }
+  nav.tabs { display: flex; gap: .5rem; padding: 0 1rem 0.5rem; }
+  nav.tabs button { background: #1f2430; color: #9ca3af; border: 0; padding: .3rem .8rem; border-radius: 4px; cursor: pointer; }
+  nav.tabs button.active { background: #374151; color: #e5e7eb; }
   table { width: 100%; border-collapse: collapse; }
   th, td { text-align: left; padding: 0.4rem 0.7rem; border-bottom: 1px solid #1f2430; }
   tbody tr { cursor: pointer; }
