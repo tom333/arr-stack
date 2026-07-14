@@ -6,7 +6,7 @@ dependencies = [
   "arrconf",                         # editable install of sibling package — provides RootConfig + load_config
   "fastapi>=0.115,<0.116",
   "uvicorn[standard]>=0.32,<0.33",
-  "typer>=0.25.0,<0.26",
+  "typer>=0.26.8,<0.27",
   "pydantic>=2.13,<3",
   "ruyaml>=0.91,<0.92",
   "structlog>=25.5,<26",
