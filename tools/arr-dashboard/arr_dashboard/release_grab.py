@@ -31,6 +31,14 @@ def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
     existing = radarr.get(f"/movie?tmdbId={tmdb_id}")
     if existing:
         return int(existing[0]["id"])
+    # Radarr's POST /movie needs the FULL looked-up movie object (title/titleSlug/
+    # images/…). A bare {tmdbId,...} payload makes its folder Organizer throw a
+    # NullReferenceException (HTTP 500). So fetch the lookup object and merge the
+    # add fields into it.
+    hits = radarr.get(f"/movie/lookup?term=tmdb:{tmdb_id}")
+    if not hits:
+        raise ReleaseGrabError(f"film tmdb:{tmdb_id} introuvable dans le lookup Radarr")
+    movie = dict(hits[0])
     profiles = radarr.get("/qualityprofile")
     prof = next((p for p in profiles if p["name"] == profile_name), None)
     if prof is None:
@@ -40,16 +48,15 @@ def _ensure_movie(radarr: Any, tmdb_id: int, profile_name: str) -> int:
     root = next((r for r in roots if r["path"] == want), roots[0] if roots else None)
     if root is None:
         raise ReleaseGrabError("aucun root folder Radarr")
-    added = radarr.post(
-        "/movie",
-        json={
-            "tmdbId": tmdb_id,
+    movie.update(
+        {
             "qualityProfileId": prof["id"],
             "rootFolderPath": root["path"],
             "monitored": True,
             "addOptions": {"searchForMovie": False},
-        },
+        }
     )
+    added = radarr.post("/movie", json=movie)
     return int(added["id"])
 
 
