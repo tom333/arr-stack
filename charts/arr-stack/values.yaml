@@ -567,7 +567,7 @@ configarr:
           image:
             # renovate: image=ghcr.io/raydak-labs/configarr
             repository: ghcr.io/raydak-labs/configarr
-            tag: "1.28.0"
+            tag: "1.30.0"
             pullPolicy: IfNotPresent
           tty: true  # D-04-CRON-04 MANDATORY (npm process exits without TTY)
           env:
