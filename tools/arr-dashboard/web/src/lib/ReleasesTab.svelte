@@ -148,7 +148,7 @@
   tr.rejected { opacity: 0.4; }
   .badge { font-size: 0.8em; padding: 0.1rem 0.4rem; border: 1px solid #4ade80; border-radius: 4px; color: #4ade80; }
   .error { color: #f87171; padding: 0 1rem; }
-  .poster { width: 34px; height: 51px; object-fit: cover; border-radius: 3px; display: block; }
+  .poster { width: 105px; height: 158px; object-fit: cover; border-radius: 4px; display: block; }
   .anim { color: #a78bfa; }
   td.dead { color: #f87171; }
   button { background: #374151; color: #e5e7eb; border: 0; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; font-size: .8rem; }

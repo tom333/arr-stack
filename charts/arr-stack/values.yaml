@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.45.0"  # co-bump: releases tab enrich (feat → minor auto-tag from v0.44.0)
+            tag: "0.45.1"  # co-bump: bigger posters (fix → patch auto-tag from v0.45.0)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
