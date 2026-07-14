@@ -8,14 +8,18 @@
   },
   "prowlarr": [
     {
-      "action": "no-op",
-      "diff_fields": [],
+      "action": "update",
+      "diff_fields": [
+        "syncLevel"
+      ],
       "name": "Radarr",
       "resource_type": "Application"
     },
     {
-      "action": "no-op",
-      "diff_fields": [],
+      "action": "update",
+      "diff_fields": [
+        "syncLevel"
+      ],
       "name": "Sonarr",
       "resource_type": "Application"
     }
