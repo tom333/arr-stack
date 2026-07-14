@@ -23,7 +23,7 @@ dev = ["pytest>=9", "respx>=0.23", "anyio>=4", "ruff>=0.8", "mypy>=1.13", "httpx
 line-length = 100
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 
 # arrconf (sibling path dep) ships no py.typed marker, so mypy can't resolve its
 # types. We reuse its clients/exceptions/intent_config as a library; treat them as

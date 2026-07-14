@@ -1,6 +1,6 @@
 # tools/arr-dashboard/Dockerfile
 # Multi-stage build: node builds the Svelte web/ → uv installs the python deps →
-# minimal python:3.13-slim runtime. Mirrors tools/arrconf-mcp/Dockerfile, plus a
+# minimal python:3.14-slim runtime. Mirrors tools/arrconf-mcp/Dockerfile, plus a
 # node "web" stage for the frontend bundle.
 #
 # IMPORTANT — build context MUST be the repo root, NOT tools/arr-dashboard:
@@ -21,7 +21,7 @@ COPY tools/arr-dashboard/web/ ./
 RUN npm run build
 
 # ─── Stage 2: builder (python deps via uv) ──────────────────────────────────
-FROM ghcr.io/astral-sh/uv:0.9-python3.13-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.9-python3.14-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # ─── Stage 3: runtime ───────────────────────────────────────────────────────
-FROM python:3.13-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Non-root user.
 RUN groupadd --gid 1000 arrconf \

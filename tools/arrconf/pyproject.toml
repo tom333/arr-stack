@@ -31,7 +31,7 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "D"]
@@ -49,7 +49,7 @@ ignore = ["D203", "D213"]
 "arrconf/__main__.py" = ["B008"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 warn_unused_ignores = true
 disallow_untyped_defs = true

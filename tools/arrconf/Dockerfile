@@ -1,9 +1,9 @@
 # tools/arrconf/Dockerfile
-# Multi-stage build: uv-based dep install → minimal python:3.13-slim runtime.
+# Multi-stage build: uv-based dep install → minimal python:3.14-slim runtime.
 # Source: https://docs.astral.sh/uv/guides/integration/docker/
 
 # ─── Stage 1: builder ──────────────────────────────────────────────────────
-FROM ghcr.io/astral-sh/uv:0.9-python3.13-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.9-python3.14-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # ─── Stage 2: runtime ──────────────────────────────────────────────────────
-FROM python:3.13-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Non-root user (T-01-02 mitigation)
 RUN groupadd --gid 1000 arrconf \

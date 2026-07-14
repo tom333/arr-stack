@@ -798,7 +798,7 @@ def test_reconcile_order_radarr(
                 obj = _json.loads(line)
                 if obj.get("event") == "step_begin" and "step_index" in obj:
                     step_events.append(obj)
-            except (_json.JSONDecodeError, ValueError):
+            except _json.JSONDecodeError, ValueError:
                 pass
 
     assert len(step_events) >= 4, (

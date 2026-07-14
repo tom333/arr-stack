@@ -1,5 +1,5 @@
 # tools/arrconf-mcp/Dockerfile
-# Multi-stage build: uv-based dep install → minimal python:3.13-slim runtime.
+# Multi-stage build: uv-based dep install → minimal python:3.14-slim runtime.
 # Mirrors tools/arrconf/Dockerfile.
 #
 # IMPORTANT — build context MUST be the repo root, NOT tools/arrconf-mcp:
@@ -11,7 +11,7 @@
 # (The GHCR workflow sets context: . and file: tools/arrconf-mcp/Dockerfile.)
 
 # ─── Stage 1: builder ──────────────────────────────────────────────────────
-FROM ghcr.io/astral-sh/uv:0.9-python3.13-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.9-python3.14-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # ─── Stage 2: runtime ──────────────────────────────────────────────────────
-FROM python:3.13-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Non-root user.
 RUN groupadd --gid 1000 arrconf \
