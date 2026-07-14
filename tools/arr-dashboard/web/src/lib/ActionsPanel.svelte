@@ -43,7 +43,7 @@
     {#each failed as j (j.key)}
       <div class="job failed">
         <span class="t">✗ {j.title}</span>
-        <span class="msg">{j.message ?? "échec de l'import"}</span>
+        <span class="msg mono">{j.message ?? "échec de l'import"}</span>
         <button class="retry" onclick={() => retry(j.key)}>réessayer</button>
       </div>
     {/each}
@@ -51,14 +51,14 @@
 {/if}
 
 <style>
-  .panel { display: flex; flex-direction: column; gap: .35rem; padding: .5rem 1rem; background: #161a22; font-size: .85rem; }
+  .panel { display: flex; flex-direction: column; gap: .35rem; padding: .6rem 1.25rem; background: var(--surface); border-bottom: 1px solid var(--border-subtle); font-size: .85rem; }
   .job { display: flex; align-items: center; gap: .6rem; }
   .t { min-width: 16rem; }
-  .bar { flex: 1; max-width: 14rem; height: 8px; background: #0f1115; border-radius: 4px; overflow: hidden; }
-  .fill { display: block; height: 100%; background: #4ade80; transition: width 1s linear; }
-  .eta { color: #9ca3af; font-family: "IBM Plex Mono", monospace; min-width: 8rem; }
-  .failed .t { color: #f87171; min-width: auto; }
-  .msg { color: #fbbf24; font-family: "IBM Plex Mono", monospace; font-size: .8rem; flex: 1; }
-  .retry { background: #1f2430; color: #e5e7eb; border: 1px solid #374151; border-radius: 4px; padding: .15rem .5rem; cursor: pointer; font-size: .8rem; }
-  .retry:hover { background: #374151; }
+  .bar { flex: 1; max-width: 14rem; height: 8px; background: var(--bg); border-radius: var(--radius-sm); overflow: hidden; }
+  .fill { display: block; height: 100%; background: var(--accent); transition: width 1s linear; }
+  .eta { color: var(--text-muted); font-family: var(--font-mono); font-variant-numeric: tabular-nums; min-width: 8rem; }
+  .failed .t { color: var(--danger); min-width: auto; }
+  .msg { color: var(--warn); font-size: .8rem; flex: 1; }
+  .retry { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .2rem .55rem; cursor: pointer; font-size: .8rem; }
+  .retry:hover { background: var(--border); }
 </style>

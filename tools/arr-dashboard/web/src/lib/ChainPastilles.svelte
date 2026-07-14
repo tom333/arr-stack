@@ -18,8 +18,8 @@
 </span>
 
 <style>
-  .chain { font-family: "IBM Plex Mono", monospace; letter-spacing: 1px; }
+  .chain { font-family: var(--font-mono); letter-spacing: 1px; }
   .dot { opacity: 0.4; }
-  .dot.on { opacity: 1; color: #4ade80; }
-  .broken .dot:not(.on) { color: #f87171; opacity: 0.9; }
+  .dot.on { opacity: 1; color: var(--accent); }
+  .broken .dot:not(.on) { color: var(--danger); opacity: 0.9; }
 </style>

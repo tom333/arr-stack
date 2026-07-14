@@ -7,7 +7,7 @@
   import ConfirmDialog from "./lib/ConfirmDialog.svelte";
   import ReleasesTab from "./lib/ReleasesTab.svelte";
 
-  let tab = $state<"dashboard" | "releases">("dashboard");
+  let tab = $state<"dashboard" | "releases">("releases");
   let snap = $state<Snapshot | null>(null);
   let error = $state<string | null>(null);
   let problemsOnly = $state(true);
@@ -47,9 +47,22 @@
 </script>
 
 <header>
-  <h1>arr-dashboard</h1>
-  <label><input type="checkbox" bind:checked={problemsOnly} /> Problèmes seulement</label>
-  {#if snap?.stale_sources?.length}<span class="stale">⚠ sources indisponibles: {snap.stale_sources.join(", ")}</span>{/if}
+  <div class="brand">
+    <svg class="logo-mark" viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+      <path d="M2 17 A5 5 0 0 1 7 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M2 11.5 A10.5 10.5 0 0 1 12.5 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.7" />
+      <path d="M2 6 A16 16 0 0 1 18 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.4" />
+      <circle cx="2" cy="22" r="1.6" fill="currentColor" />
+    </svg>
+    <div class="brand-text">
+      <span class="wordmark">Arrkestra</span>
+      <span class="subtitle">media pipeline control</span>
+    </div>
+  </div>
+  <div class="header-controls">
+    <label class="toggle"><input type="checkbox" bind:checked={problemsOnly} /> Problèmes seulement</label>
+    {#if snap?.stale_sources?.length}<span class="stale">⚠ sources indisponibles: {snap.stale_sources.join(", ")}</span>{/if}
+  </div>
 </header>
 
 <nav class="tabs">
@@ -71,7 +84,7 @@
           <td><ChainPastilles chain={row.chain} flags={row.flags} /></td>
           <td>{row.title}{#if row.year} ({row.year}){/if}</td>
           <td>{row.requested_by ?? "—"}</td>
-          <td>{#if row.downloads.length}{row.downloads.length > 1 ? `${row.downloads.length} torrents` : `${Math.round(row.downloads[0].progress * 100)}% ${row.downloads[0].tracker ?? ""}`}{:else}—{/if}</td>
+          <td class="mono">{#if row.downloads.length}{row.downloads.length > 1 ? `${row.downloads.length} torrents` : `${Math.round(row.downloads[0].progress * 100)}% ${row.downloads[0].tracker ?? ""}`}{:else}—{/if}</td>
           <td>{row.disk_paths.length ? (row.disk_paths[0].startsWith("/media") ? "/media" : "/data") : "✗"}</td>
           <td>{row.in_jellyfin ? "✓" : "✗"}</td>
           <td class="flags">
@@ -104,21 +117,40 @@
 {/if}
 
 <style>
-  :global(body) { background: #0f1115; color: #e5e7eb; font-family: "IBM Plex Sans", sans-serif; }
-  header { display: flex; gap: 1.5rem; align-items: center; padding: 1rem; }
-  nav.tabs { display: flex; gap: .5rem; padding: 0 1rem 0.5rem; }
-  nav.tabs button { background: #1f2430; color: #9ca3af; border: 0; padding: .3rem .8rem; border-radius: 4px; cursor: pointer; }
-  nav.tabs button.active { background: #374151; color: #e5e7eb; }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 1.5rem; padding: 0.9rem 1.25rem;
+    background: var(--surface); border-bottom: 1px solid var(--border-subtle);
+  }
+  .brand { display: flex; align-items: center; gap: 0.65rem; }
+  .logo-mark { color: var(--accent); flex-shrink: 0; }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .wordmark { font-weight: 600; font-size: 1.15rem; letter-spacing: 0.02em; }
+  .subtitle { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .header-controls { display: flex; align-items: center; gap: 1rem; }
+  .toggle { display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; }
+
+  nav.tabs { display: flex; gap: 1.25rem; padding: 0 1.25rem; border-bottom: 1px solid var(--border-subtle); background: var(--surface); }
+  nav.tabs button {
+    background: transparent; color: var(--text-muted); border: 0; border-bottom: 2px solid transparent;
+    padding: 0.6rem 0.1rem; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+    transition: color var(--dur) ease, border-color var(--dur) ease;
+  }
+  nav.tabs button:hover { color: var(--text); }
+  nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 0.4rem 0.7rem; border-bottom: 1px solid #1f2430; }
+  th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border-subtle); }
+  th { color: var(--text-muted); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 500; }
   tbody tr { cursor: pointer; }
-  tbody tr:hover { background: #161a22; }
-  .flags { color: #fbbf24; }
-  .stale { color: #f87171; }
-  .err { color: #f87171; padding: 0 1rem; }
-  .act { background: #374151; color: #e5e7eb; border: 0; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; margin-left: .3rem; font-size: .75rem; }
-  .act.warn { background: #b91c1c; color: #fff; }
-  .diag { display: inline-block; margin-left: .4rem; padding: .05rem .4rem; border-radius: 3px;
-    font-size: .72rem; background: #78350f; color: #fde68a; }
-  .diag.dead { background: #7f1d1d; color: #fecaca; }
+  tbody tr:hover { background: var(--surface-2); }
+  .flags { color: var(--warn); }
+  .stale { color: var(--danger); font-size: 0.85rem; }
+  .err { color: var(--danger); padding: 0 1.25rem; }
+  .act { background: var(--surface-2); color: var(--text); border: 0; padding: .3rem .6rem; border-radius: var(--radius-sm); cursor: pointer; margin-left: .3rem; font-size: .75rem; }
+  .act:hover { background: var(--border); }
+  .act.warn { background: var(--danger); color: var(--text); }
+  .diag { display: inline-block; margin-left: .4rem; padding: .05rem .45rem; border-radius: var(--radius-sm);
+    font-size: .72rem; background: var(--warn); color: var(--bg); }
+  .diag.dead { background: var(--danger); color: var(--text); }
 </style>

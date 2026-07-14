@@ -61,10 +61,11 @@
 {/if}
 
 <style>
-  .detail { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; padding: 0.5rem 1rem; color: #9ca3af; }
+  .detail { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.8rem; padding: 0.6rem 1.25rem; color: var(--text-muted); }
   ul { margin: 0.2rem 0; }
-  .del { background: #b91c1c; color: #fff; border: 0; padding: .1rem .4rem; border-radius: 3px; cursor: pointer; margin-left: .4rem; font-size: .7rem; }
-  .stats { color: #6b7280; font-size: .72rem; margin: .1rem 0 .3rem .4rem; }
-  .act2 { background: #374151; color: #e5e7eb; border: 0; padding: .1rem .4rem; border-radius: 3px; cursor: pointer; margin-left: .3rem; font-size: .7rem; }
-  .hint { color: #fbbf24; font-size: .68rem; margin-left: .4rem; }
+  .del { background: var(--danger); color: var(--text); border: 0; padding: .15rem .45rem; border-radius: var(--radius-sm); cursor: pointer; margin-left: .4rem; font-size: .7rem; }
+  .stats { color: var(--text-muted); opacity: 0.8; font-size: .72rem; margin: .1rem 0 .3rem .4rem; }
+  .act2 { background: var(--surface-2); color: var(--text); border: 0; padding: .15rem .45rem; border-radius: var(--radius-sm); cursor: pointer; margin-left: .3rem; font-size: .7rem; }
+  .act2:hover { background: var(--border); }
+  .hint { color: var(--warn); font-size: .68rem; margin-left: .4rem; }
 </style>
