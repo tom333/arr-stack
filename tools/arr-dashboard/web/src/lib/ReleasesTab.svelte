@@ -125,7 +125,7 @@
         {#each genres as g}<option value={g}>{g}</option>{/each}
       </select>
     </label>
-    <button onclick={forceRefresh}>Rafraîchir</button>
+    <button class="btn btn-secondary" onclick={forceRefresh}>Rafraîchir</button>
   </div>
 
   {#if error}<p class="error">{error}</p>{/if}
@@ -141,23 +141,23 @@
               {#if sr.release.poster_url}<img src={sr.release.poster_url} alt="" class="poster" loading="lazy" />{/if}
             </td>
             <td>{sr.release.title}</td>
-            <td>{sr.release.year ?? "—"}</td>
+            <td class="mono">{sr.release.year ?? "—"}</td>
             <td>
               {#if sr.release.genres.includes("Animation")}
-                <span class="anim">🧸 {sr.release.genres.join(", ") || "—"}</span>
+                <span class="chip chip-info">Animation</span> {sr.release.genres.join(", ") || "—"}
               {:else}
                 {sr.release.genres.join(", ") || "—"}
               {/if}
             </td>
             <td>{sr.release.resolution ?? "?"} {sr.release.source ?? ""} {sr.release.codec ?? ""}</td>
-            <td title={sr.reasons.join(", ")}>{sr.score}</td>
-            <td class:dead={sr.release.seeders === 0}>{sr.release.seeders ?? "?"}/{sr.release.leechers ?? "?"}</td>
-            <td>{ageLabel(sr.release.publish_date)} · {gb(sr.release.size)}</td>
+            <td class="mono" title={sr.reasons.join(", ")}>{sr.score}</td>
+            <td class="mono" class:dead={sr.release.seeders === 0}>{sr.release.seeders ?? "?"}/{sr.release.leechers ?? "?"}</td>
+            <td class="mono">{ageLabel(sr.release.publish_date)} · {gb(sr.release.size)}</td>
             <td>{sr.release.indexer_name}</td>
             <td>{sr.release.language ?? "—"}</td>
             <td>
               {#if sr.release.in_library}<span class="badge">en biblio</span>
-              {:else}<button onclick={() => openGrab(sr.release)} disabled={sr.release.tmdb_id == null}>Récupérer</button>{/if}
+              {:else}<button class="btn btn-primary" onclick={() => openGrab(sr.release)} disabled={sr.release.tmdb_id == null}>Récupérer</button>{/if}
             </td>
           </tr>
         {/each}
@@ -179,8 +179,8 @@
       </label>
       {#if categories.length === 0}<p class="error">Catégories indisponibles (intent non monté)</p>{/if}
       <div class="modal-actions">
-        <button onclick={() => (grabbing = null)} disabled={grabBusy}>Annuler</button>
-        <button class="primary" onclick={confirmGrab} disabled={grabBusy || !grabCategory}>
+        <button class="btn btn-secondary" onclick={() => (grabbing = null)} disabled={grabBusy}>Annuler</button>
+        <button class="btn btn-primary" onclick={confirmGrab} disabled={grabBusy || !grabCategory}>
           {grabBusy ? "…" : "Récupérer"}
         </button>
       </div>
@@ -189,23 +189,32 @@
 {/if}
 
 <style>
-  .controls { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; padding: 0 1rem; }
+  .controls { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; padding: 1rem 1.25rem; }
+  .controls label { display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted); font-size: 0.85rem; }
+  .controls select {
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.3rem 0.5rem; font-family: var(--font-sans);
+  }
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 0.4rem 0.7rem; border-bottom: 1px solid #1f2430; }
+  th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+  th { color: var(--text-muted); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 500; }
+  tbody tr:hover { background: var(--surface-2); }
   tr.in-library { opacity: 0.55; }
   tr.rejected { opacity: 0.4; }
-  .badge { font-size: 0.8em; padding: 0.1rem 0.4rem; border: 1px solid #4ade80; border-radius: 4px; color: #4ade80; }
-  .error { color: #f87171; padding: 0 1rem; }
-  .poster { width: 105px; height: 158px; object-fit: cover; border-radius: 4px; display: block; }
-  .anim { color: #a78bfa; }
-  td.dead { color: #f87171; }
-  button { background: #374151; color: #e5e7eb; border: 0; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; font-size: .8rem; }
+  .badge { font-size: 0.8em; padding: 0.15rem 0.5rem; border: 1px solid var(--accent); border-radius: var(--radius-sm); color: var(--accent); }
+  .chip { display: inline-block; font-size: 0.7em; padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); font-weight: 600; margin-right: 0.3rem; }
+  .chip-info { background: var(--info); color: var(--bg); }
+  .error { color: var(--danger); padding: 0 1.25rem; }
+  .poster { width: 105px; height: 158px; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--border-subtle); display: block; }
+  td.dead { color: var(--danger); }
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
-  .modal { background: #161a22; border: 1px solid #2a3240; border-radius: 8px; padding: 1.2rem 1.5rem; min-width: 320px; max-width: 90vw; }
+  .modal { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.5rem; min-width: 320px; max-width: 90vw; }
   .modal h3 { margin: 0 0 .3rem; }
-  .modal-title { color: #9ca3af; margin: 0 0 1rem; }
+  .modal-title { color: var(--text-muted); margin: 0 0 1rem; }
   .modal label { display: block; margin-bottom: 1rem; }
-  .modal select { display: block; margin-top: .3rem; width: 100%; padding: .3rem; background: #0f1115; color: #e5e7eb; border: 1px solid #2a3240; border-radius: 4px; }
+  .modal select {
+    display: block; margin-top: .3rem; width: 100%; padding: .4rem; background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-sans);
+  }
   .modal-actions { display: flex; gap: .5rem; justify-content: flex-end; }
-  .modal-actions .primary { background: #4ade80; color: #0f1115; font-weight: 600; }
 </style>

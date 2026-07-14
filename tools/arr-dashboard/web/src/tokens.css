@@ -1,0 +1,67 @@
+/* Arrkestra design tokens — dark OLED palette + Fira type.
+   Single source of truth for color/spacing/type across the dashboard. */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #020617;            /* app background (near-black OLED) */
+  --surface: #0f172a;       /* cards, header, table */
+  --surface-2: #1e293b;     /* raised: modal, hover */
+  --muted: #1a1e2f;         /* subtle fills */
+  --border: #334155;        /* borders */
+  --border-subtle: #1f2937; /* faint dividers */
+  --text: #f8fafc;          /* primary text */
+  --text-muted: #94a3b8;    /* secondary text */
+  --accent: #22c55e;        /* brand / positive / available (emerald) */
+  --accent-weak: #16a34a;
+  --info: #38bdf8;          /* links / active nav (sky) */
+  --danger: #ef4444;
+  --warn: #f59e0b;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, 'SF Mono', monospace;
+  --dur: 180ms;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+a { color: var(--info); }
+a:hover { color: var(--text); }
+
+button {
+  font-family: var(--font-sans);
+  transition: background-color var(--dur) ease, color var(--dur) ease, border-color var(--dur) ease, opacity var(--dur) ease;
+}
+
+.btn {
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.btn-primary { background: var(--accent); color: var(--bg); }
+.btn-primary:hover { background: var(--accent-weak); }
+.btn-secondary { background: var(--surface-2); color: var(--text); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--danger); color: var(--text); }
+.btn-danger:hover { opacity: 0.85; }
+
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
