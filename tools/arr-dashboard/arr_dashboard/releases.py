@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -13,6 +14,8 @@ from arr_dashboard.models import Release
 from arr_dashboard.settings import Settings
 
 log = logging.getLogger("arr_dashboard.releases")
+
+_ENRICH_WORKERS = 12  # concurrent Radarr lookups; cold fetch was ~180 sequential calls
 
 _YEAR = re.compile(r"\b(19[3-9]\d|20[0-4]\d)\b")
 _RES = re.compile(r"\b(2160p|1080p|720p|480p)\b", re.IGNORECASE)
@@ -75,6 +78,36 @@ def _poster_from(hit: dict[str, Any]) -> str | None:
     return None
 
 
+def _term(rel: dict[str, Any], parsed: dict[str, Any]) -> str | None:
+    """The Radarr movie/lookup term for a release: tmdb:<id> when Prowlarr already
+    gives a tmdbId, else a 'Title Year' term stripped of scene noise. None when
+    neither a tmdbId nor a parsed year is available (can't look it up)."""
+    pro_tmdb = int(rel.get("tmdbId") or 0)
+    if pro_tmdb:
+        return f"tmdb:{pro_tmdb}"
+    if parsed["year"]:
+        return _lookup_term(rel.get("title", ""), parsed["year"])
+    return None
+
+
+def _lookup(term: str, radarr: Any) -> _Enrichment:
+    """Resolve one lookup term via Radarr movie/lookup. Never raises -- a failed or
+    empty lookup degrades to the tmdbId encoded in the term (0 for title/year terms)."""
+    pro_tmdb = int(term.split(":", 1)[1]) if term.startswith("tmdb:") else 0
+    try:
+        hits = radarr.get(f"/movie/lookup?term={term}")
+    except Exception as exc:
+        log.debug("lookup failed for term %s: %s", term, exc)
+        hits = []
+    if not hits:
+        return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
+    hit = hits[0]
+    tmdb = int(hit.get("tmdbId") or pro_tmdb or 0)
+    return _Enrichment(
+        tmdb_id=tmdb, genres=list(hit.get("genres") or []), poster_url=_poster_from(hit)
+    )
+
+
 def _enrich(
     rel: dict[str, Any],
     parsed: dict[str, Any],
@@ -90,31 +123,31 @@ def _enrich(
     pro_tmdb = int(rel.get("tmdbId") or 0)
     if radarr is None:
         return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
-    term = (
-        f"tmdb:{pro_tmdb}"
-        if pro_tmdb
-        else (_lookup_term(rel.get("title", ""), parsed["year"]) if parsed["year"] else None)
-    )
+    term = _term(rel, parsed)
     if term is None:
         return _Enrichment(tmdb_id=0, genres=[], poster_url=None)
     if cache is not None and term in cache:
         return cache[term]
-    try:
-        hits = radarr.get(f"/movie/lookup?term={term}")
-    except Exception as exc:
-        log.debug("lookup failed for %s: %s", rel.get("title"), exc)
-        hits = []
-    if not hits:
-        result = _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
-    else:
-        hit = hits[0]
-        tmdb = int(hit.get("tmdbId") or pro_tmdb or 0)
-        result = _Enrichment(
-            tmdb_id=tmdb, genres=list(hit.get("genres") or []), poster_url=_poster_from(hit)
-        )
+    result = _lookup(term, radarr)
     if cache is not None:
         cache[term] = result
     return result
+
+
+def _enrich_all(
+    items: list[tuple[dict[str, Any], dict[str, Any]]], radarr: Any
+) -> dict[str, _Enrichment]:
+    """Look up every distinct term across ``items`` concurrently. Returns a
+    term -> _Enrichment map; callers pass this as ``_enrich``'s ``cache`` so
+    assembly stays a plain sequential dict lookup."""
+    if radarr is None:
+        return {}
+    terms = {t for rel, parsed in items if (t := _term(rel, parsed)) is not None}
+    if not terms:
+        return {}
+    with ThreadPoolExecutor(max_workers=_ENRICH_WORKERS) as ex:
+        futures = {term: ex.submit(_lookup, term, radarr) for term in terms}
+        return {term: fut.result() for term, fut in futures.items()}
 
 
 def fetch_releases(settings: Settings) -> list[Release]:
@@ -144,8 +177,10 @@ def fetch_releases(settings: Settings) -> list[Release]:
             log.warning("radarr movie list failed: %s", exc)
 
     cutoff = datetime.now(UTC) - timedelta(hours=settings.releases_window_hours)
-    lookup_cache: dict[str, _Enrichment] = {}  # memoize per film → fewer lookups
-    by_hash: dict[str, Release] = {}
+    # Collect phase: sequential per-indexer search, window filter, dedup-by-hash,
+    # cap-per-indexer, parse. No arr lookups here -- those are batched below.
+    seen_hashes: set[str] = set()
+    collected: list[tuple[dict[str, Any], dict[str, Any], str, int, str]] = []
     for ix in indexers:
         if not ix.get("enable"):
             continue
@@ -160,13 +195,23 @@ def fetch_releases(settings: Settings) -> list[Release]:
             if kept >= settings.releases_cap_per_indexer:
                 break
             ih = rel.get("infoHash")
-            if not ih or ih in by_hash:
+            if not ih or ih in seen_hashes:
                 continue
             if not _within_window(rel.get("publishDate", ""), cutoff):
                 continue
             parsed = parse_release_title(rel.get("title", ""))
-            enr = _enrich(rel, parsed, radarr, lookup_cache)
-            by_hash[ih] = Release(
+            seen_hashes.add(ih)
+            collected.append((rel, parsed, ih, iid, iname))
+            kept += 1
+
+    # Parallel enrich phase: one Radarr lookup per DISTINCT term, not per release.
+    lookup_cache = _enrich_all([(rel, parsed) for rel, parsed, *_ in collected], radarr)
+
+    releases: list[Release] = []
+    for rel, parsed, ih, iid, iname in collected:
+        enr = _enrich(rel, parsed, radarr, lookup_cache)
+        releases.append(
+            Release(
                 title=rel.get("title", ""),
                 info_hash=ih,
                 guid=rel.get("guid", ""),
@@ -186,5 +231,5 @@ def fetch_releases(settings: Settings) -> list[Release]:
                 language=parsed["language"],
                 in_library=(enr.tmdb_id in radarr_tmdb) if enr.tmdb_id else False,
             )
-            kept += 1
-    return list(by_hash.values())
+        )
+    return releases

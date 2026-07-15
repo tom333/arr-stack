@@ -136,3 +136,105 @@ def test_fetch_skips_failing_indexer():
     )
     releases = fetch_releases(_settings())
     assert len(releases) == 1  # indexer 5 failed, skipped; indexer 7 fine
+
+
+@respx.mock
+def test_fetch_enriches_three_distinct_films_via_parallel_lookup():
+    """3 releases, 3 distinct lookup terms -> each Release gets its own tmdb/genres,
+    proving the parallel term->Enrichment map assembles back onto the right release."""
+    respx.get("http://prowlarr/api/v1/indexer").mock(
+        return_value=httpx.Response(200, json=[{"id": 7, "name": "Torr9", "enable": True}])
+    )
+    films = [
+        {
+            "title": "Alpha.2020.1080p.WEB",
+            "infoHash": "H1",
+            "guid": "g1",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tmdbId": 0,
+        },
+        {
+            "title": "Beta.2021.1080p.WEB",
+            "infoHash": "H2",
+            "guid": "g2",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tmdbId": 0,
+        },
+        {
+            "title": "Gamma.2022.1080p.WEB",
+            "infoHash": "H3",
+            "guid": "g3",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tmdbId": 0,
+        },
+    ]
+    respx.get(url__regex=r"http://prowlarr/api/v1/search.*").mock(
+        return_value=httpx.Response(200, json=films)
+    )
+    respx.get("http://radarr/api/v3/movie").mock(return_value=httpx.Response(200, json=[]))
+
+    def lookup_side(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if "Alpha" in url:
+            return httpx.Response(200, json=[{"tmdbId": 111, "genres": ["Action"], "images": []}])
+        if "Beta" in url:
+            return httpx.Response(200, json=[{"tmdbId": 222, "genres": ["Drama"], "images": []}])
+        return httpx.Response(200, json=[{"tmdbId": 333, "genres": ["Comedy"], "images": []}])
+
+    respx.get(url__regex=r"http://radarr/api/v3/movie/lookup.*").mock(side_effect=lookup_side)
+
+    releases = fetch_releases(_settings())
+    assert len(releases) == 3
+    by_hash = {r.info_hash: r for r in releases}
+    assert by_hash["H1"].tmdb_id == 111
+    assert by_hash["H1"].genres == ["Action"]
+    assert by_hash["H2"].tmdb_id == 222
+    assert by_hash["H2"].genres == ["Drama"]
+    assert by_hash["H3"].tmdb_id == 333
+    assert by_hash["H3"].genres == ["Comedy"]
+
+
+@respx.mock
+def test_fetch_dedups_lookup_call_for_shared_term():
+    """2 releases of the same film (different infoHash, VFF vs VOSTFR variants) share
+    the same 'Title Year' lookup term -> exactly ONE Radarr lookup call, not two."""
+    respx.get("http://prowlarr/api/v1/indexer").mock(
+        return_value=httpx.Response(200, json=[{"id": 7, "name": "Torr9", "enable": True}])
+    )
+    releases_raw = [
+        {
+            "title": "Same.Film.2022.FRENCH.1080p.WEB",
+            "infoHash": "H1",
+            "guid": "g1",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tmdbId": 0,
+        },
+        {
+            "title": "Same.Film.2022.VOSTFR.720p.WEB",
+            "infoHash": "H2",
+            "guid": "g2",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tmdbId": 0,
+        },
+    ]
+    respx.get(url__regex=r"http://prowlarr/api/v1/search.*").mock(
+        return_value=httpx.Response(200, json=releases_raw)
+    )
+    respx.get("http://radarr/api/v3/movie").mock(return_value=httpx.Response(200, json=[]))
+    lookup_route = respx.get(url__regex=r"http://radarr/api/v3/movie/lookup.*").mock(
+        return_value=httpx.Response(200, json=[{"tmdbId": 999, "genres": [], "images": []}])
+    )
+
+    releases = fetch_releases(_settings())
+    assert len(releases) == 2
+    assert lookup_route.call_count == 1
