@@ -4,6 +4,7 @@
     getReleases, refreshReleases, grabRelease, getCategories,
     type ScoredRelease, type Release, type MovieCategory,
   } from "../api";
+  import { markSeen, seenSnapshot } from "./seen";
 
   let items = $state<ScoredRelease[]>([]);
   let loading = $state(true);
@@ -11,6 +12,8 @@
   let profile = $state("MULTi.VF");
   let hideInLibrary = $state(true);
   let acceptedOnly = $state(true);
+  let hideSeen = $state(true);
+  let seenSet = $state<Set<string>>(seenSnapshot());
   let tracker = $state("");
   let genre = $state("");
 
@@ -45,6 +48,7 @@
     } finally {
       loading = false;
     }
+    seenSet = seenSnapshot();
   }
 
   async function forceRefresh() {
@@ -94,6 +98,7 @@
     items.filter((sr) => {
       if (hideInLibrary && sr.release.in_library) return false;
       if (acceptedOnly && !sr.accepted) return false;
+      if (hideSeen && seenSet.has(sr.release.info_hash)) return false;
       if (tracker && sr.release.indexer_name !== tracker) return false;
       if (genre && !sr.release.genres.includes(genre)) return false;
       return true;
@@ -116,6 +121,7 @@
     </label>
     <label><input type="checkbox" bind:checked={hideInLibrary} /> Masquer déjà en biblio</label>
     <label><input type="checkbox" bind:checked={acceptedOnly} /> Accepté par le profil</label>
+    <label><input type="checkbox" bind:checked={hideSeen} onchange={() => (seenSet = seenSnapshot())} /> Masquer les vus</label>
     <label>Tracker
       <select bind:value={tracker}>
         <option value="">Tous les trackers</option>
@@ -139,7 +145,12 @@
       <thead><tr><th>Poster</th><th>Titre</th><th>Année</th><th>Genre</th><th>Qualité</th><th>Score</th><th>Seed/Leech</th><th>Âge · Taille</th><th>Tracker</th><th>Langue</th><th></th></tr></thead>
       <tbody>
         {#each visible as sr (sr.release.info_hash)}
-          <tr class:in-library={sr.release.in_library} class:rejected={!sr.accepted}>
+          <tr
+            class:in-library={sr.release.in_library}
+            class:rejected={!sr.accepted}
+            class:seen={seenSet.has(sr.release.info_hash)}
+            onmouseenter={() => markSeen(sr.release.info_hash)}
+          >
             <td>
               {#if sr.release.poster_url}<img src={sr.release.poster_url} alt="" class="poster" loading="lazy" />{/if}
             </td>
@@ -205,6 +216,7 @@
   tbody tr:hover { background: var(--surface-2); }
   tr.in-library { opacity: 0.55; }
   tr.rejected { opacity: 0.4; }
+  tr.seen { opacity: 0.6; }
   .badge { font-size: 0.8em; padding: 0.15rem 0.5rem; border: 1px solid var(--accent); border-radius: var(--radius-sm); color: var(--accent); }
   .chip { display: inline-block; font-size: 0.7em; padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); font-weight: 600; margin-right: 0.3rem; }
   .chip-info { background: var(--info); color: var(--bg); }
