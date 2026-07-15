@@ -100,6 +100,8 @@ class Release(BaseModel):
     codec: str | None
     language: str | None
     in_library: bool
+    # Series only: e.g. "S02E11", "S02", "COMPLETE". None for movies.
+    episode_label: str | None = None
 
 
 class ScoredRelease(BaseModel):

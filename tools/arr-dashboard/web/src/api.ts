@@ -101,6 +101,7 @@ export interface Release {
   leechers: number | null;
   genres: string[];
   poster_url: string | null;
+  episode_label: string | null;
 }
 
 export interface ScoredRelease {
@@ -150,5 +151,48 @@ export async function grabRelease(body: {
   if (!res.ok) {
     const detail = await res.json().catch(() => ({}));
     throw new Error(detail.detail || `grabRelease ${res.status}`);
+  }
+}
+
+export interface SeriesCategory {
+  name: string;
+  display: string;
+  root_path: string;
+  profile: string;
+  series_type: string;
+}
+
+export async function getSeriesReleases(profile: string): Promise<ScoredRelease[]> {
+  const res = await fetch(`/api/series-releases?profile=${encodeURIComponent(profile)}`);
+  if (!res.ok) throw new Error(`getSeriesReleases ${res.status}`);
+  return res.json();
+}
+
+export async function refreshSeriesReleases(): Promise<void> {
+  const res = await fetch("/api/series-releases/refresh", { method: "POST" });
+  if (!res.ok) throw new Error(`refreshSeriesReleases ${res.status}`);
+}
+
+export async function getSeriesCategories(): Promise<SeriesCategory[]> {
+  const res = await fetch("/api/series-categories");
+  if (!res.ok) throw new Error(`getSeriesCategories ${res.status}`);
+  return res.json();
+}
+
+export async function addSeries(body: {
+  tvdb_id: number;
+  title: string;
+  year: number | null;
+  category: string;
+  monitor: string;
+}): Promise<void> {
+  const res = await fetch("/api/series-releases/grab", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...body, confirm: true }),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.detail || `addSeries ${res.status}`);
   }
 }
