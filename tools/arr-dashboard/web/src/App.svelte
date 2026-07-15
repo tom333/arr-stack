@@ -6,8 +6,9 @@
   import ActionsPanel from "./lib/ActionsPanel.svelte";
   import ConfirmDialog from "./lib/ConfirmDialog.svelte";
   import ReleasesTab from "./lib/ReleasesTab.svelte";
+  import SeriesTab from "./lib/SeriesTab.svelte";
 
-  let tab = $state<"dashboard" | "releases">("releases");
+  let tab = $state<"dashboard" | "releases" | "series">("releases");
   let snap = $state<Snapshot | null>(null);
   let error = $state<string | null>(null);
   let problemsOnly = $state(true);
@@ -68,6 +69,7 @@
 <nav class="tabs">
   <button class:active={tab === "dashboard"} onclick={() => (tab = "dashboard")}>Suivi</button>
   <button class:active={tab === "releases"} onclick={() => (tab = "releases")}>Sorties</button>
+  <button class:active={tab === "series"} onclick={() => (tab = "series")}>Séries</button>
 </nav>
 
 {#if tab === "dashboard"}
@@ -112,6 +114,8 @@
       warn="⚠ supprime le(s) torrent(s) bloqué(s) ET leurs fichiers"
       onConfirm={doRemove} onCancel={() => (removing = null)} />
   {/if}
+{:else if tab === "series"}
+  <SeriesTab />
 {:else}
   <ReleasesTab />
 {/if}
