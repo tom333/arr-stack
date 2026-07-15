@@ -75,6 +75,13 @@ def build_radarr(settings: Settings) -> RadarrClient | None:
     return None
 
 
+def build_sonarr(settings: Settings) -> SonarrClient | None:
+    """Build a Sonarr client, or None when the API key is absent."""
+    if settings.sonarr_api_key:
+        return SonarrClient(settings.sonarr_url, settings.sonarr_api_key)
+    return None
+
+
 def _worst_tracker(trackers: list[dict[str, Any]]) -> dict[str, Any] | None:
     """Pick the most informative real tracker entry. A not-working entry (status 4)
     with a message wins (e.g. C411 'Forbidden'); else the first real entry. Pseudo-rows
