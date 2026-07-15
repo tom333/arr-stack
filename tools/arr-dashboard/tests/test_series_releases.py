@@ -176,3 +176,111 @@ def test_fetch_flags_in_library_via_sonarr_series():
     )
     releases = fetch_series_releases(_settings())
     assert releases[0].in_library is True
+
+
+@respx.mock
+def test_fetch_enriches_three_distinct_series_via_parallel_lookup():
+    """3 releases, 3 distinct lookup terms -> each Release gets its own tvdb/genres/year,
+    proving the parallel term->Enrichment map assembles back onto the right release."""
+    respx.get("http://prowlarr/api/v1/indexer").mock(
+        return_value=httpx.Response(200, json=[{"id": 7, "name": "Torr9", "enable": True}])
+    )
+    eps = [
+        {
+            "title": "Alpha.Show.S01E01.1080p.WEB",
+            "infoHash": "H1",
+            "guid": "g1",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tvdbId": 0,
+        },
+        {
+            "title": "Beta.Show.S01E01.1080p.WEB",
+            "infoHash": "H2",
+            "guid": "g2",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tvdbId": 0,
+        },
+        {
+            "title": "Gamma.Show.S01E01.1080p.WEB",
+            "infoHash": "H3",
+            "guid": "g3",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tvdbId": 0,
+        },
+    ]
+    respx.get(url__regex=r"http://prowlarr/api/v1/search.*").mock(
+        return_value=httpx.Response(200, json=eps)
+    )
+    respx.get("http://sonarr/api/v3/series").mock(return_value=httpx.Response(200, json=[]))
+
+    def lookup_side(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if "Alpha" in url:
+            return httpx.Response(
+                200, json=[{"tvdbId": 111, "year": 2020, "genres": ["Action"], "images": []}]
+            )
+        if "Beta" in url:
+            return httpx.Response(
+                200, json=[{"tvdbId": 222, "year": 2021, "genres": ["Drama"], "images": []}]
+            )
+        return httpx.Response(
+            200, json=[{"tvdbId": 333, "year": 2022, "genres": ["Comedy"], "images": []}]
+        )
+
+    respx.get(url__regex=r"http://sonarr/api/v3/series/lookup.*").mock(side_effect=lookup_side)
+
+    releases = fetch_series_releases(_settings())
+    assert len(releases) == 3
+    by_hash = {r.info_hash: r for r in releases}
+    assert by_hash["H1"].tmdb_id == 111 and by_hash["H1"].genres == ["Action"]
+    assert by_hash["H1"].year == 2020
+    assert by_hash["H2"].tmdb_id == 222 and by_hash["H2"].year == 2021
+    assert by_hash["H3"].tmdb_id == 333 and by_hash["H3"].year == 2022
+
+
+@respx.mock
+def test_fetch_dedups_lookup_call_for_shared_series_term():
+    """2 episodes of the same show (different infoHash) share the same series-name
+    lookup term -> exactly ONE Sonarr lookup call, not two."""
+    respx.get("http://prowlarr/api/v1/indexer").mock(
+        return_value=httpx.Response(200, json=[{"id": 7, "name": "Torr9", "enable": True}])
+    )
+    eps = [
+        {
+            "title": "Same.Show.S01E01.1080p.WEB",
+            "infoHash": "H1",
+            "guid": "g1",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tvdbId": 0,
+        },
+        {
+            "title": "Same.Show.S01E02.1080p.WEB",
+            "infoHash": "H2",
+            "guid": "g2",
+            "indexerId": 7,
+            "size": 1,
+            "publishDate": "2026-07-14T00:00:00Z",
+            "tvdbId": 0,
+        },
+    ]
+    respx.get(url__regex=r"http://prowlarr/api/v1/search.*").mock(
+        return_value=httpx.Response(200, json=eps)
+    )
+    respx.get("http://sonarr/api/v3/series").mock(return_value=httpx.Response(200, json=[]))
+    lookup_route = respx.get(url__regex=r"http://sonarr/api/v3/series/lookup.*").mock(
+        return_value=httpx.Response(
+            200, json=[{"tvdbId": 999, "year": 2020, "genres": [], "images": []}]
+        )
+    )
+
+    releases = fetch_series_releases(_settings())
+    assert len(releases) == 2
+    assert lookup_route.call_count == 1
