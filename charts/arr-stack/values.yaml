@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.48.4"  # manual tag — parallel enrichment perf
+            tag: "0.48.5"  # manual tag — parallel enrichment perf (v0.48.4 taken by auto-tagger)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
