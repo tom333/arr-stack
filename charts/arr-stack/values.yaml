@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.50.0"  # manual tag first (beats auto-tagger); hide-seen filter
+            tag: "0.51.0"  # manual tag first; sort by film release year
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
