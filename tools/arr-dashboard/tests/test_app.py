@@ -391,12 +391,13 @@ def test_releases_sorted_newest_first():
             200,
             json=[
                 {
+                    # older FILM but uploaded MORE recently → must rank below the newer film
                     "title": "Old.2020.VFF.1080p.BluRay.x265",
                     "infoHash": "OLD",
                     "guid": "g1",
                     "indexerId": 7,
                     "size": 1,
-                    "publishDate": "2026-07-10T00:00:00Z",
+                    "publishDate": "2026-07-20T00:00:00Z",
                     "tmdbId": 0,
                 },
                 {
@@ -418,7 +419,7 @@ def test_releases_sorted_newest_first():
     app = create_app(settings=_rel_settings(), start_refresher=False)
     with TestClient(app) as client:
         body = client.get("/api/releases?profile=MULTi.VF").json()
-        # newest publishDate first regardless of score/accepted
+        # newest film RELEASE YEAR first (2024 > 2020), even though OLD was uploaded later
         assert [b["release"]["info_hash"] for b in body] == ["NEW", "OLD"]
 
 

@@ -234,7 +234,8 @@ def create_app(
             )
         # newest first (publish_date is ISO8601 → lexicographic == chronological;
         # undated sorts last)
-        scored.sort(key=lambda sr: sr.release.publish_date or "", reverse=True)
+        # newest film/series first: by content release year, then upload date as tiebreak
+        scored.sort(key=lambda sr: (sr.release.year or 0, sr.release.publish_date or ""), reverse=True)
         return [sr.model_dump(mode="json") for sr in scored]
 
     @app.post("/api/releases/refresh")
@@ -311,7 +312,8 @@ def create_app(
             )
         # newest first (publish_date is ISO8601 → lexicographic == chronological;
         # undated sorts last)
-        scored.sort(key=lambda sr: sr.release.publish_date or "", reverse=True)
+        # newest film/series first: by content release year, then upload date as tiebreak
+        scored.sort(key=lambda sr: (sr.release.year or 0, sr.release.publish_date or ""), reverse=True)
         return [sr.model_dump(mode="json") for sr in scored]
 
     @app.post("/api/series-releases/refresh")
