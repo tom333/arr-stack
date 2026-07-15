@@ -74,10 +74,19 @@ class _SeriesEnrichment:
     poster_url: str | None
 
 
-def _enrich(rel: dict[str, Any], parsed: dict[str, Any], sonarr: Any) -> _SeriesEnrichment:
+def _enrich(
+    rel: dict[str, Any],
+    parsed: dict[str, Any],
+    sonarr: Any,
+    cache: dict[str, _SeriesEnrichment] | None = None,
+) -> _SeriesEnrichment:
     """Resolve tvdb + year + genres + poster via Sonarr series/lookup. FR trackers
     report tvdbId=0 -> lookup by series name term. When Prowlarr already gives a
-    tvdbId, look up by tvdb:<id> to still get year/genres/poster."""
+    tvdbId, look up by tvdb:<id> to still get year/genres/poster.
+
+    Many episodes of the same show share the same lookup term; ``cache`` memoizes
+    the result per term so the cold fetch does one Sonarr lookup per series, not per
+    release (drops cold-fetch latency from minutes to seconds)."""
     pro_tvdb = int(rel.get("tvdbId") or 0)
     if sonarr is None:
         return _SeriesEnrichment(tvdb_id=pro_tvdb, year=None, genres=[], poster_url=None)
@@ -85,19 +94,27 @@ def _enrich(rel: dict[str, Any], parsed: dict[str, Any], sonarr: Any) -> _Series
     term = f"tvdb:{pro_tvdb}" if pro_tvdb else (quote(name) if name else None)
     if term is None:
         return _SeriesEnrichment(tvdb_id=0, year=None, genres=[], poster_url=None)
+    if cache is not None and term in cache:
+        return cache[term]
     try:
         hits = sonarr.get(f"/series/lookup?term={term}")
     except Exception as exc:
         log.debug("lookup failed for %s: %s", rel.get("title"), exc)
-        return _SeriesEnrichment(tvdb_id=pro_tvdb, year=None, genres=[], poster_url=None)
+        hits = []
     if not hits:
-        return _SeriesEnrichment(tvdb_id=pro_tvdb, year=None, genres=[], poster_url=None)
-    hit = hits[0]
-    tvdb = int(hit.get("tvdbId") or pro_tvdb or 0)
-    genres: list[str] = list(hit.get("genres") or [])
-    return _SeriesEnrichment(
-        tvdb_id=tvdb, year=hit.get("year"), genres=genres, poster_url=_poster_from(hit)
-    )
+        result = _SeriesEnrichment(tvdb_id=pro_tvdb, year=None, genres=[], poster_url=None)
+    else:
+        hit = hits[0]
+        tvdb = int(hit.get("tvdbId") or pro_tvdb or 0)
+        result = _SeriesEnrichment(
+            tvdb_id=tvdb,
+            year=hit.get("year"),
+            genres=list(hit.get("genres") or []),
+            poster_url=_poster_from(hit),
+        )
+    if cache is not None:
+        cache[term] = result
+    return result
 
 
 def fetch_series_releases(settings: Settings) -> list[Release]:
@@ -128,6 +145,7 @@ def fetch_series_releases(settings: Settings) -> list[Release]:
             log.warning("sonarr series list failed: %s", exc)
 
     cutoff = datetime.now(UTC) - timedelta(hours=settings.releases_window_hours)
+    lookup_cache: dict[str, _SeriesEnrichment] = {}  # memoize per series → 1 lookup/show
     by_hash: dict[str, Release] = {}
     for ix in indexers:
         if not ix.get("enable"):
@@ -148,7 +166,7 @@ def fetch_series_releases(settings: Settings) -> list[Release]:
             if not _within_window(rel.get("publishDate", ""), cutoff):
                 continue
             parsed = parse_series_title(rel.get("title", ""))
-            enr = _enrich(rel, parsed, sonarr)
+            enr = _enrich(rel, parsed, sonarr, lookup_cache)
             by_hash[ih] = Release(
                 title=rel.get("title", ""),
                 info_hash=ih,

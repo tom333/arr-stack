@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.48.0"  # co-bump: Séries tab TV releases browser (feat → minor from v0.47.1)
+            tag: "0.48.1"  # co-bump: memoize lookups (cold-fetch perf) (fix → patch from v0.48.0)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
