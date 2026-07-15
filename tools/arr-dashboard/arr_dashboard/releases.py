@@ -75,10 +75,18 @@ def _poster_from(hit: dict[str, Any]) -> str | None:
     return None
 
 
-def _enrich(rel: dict[str, Any], parsed: dict[str, Any], radarr: Any) -> _Enrichment:
+def _enrich(
+    rel: dict[str, Any],
+    parsed: dict[str, Any],
+    radarr: Any,
+    cache: dict[str, _Enrichment] | None = None,
+) -> _Enrichment:
     """Resolve tmdb + genres + poster via Radarr movie/lookup. FR trackers report
     tmdbId=0 -> lookup by title/year term. When Prowlarr already gives a tmdbId,
-    look up by tmdb:<id> to still get genres/poster."""
+    look up by tmdb:<id> to still get genres/poster.
+
+    ``cache`` memoizes the lookup per term so multiple releases of the same film
+    (VOF/FRENCH/.mkv variants common on FR trackers) do one lookup, not one each."""
     pro_tmdb = int(rel.get("tmdbId") or 0)
     if radarr is None:
         return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
@@ -89,17 +97,24 @@ def _enrich(rel: dict[str, Any], parsed: dict[str, Any], radarr: Any) -> _Enrich
     )
     if term is None:
         return _Enrichment(tmdb_id=0, genres=[], poster_url=None)
+    if cache is not None and term in cache:
+        return cache[term]
     try:
         hits = radarr.get(f"/movie/lookup?term={term}")
     except Exception as exc:
         log.debug("lookup failed for %s: %s", rel.get("title"), exc)
-        return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
+        hits = []
     if not hits:
-        return _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
-    hit = hits[0]
-    tmdb = int(hit.get("tmdbId") or pro_tmdb or 0)
-    genres: list[str] = list(hit.get("genres") or [])
-    return _Enrichment(tmdb_id=tmdb, genres=genres, poster_url=_poster_from(hit))
+        result = _Enrichment(tmdb_id=pro_tmdb, genres=[], poster_url=None)
+    else:
+        hit = hits[0]
+        tmdb = int(hit.get("tmdbId") or pro_tmdb or 0)
+        result = _Enrichment(
+            tmdb_id=tmdb, genres=list(hit.get("genres") or []), poster_url=_poster_from(hit)
+        )
+    if cache is not None:
+        cache[term] = result
+    return result
 
 
 def fetch_releases(settings: Settings) -> list[Release]:
@@ -129,6 +144,7 @@ def fetch_releases(settings: Settings) -> list[Release]:
             log.warning("radarr movie list failed: %s", exc)
 
     cutoff = datetime.now(UTC) - timedelta(hours=settings.releases_window_hours)
+    lookup_cache: dict[str, _Enrichment] = {}  # memoize per film → fewer lookups
     by_hash: dict[str, Release] = {}
     for ix in indexers:
         if not ix.get("enable"):
@@ -149,7 +165,7 @@ def fetch_releases(settings: Settings) -> list[Release]:
             if not _within_window(rel.get("publishDate", ""), cutoff):
                 continue
             parsed = parse_release_title(rel.get("title", ""))
-            enr = _enrich(rel, parsed, radarr)
+            enr = _enrich(rel, parsed, radarr, lookup_cache)
             by_hash[ih] = Release(
                 title=rel.get("title", ""),
                 info_hash=ih,
