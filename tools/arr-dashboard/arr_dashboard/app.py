@@ -232,7 +232,9 @@ def create_app(
                     reasons=res.reasons,
                 )
             )
-        scored.sort(key=lambda sr: (sr.accepted, sr.score), reverse=True)
+        # newest first (publish_date is ISO8601 → lexicographic == chronological;
+        # undated sorts last)
+        scored.sort(key=lambda sr: sr.release.publish_date or "", reverse=True)
         return [sr.model_dump(mode="json") for sr in scored]
 
     @app.post("/api/releases/refresh")
@@ -307,7 +309,9 @@ def create_app(
                     reasons=res.reasons,
                 )
             )
-        scored.sort(key=lambda sr: (sr.accepted, sr.score), reverse=True)
+        # newest first (publish_date is ISO8601 → lexicographic == chronological;
+        # undated sorts last)
+        scored.sort(key=lambda sr: sr.release.publish_date or "", reverse=True)
         return [sr.model_dump(mode="json") for sr in scored]
 
     @app.post("/api/series-releases/refresh")

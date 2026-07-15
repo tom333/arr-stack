@@ -980,7 +980,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.48.9"  # manual tag pushed BEFORE main (beats auto-tagger; builds image)
+            tag: "0.49.0"  # manual tag first (beats auto-tagger); sort-by-date
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
