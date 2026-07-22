@@ -141,7 +141,7 @@ prowlarr:
           image:
             # renovate: image=lscr.io/linuxserver/prowlarr
             repository: lscr.io/linuxserver/prowlarr
-            tag: "2.4.0"
+            tag: "2.5.2"
           env:
             TZ: "Europe/Paris"
             PUID: "1000"
