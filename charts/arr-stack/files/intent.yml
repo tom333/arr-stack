@@ -470,11 +470,11 @@ profile_definitions:
       - trash_ids: [fr-mhd, fr-x265-hd]
       - trash_ids: [fr-lq-groups]
     body_overrides:
-      # Films uniquement : remplace un grab pixelisé dès qu'un release mieux
-      # scoré (x265, VFF…) sort. Override clé-niveau : bloc upgrade COMPLET requis.
+      # Films : upgrade COUPÉ (choix opérateur 2026-07-26 — l'utilisateur ré-ajoute
+      # manuellement les films voulus). Override clé-niveau : bloc upgrade COMPLET requis.
       radarr:
         upgrade:
-          allowed: true
+          allowed: false
           until_quality: WEB 1080p
           until_score: 2000
           min_format_score: 50
@@ -513,11 +513,11 @@ profile_definitions:
       - trash_ids: [fr-mhd, fr-x265-hd]
       - trash_ids: [fr-lq-groups]
     body_overrides:
-      # Films uniquement : remplace un grab pixelisé dès qu'un release mieux
-      # scoré (x265, VFF…) sort. Override clé-niveau : bloc upgrade COMPLET requis.
+      # Films : upgrade COUPÉ (choix opérateur 2026-07-26 — l'utilisateur ré-ajoute
+      # manuellement les films voulus). Override clé-niveau : bloc upgrade COMPLET requis.
       radarr:
         upgrade:
-          allowed: true
+          allowed: false
           until_quality: WEB 1080p
           until_score: 2000
           min_format_score: 50
@@ -556,11 +556,11 @@ profile_definitions:
       - trash_ids: [fr-mhd, fr-x265-hd]
       - trash_ids: [fr-lq-groups]
     body_overrides:
-      # Films uniquement : remplace un grab pixelisé dès qu'un release mieux
-      # scoré (x265, VFF…) sort. Override clé-niveau : bloc upgrade COMPLET requis.
+      # Films : upgrade COUPÉ (choix opérateur 2026-07-26 — l'utilisateur ré-ajoute
+      # manuellement les films voulus). Override clé-niveau : bloc upgrade COMPLET requis.
       radarr:
         upgrade:
-          allowed: true
+          allowed: false
           until_quality: WEB 1080p
           until_score: 2000
           min_format_score: 50
