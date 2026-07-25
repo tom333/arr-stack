@@ -130,7 +130,7 @@ Le 3ème job `test` (arrconf reconciler) est inchangé. **`chart-lint.yml` ignor
 │                                         │
 │  9 Deployments (sonarr radarr prowlarr  │
 │    qbittorrent cleanuparr seerr         │
-│    flaresolverr jellyfin suggestarr)    │
+│    flaresolverr jellyfin)    │
 │  2 CronJobs (arrconf configarr)        │
 │  2 ConfigMaps + 11 ServiceAccounts     │
 └─────────────────────────────────────────┘
@@ -181,7 +181,7 @@ helm dependency build charts/arr-stack/
 
 # Workaround Helm 4 multi-alias (nécessaire car 13 aliases du même chart)
 tar -xzf charts/arr-stack/charts/app-template-5.0.0.tgz -C charts/arr-stack/charts/
-for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr cross-seed qbit-manage arrconf-mcp arr-dashboard; do
+for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin arrconf configarr cross-seed qbit-manage arrconf-mcp arr-dashboard; do
   [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
 done
 

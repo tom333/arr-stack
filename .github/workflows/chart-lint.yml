@@ -49,7 +49,7 @@ jobs:
           # "outdated" → tar failed intermittently). Just fan the committed dir out.
           test -f charts/arr-stack/charts/app-template/Chart.yaml \
             || { echo "Vendor failed: committed charts/arr-stack/charts/app-template/ missing"; exit 1; }
-          for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin suggestarr arrconf configarr cross-seed qbit-manage arrconf-mcp arr-dashboard; do
+          for alias in sonarr radarr prowlarr qbittorrent cleanuparr seerr flaresolverr jellyfin arrconf configarr cross-seed qbit-manage arrconf-mcp arr-dashboard; do
             [ ! -d "charts/arr-stack/charts/$alias" ] && cp -r charts/arr-stack/charts/app-template "charts/arr-stack/charts/$alias"
           done
 

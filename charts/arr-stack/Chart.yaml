@@ -48,10 +48,6 @@ dependencies:
     version: 5.0.1
     repository: https://bjw-s-labs.github.io/helm-charts
   - name: app-template
-    alias: suggestarr
-    version: 5.0.1
-    repository: https://bjw-s-labs.github.io/helm-charts
-  - name: app-template
     alias: cross-seed
     version: 5.0.1
     repository: https://bjw-s-labs.github.io/helm-charts
