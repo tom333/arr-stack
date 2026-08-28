@@ -31,19 +31,15 @@
       "automergeType": "pr"
     },
     {
-      "description": "Automerge minor/patch app-template (Chart.yaml) bumps",
+      "description": "app-template: NEVER automerge, pinned <5.1.0. The umbrella vendors charts/arr-stack/charts/app-template/ (committed, resolves all 14 aliases). Renovate bumps Chart.yaml/lock but CANNOT regenerate that vendored dir -> version mismatch -> chart renders 6/59 resources. 5.1.0 caused data loss 2026-08-28 (ArgoCD prune deleted PVCs). A bump requires a HUMAN: helm dependency update + unpack app-template into charts/, verify `helm template` = 59 resources, commit the regenerated dir.",
       "matchManagers": [
         "helmv3"
       ],
       "matchPackageNames": [
         "app-template"
       ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true,
-      "automergeType": "pr"
+      "automerge": false,
+      "allowedVersions": "<5.1.0"
     },
     {
       "description": "Gate major bumps for manual review",
