@@ -890,7 +890,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.53.0"  # manual tag first; sort by film release year
+            tag: "0.53.10"  # manual tag first; sort by film release year
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
