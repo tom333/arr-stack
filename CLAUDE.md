@@ -697,3 +697,22 @@ Pour démarrer Phase 0 (historique — déjà fait) :
 - **Flemmarr** (inspiration) — https://github.com/Flemmarr/Flemmarr
 - **bjw-s app-template** — https://github.com/bjw-s-labs/helm-charts/tree/main/charts/other/app-template
 - **Renovate customManagers** — https://docs.renovatebot.com/configuration-options/#custommanagers
+
+---
+
+## Tdarr (transcodage continu) — comment il s'intègre
+
+Ajouté 2026-09-14 comme 15e alias `app-template` (`tdarr:` dans `values.yaml`). Rôle : convertir **en continu** les nouveaux imports en x265 (le one-shot de réduction de la bibliothèque a été fait par scripts, voir mémoire « x265 transcode campaign »).
+
+- **1 pod** = server + node interne, **épinglé sur le node `pc`** (`nodeSelector` + `runtimeClassName: nvidia` + `nvidia.com/gpu: 1`) : c'est là que sont la RTX 3060 (NVENC) et le HDD de cache.
+- **Volumes** : `/media` = `media-nas-pvc` (RW, remplacement en place) · `/temp` = hostPath `/media/data/tdarr-cache` (HDD local — **jamais** le SSD système `sda`, en fin de vie) · `/app/{server,configs,logs}` = PVC `config` 5Gi.
+- **Ingress** `tdarr.tgu.ovh` protégé par le middleware Traefik `selfhost-oauth2-forwardauth` (Tdarr tourne avec `auth=false`).
+- **Config = DB-driven, PAS IaC** (comme cleanuparr) : bibliothèques, flows et règles se font dans l'UI ; arrconf/configarr n'y touchent pas.
+
+### Règles à reproduire dans les flows Tdarr (leçons de la campagne 2026-09)
+1. **Ne jamais toucher** : déjà hevc, AV1, **10-bit / HDR10 / HLG / Dolby Vision** (NVENC 8-bit `main` aplatirait le HDR ; la couche DV est perdue quoi qu'il arrive).
+2. **Garde-fou taille** : ne remplacer que si la sortie est **plus petite** que la source (une source h264 « lean » < ~0,11 bit/pixel/frame ressort plus grosse en hevc CQ26).
+3. Sortie **mkv**, vidéo `hevc_nvenc` CQ ~26 (films) / 27-28 (séries), **audio et sous-titres copiés** tels quels.
+4. Fichiers **hardlinkés** (`nlink>1` = seedés par cross-seed) : à exclure, remplacer ne libère rien et casse le seed.
+5. ⚠️ **Écritures NFS vers le Synology** : la copie bufferisée de fichiers ≥ ~2 Go fait décrocher `nfsd` (« nfs: server not responding », PC figé — incident 2026-09-13). Tdarr copie cache→bibliothèque en bufferisé : commencer par les **séries** (petits fichiers), surveiller `journalctl -k | grep 'not responding'`, n'élargir aux films qu'après validation.
+6. Radarr/Sonarr sont **unmonitored** partout et upgrades OFF : un fichier remplacé n'est jamais re-téléchargé.

@@ -961,3 +961,105 @@ arr-dashboard:
         - path: /app/config/intent.yml
           subPath: intent.yml
           readOnly: true
+
+tdarr:
+  # Transcodage conditionnel continu (auto-x265 des nouveaux imports). Bibliothèques,
+  # flows et règles se configurent dans l'UI Tdarr (DB-driven, PAS IaC — cf. CLAUDE.md
+  # § Tdarr). Le one-shot de réduction 2026-09 a été fait par scripts (~/transcode-*.sh).
+  global:
+    nameOverride: tdarr
+    fullnameOverride: tdarr
+  serviceAccount:
+    tdarr: {}
+  defaultPodOptions:
+    # La RTX 3060 (NVENC) et le HDD de cache /media/data sont sur le node `pc`.
+    nodeSelector:
+      kubernetes.io/hostname: pc
+    runtimeClassName: nvidia
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            # renovate: image=ghcr.io/haveagitgat/tdarr
+            repository: ghcr.io/haveagitgat/tdarr
+            tag: "2.50.01"
+          env:
+            TZ: "Europe/Paris"
+            PUID: "1000"
+            PGID: "1000"
+            UMASK_SET: "002"
+            serverIP: "0.0.0.0"
+            serverPort: "8266"
+            webUIPort: "8265"
+            internalNode: "true"      # server + node dans le même pod (1 seul GPU)
+            inContainer: "true"
+            ffmpegVersion: "7"
+            nodeName: "pc-rtx3060"
+            auth: "false"             # pas d'auth interne : oauth2 forwardAuth sur l'ingress
+            openBrowser: "false"
+            maxLogSizeMB: "10"
+            NVIDIA_DRIVER_CAPABILITIES: "all"
+            NVIDIA_VISIBLE_DEVICES: "all"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              # Pas de limite CPU (décodage logiciel des vieux DivX/XviD, NVDEC ne les lit pas).
+              memory: 6Gi
+              nvidia.com/gpu: 1
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 8265
+        server:
+          port: 8266
+  ingress:
+    main:
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # Tdarr n'a pas d'authentification activée : oauth2 obligatoire via Traefik forwardAuth
+        traefik.ingress.kubernetes.io/router.middlewares: "selfhost-oauth2-forwardauth@kubernetescrd"
+      hosts:
+        - host: tdarr.tgu.ovh
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - secretName: tdarr-tls
+          hosts:
+            - tdarr.tgu.ovh
+  persistence:
+    config:
+      # BDD serveur + configs + logs Tdarr (petit, local au cluster)
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      globalMounts:
+        - path: /app/server
+          subPath: server
+        - path: /app/configs
+          subPath: configs
+        - path: /app/logs
+          subPath: logs
+    media:
+      # NAS NFS — bibliothèque partagée (remplacement en place par Tdarr)
+      type: persistentVolumeClaim
+      existingClaim: media-nas-pvc
+      globalMounts:
+        - path: /media
+    cache:
+      # Cache de transcodage sur le HDD local du node `pc` (jamais sur le SSD système sda,
+      # en fin de vie). Même disque que le scratch des scripts de la campagne 2026-09.
+      type: hostPath
+      hostPath: /media/data/tdarr-cache
+      hostPathType: DirectoryOrCreate
+      globalMounts:
+        - path: /temp

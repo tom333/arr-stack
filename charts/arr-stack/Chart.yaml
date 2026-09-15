@@ -72,3 +72,7 @@ dependencies:
     alias: arr-dashboard
     version: 5.0.1
     repository: https://bjw-s-labs.github.io/helm-charts
+  - name: app-template
+    alias: tdarr
+    version: 5.0.1
+    repository: https://bjw-s-labs.github.io/helm-charts

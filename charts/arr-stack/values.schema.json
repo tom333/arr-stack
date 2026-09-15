@@ -1954,6 +1954,195 @@
     "app-template": {
       "type": "object",
       "description": "Raw vendored app-template subchart (unaliased charts/ dir): Helm coalesces its defaults here since 5.0.1 ships non-empty default values. Never set by operators."
+    },
+    "tdarr": {
+      "type": "object",
+      "properties": {
+        "controllers": {
+          "type": "object",
+          "properties": {
+            "main": {
+              "type": "object",
+              "properties": {
+                "containers": {
+                  "type": "object",
+                  "properties": {
+                    "main": {
+                      "type": "object",
+                      "properties": {
+                        "env": {
+                          "type": "object",
+                          "properties": {
+                            "TZ": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "image": {
+                          "type": "object",
+                          "properties": {
+                            "repository": {
+                              "type": "string"
+                            },
+                            "tag": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "global": {
+          "type": "object",
+          "properties": {
+            "fullnameOverride": {
+              "type": "string"
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "main": {
+              "type": "object",
+              "properties": {
+                "annotations": {
+                  "type": "object",
+                  "properties": {
+                    "cert-manager.io/cluster-issuer": {
+                      "type": "string"
+                    },
+                    "nginx.ingress.kubernetes.io/auth-signin": {
+                      "type": "string"
+                    },
+                    "nginx.ingress.kubernetes.io/auth-url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "className": {
+                  "type": "string"
+                },
+                "hosts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "host": {
+                        "type": "string"
+                      },
+                      "paths": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "pathType": {
+                              "type": "string"
+                            },
+                            "service": {
+                              "type": "object",
+                              "properties": {
+                                "identifier": {
+                                  "type": "string"
+                                },
+                                "port": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "tls": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "secretName": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "accessMode": {
+                  "type": "string"
+                },
+                "globalMounts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "size": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "main": {
+              "type": "object",
+              "properties": {
+                "controller": {
+                  "type": "string"
+                },
+                "ports": {
+                  "type": "object",
+                  "properties": {
+                    "http": {
+                      "type": "object",
+                      "properties": {
+                        "port": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false
