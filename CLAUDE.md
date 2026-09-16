@@ -704,7 +704,7 @@ Pour démarrer Phase 0 (historique — déjà fait) :
 
 Ajouté 2026-09-14 comme 15e alias `app-template` (`tdarr:` dans `values.yaml`). Rôle : convertir **en continu** les nouveaux imports en x265 (le one-shot de réduction de la bibliothèque a été fait par scripts, voir mémoire « x265 transcode campaign »).
 
-- **1 pod** = server + node interne, **épinglé sur le node `pc`** (`nodeSelector` + `runtimeClassName: nvidia` + `nvidia.com/gpu: 1`) : c'est là que sont la RTX 3060 (NVENC) et le HDD de cache.
+- **1 pod** = server + node interne, **épinglé sur le node `pc`** (`nodeSelector` + `runtimeClassName: nvidia` + `NVIDIA_VISIBLE_DEVICES=all` ; **pas** de `nvidia.com/gpu: 1` : le GPU est déjà réservé par LocalAI et le device plugin n'a pas de time-slicing → partage par injection du toolkit) : c'est là que sont la RTX 3060 (NVENC) et le HDD de cache.
 - **Volumes** : `/media` = `media-nas-pvc` (RW, remplacement en place) · `/temp` = hostPath `/media/data/tdarr-cache` (HDD local — **jamais** le SSD système `sda`, en fin de vie) · `/app/{server,configs,logs}` = PVC `config` 5Gi.
 - **Ingress** `tdarr.tgu.ovh` protégé par le middleware Traefik `selfhost-oauth2-forwardauth` (Tdarr tourne avec `auth=false`).
 - **Config = DB-driven, PAS IaC** (comme cleanuparr) : bibliothèques, flows et règles se font dans l'UI ; arrconf/configarr n'y touchent pas.

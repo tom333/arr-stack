@@ -1008,7 +1008,9 @@ tdarr:
             limits:
               # Pas de limite CPU (décodage logiciel des vieux DivX/XviD, NVDEC ne les lit pas).
               memory: 6Gi
-              nvidia.com/gpu: 1
+              # Pas de `nvidia.com/gpu: 1` : le seul GPU de `pc` est déjà réservé par LocalAI
+              # (device plugin sans time-slicing → Pending). Le GPU est partagé via
+              # runtimeClassName nvidia + NVIDIA_VISIBLE_DEVICES=all (injection par le toolkit).
   service:
     main:
       controller: main
