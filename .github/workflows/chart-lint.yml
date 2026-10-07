@@ -140,7 +140,7 @@ jobs:
           PY
 
       - name: Set up Node 22 (renovate-config-validator requires node ^20.15 || ^22.11)
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
 
