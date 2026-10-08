@@ -983,7 +983,7 @@ tdarr:
           image:
             # renovate: image=ghcr.io/haveagitgat/tdarr
             repository: ghcr.io/haveagitgat/tdarr
-            tag: "2.50.01"
+            tag: "2.95.01"
           env:
             TZ: "Europe/Paris"
             PUID: "1000"
