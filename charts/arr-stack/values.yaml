@@ -80,7 +80,7 @@ radarr:
           image:
             # renovate: image=lscr.io/linuxserver/radarr
             repository: lscr.io/linuxserver/radarr
-            tag: "6.3.0"
+            tag: "6.4.4"
           env:
             TZ: "Europe/Paris"
             PUID: "1000"
