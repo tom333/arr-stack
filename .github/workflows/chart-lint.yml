@@ -23,7 +23,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -154,7 +154,7 @@ jobs:
 
   tag:
     needs: lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # B3 Path A: auto-tag patch on every push-to-main that passes lint.
     # Renovate-PR merges land here; their tag triggers my-kluster's Renovate scan
     # which is what closes SC#2 (REQ-pr-to-cluster-latency).

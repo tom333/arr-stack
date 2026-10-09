@@ -26,7 +26,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
@@ -103,7 +103,7 @@ jobs:
   arrconf-ui-backend:
     # Phase 17 — REQ-arrconf-ui-ci. Python triad on the FastAPI backend.
     # No --cov-fail-under (D-17-COVERAGE-01 — UI backend is glue, threshold deferred).
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
@@ -146,7 +146,7 @@ jobs:
   arrconf-mcp:
     # MCP server (Phase 1). Python triad + pytest on the stdio MCP package.
     # Reuses arrconf as a sibling editable path dep (uv.sources).
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
@@ -180,7 +180,7 @@ jobs:
   arr-dashboard:
     # arr-dashboard read-only service (Phase 7). Python triad + pytest with coverage gate.
     # Reuses arrconf as a sibling editable path dep (uv.sources).
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
@@ -213,7 +213,7 @@ jobs:
 
   arr-dashboard-frontend:
     # arr-dashboard Svelte/Vite frontend (Phase 7). Mirrors arrconf-ui-frontend.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
@@ -239,7 +239,7 @@ jobs:
     # Phase 17 — REQ-arrconf-ui-ci. Full Svelte/Vite quad.
     # D-17-FRONTEND-01: ci + check + typecheck + build (tsc --noEmit catches pure .ts files
     # not covered by svelte-check).
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
@@ -271,7 +271,7 @@ jobs:
     # INTENT-03 — CI guard: fail if committed configs drift from intent.yml.
     # Kept in tests.yml (NOT chart-lint.yml) to stay isolated from the
     # mathieudutour auto-tagger (D-09).
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:
