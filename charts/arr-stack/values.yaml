@@ -513,7 +513,7 @@ arrconf:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf
             repository: ghcr.io/tom333/arr-stack-arrconf
-            tag: "0.54.16"
+            tag: "0.55.0"
             pullPolicy: IfNotPresent
           args:
             - "--config"
@@ -830,7 +830,7 @@ arrconf-mcp:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arrconf-mcp
             repository: ghcr.io/tom333/arr-stack-arrconf-mcp
-            tag: "0.54.16"  # lockstep with the chart auto-tag (feat → minor from v0.28.1)
+            tag: "0.55.0"  # lockstep with the chart auto-tag (feat → minor from v0.28.1)
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"
@@ -890,7 +890,7 @@ arr-dashboard:
           image:
             # renovate: image=ghcr.io/tom333/arr-stack-arr-dashboard
             repository: ghcr.io/tom333/arr-stack-arr-dashboard
-            tag: "0.54.16"  # manual tag first; sort by film release year
+            tag: "0.55.0"  # manual tag first; sort by film release year
             pullPolicy: IfNotPresent
           env:
             TZ: "Europe/Paris"

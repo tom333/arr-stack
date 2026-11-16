@@ -37,6 +37,7 @@ post-UAT to preserve user-added libs.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -51,7 +52,7 @@ from arrconf.config import (
     JellyfinUsersSection,
 )
 from arrconf.exceptions import NotFoundError
-from arrconf.intent_config import SagaEntry
+from arrconf.intent_config import KeywordCollection, SagaEntry
 from arrconf.resources.jellyfin.library import JellyfinLibrary
 
 log = structlog.get_logger()
@@ -730,6 +731,90 @@ def _reconcile_sagas_boxsets(
             )
             log.info("saga_boxset_items_added", saga_name=saga.name, member_count=len(resolved_ids))
             actions.append(f"saga_boxset:items_added:{saga.name}")
+
+    return actions
+
+
+def select_keyword_collection_members(
+    movies: list[dict[str, Any]], rule: KeywordCollection
+) -> list[str]:
+    """Return the Ids of ``movies`` (GET /Items Movie, fields Tags+Path) matching ``rule``."""
+    keywords = {k.lower() for k in rule.keywords}
+    title_re = re.compile(rule.title_pattern, re.IGNORECASE) if rule.title_pattern else None
+    prefixes = tuple(p.rstrip("/") + "/" for p in rule.path_prefixes)
+    excluded = set(rule.exclude)
+    ids: list[str] = []
+    for movie in movies:
+        name = movie.get("Name") or ""
+        if prefixes and not (movie.get("Path") or "").startswith(prefixes):
+            continue
+        if name in excluded:
+            continue
+        tags = {t.lower() for t in movie.get("Tags") or []}
+        if keywords & tags or (title_re is not None and title_re.search(name)):
+            ids.append(str(movie["Id"]))
+    return ids
+
+
+def _reconcile_keyword_collections(
+    client: JellyfinClient,
+    collections: list[KeywordCollection],
+    dry_run: bool,
+) -> list[str]:
+    """Create/extend rule-based movie BoxSets (add-only: hand-added members are kept).
+
+    Current members are read through an administrator's user view because
+    GET /Items?parentId=<boxset> without a user context returns no children.
+    """
+    if not collections:
+        return []
+
+    movies: list[dict[str, Any]] = client.get(
+        ITEMS_PATH,
+        params={"includeItemTypes": "Movie", "recursive": "true", "fields": "Tags,Path"},
+    ).get("Items", [])
+    boxsets = client.get(ITEMS_PATH, params={"includeItemTypes": "BoxSet", "recursive": "true"})
+    existing_by_name = {
+        item["Name"]: str(item["Id"]) for item in boxsets.get("Items", []) if item.get("Name")
+    }
+    users: list[dict[str, Any]] = client.get(USERS_PATH)
+    admin_id = next(
+        (str(u["Id"]) for u in users if (u.get("Policy") or {}).get("IsAdministrator")), None
+    )
+
+    actions: list[str] = []
+    for rule in collections:
+        wanted = select_keyword_collection_members(movies, rule)
+        collection_id = existing_by_name.get(rule.name)
+        if collection_id is None:
+            if dry_run:
+                actions.append(f"keyword_collection:dry_run_create:{rule.name}")
+                continue
+            client._request(
+                "POST", COLLECTIONS_PATH, params={"name": rule.name, "ids": ",".join(wanted)}
+            )
+            log.info("keyword_collection_created", name=rule.name, member_count=len(wanted))
+            actions.append(f"keyword_collection:created:{rule.name}")
+            continue
+
+        current: set[str] = set()
+        if admin_id is not None:
+            children = client.get(
+                f"{USERS_PATH}/{admin_id}/Items", params={"parentId": collection_id}
+            )
+            current = {str(i["Id"]) for i in children.get("Items", [])}
+        missing = [i for i in wanted if i not in current]
+        if not missing:
+            log.info("keyword_collection_no_op", name=rule.name)
+            continue
+        if dry_run:
+            actions.append(f"keyword_collection:dry_run_add:{rule.name}:{len(missing)}")
+            continue
+        client._request(
+            "POST", f"{COLLECTIONS_PATH}/{collection_id}/Items", params={"ids": ",".join(missing)}
+        )
+        log.info("keyword_collection_items_added", name=rule.name, added=len(missing))
+        actions.append(f"keyword_collection:items_added:{rule.name}:{len(missing)}")
 
     return actions
 

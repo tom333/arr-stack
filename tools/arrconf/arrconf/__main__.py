@@ -650,6 +650,35 @@ def apply(
         # exclusively by reconcile_category_tags below (applyTags="set"). The
         # BoxSet/saga deliverable (SAGAS-04 Jellyfin block above) is unaffected.
 
+    # Rule-based Jellyfin movie BoxSets (e.g. "Noël"). Runs after the jellyfin branch so
+    # libraries exist; add-only, so a failure never removes anything.
+    if (
+        intent_cfg is not None
+        and intent_cfg.keyword_collections
+        and "jellyfin" in targets
+        and "main" in root.jellyfin
+        and settings.jellyfin_api_key
+    ):
+        try:
+            from arrconf.client_base import JellyfinClient  # noqa: PLC0415
+            from arrconf.reconcilers.jellyfin import (  # noqa: PLC0415
+                _reconcile_keyword_collections,
+            )
+
+            kw_client = JellyfinClient(
+                base_url=root.jellyfin["main"].base_url,
+                api_key=settings.jellyfin_api_key.get_secret_value(),
+            )
+            kw_actions = _reconcile_keyword_collections(
+                kw_client,
+                intent_cfg.keyword_collections,
+                dry_run=dry_run or settings.arrconf_dry_run,
+            )
+            log.info("apply_complete", app="jellyfin_keyword_collections", actions=kw_actions)
+        except (ApiClientError, ReconcileError) as e:
+            log.error("app_failed", app="jellyfin_keyword_collections", error=str(e))
+            failures.append("jellyfin_keyword_collections")
+
     # Category-tag enforcement (FINAL tagging step): set each title's tags to
     # exactly its Category tag (applyTags="set"). Runs AFTER all existing tag
     # reconciliation (lines 310-428) AND after the SAGAS-04 Sonarr series-tagging

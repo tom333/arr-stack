@@ -15,6 +15,7 @@ Design decisions:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Literal
 
@@ -185,6 +186,47 @@ class SagaEntry(BaseModel):
         return self
 
 
+class KeywordCollection(BaseModel):
+    """A Jellyfin movie BoxSet whose members are selected by rule.
+
+    A movie is a member when it lives under one of ``path_prefixes`` (empty = any),
+    is not in ``exclude``, and either carries one of ``keywords`` (TMDb keywords,
+    exposed by Jellyfin as movie Tags) or has a title matching ``title_pattern``.
+    Reconcile is add-only: members added by hand in Jellyfin are kept.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(description="Jellyfin BoxSet name.")
+    keywords: list[str] = Field(
+        default_factory=list,
+        description="TMDb keywords (Jellyfin movie Tags), compared case-insensitively.",
+    )
+    title_pattern: str | None = Field(
+        default=None,
+        description="Regex searched case-insensitively in the movie title.",
+    )
+    path_prefixes: list[str] = Field(
+        default_factory=list,
+        description="Only movies under these folders are considered. Empty = all.",
+    )
+    exclude: list[str] = Field(
+        default_factory=list,
+        description="Exact movie titles never added, even when they match.",
+    )
+
+    @model_validator(mode="after")
+    def _check_rule(self) -> KeywordCollection:
+        if not self.keywords and not self.title_pattern:
+            raise ValueError("keywords or title_pattern is required")
+        if self.title_pattern is not None:
+            try:
+                re.compile(self.title_pattern)
+            except re.error as e:
+                raise ValueError(f"invalid title_pattern: {e}") from e
+        return self
+
+
 class CustomFormatRef(BaseModel):
     """One custom_format reference inside a profile_definition (D-33-06).
 
@@ -267,6 +309,10 @@ class IntentConfig(BaseModel):
     sagas: list[SagaEntry] = Field(
         default_factory=list,
         description="Saga declarations. Schema present-but-unexercised in P28 (D-05).",
+    )
+    keyword_collections: list[KeywordCollection] = Field(
+        default_factory=list,
+        description="Rule-based Jellyfin movie BoxSets (e.g. 'Noël' from TMDb keywords).",
     )
     categories: list[MediaCategory] = Field(
         default_factory=list,

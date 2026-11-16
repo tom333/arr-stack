@@ -94,6 +94,32 @@ tools:
 
 sagas: []
 
+# Rule-based Jellyfin movie BoxSets, kept up to date on every apply (add-only:
+# films added by hand to the collection in Jellyfin are kept). Kids-only:
+# path_prefixes keeps out the action "Christmas" films living in /media/films
+# (Die Hard, Lethal Weapon, Harry Potter...).
+keyword_collections:
+  - name: "Noël"
+    keywords:
+      - christmas
+      - christmas eve
+      - christmas spirit
+      - christmas story
+      - christmas special
+      - christmas tree
+      - christmas party
+      - saving christmas
+      - santa claus
+      - letter to santa claus
+      - xmas
+    title_pattern: "no[eë]l|christmas|santa"
+    path_prefixes:
+      - /media/films-animation-enfants
+      - /media/films-enfants
+      - /media/films-zoe
+    exclude:
+      - "Edward aux mains d'argent"
+
 categories:
   - name: series
     kind: series

@@ -196,6 +196,59 @@
       "title": "CustomFormatRef",
       "type": "object"
     },
+    "KeywordCollection": {
+      "additionalProperties": false,
+      "description": "A Jellyfin movie BoxSet whose members are selected by rule.\n\nA movie is a member when it lives under one of ``path_prefixes`` (empty = any),\nis not in ``exclude``, and either carries one of ``keywords`` (TMDb keywords,\nexposed by Jellyfin as movie Tags) or has a title matching ``title_pattern``.\nReconcile is add-only: members added by hand in Jellyfin are kept.",
+      "properties": {
+        "exclude": {
+          "description": "Exact movie titles never added, even when they match.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "keywords": {
+          "description": "TMDb keywords (Jellyfin movie Tags), compared case-insensitively.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Keywords",
+          "type": "array"
+        },
+        "name": {
+          "description": "Jellyfin BoxSet name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "path_prefixes": {
+          "description": "Only movies under these folders are considered. Empty = all.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Path Prefixes",
+          "type": "array"
+        },
+        "title_pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Regex searched case-insensitively in the movie title.",
+          "title": "Title Pattern"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "KeywordCollection",
+      "type": "object"
+    },
     "ProfileDefinition": {
       "additionalProperties": false,
       "description": "A reusable quality-profile body, written once per profile name (D-33-01/02).\n\nbody: the QP fields emitted verbatim into configarr quality_profiles\n(language, reset_unmatched_scores, upgrade, min_format_score, quality_sort,\nqualities). Carried as dict[str, Any] \u2014 configarr validates at apply time,\narrconf does NOT (ADR-5: arrconf-ui models must not be imported here).\ncustom_formats: structured so generate emits assign_scores_to per profile.",
@@ -480,6 +533,14 @@
       "description": "configarr.yml pass-through skeleton (trashGuideUrl, customFormatDefinitions, base_url/api_key/media_naming/quality_definition per instance). Emitted verbatim; generate injects quality_profiles + custom_formats (D-33-07/08).",
       "title": "Configarr",
       "type": "object"
+    },
+    "keyword_collections": {
+      "description": "Rule-based Jellyfin movie BoxSets (e.g. 'No\u00ebl' from TMDb keywords).",
+      "items": {
+        "$ref": "#/$defs/KeywordCollection"
+      },
+      "title": "Keyword Collections",
+      "type": "array"
     },
     "profile_definitions": {
       "additionalProperties": {
