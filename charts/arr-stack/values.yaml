@@ -611,7 +611,7 @@ cross-seed:
           image:
             # renovate: image=ghcr.io/cross-seed/cross-seed
             repository: ghcr.io/cross-seed/cross-seed
-            tag: "6.13.7"
+            tag: "6.13.9"
             pullPolicy: IfNotPresent
           command:
             - node
@@ -631,7 +631,7 @@ cross-seed:
           image:
             # renovate: image=ghcr.io/cross-seed/cross-seed
             repository: ghcr.io/cross-seed/cross-seed
-            tag: "6.13.7"
+            tag: "6.13.9"
             pullPolicy: IfNotPresent
           args:
             - daemon
